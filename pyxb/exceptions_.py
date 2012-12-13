@@ -596,6 +596,38 @@ class UnprocessedElementContentError (BatchElementContentError):
     This exception occurs in batch-mode validation."""
     pass
 
+class InvalidPreferredElementContentError (BatchElementContentError):
+    """Use of a preferred element led to inability to generate a valid document"""
+    pass
+
+class OrphanElementContentError (ContentValidationError):
+    """An element expected to be used in content is not present in the instance.
+
+    This exception occurs in batch-mode validation when
+    L{pyxb.ValidationConfig.contentInfluencesGeneration} applies,
+    L{pyxb.ValidationConfig.orphanElementInContent} is set to
+    L{pyxb.ValidationConfig.RAISE_EXCEPTION}, and the content list
+    includes an element that is not in the binding instance
+    content.
+    """
+
+    instance = None
+    """The binding instance."""
+
+    preferred = None
+    """An element value from the L{instance} L{content<pyxb.binding.basis.complexTypeDefinition.content>} list which was not found in the L{instance}."""
+
+    def __init__ (self, instance, preferred):
+        """@param instance: the value for the L{instance} attribute.
+        @param preferred: the value for the L{preferred} attribute.
+        """
+        self.instance = instance
+        self.preferred = preferred
+        super(OrphanElementContentError, self).__init__(instance, preferred)
+
+    def __str__ (self):
+        return 'Preferred content element not found in instance'
+
 class SimpleTypeValueError (ValidationError):
     """Raised when a simple type value does not satisfy its constraints."""
     type = None

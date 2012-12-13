@@ -2020,7 +2020,11 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE):
             return []
         self._resetAutomaton()
-        return self.__automatonConfiguration.sequencedChildren()
+        vc = self._validationConfig
+        content = None
+        if (vc.ALWAYS == vc.contentInfluencesGeneration) or (self._ContentTypeTag == self._CT_MIXED and vc.MIXED_ONLY == vc.contentInfluencesGeneration):
+            content = self.__content
+        return self.__automatonConfiguration.sequencedChildren(content)
 
     def _symbolSet (self):
         """Return a map from L{content.ElementDeclaration} instances to a list of

@@ -241,6 +241,11 @@ class ValidationConfig (object):
 
         The value is one of L{ALWAYS}, L{NEVER}, L{MIXED_ONLY} (default)."""
         return self.__contentInfluencesGeneration
+    def _setContentInfluencesGeneration (self, value):
+        """Set the value of L{contentInfluencesGeneration}."""
+        if not (value in ( self.ALWAYS, self.NEVER, self.MIXED_ONLY )):
+            raise ValueError(value)
+        self.__contentInfluencesGeneration = value
     contentInfluencesGeneration = property(__getContentInfluencesGeneration)
 
     def __validatedContentValue (self, value):
@@ -259,10 +264,11 @@ class ValidationConfig (object):
         L{RAISE_EXCEPTION}."""
         return self.__orphanElementInContent
     def _setOrphanElementInContent (self, value):
+        """Set the value of L{orphanElementInContent}."""
         self.__orphanElementInContent = self.__validatedContentValue(value)
     orphanElementInContent = property(__getOrphanElementInContent)
     
-    __invalidElementInContext = GIVE_UP
+    __invalidElementInContent = GIVE_UP
     def __getInvalidElementInContent (self):
         """How to handle invalid elements in content lists.
 
@@ -270,9 +276,17 @@ class ValidationConfig (object):
         L{RAISE_EXCEPTION}."""
         return self.__invalidElementInContent
     def _setInvalidElementInContent (self, value):
+        """Set the value of L{invalidElementInContent}."""
         self.__invalidElementInContent = self.__validatedContentValue(value)
     invalidElementInContent = property(__getInvalidElementInContent)
 
+    def copy (self):
+        """Make a copy of this instance.
+
+        Use this to get a starting point when you need to customize validation
+        on a per-instance/per-class basis."""
+        import copy
+        return copy.copy(self)
 
 GlobalValidationConfig = ValidationConfig()
 

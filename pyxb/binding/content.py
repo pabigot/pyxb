@@ -487,8 +487,7 @@ class AutomatonConfiguration (object):
         """Generate the exception explaining why the content is incomplete."""
         return self._diagnoseIncompleteContent(None, None)
 
-    def sequencedChildren (self):
-
+    def sequencedChildren (self, preferred_sequence):
         """Implement L{pyxb.binding.basis.complexTypeDefinition._validatedChildren}.
 
         Go there for the interface.
@@ -502,15 +501,45 @@ class AutomatonConfiguration (object):
         # The validated sequence
         symbols = []
 
+        # Index in the preferred sequence.
+        pi = 0
+
         # The available content, in a map from ElementDeclaration to in-order
         # values.  The key None corresponds to the wildcard content.  Keys are
         # removed when their corresponding content is exhausted.
         symbol_set = self.__instance._symbolSet()
+
+        vc = self.__instance._validationConfig
         while symbol_set:
-            # Find the first acceptable transition without filtering on any
-            # symbols
+            # Find the first acceptable transition.  If there's a preferred
+            # symbol to use, try it first.
             selected_xit = None
-            for xit in cfg.candidateTransitions(None):
+            psym = None
+            if preferred_sequence is not None:
+                while psym is None:
+                    if pi >= len(preferred_sequence):
+                        preferred_sequence = None
+                        break
+                    csym = preferred_sequence[pi]
+                    pi += 1
+                    if not isinstance(csym, pyxb.binding.basis._TypeBinding_mixin):
+                        continue
+                    for (ed, vals) in symbol_set.iteritems():
+                        if csym in vals:
+                            _log.debug('prefer %s %s', ed, csym)
+                            psym = ( csym, ed )
+                            break
+                    if psym is None:
+                        # Orphan encountered; response?
+                        _log.info('orphan %s in content', csym)
+                        if vc.IGNORE_ONCE == vc.orphanElementInContent:
+                            continue
+                        if vc.GIVE_UP == vc.orphanElementInContent:
+                            preferred_sequence = None
+                            break
+                        raise pyxb.OrphanElementContentError(self.__instance, csym)
+            candidates = cfg.candidateTransitions(psym)
+            for xit in candidates:
                 csym = xit.consumedSymbol()
                 if isinstance(csym, ElementUse):
                     ed = csym.elementDeclaration()
@@ -532,6 +561,15 @@ class AutomatonConfiguration (object):
                     del symbol_set[ed]
                 break
             if selected_xit is None:
+                if psym is not None:
+                    # Suggestion from content did not work
+                    _log.info('invalid %s in content', psym)
+                    if vc.IGNORE_ONCE == vc.invalidElementInContent:
+                        continue
+                    if vc.GIVE_UP == vc.invalidElementInContent:
+                        pi = len(preferred_sequence)
+                        continue
+                    raise InvalidPreferredElementContentError(self.__instance, cfg, symbols, symbol_set)
                 break
             cfg = selected_xit.apply(cfg)
         cfg = self._diagnoseIncompleteContent(symbols, symbol_set)
