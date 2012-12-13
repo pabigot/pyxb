@@ -175,6 +175,7 @@ Applies only at compilation time; dynamic changes are ignored.
 
 class ValidationConfig (object):
     """Class holding configuration related to validation."""
+
     __forBinding = True
     def _getForBinding (self):
         """C{True} iff validation should be performed when manipulating a
@@ -210,6 +211,68 @@ class ValidationConfig (object):
         self.__forDocument = value
         return value
     forDocument = property(_getForDocument)
+
+    ALWAYS = -1
+    """Always do it."""
+
+    NEVER = 0
+    """Never do it."""
+
+    IGNORE_ONCE = 1
+    """If an error occurs ignore it and continue with the next one.  (E.g., if
+    an element in a content list fails skip it and continue with the next
+    element in the list.)"""
+    
+    GIVE_UP = 2
+    """If an error occurs ignore it and stop using whatever provided the cause
+    of the error.  (E.g., if an element in a content list fails stop
+    processing the content list and execute as though it was absent)."""
+
+    RAISE_EXCEPTION = 3
+    """If an error occurs, raise an exception."""
+
+    MIXED_ONLY = 4
+    """Only when content type is mixed."""
+
+    __contentInfluencesGeneration = MIXED_ONLY
+    def __getContentInfluencesGeneration (self):
+        """Determine whether complex type content influences element order in
+        document generation.
+
+        The value is one of L{ALWAYS}, L{NEVER}, L{MIXED_ONLY} (default)."""
+        return self.__contentInfluencesGeneration
+    contentInfluencesGeneration = property(__getContentInfluencesGeneration)
+
+    def __validatedContentValue (self, value):
+        if not (value in ( self.IGNORE_ONCE, self.GIVE_UP, self.RAISE_EXCEPTION )):
+            raise ValueError(value)
+        return value
+
+    __orphanElementInContent = IGNORE_ONCE
+    def __getOrphanElementInContent (self):
+        """How to handle unrecognized elements in content lists.
+
+        This is used when consulting a complex type instance content list to
+        influence the generation of documents from a binding instance.
+
+        The value is one of L{IGNORE_ONCE} (default), L{GIVE_UP},
+        L{RAISE_EXCEPTION}."""
+        return self.__orphanElementInContent
+    def _setOrphanElementInContent (self, value):
+        self.__orphanElementInContent = self.__validatedContentValue(value)
+    orphanElementInContent = property(__getOrphanElementInContent)
+    
+    __invalidElementInContext = GIVE_UP
+    def __getInvalidElementInContent (self):
+        """How to handle invalid elements in content lists.
+
+        The value is one of L{IGNORE_ONCE}, L{GIVE_UP} (default),
+        L{RAISE_EXCEPTION}."""
+        return self.__invalidElementInContent
+    def _setInvalidElementInContent (self, value):
+        self.__invalidElementInContent = self.__validatedContentValue(value)
+    invalidElementInContent = property(__getInvalidElementInContent)
+
 
 GlobalValidationConfig = ValidationConfig()
 
