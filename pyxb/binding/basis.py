@@ -39,6 +39,13 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         """Set the validation configuration for this class."""
         cls._validationConfig_ = validation_config
     
+    @classmethod
+    def _GetValidationConfig (cls):
+        """The L{pyxb.ValidationConfig} instance that applies to this class.
+
+        By default this will reference L{pyxb.GlobalValidationConfig}."""
+        return cls._validationConfig_
+
     def _setValidationConfig (self, validation_config):
         """Set the validation configuration for this instance."""
         self._validationConfig_ = validation_config
@@ -54,14 +61,24 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
 
     @classmethod
     def _PerformValidation (cls):
-        """Determine whether the content model should be validated for this class."""
+        """Determine whether the content model should be validated for this class.
+
+        In the absence of context, this returns C{True} iff both binding and
+        document validation are in force.
+
+        @deprecated: use L{_GetValidationConfig} and check specific requirements."""
         # Bypass the property since this is a class method
         vo = cls._validationConfig_
         return vo.forBinding and vo.forDocument
 
     def _performValidation (self):
         """Determine whether the content model should be validated for this
-        instance."""
+        instance.
+
+        In the absence of context, this returns C{True} iff both binding and
+        document validation are in force.
+
+        @deprecated: use L{_validationConfig} and check specific requirements."""
         vo = self._validationConfig
         return vo.forBinding and vo.forDocument
     
@@ -872,7 +889,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         apply the attributes, so we bypass the application.
         """
         # PyXBFactoryKeywords
-        validate_constraints = kw.pop('_validate_constraints', self._performValidation())
+        validate_constraints = kw.pop('_validate_constraints', self._validationConfig.forBinding)
         require_value = kw.pop('_require_value', False)
         # Save DOM node so we can pull attributes off it
         dom_node = kw.get('_dom_node')
@@ -1179,7 +1196,7 @@ class STD_union (simpleTypeDefinition):
 
         rv = None
         # NB: get, not pop: preserve it for the member type invocations
-        validate_constraints = kw.get('_validate_constraints', cls._PerformValidation())
+        validate_constraints = kw.get('_validate_constraints', cls._GetValidationConfig().forBinding)
         assert isinstance(validate_constraints, bool)
         if 0 < len(args):
             arg = args[0]
@@ -2237,7 +2254,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if self._isNil():
             raise pyxb.ContentInNilInstanceError(self, value, location)
         fallback_namespace = kw.get('_fallback_namespace', None)
-        require_validation = kw.get('_require_validation', 'True')
+        require_validation = kw.get('_require_validation', self._validationConfig.forBinding)
         from_xml = kw.get('_from_xml', False)
         element_binding = None
         if element_decl is not None:
@@ -2356,7 +2373,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _postDOMValidate (self):
         # It's probably finalized already, but just in case...
         self._finalizeContentModel()
-        if self._performValidation():
+        if self._validationConfig.forBinding:
             # @todo isNil should verify that no content is present.
             if (not self._isNil()) and (self.__automatonConfiguration is not None):
                 if not self.__automatonConfiguration.isAccepting():
