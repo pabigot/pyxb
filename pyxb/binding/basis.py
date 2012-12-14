@@ -2373,6 +2373,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         return self
 
     def _appendWildcardElement (self, value):
+        self._addContent(value, None)
         self.__wildcardElements.append(value)
         
     def extend (self, value_list, _fallback_namespace=None, _from_xml=False, _location=None):

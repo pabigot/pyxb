@@ -13,10 +13,11 @@ Manual changes to the GeoCoder WSDL to make it work a little better
  - Provide types and elements corresponding to the request and response
    messages, since PyXB's WSDL support does not generate them from the
    operation messages.
+ - Retain element content in the ArrayOfGeocoderResult type
 
 --- GeoCoder.wsdl-orig	2005-08-19 01:48:44.000000000 -0500
-+++ GeoCoder.wsdl	2009-06-20 15:57:46.000000000 -0500
-@@ -11,7 +11,7 @@
++++ GeoCoder.wsdl	2012-12-14 11:00:04.377278949 -0600
+@@ -11,13 +11,14 @@
  	<types>
       <xsd:schema xmlns="http://www.w3.org/2001/XMLSchema"
                   targetNamespace="http://rpc.geocoder.us/Geo/Coder/US/"
@@ -25,7 +26,14 @@ Manual changes to the GeoCoder WSDL to make it work a little better
       <import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
  
          <xsd:complexType name="ArrayOfGeocoderResult">
-@@ -55,16 +55,16 @@
+ 			<complexContent>
+ 				<restriction base="SOAP-ENC:Array">
+ 					<attribute ref="SOAP-ENC:arrayType" wsdl:arrayType="tns:GeocoderResult[]"/>
++					<xsd:group ref="SOAP-ENC:Array" minOccurs="0" />
+ 				</restriction>
+ 			</complexContent>
+         </xsd:complexType>
+@@ -55,16 +56,16 @@
          
     		<xsd:complexType name="GeocoderAddressResult">
  			<xsd:all>
@@ -52,7 +60,7 @@ Manual changes to the GeoCoder WSDL to make it work a little better
  			</xsd:all>
  		</xsd:complexType>
  
-@@ -76,6 +76,14 @@
+@@ -76,6 +77,14 @@
  			</complexContent>
          </xsd:complexType>
          
