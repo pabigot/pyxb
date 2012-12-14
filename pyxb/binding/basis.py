@@ -124,9 +124,19 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         return self
     __namespaceContext = None
 
-    def _setElement (self, element):
-        """Associate a L{pyxb.binding.basis.element} with the instance."""
-        self.__element = element
+    def _setElement (self, elt):
+        """Associate an element binding with the instance.
+
+        Since the value of a binding instance reflects only its content, an
+        associated element is necessary to generate an XML document or DOM
+        tree.
+
+        @param elt: the L{pyxb.binding.basis.element} instance associated with
+        the value.  This may be C{None} when disassociating a value from a
+        specific element."""
+        import pyxb.binding.content
+        assert (elt is None) or isinstance(elt, element)
+        self.__element = elt
         return self
     def _element (self):
         """Return a L{pyxb.binding.basis.element} associated with the binding
@@ -1826,7 +1836,6 @@ class ElementContent (_Content):
 
     The value should be translated into XML and made a child of its parent."""
 
-
     def __getElementDeclaration (self):
         """The L{pyxb.binding.content.ElementDeclaration} associated with the element content.
         This may be C{None} if the value is a wildcard."""
@@ -1835,15 +1844,43 @@ class ElementContent (_Content):
 
     elementDeclaration = property(__getElementDeclaration)
 
-    def __init__ (self, value, element_declaration):
+    def __init__ (self, value, element_declaration=None, instance=None, tag=None):
+        """Create a wrapper associating a value with its element declaration.
+
+        Normally the element declaration is determined by consulting the
+        content model when creating a binding instance.  When manipulating the
+        preferred content list, this may be difficult to obtain; in that case
+        provide the C{instance} in which the content appears immediately,
+        along with the C{tag} that is used for the Python attribute that holds
+        the element.
+
+        @param value: the value of the element.  Should be an instance of
+        L{_TypeBinding_mixin}, but for simple types might be a Python native
+        type.
+
+        @keyword element_declaration: The
+        L{pyxb.binding.content.ElementDeclaration} associated with the element
+        value.  Should be C{None} if the element matches wildcard content.
+
+        @keyword instance: Alternative path to providing C{element_declaration}
+        @keyword tag: Alternative path to providing C{element_declaration}
+        """
+        
+        import pyxb.binding.content
         super(ElementContent, self).__init__(value)
+        if instance is not None:
+            if not isinstance(instance, complexTypeDefinition):
+                raise pyxb.UsageError('Unable to determine element declaration')
+            element_declaration = instance._UseForTag(tag)
+        assert (element_declaration is None) or isinstance(element_declaration, pyxb.binding.content.ElementDeclaration)
         self.__elementDeclaration = element_declaration
 
 class NonElementContent (_Content):
     """Marking wrapper for non-element content.
 
-    The value should be appended as character data."""
-    pass
+    The value will be unicode text, and should be appended as character data."""
+    def __init__ (self, value):
+        super(NonElementContent, self).__init__(unicode(value))
 
 class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """Base for any Python class that serves as the binding for an
@@ -1990,7 +2027,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
     # Specify the symbols to be reserved for all CTDs.
     _ReservedSymbols = _TypeBinding_mixin._ReservedSymbols.union(set([ 'wildcardElements', 'wildcardAttributeMap',
-                             'xsdConstraintsOK', 'content', 'append', 'extend', 'value', 'reset' ]))
+                             'xsdConstraintsOK', 'content', 'orderedContent', 'append', 'extend', 'value', 'reset' ]))
 
     # None, or a reference to a pyxb.utils.fac.Automaton instance that defines
     # the content model for the type.
@@ -2148,12 +2185,12 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         return self.value().xsdConstraintsOK(location)
 
     # __content is used in two ways: when complex content is used, it is as
-    # documented in L{content}.  When simple content is used, it is as
+    # documented in L{orderedContent}.  When simple content is used, it is as
     # documented in L{value}.
     __content = None
     
-    def content (self):
-        """Return the content of the element.
+    def orderedContent (self):
+        """Return the element and non-element content of the instance in order.
 
         This must be a complex type with complex content.  The return value is
         a list of the element and non-element content in a preferred order.
@@ -2184,6 +2221,25 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE):
             raise pyxb.NotComplexContentError(self)
         return self.__content
+
+    @classmethod
+    def __WarnOnContent (cls):
+        if cls.__NeedWarnOnContent:
+            import traceback
+            cls.__NeedWarnOnContent = False
+            _log.warning('Deprecated complexTypeDefinition method "content" invoked\nPlease use "orderedContent"\n%s', ''.join(traceback.format_stack()[:-2]))
+            pass
+    __NeedWarnOnContent = True
+
+    def content (self):
+        """Legacy interface for ordered content.
+
+        This version does not accurately distinguish non-element content from
+        element content that happens to have unicode type."""
+        self.__WarnOnContent()
+        if self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE):
+            raise pyxb.NotComplexContentError(self)
+        return [ _v.value for _v in self.__content ]
 
     def value (self):
         """Return the value of the element.
@@ -2379,11 +2435,11 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             raise pyxb.MixedContentError(self, value, location)
 
         # It's character information.
-        self._addContent(unicode(value), None)
+        self._addContent(NonElementContent(value))
         return self
 
     def _appendWildcardElement (self, value):
-        self._addContent(value, None)
+        self._addContent(ElementContent(value, None))
         self.__wildcardElements.append(value)
         
     def extend (self, value_list, _fallback_namespace=None, _from_xml=False, _location=None):
@@ -2395,14 +2451,19 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         self.__content = value
         return self.__content
 
-    def _addContent (self, child, element_binding):
+    def _addContent (self, wrapped_value):
         # This assert is inadequate in the case of plural/non-plural elements with an STD_list base type.
         # Trust that validation elsewhere was done correctly.
         #assert self._IsMixed() or (not self._performValidation()) or isinstance(child, _TypeBinding_mixin) or isinstance(child, types.StringTypes), 'Unrecognized child %s type %s' % (child, type(child))
         assert not (self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE))
-        if isinstance(child, _TypeBinding_mixin) and (child._element() is None):
-            child._setElement(element_binding)
-        self.__content.append(child)
+        assert isinstance(wrapped_value, _Content)
+        self.__content.append(wrapped_value)
+        if isinstance(wrapped_value, ElementContent):
+            value = wrapped_value.value
+            ed = wrapped_value.elementDeclaration
+            if isinstance(value, _TypeBinding_mixin) and (ed is not None) and (value._element() is None):
+                assert isinstance(ed.elementBinding(), element)
+                value._setElement(ed.elementBinding())
 
     @classmethod
     def _IsMixed (cls):

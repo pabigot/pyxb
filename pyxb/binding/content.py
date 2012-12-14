@@ -502,12 +502,12 @@ class AutomatonConfiguration (object):
                 break
             csym = preferred_sequence[pi]
             pi += 1
-            if not isinstance(csym, pyxb.binding.basis._TypeBinding_mixin):
+            if not isinstance(csym, pyxb.binding.basis.ElementContent):
                 continue
-            for (ed, vals) in symbol_set.iteritems():
-                if csym in vals:
-                    psym = ( csym, ed )
-                    break
+            vals = symbol_set.get(csym.elementDeclaration, [])
+            if csym.value in vals:
+                psym = ( csym.value, csym.elementDeclaration )
+                break
             if psym is None:
                 # Orphan encountered; response?
                 _log.info('orphan %s in content', csym)
@@ -876,7 +876,7 @@ class ElementDeclaration (object):
         if ctd_instance._validationConfig.forBinding:
             value = self.__elementBinding.compatibleValue(value, is_plural=self.isPlural())
         setattr(ctd_instance, self.__key, value)
-        ctd_instance._addContent(value, self.__elementBinding)
+        ctd_instance._addContent(basis.ElementContent(value, self))
         return self
 
     def setOrAppend (self, ctd_instance, value):
@@ -898,7 +898,7 @@ class ElementDeclaration (object):
         if ctd_instance._validationConfig.forBinding:
             value = self.__elementBinding.compatibleValue(value)
         values.append(value)
-        ctd_instance._addContent(value, self.__elementBinding)
+        ctd_instance._addContent(basis.ElementContent(value, self))
         return values
 
     def toDOM (self, dom_support, parent, value):

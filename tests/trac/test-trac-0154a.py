@@ -5,6 +5,7 @@ if __name__ == '__main__':
 _log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.utils.domutils
+import pyxb.binding.basis
 import pyxb.binding.datatypes as xs
 from xml.dom import Node
 
@@ -58,11 +59,13 @@ class TestTrac0154a (unittest.TestCase):
         vc._setContentInfluencesGeneration(vc.ALWAYS)
         vc._setInvalidElementInContent(vc.WAIT)
 
-        i._resetContent().extend([i.a[0], i.b[0]])
+        ca = pyxb.binding.basis.ElementContent(i.a[0], instance=i, tag='a')
+        cb = pyxb.binding.basis.ElementContent(i.b[0], instance=i, tag='b')
+        i._resetContent().extend([ca, cb])
         xmls = i.toxml('utf-8', root_only=True)
         self.assertEqual('<eAny><pre>-100</pre><a>1</a><b>2</b><post>100</post></eAny>', xmls)
 
-        i._resetContent().extend([i.b[0], i.a[0]])
+        i._resetContent().extend([cb, ca])
         xmls = i.toxml('utf-8', root_only=True)
         self.assertEqual('<eAny><pre>-100</pre><b>2</b><a>1</a><post>100</post></eAny>', xmls)
 
