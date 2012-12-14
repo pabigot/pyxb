@@ -2195,14 +2195,20 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         This must be a complex type with complex content.  The return value is
         a list of the element and non-element content in a preferred order.
 
-        The returned list contains element and non-element content in the
-        order which it was added to the instance.  This may have been through
-        parsing a document, constructing an instance using positional
-        arguments, invoking the L{append} or L{extend} methods, or assigning
-        directly to an instance attribute associated with an element binding.
+        The returned list contains L{element<ElementContent>} and
+        L{non-element<NonElementContent>} content in the order which it was
+        added to the instance.  This may have been through parsing a document,
+        constructing an instance using positional arguments, invoking the
+        L{append} or L{extend} methods, or assigning directly to an instance
+        attribute associated with an element binding.
 
-        Be aware that assigning directly to an element attribute does not
+        @note: Be aware that assigning directly to an element attribute does not
         remove any previous value for the element from the content list.
+
+        @note: Be aware that element values directly appended to an instance
+        attribute with list type (viz., that corresponds to an element that
+        allows more than one occurrence) will not appear in the ordered
+        content list.
 
         The order in the list may influence the generation of documents with
         mixed content.  Non-element content is emitted immediately prior to the
@@ -2235,7 +2241,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         """Legacy interface for ordered content.
 
         This version does not accurately distinguish non-element content from
-        element content that happens to have unicode type."""
+        element content that happens to have unicode type.
+
+        @deprecated: use L{orderedContent}"""
         self.__WarnOnContent()
         if self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE):
             raise pyxb.NotComplexContentError(self)
@@ -2522,7 +2530,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                         content.value.toDOM(dom_support, parent)
                 else:
                     content.elementDeclaration.toDOM(dom_support, parent, content.value)
-            mixed_content = self.content()
+            mixed_content = self.orderedContent()
             for mc in mixed_content:
                 pass
         return getattr(super(complexTypeDefinition, self), '_toDOM_csc', lambda *_args,**_kw: dom_support)(dom_support, parent)

@@ -40,19 +40,19 @@ class TestTrac0021 (unittest.TestCase):
     def testEmpty (self):
         instance = empty()
         self.assertRaises(pyxb.NotSimpleContentError, instance.value)
-        self.assertRaises(pyxb.NotComplexContentError, instance.content)
+        self.assertRaises(pyxb.NotComplexContentError, instance.orderedContent)
 
     def testSimple (self):
         instance = simple("hi")
         self.assertEqual("hi", instance.value())
-        self.assertRaises(pyxb.NotComplexContentError, instance.content)
+        self.assertRaises(pyxb.NotComplexContentError, instance.orderedContent)
 
     def testComplex (self):
         instance = complex("hi")
         self.assertRaises(pyxb.NotSimpleContentError, instance.value)
-        elt = instance.content()[0]
-        self.assertTrue(isinstance(elt, basestring))
-        self.assertEqual("hi", elt)
+        elt = instance.orderedContent()[0]
+        self.assertTrue(isinstance(elt.value, basestring))
+        self.assertEqual("hi", elt.value)
 
 
 if __name__ == '__main__':

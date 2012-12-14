@@ -42,7 +42,8 @@ class TestTrac0182 (unittest.TestCase):
         self.assertEqual(i.eOne, ia)
         self.assertEqual(1, len(i.wildcardElements()))
         self.assertEqual(ib, i.wildcardElements()[0])
-        self.assertEqual(i.content(), content)
+        self.assertEqual(i.orderedContent()[0].value, ia)
+        self.assertEqual(i.orderedContent()[1].value, ib)
 
 if __name__ == '__main__':
     unittest.main()

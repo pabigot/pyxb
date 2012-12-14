@@ -52,7 +52,7 @@ class TestTrac0040 (unittest.TestCase):
         instance = aggregate()
         instance.lu = [1,'two',3]
         self.assertEqual(3, len(instance.lu))
-        self.assertEqual(1, len(instance.content()))
+        self.assertEqual(1, len(instance.orderedContent()))
         self.assertTrue(instance.validateBinding())
         # This is really the only thing that tests #40, but there
         self.assertEqual(instance.lu.xsdLiteral(), '1 two 3')
@@ -63,12 +63,12 @@ class TestTrac0040 (unittest.TestCase):
 
         instance = aggregate([1,'two',3])
         self.assertEqual(3, len(instance.lu))
-        self.assertEqual(1, len(instance.content()))
+        self.assertEqual(1, len(instance.orderedContent()))
         self.assertTrue(instance.validateBinding())
 
         instance = aggregate(lu=[1,'two',3])
         self.assertEqual(3, len(instance.lu))
-        self.assertEqual(1, len(instance.content()))
+        self.assertEqual(1, len(instance.orderedContent()))
         self.assertTrue(instance.validateBinding())
 
         instance = aggregate()
@@ -79,7 +79,7 @@ class TestTrac0040 (unittest.TestCase):
         self.assertEqual(3, len(instance.lu))
         # Yes, the content is a single value; the members of the
         # simple type list are not visible at the content model level.
-        self.assertEqual(1, len(instance.content()))
+        self.assertEqual(1, len(instance.orderedContent()))
         self.assertTrue(instance.validateBinding())
 
 

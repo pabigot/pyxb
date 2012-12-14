@@ -45,32 +45,32 @@ class TestTrac_200908041715 (unittest.TestCase):
     
     def testKeyword (self):
         instance = data(B=4)
-        self.assertEqual(1, len(instance.content()))
-        cv = instance.content()[0]
-        self.assertEqual(4, cv)
-        self.assertEqual(cv._element(), tData._ElementMap['B'].elementBinding())
+        self.assertEqual(1, len(instance.orderedContent()))
+        cv = instance.orderedContent()[0]
+        self.assertEqual(4, cv.value)
+        self.assertEqual(cv.value._element(), tData._ElementMap['B'].elementBinding())
 
         instance = data(I=4)
-        self.assertEqual(1, len(instance.content()))
-        cv = instance.content()[0]
-        self.assertEqual(4, cv)
-        self.assertEqual(cv._element(), tData._ElementMap['I'].elementBinding())
+        self.assertEqual(1, len(instance.orderedContent()))
+        cv = instance.orderedContent()[0]
+        self.assertEqual(4, cv.value)
+        self.assertEqual(cv.value._element(), tData._ElementMap['I'].elementBinding())
         
     def testValue (self):
         instance = data(4)
-        self.assertEqual(1, len(instance.content()))
-        cv = instance.content()[0]
-        self.assertEqual(cv._element(), tData._ElementMap['B'].elementBinding())
+        self.assertEqual(1, len(instance.orderedContent()))
+        cv = instance.orderedContent()[0]
+        self.assertEqual(cv.value._element(), tData._ElementMap['B'].elementBinding())
 
         instance = data(300)
-        self.assertEqual(1, len(instance.content()))
-        cv = instance.content()[0]
-        self.assertEqual(cv._element(), tData._ElementMap['I'].elementBinding())
+        self.assertEqual(1, len(instance.orderedContent()))
+        cv = instance.orderedContent()[0]
+        self.assertEqual(cv.value._element(), tData._ElementMap['I'].elementBinding())
 
         instance = data(42.3)
-        self.assertEqual(1, len(instance.content()))
-        cv = instance.content()[0]
-        self.assertEqual(cv._element(), tData._ElementMap['D'].elementBinding())
+        self.assertEqual(1, len(instance.orderedContent()))
+        cv = instance.orderedContent()[0]
+        self.assertEqual(cv.value._element(), tData._ElementMap['D'].elementBinding())
 
 if __name__ == '__main__':
     unittest.main()

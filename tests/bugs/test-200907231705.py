@@ -55,7 +55,7 @@ class TestTrac_200907231705 (unittest.TestCase):
         xml = '<Mixed units="m">5</Mixed>'
         instance = CreateFromDocument(xml)
         self.assertEqual(pyxb.binding.basis.complexTypeDefinition._CT_MIXED, instance._ContentTypeTag)
-        self.assertEqual(u'5', instance.content()[0])
+        self.assertEqual(u'5', instance.orderedContent()[0].value)
         xml = '<Mixed units="m">5<Something/>4</Mixed>'
         self.assertRaises(pyxb.UnrecognizedContentError, CreateFromDocument, xml)
         xml = '<Simple units="m"/>'
@@ -75,10 +75,10 @@ class TestTrac_200907231705 (unittest.TestCase):
         self.assertTrue(instance.validateBinding())
         instance = Mixed(4, units='m')
         self.assertTrue(instance.validateBinding())
-        self.assertEqual(u'4', instance.content()[0])
+        self.assertEqual(u'4', instance.orderedContent()[0].value)
         instance = Mixed(xs.int(4), units='m')
         self.assertTrue(instance.validateBinding())
-        self.assertEqual(u'4', instance.content()[0])
+        self.assertEqual(u'4', instance.orderedContent()[0].value)
 
     def testCtorSimple (self):
         self.assertRaises(pyxb.SimpleContentAbsentError, Simple)
