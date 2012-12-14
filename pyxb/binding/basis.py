@@ -1810,24 +1810,34 @@ class enumeration_mixin (pyxb.cscRoot):
         return cls._CF_enumeration.iteritems()
 
 class _Content (object):
-    value = None
-    """The value of the content."""
+    """Base for any wrapper added to L{complexTypeDefinition.content}."""
+
+    def __getValue (self):
+        """The value of the content."""
+        return self.__value
+    __value = None
+    value = property(__getValue)
 
     def __init__ (self, value):
-        self.value = value
+        self.__value = value
         
 class ElementContent (_Content):
     """Marking wrapper for element content.
 
     The value should be translated into XML and made a child of its parent."""
 
-    elementDeclaration = None
-    """The L{pyxb.binding.content.ElementDeclaration} associated with the element content.
-    This may be C{None} if the value is a wildcard."""
+
+    def __getElementDeclaration (self):
+        """The L{pyxb.binding.content.ElementDeclaration} associated with the element content.
+        This may be C{None} if the value is a wildcard."""
+        return self.__elementDeclaration
+    __elementDeclaration = None
+
+    elementDeclaration = property(__getElementDeclaration)
 
     def __init__ (self, value, element_declaration):
         super(ElementContent, self).__init__(value)
-        self.elementDeclaration = element_declaration
+        self.__elementDeclaration = element_declaration
 
 class NonElementContent (_Content):
     """Marking wrapper for non-element content.
