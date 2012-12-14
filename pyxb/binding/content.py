@@ -487,6 +487,39 @@ class AutomatonConfiguration (object):
         """Generate the exception explaining why the content is incomplete."""
         return self._diagnoseIncompleteContent(None, None)
 
+    __preferredSequenceIndex = 0
+    __preferredPendingSymbol = None
+
+    def __processPreferredSequence (self, preferred_sequence, symbol_set, vc):
+        pi = self.__preferredSequenceIndex
+        psym = self.__preferredPendingSymbol
+        if psym is not None:
+            _log.info('restoring %s', psym)
+            self.__preferredPendingSymbol = None
+        while psym is None:
+            if pi >= len(preferred_sequence):
+                preferred_sequence = None
+                break
+            csym = preferred_sequence[pi]
+            pi += 1
+            if not isinstance(csym, pyxb.binding.basis._TypeBinding_mixin):
+                continue
+            for (ed, vals) in symbol_set.iteritems():
+                if csym in vals:
+                    psym = ( csym, ed )
+                    break
+            if psym is None:
+                # Orphan encountered; response?
+                _log.info('orphan %s in content', csym)
+                if vc.IGNORE_ONCE == vc.orphanElementInContent:
+                    continue
+                if vc.GIVE_UP == vc.orphanElementInContent:
+                    preferred_sequence = None
+                    break
+                raise pyxb.OrphanElementContentError(self.__instance, csym)
+        self.__preferredSequenceIndex = pi
+        return (preferred_sequence, psym)
+
     def sequencedChildren (self, preferred_sequence):
         """Implement L{pyxb.binding.basis.complexTypeDefinition._validatedChildren}.
 
@@ -501,49 +534,28 @@ class AutomatonConfiguration (object):
         # The validated sequence
         symbols = []
 
+        # How validation should be done
+        vc = self.__instance._validationConfig
+
         # Index in the preferred sequence.
-        pi = 0
+        if preferred_sequence is not None:
+            self.__preferredSequenceIndex = 0
+            self.__preferredPendingSymbol = None
 
         # The available content, in a map from ElementDeclaration to in-order
         # values.  The key None corresponds to the wildcard content.  Keys are
         # removed when their corresponding content is exhausted.
         symbol_set = self.__instance._symbolSet()
 
-        vc = self.__instance._validationConfig
         psym_wait = False
-        psym = psym_pending = None
+        psym = None
         while symbol_set:
             # Find the first acceptable transition.  If there's a preferred
             # symbol to use, try it first.
             selected_xit = None
             psym = None
             if (preferred_sequence is not None) and not psym_wait:
-                psym = psym_pending
-                if psym is not None:
-                    _log.info('restoring %s', psym)
-                psym_pending = None
-                while psym is None:
-                    if pi >= len(preferred_sequence):
-                        preferred_sequence = None
-                        break
-                    csym = preferred_sequence[pi]
-                    pi += 1
-                    if not isinstance(csym, pyxb.binding.basis._TypeBinding_mixin):
-                        continue
-                    for (ed, vals) in symbol_set.iteritems():
-                        if csym in vals:
-                            _log.debug('prefer %s %s', ed, csym)
-                            psym = ( csym, ed )
-                            break
-                    if psym is None:
-                        # Orphan encountered; response?
-                        _log.info('orphan %s in content', csym)
-                        if vc.IGNORE_ONCE == vc.orphanElementInContent:
-                            continue
-                        if vc.GIVE_UP == vc.orphanElementInContent:
-                            preferred_sequence = None
-                            break
-                        raise pyxb.OrphanElementContentError(self.__instance, csym)
+                (preferred_sequence, psym) = self.__processPreferredSequence(preferred_sequence, symbol_set, vc)
             candidates = cfg.candidateTransitions(psym)
             for xit in candidates:
                 csym = xit.consumedSymbol()
@@ -573,10 +585,10 @@ class AutomatonConfiguration (object):
                     if vc.IGNORE_ONCE == vc.invalidElementInContent:
                         continue
                     if vc.GIVE_UP == vc.invalidElementInContent:
-                        pi = len(preferred_sequence)
+                        preferred_sequence = None
                         continue
                     if vc.WAIT == vc.invalidElementInContent:
-                        psym_pending = psym
+                        self.__preferredPendingSymbol = psym
                         _log.info('holding %s', psym)
                         psym_wait = True
                         continue
