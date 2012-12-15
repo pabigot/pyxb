@@ -636,9 +636,13 @@ class AutomatonConfiguration (object):
         if symbol_set:
             raise pyxb.UnprocessedElementContentError(self.__instance, cfg, symbols, symbol_set)
         # Validate any remaining material in the preferred sequence.  This
-        # also extracts remaining non-element content.
+        # also extracts remaining non-element content.  Note there are
+        # no more symbols, so any remaining element content is orphan.
         while preferred_sequence is not None:
-            (preferred_sequence, _) = self.__processPreferredSequence(preferred_sequence, symbol_set, vc)
+            (preferred_sequence, psym) = self.__processPreferredSequence(preferred_sequence, symbol_set, vc)
+            if psym is not None:
+                if not (vc.orphanElementInContent in ( vc.IGNORE_ONCE, vc.GIVE_UP )):
+                    raise pyxb.OrphanElementContentError(self.__instance, pxym.value)
         if nec is not None:
             symbols.extend(nec)
         return symbols
