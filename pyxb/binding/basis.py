@@ -185,9 +185,9 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
     def _resetContent (self, reset_elements=False):
         """Reset the content of an element value.
 
-        For simple types, this does nothing.
+        This is not a public method.
 
-        For complex types, this clears the
+        For simple types, this does nothing. For complex types, this clears the
         L{content<complexTypeDefinition.content>} array, removing all
         non-element content from the instance.  It optionally also removes all
         element content.
@@ -198,17 +198,11 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         stored within the binding is also cleared, leaving it with no content
         at all.
 
-        @return: The list that would be returned by
-        L{complexTypeDefinition.content} if this is a complex type with mixed
-        or element-only content; C{None} otherwise.  In the former case the
-        caller may proceed to directly insert non-element content with element
-        markers to influence generation of documents with mixed content.
-
         @note: This is not the same thing as L{complexTypeDefinition.reset},
         which unconditionally resets attributes and element and non-element
         content.
         """
-        return None
+        pass
 
     __constructedWithValue = False
     def __checkNilCtor (self, args):
@@ -1820,10 +1814,13 @@ class enumeration_mixin (pyxb.cscRoot):
         return cls._CF_enumeration.iteritems()
 
 class _Content (object):
-    """Base for any wrapper added to L{complexTypeDefinition.content}."""
+    """Base for any wrapper added to L{complexTypeDefinition.orderedContent}."""
 
     def __getValue (self):
-        """The value of the content."""
+        """The value of the content.
+
+        This is a unicode string for L{NonElementContent}, and (ideally) an
+        instance of L{_TypeBinding_mixin} for L{ElementContent}."""
         return self.__value
     __value = None
     value = property(__getValue)
@@ -1849,7 +1846,7 @@ class ElementContent (_Content):
 
         Normally the element declaration is determined by consulting the
         content model when creating a binding instance.  When manipulating the
-        preferred content list, this may be difficult to obtain; in that case
+        preferred content list, this may be inconvenient to obtain; in that case
         provide the C{instance} in which the content appears immediately,
         along with the C{tag} that is used for the Python attribute that holds
         the element.
@@ -1878,7 +1875,8 @@ class ElementContent (_Content):
 class NonElementContent (_Content):
     """Marking wrapper for non-element content.
 
-    The value will be unicode text, and should be appended as character data."""
+    The value will be unicode text, and should be appended as character
+    data."""
     def __init__ (self, value):
         super(NonElementContent, self).__init__(unicode(value))
 
@@ -2206,14 +2204,14 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         allows more than one occurrence) will not appear in the ordered
         content list.
 
-        The order in the list may influence the generation of documents with
-        mixed content.  Non-element content is emitted immediately prior to the
-        next element in this list.  Any trailing non-element content is
-        emitted after the last element in the content.  The list need not
-        include element content that is not necessary to ensure the placement
-        of non-element content.  Element content in this list that is not
-        present within an element member of the binding instance results in an
-        error.
+        The order in the list may influence the generation of documents
+        depending on L{pyxb.ValidationConfig} values that apply to an
+        instance.  Non-element content is emitted immediately prior to the
+        following element in this list.  Any trailing non-element content is
+        emitted after the last element in the content.  The list should
+        include all element content.  Element content in this list that is not
+        present within an element member of the binding instance may result in
+        an error, or may be ignored.
 
         @note: The returned value is mutable, allowing the caller to change
         the order to be used.
@@ -2239,7 +2237,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         This version does not accurately distinguish non-element content from
         element content that happens to have unicode type.
 
-        @deprecated: use L{orderedContent}"""
+        @deprecated: use L{orderedContent}."""
         self.__WarnOnContent()
         if self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE):
             raise pyxb.NotComplexContentError(self)
@@ -2286,8 +2284,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         recorded content.  It resets the content model automaton to its
         initial state.
 
-        @see: Manipulate the return value of
-        L{_resetContent<_TypeBinding_mixin._resetContent>} if your intent is
+        @see: Manipulate the return value of L{orderedContent} if your intent is
         to influence the generation of documents from the binding instance
         without changing its (element) content.
         """
