@@ -21,5 +21,10 @@ diff -uw inf.xhtml outf.xhtml > deltas
 # elements.
 echo "See deltas for differences"
 
-# For automated running the test passes if it reaches this point.
-true
+# Test most primitive generation of documents
+rm -f genout.xhtml
+python generate.py \
+  && diff expout.xhtml genout.xhtml \
+  || fail generate did not match expected
+
+echo "Passed XHTML tests"
