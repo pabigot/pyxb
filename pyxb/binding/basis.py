@@ -1096,7 +1096,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
 
     def _toDOM_csc (self, dom_support, parent):
         assert parent is not None
-        parent.appendChild(dom_support.document().createTextNode(self.xsdLiteral()))
+        dom_support.appendTextChild(self.xsdLiteral(), parent)
         return getattr(super(simpleTypeDefinition, self), '_toDOM_csc', lambda *_args,**_kw: dom_support)(dom_support, parent)
 
     @classmethod
@@ -2509,7 +2509,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             pass
         elif self._CT_SIMPLE == self._ContentTypeTag:
             assert self.value() is not None, '%s has no value' % (self,)
-            element.appendChild(dom_support.document().createTextNode(self.value().xsdLiteral()))
+            dom_support.appendTextChild(self.value().xsdLiteral(), element)
         else:
             if pyxb.GlobalValidationConfig.forDocument:
                 order = self._validatedChildren()
@@ -2518,6 +2518,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             for content in order:
                 assert content.value != self
                 if isinstance(content, NonElementContent):
+                    dom_support.appendTextChild(content.value, element)
                     continue
                 if content.elementDeclaration is None:
                     if isinstance(content.value, xml.dom.Node):

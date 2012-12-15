@@ -645,6 +645,11 @@ class BindingDOMSupport (object):
             child = self.cloneIntoImplementation(child)
         return parent.appendChild(child)
 
+    def appendTextChild (self, text, parent):
+        """Add the text to the parent as a text node."""
+        return parent.appendChild(self.document().createTextNode(text))
+        
+
 ## Local Variables:
 ## fill-column:78
 ## End:
