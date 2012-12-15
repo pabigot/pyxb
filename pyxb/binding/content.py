@@ -578,14 +578,13 @@ class AutomatonConfiguration (object):
         # to be empty after transferring material to the output sequence.
         nec = self.__pendingNonElementContent
 
-        psym_wait = False
         psym = None
         while symbol_set:
             # Find the first acceptable transition.  If there's a preferred
             # symbol to use, try it first.
             selected_xit = None
             psym = None
-            if (preferred_sequence is not None) and not psym_wait:
+            if preferred_sequence is not None:
                 (preferred_sequence, psym) = self.__processPreferredSequence(preferred_sequence, symbol_set, vc)
             candidates = cfg.candidateTransitions(psym)
             for xit in candidates:
@@ -623,12 +622,7 @@ class AutomatonConfiguration (object):
                     if vc.GIVE_UP == vc.invalidElementInContent:
                         preferred_sequence = self.__discardPreferredSequence(preferred_sequence)
                         continue
-                    if vc.WAIT == vc.invalidElementInContent:
-                        self.__preferredPendingSymbol = psym
-                        _log.info('holding %s', psym)
-                        psym_wait = True
-                        continue
-                    raise pyxb.InvalidPreferredElementContentError(self.__instance, cfg, symbols, symbol_set)
+                    raise pyxb.InvalidPreferredElementContentError(self.__instance, cfg, symbols, symbol_set, psym)
                 break
             cfg = selected_xit.apply(cfg)
             psym_wait = False

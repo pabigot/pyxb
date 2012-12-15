@@ -598,7 +598,25 @@ class UnprocessedElementContentError (BatchElementContentError):
 
 class InvalidPreferredElementContentError (BatchElementContentError):
     """Use of a preferred element led to inability to generate a valid document"""
-    pass
+
+    preferred_symbol = None
+    """The element symbol which was not accepted."""
+
+    def __init__ (self, instance, fac_configuration, symbols, symbol_set, preferred_symbol):
+        """@param instance: the value for the L{instance} attribute.
+        @param fac_configuration: the value for the L{fac_configuration} attribute.
+        @param symbols: the value for the L{symbols} attribute.
+        @param symbol_set: the value for the L{symbol_set} attribute.
+        @param preferred_symbol: the value for the L{preferred_symbol} attribute.
+        """
+        self.instance = instance
+        self.fac_configuration = fac_configuration
+        self.symbols = symbols
+        self.symbol_set = symbol_set
+        self.preferred_symbol = preferred_symbol
+        # Bypass immediate parent so we preserve the last argument
+        super(BatchElementContentError, self).__init__(instance, fac_configuration, symbols, symbol_set, preferred_content)
+
 
 class OrphanElementContentError (ContentValidationError):
     """An element expected to be used in content is not present in the instance.

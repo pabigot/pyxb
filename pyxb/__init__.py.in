@@ -223,20 +223,15 @@ class ValidationConfig (object):
     an element in a content list fails skip it and continue with the next
     element in the list.)"""
     
-    WAIT = 2
-    """If an error occurs hold the value and try it gain later.  (E.g., if an
-    element in a content list fails hold onto it until transition to another
-    state.)"""
-
-    GIVE_UP = 3
+    GIVE_UP = 2
     """If an error occurs ignore it and stop using whatever provided the cause
     of the error.  (E.g., if an element in a content list fails stop
     processing the content list and execute as though it was absent)."""
 
-    RAISE_EXCEPTION = 4
+    RAISE_EXCEPTION = 3
     """If an error occurs, raise an exception."""
 
-    MIXED_ONLY = 5
+    MIXED_ONLY = 4
     """Only when content type is mixed."""
 
     __contentInfluencesGeneration = MIXED_ONLY
@@ -270,16 +265,16 @@ class ValidationConfig (object):
         self.__orphanElementInContent = value
     orphanElementInContent = property(__getOrphanElementInContent)
     
-    __invalidElementInContent = WAIT
+    __invalidElementInContent = IGNORE_ONCE
     def __getInvalidElementInContent (self):
         """How to handle invalid elements in content lists.
 
-        The value is one of L{IGNORE_ONCE}, L{WAIT} (default), L{GIVE_UP},
+        The value is one of L{IGNORE_ONCE} (default), L{GIVE_UP},
         L{RAISE_EXCEPTION}."""
         return self.__invalidElementInContent
     def _setInvalidElementInContent (self, value):
         """Set the value of L{invalidElementInContent}."""
-        if not (value in ( self.IGNORE_ONCE, self.WAIT, self.GIVE_UP, self.RAISE_EXCEPTION )):
+        if not (value in ( self.IGNORE_ONCE, self.GIVE_UP, self.RAISE_EXCEPTION )):
             raise ValueError(value)
         self.__invalidElementInContent = value
     invalidElementInContent = property(__getInvalidElementInContent)
