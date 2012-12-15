@@ -489,20 +489,46 @@ class AutomatonConfiguration (object):
 
     __preferredSequenceIndex = 0
     __preferredPendingSymbol = None
+    __pendingNonElementContent = None
+
+    def __resetPreferredSequence (self, instance):
+        self.__preferredSequenceIndex = 0
+        self.__preferredPendingSymbol = None
+        self.__pendingNonElementContent = None
+        vc = instance._validationConfig
+        preferred_sequence = None
+        if (vc.ALWAYS == vc.contentInfluencesGeneration) or (instance._ContentTypeTag == instance._CT_MIXED and vc.MIXED_ONLY == vc.contentInfluencesGeneration):
+            preferred_sequence = instance.orderedContent()
+            if instance._ContentTypeTag == instance._CT_MIXED:
+                self.__pendingNonElementContent = []
+        return preferred_sequence
+
+    def __discardPreferredSequence (self, preferred_sequence, pi=None):
+        """Extract non-element content from the sequence and return C{None}."""
+        if pi is None:
+            pi = self.__preferredSequenceIndex
+        nec = self.__pendingNonElementContent
+        if nec is not None:
+            for csym in preferred_sequence[pi:]:
+                if isinstance(csym, pyxb.binding.basis.NonElementContent):
+                    nec.append(csym)
+        return None
 
     def __processPreferredSequence (self, preferred_sequence, symbol_set, vc):
         pi = self.__preferredSequenceIndex
         psym = self.__preferredPendingSymbol
+        nec = self.__pendingNonElementContent
         if psym is not None:
             _log.info('restoring %s', psym)
             self.__preferredPendingSymbol = None
         while psym is None:
             if pi >= len(preferred_sequence):
-                preferred_sequence = None
+                preferred_sequence = self.__discardPreferredSequence(preferred_sequence, pi)
                 break
             csym = preferred_sequence[pi]
             pi += 1
-            if not isinstance(csym, pyxb.binding.basis.ElementContent):
+            if (nec is not None) and isinstance(csym, pyxb.binding.basis.NonElementContent):
+                nec.append(csym)
                 continue
             vals = symbol_set.get(csym.elementDeclaration, [])
             if csym.value in vals:
@@ -514,7 +540,7 @@ class AutomatonConfiguration (object):
                 if vc.IGNORE_ONCE == vc.orphanElementInContent:
                     continue
                 if vc.GIVE_UP == vc.orphanElementInContent:
-                    preferred_sequence = None
+                    preferred_sequence = self.__discardPreferredSequence(preferred_sequence, pi)
                     break
                 raise pyxb.OrphanElementContentError(self.__instance, csym)
         self.__preferredSequenceIndex = pi
@@ -544,14 +570,15 @@ class AutomatonConfiguration (object):
         symbol_set = instance._symbolSet()
 
         # The preferred sequence to use, if desired.
-        preferred_sequence = None
-        if (vc.ALWAYS == vc.contentInfluencesGeneration) or (instance._ContentTypeTag == instance._CT_MIXED and vc.MIXED_ONLY == vc.contentInfluencesGeneration):
-            preferred_sequence = instance.orderedContent()
-            self.__preferredSequenceIndex = 0
-            self.__preferredPendingSymbol = None
+        preferred_sequence = self.__resetPreferredSequence(instance)
+
+        # A reference to the data structure holding non-element content.  This
+        # is None unless mixed content is allowed, in which case it is a list.
+        # The same list is used for the entire operation, though it is reset
+        # to be empty after transferring material to the output sequence.
+        nec = self.__pendingNonElementContent
 
         psym_wait = False
-
         psym = None
         while symbol_set:
             # Find the first acceptable transition.  If there's a preferred
@@ -575,8 +602,13 @@ class AutomatonConfiguration (object):
                     continue
                 if not csym.match((matches[0], ed)):
                     continue
-                # Commit to this transition and consume the selected content
+                # Commit to this transition and append the selected content
+                # after any pending non-element content that is released due
+                # to a matched preferred symbol.
                 value = matches.pop(0)
+                if (psym is not None) and (nec is not None):
+                    symbols.extend(nec)
+                    nec[:] = []
                 symbols.append(basis.ElementContent(csym.matchValue( (value, ed) ), ed))
                 selected_xit = xit
                 if 0 == len(matches):
@@ -589,7 +621,7 @@ class AutomatonConfiguration (object):
                     if vc.IGNORE_ONCE == vc.invalidElementInContent:
                         continue
                     if vc.GIVE_UP == vc.invalidElementInContent:
-                        preferred_sequence = None
+                        preferred_sequence = self.__discardPreferredSequence(preferred_sequence)
                         continue
                     if vc.WAIT == vc.invalidElementInContent:
                         self.__preferredPendingSymbol = psym
@@ -603,6 +635,12 @@ class AutomatonConfiguration (object):
         cfg = self._diagnoseIncompleteContent(symbols, symbol_set)
         if symbol_set:
             raise pyxb.UnprocessedElementContentError(self.__instance, cfg, symbols, symbol_set)
+        # Validate any remaining material in the preferred sequence.  This
+        # also extracts remaining non-element content.
+        while preferred_sequence is not None:
+            (preferred_sequence, _) = self.__processPreferredSequence(preferred_sequence, symbol_set, vc)
+        if nec is not None:
+            symbols.extend(nec)
         return symbols
                     
 class _FACSymbol (pyxb.utils.fac.SymbolMatch_mixin):
