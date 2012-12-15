@@ -628,7 +628,7 @@ class AutomatonConfiguration (object):
                         _log.info('holding %s', psym)
                         psym_wait = True
                         continue
-                    raise InvalidPreferredElementContentError(self.__instance, cfg, symbols, symbol_set)
+                    raise pyxb.InvalidPreferredElementContentError(self.__instance, cfg, symbols, symbol_set)
                 break
             cfg = selected_xit.apply(cfg)
             psym_wait = False
