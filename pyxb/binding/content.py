@@ -520,7 +520,7 @@ class AutomatonConfiguration (object):
         self.__preferredSequenceIndex = pi
         return (preferred_sequence, psym)
 
-    def sequencedChildren (self, preferred_sequence):
+    def sequencedChildren (self):
         """Implement L{pyxb.binding.basis.complexTypeDefinition._validatedChildren}.
 
         Go there for the interface.
@@ -535,19 +535,23 @@ class AutomatonConfiguration (object):
         symbols = []
 
         # How validation should be done
-        vc = self.__instance._validationConfig
-
-        # Index in the preferred sequence.
-        if preferred_sequence is not None:
-            self.__preferredSequenceIndex = 0
-            self.__preferredPendingSymbol = None
+        instance = self.__instance
+        vc = instance._validationConfig
 
         # The available content, in a map from ElementDeclaration to in-order
         # values.  The key None corresponds to the wildcard content.  Keys are
         # removed when their corresponding content is exhausted.
-        symbol_set = self.__instance._symbolSet()
+        symbol_set = instance._symbolSet()
+
+        # The preferred sequence to use, if desired.
+        preferred_sequence = None
+        if (vc.ALWAYS == vc.contentInfluencesGeneration) or (instance._ContentTypeTag == instance._CT_MIXED and vc.MIXED_ONLY == vc.contentInfluencesGeneration):
+            preferred_sequence = instance.orderedContent()
+            self.__preferredSequenceIndex = 0
+            self.__preferredPendingSymbol = None
 
         psym_wait = False
+
         psym = None
         while symbol_set:
             # Find the first acceptable transition.  If there's a preferred
