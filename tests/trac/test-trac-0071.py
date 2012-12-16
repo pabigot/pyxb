@@ -58,36 +58,46 @@ eval(rv)
 from pyxb.exceptions_ import *
 
 import unittest
+import collections
+
+# Pretend whoever created the schema was helpful and had normalized it
+metadatadoc_type = MetadataDocument.typeDefinition()
+timespan_element = metadatadoc_type._ElementMap['timespan'].elementBinding()
+timespan_type = timespan_element.typeDefinition()
+field_element = timespan_type._ElementMap['field'].elementBinding()
+field_type = field_element.typeDefinition()
+value_element = field_type._ElementMap['value'].elementBinding()
+value_type = value_element.typeDefinition()
+
+v_bind = pyxb.BIND('foo', lang='ENG')
 
 class TestTrac_0071 (unittest.TestCase):
-    def test (self):
-        newdoc = MetadataDocument()
-        metadatadoc_type = MetadataDocument.typeDefinition()
-        timespan_element = metadatadoc_type._ElementMap['timespan'].elementBinding()
-        timespan_type = timespan_element.typeDefinition()
-        field_element = timespan_type._ElementMap['field'].elementBinding()
-        field_type = field_element.typeDefinition()
-        value_element = field_type._ElementMap['value'].elementBinding()
-        value_type = value_element.typeDefinition()
-        newdoc.template = 'anewtemplate'
-
+    def testFieldConstructor (self):
         field = field_type('title', pyxb.BIND('foo', lang='ENG'), _element=field_element)
-        self.assertTrue(isinstance(field.value_, list))
+        self.assertTrue(isinstance(field.value_, collections.MutableSequence))
         self.assertEqual(1, len(field.value_))
         self.assertTrue(isinstance(field.value_[0], value_type))
         field.validateBinding()
         self.assertEqual('<field><name>title</name><value lang="ENG">foo</value></field>', field.toxml("utf-8", root_only=True))
 
+    def testFieldElementAppend (self):
+        newdoc = MetadataDocument()
+        newdoc.template = 'anewtemplate'
+
         field = field_type(name='title', _element=field_element)
         field.value_.append(pyxb.BIND('foo', lang='ENG'))
-        self.assertTrue(isinstance(field.value_, list))
+        self.assertTrue(isinstance(field.value_, collections.MutableSequence))
         self.assertEqual(1, len(field.value_))
         self.assertTrue(isinstance(field.value_[0], pyxb.BIND))
         field.validateBinding()
         self.assertTrue(isinstance(field.value_[0], pyxb.BIND))
         self.assertEqual('<field><name>title</name><value lang="ENG">foo</value></field>', field.toxml("utf-8", root_only=True))
 
-        Expected = '<ns1:MetadataDocument xmlns:ns1="urn:trac-0071"><template>anewtemplate</template><timespan end="+INF" start="-INF"><field><name>title</name><value lang="ENG">foo</value></field></timespan></ns1:MetadataDocument>'
+    MetaExpected = '<ns1:MetadataDocument xmlns:ns1="urn:trac-0071"><template>anewtemplate</template><timespan end="+INF" start="-INF"><field><name>title</name><value lang="ENG">foo</value></field></timespan></ns1:MetadataDocument>'
+
+    def testMetaConstructor (self):
+        newdoc = MetadataDocument()
+        newdoc.template = 'anewtemplate'
 
         newdoc.timespan.append(pyxb.BIND( # Single timespan
                 pyxb.BIND( # First field instance
@@ -100,8 +110,12 @@ class TestTrac_0071 (unittest.TestCase):
         newdoc.validateBinding()
         timespan = newdoc.timespan[0]
         self.assertTrue(isinstance(timespan, pyxb.BIND))
-        self.assertEqual(Expected, newdoc.toxml("utf-8", root_only=True))
+        self.assertEqual(self.MetaExpected, newdoc.toxml("utf-8", root_only=True))
         newdoc.timespan[:] = []
+
+    def testMetaBadFieldName (self):
+        newdoc = MetadataDocument()
+        newdoc.template = 'anewtemplate'
 
         v_bind = pyxb.BIND('foo', lang='ENG')
 
@@ -112,7 +126,10 @@ class TestTrac_0071 (unittest.TestCase):
             newdoc.timespan.append(ts_bind)
             newdoc.validateBinding()
         self.assertEqual(f_bind, cm.exception.value)
-        newdoc.timespan[:] = []
+
+    def testMetaBadPlurality (self):
+        newdoc = MetadataDocument()
+        newdoc.template = 'anewtemplate'
 
         # This binding is wrong: the field "value_" is plural and the
         # value for the keyword must be iterable.
@@ -122,7 +139,10 @@ class TestTrac_0071 (unittest.TestCase):
             newdoc.timespan.append(ts_bind)
             newdoc.validateBinding()
         self.assertEqual(f_bind, cm.exception.value)
-        newdoc.timespan[:] = []
+
+    def testMetaGoodBind (self):
+        newdoc = MetadataDocument()
+        newdoc.template = 'anewtemplate'
 
         # This one should be OK
         bind = pyxb.BIND( # First field instance
@@ -133,8 +153,7 @@ class TestTrac_0071 (unittest.TestCase):
         newdoc.validateBinding()
         timespan = newdoc.timespan[0]
         self.assertTrue(isinstance(timespan, pyxb.BIND))
-        self.assertEqual(Expected, newdoc.toxml("utf-8", root_only=True))
-        newdoc.timespan[:] = []
+        self.assertEqual(self.MetaExpected, newdoc.toxml("utf-8", root_only=True))
 
 if __name__ == '__main__':
     unittest.main()
