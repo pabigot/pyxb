@@ -88,9 +88,9 @@ class TestTrac_0071 (unittest.TestCase):
         field.value_.append(pyxb.BIND('foo', lang='ENG'))
         self.assertTrue(isinstance(field.value_, collections.MutableSequence))
         self.assertEqual(1, len(field.value_))
-        self.assertTrue(isinstance(field.value_[0], pyxb.BIND))
+        self.assertTrue(isinstance(field.value_[0], value_type))
         field.validateBinding()
-        self.assertTrue(isinstance(field.value_[0], pyxb.BIND))
+        self.assertTrue(isinstance(field.value_[0], value_type))
         self.assertEqual('<field><name>title</name><value lang="ENG">foo</value></field>', field.toxml("utf-8", root_only=True))
 
     MetaExpected = '<ns1:MetadataDocument xmlns:ns1="urn:trac-0071"><template>anewtemplate</template><timespan end="+INF" start="-INF"><field><name>title</name><value lang="ENG">foo</value></field></timespan></ns1:MetadataDocument>'
@@ -106,10 +106,10 @@ class TestTrac_0071 (unittest.TestCase):
                     ),
                 start='-INF', end='+INF'))
         timespan = newdoc.timespan[0]
-        self.assertTrue(isinstance(timespan, pyxb.BIND))
+        self.assertTrue(isinstance(timespan, timespan_type))
         newdoc.validateBinding()
         timespan = newdoc.timespan[0]
-        self.assertTrue(isinstance(timespan, pyxb.BIND))
+        self.assertTrue(isinstance(timespan, timespan_type))
         self.assertEqual(self.MetaExpected, newdoc.toxml("utf-8", root_only=True))
         newdoc.timespan[:] = []
 
@@ -124,7 +124,6 @@ class TestTrac_0071 (unittest.TestCase):
         ts_bind = pyxb.BIND(f_bind, start='-INF', end='+INF')
         with self.assertRaises(pyxb.UnrecognizedContentError) as cm:
             newdoc.timespan.append(ts_bind)
-            newdoc.validateBinding()
         self.assertEqual(f_bind, cm.exception.value)
 
     def testMetaBadPlurality (self):
@@ -137,7 +136,6 @@ class TestTrac_0071 (unittest.TestCase):
         ts_bind = pyxb.BIND(f_bind, start='-INF', end='+INF')
         with self.assertRaises(pyxb.UnrecognizedContentError) as cm:
             newdoc.timespan.append(ts_bind)
-            newdoc.validateBinding()
         self.assertEqual(f_bind, cm.exception.value)
 
     def testMetaGoodBind (self):
@@ -150,9 +148,9 @@ class TestTrac_0071 (unittest.TestCase):
                     value_=[pyxb.BIND('foo', lang='ENG')]
                     )
         newdoc.timespan.append(pyxb.BIND(bind, start='-INF', end='+INF'))
-        newdoc.validateBinding()
         timespan = newdoc.timespan[0]
-        self.assertTrue(isinstance(timespan, pyxb.BIND))
+        self.assertTrue(isinstance(timespan, timespan_type))
+        newdoc.validateBinding()
         self.assertEqual(self.MetaExpected, newdoc.toxml("utf-8", root_only=True))
 
 if __name__ == '__main__':

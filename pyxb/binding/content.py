@@ -787,6 +787,109 @@ class WildcardUse (_FACSymbol):
     def __str__ (self):
         return 'xs:any per %s' % (self.xsdLocation(),)
 
+import collections
+
+# Do not inherit from list; that's obscene, and could cause problems with the
+# internal assumptions made by Python.  Instead delegate everything to an
+# instance of list that's held internally.  Inherit from the ABC that
+# represents list-style data structures so we can identify both lists and
+# these things which are not lists.
+class _PluralBinding (collections.MutableSequence):
+    """Helper for element content that supports multiple occurences.
+
+    This is an adapter for Python list.  Any operation that can mutate an item
+    in the list ensures the stored value is compatible with the element for
+    which the list holds values."""
+    
+    __list = None
+    __elementBinding = None
+
+    def __init__ (self, *args, **kw):
+        element_binding = kw.pop('element_binding', None)
+        if not isinstance(element_binding, basis.element):
+            raise ValueError()
+        self.__elementBinding = element_binding
+        self.__list = []
+        self.extend(args)
+
+    def __convert (self, v):
+        return self.__elementBinding.compatibleValue(v)
+
+    def __len__ (self):
+        return self.__list.__len__()
+
+    def __getitem__ (self, key):
+        return self.__list.__getitem__(key)
+
+    def __setitem__ (self, key, value):
+        if isinstance(key, slice):
+            self.__list.__setitem__(key, map(self.__convert, value))
+        else:
+            self.__list.__setitem__(key, self.__convert(value))
+
+    def __delitem__ (self, key):
+        self.__list.__delitem__(key)
+
+    def __iter__ (self):
+        return self.__list.__iter__()
+
+    def __reversed__ (self):
+        return self.__list.__reversed__()
+
+    def __contains__ (self, item):
+        return self.__list.__contains__(item)
+
+    # The mutable sequence type methods
+    def append (self, x):
+        self.__list.append(self.__convert(x))
+
+    def extend (self, x):
+        self.__list.extend(map(self.__convert, x))
+
+    def count (self, x):
+        return self.__list.count(x)
+
+    def index (self, x, i=0, j=-1):
+        return self.__list.index(x, i, j)
+
+    def insert (self, i, x):
+        self.__list.insert(i, map(self.__convert, x))
+
+    def pop (self, i=-1):
+        return self.__list.pop(i)
+
+    def remove (self, x):
+        self.__list.remove(x)
+
+    def reverse (self):
+        self.__list.reverse()
+
+    def sort (self, cmp=None, key=None, reverse=False):
+        self.__list.sort(cmp, key, reverse)
+
+    def __str__ (self):
+        return self.__list.__str__()
+
+    def __eq__ (self, other):
+        if isinstance(other, _PluralBinding):
+            return self.__list.__eq__(other.__list)
+        return self.__list.__eq__(other)
+    def __ne__ (self, other):
+        return not (other == self)
+
+    def __le__ (self, other):
+        if isinstance(other, _PluralBinding):
+            return self.__list.__le__(other.__list)
+        return self.__list.__le__(other)
+    def __ge__ (self, other):
+        return (other <= self)
+
+    def __lt__ (self, other):
+        if isinstance(other, _PluralBinding):
+            return self.__list.__lt__(other.__list)
+        return self.__list.__lt__(other)
+    def __gt__ (self, other):
+        return (other < self)
 
 class ElementDeclaration (object):
     """Aggregate the information relevant to an element of a complex type.
@@ -894,7 +997,8 @@ class ElementDeclaration (object):
         values for simple-type content.
         """
         if self.isPlural():
-            return []
+            #return []
+            return _PluralBinding(element_binding=self.__elementBinding)
         return None
 
     def value (self, ctd_instance):
