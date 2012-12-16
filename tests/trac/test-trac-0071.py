@@ -87,9 +87,7 @@ class TestTrac_0071 (unittest.TestCase):
         self.assertTrue(isinstance(field.value_[0], pyxb.BIND))
         self.assertEqual('<field><name>title</name><value lang="ENG">foo</value></field>', field.toxml("utf-8", root_only=True))
 
-        '''
-
-        NOT YET FINISHED
+        Expected = '<ns1:MetadataDocument xmlns:ns1="urn:trac-0071"><template>anewtemplate</template><timespan end="+INF" start="-INF"><field><name>title</name><value lang="ENG">foo</value></field></timespan></ns1:MetadataDocument>'
 
         newdoc.timespan.append(pyxb.BIND( # Single timespan
                 pyxb.BIND( # First field instance
@@ -97,37 +95,46 @@ class TestTrac_0071 (unittest.TestCase):
                     pyxb.BIND('foo', lang='ENG')
                     ),
                 start='-INF', end='+INF'))
+        timespan = newdoc.timespan[0]
+        self.assertTrue(isinstance(timespan, pyxb.BIND))
         newdoc.validateBinding()
         timespan = newdoc.timespan[0]
-        #self.assertTrue(isinstance(timespan, timespan_type))
-        print newdoc.toxml("utf-8")
-        newdoc.timespan[:] = []
-        
-        newdoc.timespan.append(pyxb.BIND( # Single timespan
-                pyxb.BIND( # First field instance
-                    name='title',
-                    value=pyxb.BIND('foo', lang='ENG')
-                    ),
-                start='-INF', end='+INF'))
-        newdoc.validateBinding()
-        timespan = newdoc.timespan[0]
-        #self.assertTrue(isinstance(timespan, timespan_type))
-        print newdoc.toxml("utf-8")
+        self.assertTrue(isinstance(timespan, pyxb.BIND))
+        self.assertEqual(Expected, newdoc.toxml("utf-8", root_only=True))
         newdoc.timespan[:] = []
 
-        newdoc.timespan.append(pyxb.BIND( # Single timespan
-                pyxb.BIND( # First field instance
-                    name='title',
-                    value_=pyxb.BIND('foo', lang='ENG')
-                    ),
-                start='-INF', end='+INF'))
-        newdoc.validateBinding()
-        timespan = newdoc.timespan[0]
-        #self.assertTrue(isinstance(timespan, timespan_type))
-        print newdoc.toxml("utf-8")
+        v_bind = pyxb.BIND('foo', lang='ENG')
+
+        # This binding is wrong: the field name is "value_" not "value"
+        f_bind = pyxb.BIND(name='title', value=v_bind)
+        ts_bind = pyxb.BIND(f_bind, start='-INF', end='+INF')
+        with self.assertRaises(pyxb.UnrecognizedContentError) as cm:
+            newdoc.timespan.append(ts_bind)
+            newdoc.validateBinding()
+        self.assertEqual(f_bind, cm.exception.value)
         newdoc.timespan[:] = []
 
-        '''
+        # This binding is wrong: the field "value_" is plural and the
+        # value for the keyword must be iterable.
+        f_bind = pyxb.BIND(name='title', value_=v_bind)
+        ts_bind = pyxb.BIND(f_bind, start='-INF', end='+INF')
+        with self.assertRaises(pyxb.UnrecognizedContentError) as cm:
+            newdoc.timespan.append(ts_bind)
+            newdoc.validateBinding()
+        self.assertEqual(f_bind, cm.exception.value)
+        newdoc.timespan[:] = []
+
+        # This one should be OK
+        bind = pyxb.BIND( # First field instance
+                    name='title',
+                    value_=[pyxb.BIND('foo', lang='ENG')]
+                    )
+        newdoc.timespan.append(pyxb.BIND(bind, start='-INF', end='+INF'))
+        newdoc.validateBinding()
+        timespan = newdoc.timespan[0]
+        self.assertTrue(isinstance(timespan, pyxb.BIND))
+        self.assertEqual(Expected, newdoc.toxml("utf-8", root_only=True))
+        newdoc.timespan[:] = []
 
 if __name__ == '__main__':
     unittest.main()

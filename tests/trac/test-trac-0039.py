@@ -100,7 +100,7 @@ class TestTrac0039 (unittest.TestCase):
         w = shallow(6)
         self.assertTrue(isinstance(w.optional.value(), xs.int))
         self.assertEqual(w.optional.value(), 6)
-        self.assertRaises(pyxb.MixedContentError, shallow, BIND('string'))
+        self.assertRaises(pyxb.UnrecognizedContentError, shallow, BIND('string'))
 
     def testDeep (self):
         w = wrapper(BIND(BIND(4, deep=4), BIND('hi')))

@@ -913,7 +913,7 @@ class ElementDeclaration (object):
         if ctd_instance._isNil():
             raise pyxb.ContentInNilInstanceError(ctd_instance, value)
         assert self.__elementBinding is not None
-        if ctd_instance._validationConfig.forBinding:
+        if ctd_instance._validationConfig.forBinding or isinstance(value, pyxb.BIND):
             value = self.__elementBinding.compatibleValue(value, is_plural=self.isPlural())
         setattr(ctd_instance, self.__key, value)
         ctd_instance._addContent(basis.ElementContent(value, self))

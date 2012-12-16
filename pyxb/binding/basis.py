@@ -2412,7 +2412,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         # If what we have is element or just complex content, we can't accept
         # it, either because the type doesn't accept element content or
         # because it does and what we got didn't match the content model.
-        if (element_binding is not None) or isinstance(value, (xml.dom.Node, complexTypeDefinition)):
+        if (element_binding is not None) or isinstance(value, (xml.dom.Node, complexTypeDefinition, pyxb.BIND)):
             raise pyxb.UnrecognizedContentError(self, self.__automatonConfiguration, value, location)
 
         # We have something that doesn't seem to be an element.  Are we
