@@ -23,6 +23,7 @@ import pyxb.utils.domutils as domutils
 import pyxb.utils.utility as utility
 import types
 import pyxb.namespace
+import collections
 from pyxb.namespace.builtin import XMLSchema_instance as XSI
 
 _log = logging.getLogger(__name__)
@@ -1119,9 +1120,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
             raise pyxb.SimpleTypeValueError(cls, value)
         value_class = cls
         if issubclass(cls, STD_list):
-            try:
-                iter(value)
-            except TypeError:
+            if not isinstance(value, collections.Iterable):
                 raise pyxb.SimpleTypeValueError(cls, value)
             for v in value:
                 if not cls._ItemType._IsValidValue(v):
@@ -1318,16 +1317,8 @@ class STD_list (simpleTypeDefinition, types.ListType):
             if isinstance(arg1, types.StringTypes):
                 args = (arg1.split(),) + args[1:]
                 arg1 = args[0]
-            is_iterable = False
-            try:
-                iter(arg1)
-                is_iterable = True
-            except TypeError:
-                pass
-            if is_iterable:
-                new_arg1 = []
-                for i in range(len(arg1)):
-                    new_arg1.append(cls._ValidatedItem(arg1[i], kw))
+            if isinstance(arg1, collections.Iterable):
+                new_arg1 = [ cls._ValidatedItem(_v, kw) for _v in arg1 ]
                 args = (new_arg1,) + args[1:]
         super_fn = getattr(super(STD_list, cls), '_ConvertArguments_vx', lambda *a,**kw: args)
         return super_fn(args, kw)
@@ -1608,9 +1599,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             return self.__defaultValue
         is_plural = kw.pop('is_plural', False)
         if is_plural:
-            try:
-                iter(value)
-            except TypeError:
+            if not isinstance(value, collections.Iterable):
                 raise pyxb.SimplePluralValueError(self.typeDefinition(), value)
             return [ self.compatibleValue(_v) for _v in value ]
         if self.__fixed and (value != self.__defaultValue):
