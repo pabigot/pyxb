@@ -78,7 +78,6 @@ class TestTrac_0069 (unittest.TestCase):
 
         newdoc.timespan.append(pyxb.BIND(start='-INF', end='+INF'))
         timespan = newdoc.timespan[0]
-        print type(timespan)
         self.assertTrue(isinstance(timespan, timespan_type))
         timespan.field.append(pyxb.BIND('name', pyxb.BIND('fv0'), pyxb.BIND('fv1')))
         field = timespan.field[0]
