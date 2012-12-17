@@ -25,9 +25,9 @@ relaxed policy is:
 - All packaged releases are intended to be of comparable stability, with bug
   fixes and most enhancements causing an increment in the third integer
 
-As an example, :ticket:`correcting the content model for weak determinism
-<112>` resulted in PyXB 1.2.0, and :ticket:`support of Python 3 <150>` will
-result in PyXB 1.3.0.
+As examples, :ticket:`correcting the content model for weak determinism <112>`
+resulted in PyXB 1.2.0, and :ticket:`support of Python 3 <150>` will result in
+PyXB 1.3.0.
 
 
 1.2.x
@@ -38,6 +38,56 @@ more help in resolving validation errors.  Concurrent with this support was
 dropped for Python 2.4 and 2.5.  The 1.2.x release will work with Python 2.6
 and 2.7; some unit tests are skipped under Python 2.6 due to insufficient
 support for validating exception attributes.
+
+.. _pyxb-1.2.1:
+
+1.2.1 (17 Dec 2012)
+-------------------
+
+.. warning::
+
+   This release has an interface change: the :api:`content
+   <pyxb.binding.basis.complexTypeDefinition.content>` method on complex types
+   is now deprecated in favor of the :api:`orderedContent
+   <pyxb.binding.basis.complexTypeDefinition.orderedContent>` method.  The
+   members in the new list have wrapper classes to correctly associate
+   instance bindings with the element declaration and to distinguish instances
+   with string values from non-element character data.  The old method is
+   supported for this release, but will produce a warning when used, and is
+   likely to be removed in the next release.
+
+Key features of the release:
+
+- Full support for mixed content schema through a new method
+  :api:`orderedContent <pyxb.binding.basis.complexTypeDefinition.orderedContent>` on complex
+  binding instances and flags that control when that list affects document
+  generation.  See :ref:`mixed_content`.  This is particularly relevant to
+  XHTML.
+
+- Immediate validation of values assigned to plural elements.
+
+- A first step to providing finer control of validation, using
+  :api:`pyxb.ValidationConfig`
+
+The following reported `defects/enhancements
+<http://sourceforge.net/apps/trac/pyxb/>`_ have been addressed:
+
+- Validate :ref:`pyxb.BIND<pyxb_BIND>` at point of use.  :ticket:`69`
+- Issues with renamed element (most of which were mis-use of pyxb.BIND).  :ticket:`71`
+- Support for default and fixed values in elements. :ticket:`99`
+- Support for mixed content.  :ticket:`153`, :ticket:`154`
+- Provide an example based on a `help-forum thread
+  <http://sourceforge.net/projects/pyxb/forums/forum/956708/topic/5422611/>`_
+  to show how to take advantage of PyXB 1.2.x improved diagnostics.
+  :ticket:`158`
+- Improve interpretation of Python native type values when used in element
+  constructors.  :ticket:`175`
+- Add :ref:`ECMA-376 (Office Open XML)<bundle_ecma376>` as an optional bundle.
+  :ticket:`178`
+- Fix invalid error when an all model group had minOccurs=0.  :ticket:`179`
+- Add :ref:`Dublin Core<bundle_dc>` to the standard bundles.  :ticket:`180`
+- Allow control of element order in generated documents.  :ticket:`181`
+- Include wildcard elements in content.  :ticket:`182`
 
 .. _pyxb-1.2.0:
 

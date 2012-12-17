@@ -24,12 +24,6 @@ documents and Python objects.  In concept it is similar to `JAXB
 :ref:`thirty_sec_example` is at the bottom of this page.  Step-by-step
 examples are in :ref:`userReference`.
 
-.. note::
-
-   This page is for the :ref:`1.2.0 release of PyXB <pyxb-1.2.0>`, which
-   should be considered beta software.  For documentation on the recommended
-   stable release please see the :ref:`PyXB 1.1.5 release notes <pyxb-1.1.5>`.
-
 ************
 Getting Help
 ************
@@ -70,20 +64,17 @@ An example of a program using PyXB to interact with a `web service
 automatically-generated module.  First, retrieve the WSDL and generate the
 bindings::
 
-  llc[1394]$ pyxbgen \
-      --wsdl-location=http://wsf.cdyne.com/WeatherWS/Weather.asmx?WSDL \
-      --module=weather \
-      --write-for-customization
-  urn:uuid:c9f96a32-b700-11e1-b837-c8600024e903
-  Retrieving WSDL from http://wsf.cdyne.com/WeatherWS/Weather.asmx?WSDL
-  Importing pyxb.binding.datatypes to get binding for wildcard {http://www.w3.org/2001/XMLSchema}schema
-  NOTE: Created unbound wildcard element from value in schema
-  PS urn:uuid:c9f96a32-b700-11e1-b837-c8600024e903
-  Complex type {http://ws.cdyne.com/WeatherWS/}WeatherReturn renamed to WeatherReturn_
-  Complex type {http://ws.cdyne.com/WeatherWS/}ArrayOfWeatherDescription renamed to ArrayOfWeatherDescription_
-  Complex type {http://ws.cdyne.com/WeatherWS/}ForecastReturn renamed to ForecastReturn_
-  Python for http://ws.cdyne.com/WeatherWS/ requires 1 modules
-  Saved binding source to ./raw/weather.py
+ llc[766]$ pyxbgen \
+       --wsdl-location=http://wsf.cdyne.com/WeatherWS/Weather.asmx?WSDL \
+       --module=weather \
+       --write-for-customization
+ Retrieving WSDL from http://wsf.cdyne.com/WeatherWS/Weather.asmx?WSDL
+ WARNING:pyxb.binding.basis:Unable to convert DOM node {http://www.w3.org/2001/XMLSchema}schema at Weather.asmx?WSDL[4:4] to binding
+ PS urn:uuid:ea640f34-4869-11e2-924d-c8600024e903
+ WARNING:pyxb.binding.generate:Complex type {http://ws.cdyne.com/WeatherWS/}ArrayOfWeatherDescription renamed to ArrayOfWeatherDescription_
+ WARNING:pyxb.binding.generate:Complex type {http://ws.cdyne.com/WeatherWS/}ForecastReturn renamed to ForecastReturn_
+ WARNING:pyxb.binding.generate:Complex type {http://ws.cdyne.com/WeatherWS/}WeatherReturn renamed to WeatherReturn_
+ Python for http://ws.cdyne.com/WeatherWS/ requires 1 modules
 
 Then write a program that uses them:
 
@@ -91,15 +82,15 @@ Then write a program that uses them:
 
 And run it::
 
- llc[1395]$ python client_get.py 
+ llc[767]$ python client_get.py
  Weather forecast for Saint Paul, MN:
-  Friday, June 15 2012: Partly Cloudy, from  to 85
-  Saturday, June 16 2012: Thunder Storms, from 67 to 81
-  Sunday, June 17 2012: Sunny, from 62 to 84
-  Monday, June 18 2012: Partly Cloudy, from 69 to 86
-  Tuesday, June 19 2012: Thunder Storms, from 68 to 81
-  Wednesday, June 20 2012: Thunder Storms, from 68 to 83
-  Thursday, June 21 2012: Partly Cloudy, from 62 to 73
+  Monday, December 17 2012: Partly Cloudy, from 15 to 26
+  Tuesday, December 18 2012: , from 19 to 32
+  Wednesday, December 19 2012: Partly Cloudy, from 18 to 32
+  Thursday, December 20 2012: Mostly Cloudy, from 16 to 22
+  Friday, December 21 2012: Sunny, from 8 to 20
+  Saturday, December 22 2012: Partly Cloudy, from 8 to 21
+  Sunday, December 23 2012: Partly Cloudy, from 3 to 19
 
 That's it.
 

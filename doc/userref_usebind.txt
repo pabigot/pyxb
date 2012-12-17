@@ -125,6 +125,8 @@ valid, and validation must be :api:`disabled for parsing
 <pyxb.RequireValidWhenParsing>` as well if the resulting document is to be
 re-converted into a binding with ``CreateFromDocument``.
 
+.. _pyxb_BIND:
+
 Creating Instances of Anonymous Types
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -187,6 +189,100 @@ With this, the final document produced is:
 (Surprise: ``addr`` does not appear, because the ``nsaddress.xsd`` schema
 uses the default element form ``unqualified``, so none of the address
 components in the document have a namespace.)
+
+.. _mixed_content:
+
+Influencing Element and Mixed Content Order
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+PyXB generally expects that any information reflected in the order of elements
+is controlled by the content model in the schema.  Where content includes
+multiple instances of the same element, they are maintained in order within
+the binding attribute corresponding to the name.  Historically relative order
+with other elements or with mixed content historically was not rigorously
+maintained, and generated documents applied only the order enforced by the
+content model.
+
+The following example from ``examples/xhtml/generate.py`` hints at the difficulty:
+
+.. literalinclude:: ../examples/xhtml/generate.py
+
+If the relative order of elements and mixed content were not maintained, this
+might produce something like:
+
+.. literalinclude:: eltonly.xhtml
+
+Here mixed content is lost, and element content is emitted in the order that
+elements appear in the original schema.
+
+As of release 1.2.1 [#content]_, PyXB appends both element and non-element content to a
+list in each complex binding instance.  The list may be obtained using the
+:api:`orderedContent
+<pyxb.binding.basis.complexTypeDefinition.orderedContent>` method.  The list
+comprises instances of :api:`pyxb.binding.basis.ElementContent` and
+:api:`pyxb.binding.basis.NonElementContent` added in the order in which they were
+added to the binding instance: when creating the instance from a document or
+through a constructor, or by invoking the
+:api:`append <pyxb.binding.basis.complexTypeDefinition.append>` or
+:api:`extend <pyxb.binding.basis.complexTypeDefinition.extend>` methods to add
+content consistent with the content model.
+
+The :api:`contentInfluencesGeneration
+<pyxb.ValidationConfig.contentInfluencesGeneration>` flag of
+:api:`pyxb.ValidationConfig` controls how the ``orderedContent`` list affects
+generation of documents (both DOM directly and XML indirectly).  With the
+default value of :api:`MIXED_ONLY <pyxb.ValidationConfig.MIXED_ONLY>` the
+``orderedContent`` list is only consulted when a complex type allows both
+element and non-element content.
+
+The bundle for XHTML has been modified to use:
+
+- :api:`ALWAYS <pyxb.ValidationConfig.ALWAYS>` for :api:`contentInfluencesGeneration
+  <pyxb.ValidationConfig.contentInfluencesGeneration>`
+- :api:`RAISE_EXCEPTION <pyxb.ValidationConfig.RAISE_EXCEPTION>` for
+  :api:`orphanElementInContent <pyxb.ValidationConfig.orphanElementInContent>`
+- :api:`RAISE_EXCEPTION <pyxb.ValidationConfig.RAISE_EXCEPTION>` for
+  :api:`invalidElementInContent <pyxb.ValidationConfig.invalidElementInContent>`
+
+for all binding classes in that module.  (See
+``pyxb/bundles/common/xhtml1.py`` for the technique used.)  This ensures
+preservation of element order in cases where no non-element content may appear
+(such as the top-level ``body`` element).
+
+With this capability the following document is generated:
+
+.. literalinclude:: ../examples/xhtml/expout.xhtml
+
+Be aware that the automatically-maintained ``orderedContent`` list will be
+incorrect in at least two cases:
+
+- When the elements of an instance are mutated through Python code, the list
+  no longer reflects the correct order;
+
+- When elements are appended directly to sub-elements as with:
+
+  .. code-block:: python
+
+     p2.b.append('another bit of bold')
+
+  the newly added elements do not appear in the ``orderedContent`` list.
+
+The value returned by :api:`orderedContent
+<pyxb.binding.basis.complexTypeDefinition.orderedContent>` is a mutable list
+so that you can manipulate it to reflect the content you wish to have
+generated.
+
+Where the ``orderedContent`` list is not consistent with the content model
+(e.g., references elements that are no longer part of the binding instance, or
+proposes an order that is not valid) various exceptions may arise.  To some
+extent this can be controlled through the :api:`orphanElementInContent
+<pyxb.ValidationConfig.orphanElementInContent>` and
+:api:`invalidElementInContent <pyxb.ValidationConfig.invalidElementInContent>`
+flags.
+
+.. [#content] Though previous versions also provided this information through
+   a ``content`` list, the list did not associate content with the element to
+   which it belonged making it difficult to reconstruct a valid document.
 
 .. ignored
    ## Local Variables:
