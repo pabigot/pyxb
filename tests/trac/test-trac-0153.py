@@ -54,6 +54,7 @@ for cls in [ tText, tBold, tItal, tOrdered ]:
 from pyxb.exceptions_ import *
 
 import unittest
+import sys
 
 class TestTrac0153 (unittest.TestCase):
     def tearDown (self):
@@ -114,6 +115,9 @@ class TestTrac0153 (unittest.TestCase):
         vc._setOrphanElementInContent(vc.RAISE_EXCEPTION)
         self.assertEqual(vc.orphanElementInContent, vc.RAISE_EXCEPTION)
         self.assertEqual(gvc.orphanElementInContent, gvc.IGNORE_ONCE)
+        if sys.version_info[:2] < (2, 7):
+            self.assertRaises(pyxb.OrphanElementContentError, i.toxml, 'utf-8', root_only=True)
+            return
         with self.assertRaises(pyxb.OrphanElementContentError) as cm:
             xmls = i.toxml('utf-8', root_only=True)
         e = cm.exception

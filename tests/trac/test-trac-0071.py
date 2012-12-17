@@ -122,6 +122,9 @@ class TestTrac_0071 (unittest.TestCase):
         # This binding is wrong: the field name is "value_" not "value"
         f_bind = pyxb.BIND(name='title', value=v_bind)
         ts_bind = pyxb.BIND(f_bind, start='-INF', end='+INF')
+        if sys.version_info[:2] < (2, 7):
+            self.assertRaises(pyxb.UnrecognizedContentError, newdoc.timespan.append, ts_bind)
+            return
         with self.assertRaises(pyxb.UnrecognizedContentError) as cm:
             newdoc.timespan.append(ts_bind)
         self.assertEqual(f_bind, cm.exception.value)
@@ -134,6 +137,9 @@ class TestTrac_0071 (unittest.TestCase):
         # value for the keyword must be iterable.
         f_bind = pyxb.BIND(name='title', value_=v_bind)
         ts_bind = pyxb.BIND(f_bind, start='-INF', end='+INF')
+        if sys.version_info[:2] < (2, 7):
+            self.assertRaises(pyxb.UnrecognizedContentError, newdoc.timespan.append, ts_bind)
+            return
         with self.assertRaises(pyxb.UnrecognizedContentError) as cm:
             newdoc.timespan.append(ts_bind)
         self.assertEqual(f_bind, cm.exception.value)

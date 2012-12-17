@@ -68,7 +68,10 @@ except pyxb.ValidationError as e:
 
 ivenue = instance.ContentGroup[0].Ext.wildcardElements()[0]
 assert isinstance(ivenue, type(venue))
-assert ivenue == venue
+# NB: Python 2.6.8 and Python 2.7.3 have whitespace differences in
+# text emitted by toprettyxml() which results in failure of
+# non-stripped comparison in 2.6.8.
+assert ivenue.strip() == venue.strip()
 
 # Since the Ext element holds its content as an unbounded number of
 # wildcards, you can just add stuff to it.

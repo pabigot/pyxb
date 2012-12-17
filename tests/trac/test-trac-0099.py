@@ -53,6 +53,7 @@ eval(rv)
 from pyxb.exceptions_ import *
 
 import unittest
+import sys
 
 class TestTrac0099 (unittest.TestCase):
     def testCtor (self):
@@ -64,6 +65,9 @@ class TestTrac0099 (unittest.TestCase):
         self.assertEqual('fixed', i)
         i = fixs('fixed')
         self.assertEqual('fixed', i)
+        if sys.version_info[:2] < (2, 7):
+            self.assertRaises(pyxb.ElementChangeError, fixs, 'other')
+            return
         with self.assertRaises(pyxb.ElementChangeError) as cm:
             i = fixs('other')
         e = cm.exception
@@ -77,6 +81,9 @@ class TestTrac0099 (unittest.TestCase):
         self.assertEqual('fixed', i.fixs)
         self.assertEqual(21, i.fixi)
 
+        if sys.version_info[:2] < (2, 7):
+            self.assertRaises(pyxb.ElementChangeError, complex, fixs='hi')
+            return
         with self.assertRaises(pyxb.ElementChangeError) as cm:
             i = complex(fixs='hi')
         e = cm.exception
@@ -86,6 +93,8 @@ class TestTrac0099 (unittest.TestCase):
         i = complex()
         # Can assign the fixed value
         i.fixs = 'fixed'
+        if sys.version_info[:2] < (2, 7):
+            return
         # Cannot assign a non-fixed value
         with self.assertRaises(pyxb.ElementChangeError) as cm:
             i.fixs = 'hi'

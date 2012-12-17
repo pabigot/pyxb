@@ -30,6 +30,9 @@ class TestTrac0099a (unittest.TestCase):
     </xs:complexType>
   </xs:element>
 </xs:schema>'''
+        if sys.version_info[:2] < (2, 7):
+            self.assertRaises(pyxb.SchemaValidationError, pyxb.binding.generate.GeneratePython, schema_text=xsd)
+            return
         with self.assertRaises(pyxb.SchemaValidationError) as cm:
             code = pyxb.binding.generate.GeneratePython(schema_text=xsd)
             print code

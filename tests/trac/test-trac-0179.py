@@ -33,8 +33,8 @@ import unittest
 class TestTrac0179 (unittest.TestCase):
     def testBasic (self):
         instance = CreateFromDocument("<eAny/>")
-        self.assertIsNone(instance.a)
-        self.assertIsNone(instance.b)
+        self.assertTrue(instance.a is None)
+        self.assertTrue(instance.b is None)
         instance = CreateFromDocument("<eAny><a>1</a><b>2</b></eAny>")
         self.assertEqual(instance.a, 1)
         self.assertEqual(instance.b, 2)
