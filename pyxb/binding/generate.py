@@ -453,6 +453,13 @@ def GenerateFacets (td, generator, **kw):
         map_args = ','.join(facet_instances)
     outf.write("%s._InitializeFacetMap(%s)\n" % (binding_module.literal(td, **kw), map_args))
 
+def _VCAppendAuxInit (vc_source, aux_init, binding_module, kw):
+    if vc_source.fixed() is not None:
+        aux_init.append('fixed=True')
+        aux_init.append('unicode_default=%s' % (binding_module.literal(vc_source.fixed(), **kw),))
+    elif vc_source.default() is not None:
+        aux_init.append('unicode_default=%s' % (binding_module.literal(vc_source.default(), **kw),))
+
 def GenerateSTD (std, generator):
 
     binding_module = generator.moduleForComponent(std)
@@ -584,6 +591,7 @@ def elementDeclarationMap (ed, binding_module, **kw):
         if k in template_map:
             aux_init.append('%s=%s' % (k, template_map[k]))
     aux_init.append('location=%s' % (template_map['decl_location'],))
+    _VCAppendAuxInit(ed, aux_init, binding_module, kw)
     template_map['element_aux_init'] = ''
     if 0 < len(aux_init):
         template_map['element_aux_init'] = ', ' + ', '.join(aux_init)
@@ -988,11 +996,7 @@ class %{ctd} (%{superclass}):
         if au.valueConstraint() is not None:
             vc_source = au
         aux_init = []
-        if vc_source.fixed() is not None:
-            aux_init.append('fixed=True')
-            aux_init.append('unicode_default=%s' % (binding_module.literal(vc_source.fixed(), **kw),))
-        elif vc_source.default() is not None:
-            aux_init.append('unicode_default=%s' % (binding_module.literal(vc_source.default(), **kw),))
+        _VCAppendAuxInit(vc_source, aux_init, binding_module, kw)
         if au.required():
             aux_init.append('required=True')
         if au.prohibited():

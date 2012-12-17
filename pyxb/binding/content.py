@@ -992,14 +992,13 @@ class ElementDeclaration (object):
     def defaultValue (self):
         """Return the default value for this element.
 
-        @todo: Right now, this returns C{None} for non-plural and an empty
-        list for plural elements.  Need to support schema-specified default
-        values for simple-type content.
+        For plural values, this is an empty collection.  For non-plural
+        values, it is C{None} unless the element has a default value, in which
+        case it is that value.
         """
         if self.isPlural():
-            #return []
             return _PluralBinding(element_binding=self.__elementBinding)
-        return None
+        return self.__elementBinding.defaultValue()
 
     def value (self, ctd_instance):
         """Return the value for this use within the given instance."""

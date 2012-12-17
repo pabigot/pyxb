@@ -1470,9 +1470,20 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     __documentation = None
 
     def defaultValue (self):
+        """The default value of the element.
+
+        C{None} if the element has no default value.
+
+        @note: A non-C{None} value is always an instance of a simple type,
+        even if the element has complex content."""
         return self.__defaultValue
     __defaultValue = None
 
+    def fixed (self):
+        """C{True} if the element content cannot be changed"""
+        return self.__fixed
+    __fixed = False
+    
     def substitutionGroup (self):
         """The L{element} instance to whose substitution group this element
         belongs.  C{None} if this element is not part of a substitution
@@ -1529,7 +1540,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         The type for this element must be a complex type definition."""
         return self.typeDefinition()._UseForTag(name).elementBinding()
 
-    def __init__ (self, name, type_definition, scope=None, nillable=False, abstract=False, default_value=None, substitution_group=None, documentation=None, location=None):
+    def __init__ (self, name, type_definition, scope=None, nillable=False, abstract=False, unicode_default=None, fixed=False, substitution_group=None, documentation=None, location=None):
         """Create a new element binding.
         """
         assert isinstance(name, pyxb.namespace.ExpandedName)
@@ -1538,7 +1549,13 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         self.__scope = scope
         self.__nillable = nillable
         self.__abstract = abstract
-        self.__defaultValue = default_value
+        if unicode_default is not None:
+            # Override default None.  If this is a complex type with simple
+            # content, use the underlying simple type value.
+            self.__defaultValue = self.__typeDefinition.Factory(unicode_default, _from_xml=True)
+            if isinstance(self.__defaultValue, complexTypeDefinition):
+                self.__defaultValue = self.__defaultValue.value()
+        self.__fixed = fixed
         self.__substitutionGroup = substitution_group
         self.__documentation = documentation
         self.__xsdLocation = location
@@ -1565,6 +1582,15 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             if (location is None) and isinstance(dom_node, utility.Locatable_mixin):
                 location = dom_node._location()
             raise pyxb.AbstractElementError(self, location, args)
+        if self.__defaultValue is not None:
+            if 0 == len(args):
+                # No initial value; use the default
+                args = [ self.__defaultValue ]
+            elif self.__fixed:
+                # Validate that the value is consistent with the fixed value
+                if 1 < len(args):
+                    raise ValueError(*args)
+                args = [ self.compatibleValue(args[0], **kw) ]
         rv = self.typeDefinition().Factory(*args, **kw)
         rv._setElement(self)
         return rv
@@ -1577,9 +1603,9 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         @raise pyxb.SimpleTypeValueError: if the value is not both
         type-consistent and value-consistent with the element's type.
         """
-        # None is always None
+        # None is always None, unless there's a default.
         if value is None:
-            return None
+            return self.__defaultValue
         is_plural = kw.pop('is_plural', False)
         if is_plural:
             try:
@@ -1587,6 +1613,8 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             except TypeError:
                 raise pyxb.SimplePluralValueError(self.typeDefinition(), value)
             return [ self.compatibleValue(_v) for _v in value ]
+        if self.__fixed and (value != self.__defaultValue):
+            raise pyxb.ElementChangeError(self, value)
         if isinstance(value, _TypeBinding_mixin) and (value._element() is not None) and value._element().substitutesFor(self):
             return value
         if self.abstract():

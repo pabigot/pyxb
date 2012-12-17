@@ -262,6 +262,31 @@ class NoNillableSupportError (ElementValidationError):
         self.location = location
         super(NoNillableSupportError, self).__init__(instance, location)
 
+class ElementChangeError (ElementValidationError):
+    """Attempt to change an element that has a fixed value constraint."""
+
+    element = None
+    """The L{pyxb.binding.basis.element} that has a fixed value."""
+
+    value = None
+    """The value that was to be assigned to the element."""
+
+    def __init__ (self, element, value, location=None):
+        """@param element: the value for the L{element} attribute.
+        @param value: the value for the L{value} attribute.
+        @param location: the value for the L{location} attribute.  Default taken from C{value} if possible."""
+
+        import pyxb.utils.utility
+        self.element = element
+        self.value = value
+        if (location is None) and isinstance(value, pyxb.utils.utility.Locatable_mixin):
+            location = value._location()
+        self.location = location
+        super(ElementChangeError, self).__init__(element, value, location)
+
+    def __str__ (self):
+        return 'Element %s has fixed content %s' % (self.element.name(), self.value)
+
 class ComplexTypeValidationError (ValidationError):
     """Raised when a validation requirement for a complex type is not satisfied."""
     pass
