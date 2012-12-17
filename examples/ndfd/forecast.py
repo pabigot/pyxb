@@ -48,13 +48,16 @@ for i in range(len(data.location)):
             elif 'minimum' == t.type:
                 mint = t
             print '%s (%s): %s' % (t.name[0], t.units, " ".join([ str(_v) for _v in t.content() ]))
-        time_layout = None
+        # Sometimes the service doesn't provide the same number of
+        # data points for min and max
+        mint_time_layout = maxt_time_layout = None
         for tl in data.time_layout:
             if tl.layout_key == mint.time_layout:
-                time_layout = tl
-                break
-        for ti in range(len(time_layout.start_valid_time)):
-            start = time_layout.start_valid_time[ti].value()
-            end = time_layout.end_valid_time[ti]
+                mint_time_layout = tl
+            if tl.layout_key == maxt.time_layout:
+                maxt_time_layout = tl
+        for ti in range(min(len(mint_time_layout.start_valid_time), len(maxt_time_layout.start_valid_time))):
+            start = mint_time_layout.start_valid_time[ti].value()
+            end = mint_time_layout.end_valid_time[ti]
             print '%s: min %s, max %s' % (time.strftime('%A, %B %d %Y', start.timetuple()),
                                           mint.value_[ti].value(), maxt.value_[ti].value())
