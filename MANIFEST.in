@@ -22,7 +22,7 @@ prune pyxb/bundles/opengis/schemas
 prune pyxb/bundles/opengis/remote
 
 # Include all the unit tests
-recursive-include tests *.py *.xsd *.xml *.sh
+recursive-include tests *.py *.xsd *.xml *.sh logging.cfg
 
 # Include the scripts and any other garbage helpful to the maintainer
 recursive-include maintainer * *.sh *.py
