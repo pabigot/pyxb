@@ -48,7 +48,7 @@ class TestNotComplexContentError (unittest.TestCase):
         content = None
         instance = trac26.eEmpty()
         with self.assertRaises(pyxb.NotComplexContentError) as cm:
-            content = instance.content()
+            content = instance.orderedContent()
         e = cm.exception
         self.assertEqual(e.instance, instance)
 
@@ -56,13 +56,13 @@ class TestNotComplexContentError (unittest.TestCase):
         content = None
         instance = trac26.eCTwSC(4)
         with self.assertRaises(pyxb.NotComplexContentError) as cm:
-            content = instance.content()
+            content = instance.orderedContent()
         e = cm.exception
         self.assertEqual(e.instance, instance)
 
     def testDisplayException (self):
         if DisplayException:
-            trac26.eEmpty().content()
+            trac26.eEmpty().orderedContent()
 
 class TestNotSimpleContentError (unittest.TestCase):
     # No tests on documents as the exception is raised only in code
