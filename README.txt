@@ -1,5 +1,5 @@
 PyXB -- Python W3C XML Schema Bindings
-Version 1.2.1
+Version 1.2.2-DEV
 
 This source release includes pre-built bundles for common XML namespaces,
 assorted web service namespaces, and SAML.  A bundle for over 75 namespaces
