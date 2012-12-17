@@ -3081,7 +3081,11 @@ class Particle (_ParticleTree_mixin, _SchemaComponent_mixin, pyxb.namespace.reso
             else:
                 # NOTE: 3.3.3 clause 2.2 specifies that if ref is used, all
                 # the other configuration attributes like nillable and default
-                # must be absent.  We don't even bother looking for them.
+                # must be absent.
+                for tag in ('nillable', 'default', 'fixed', 'form', 'block', 'type'):
+                    av = domutils.NodeAttribute(node, tag)
+                    if av is not None:
+                        raise pyxb.SchemaValidationError('element with "ref" cannot have "%s"' % (tag,))
                 rv.__resolvableType = ElementDeclaration
                 assert not xsd.nodeIsNamed(node.parentNode, 'schema')
         elif xsd.nodeIsNamed(node, 'any'):
