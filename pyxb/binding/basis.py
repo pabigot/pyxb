@@ -54,7 +54,9 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
     def __getValidationConfig (self):
         """The L{pyxb.ValidationConfig} instance that applies to this instance.
 
-        By default this will reference L{pyxb.GlobalValidationConfig}."""
+        By default this will reference the class value from
+        L{_GetValidationConfig}, which defaults to
+        L{pyxb.GlobalValidationConfig}."""
         return self._validationConfig_
 
     # This is how you should be accessing this value.

@@ -174,7 +174,29 @@ Applies only at compilation time; dynamic changes are ignored.
 """
 
 class ValidationConfig (object):
-    """Class holding configuration related to validation."""
+    """Class holding configuration related to validation.
+
+    L{pyxb.GlobalValidationConfig} is available to influence validation in all
+    contexts.  Each binding class has a reference to an instance of this
+    class, which can be inspected using
+    L{pyxb.binding.basis._TypeBinding_mixin._GetValidationConfig} and changed
+    using L{pyxb.binding.basis._TypeBinding_mixin._SetValidationConfig}.  Each
+    binding instance has a reference inherited from its class which can be
+    inspected using L{pyxb.binding.basis._TypeBinding_mixin._validationConfig}
+    and changed using
+    L{pyxb.binding.basis._TypeBinding_mixin._setValidationConfig}.
+
+    This allows fine control on a per class and per-instance basis.
+
+    L{forBinding} replaces L{RequireValidWhenParsing}.
+
+    L{forDocument} replaces L{RequireValidWhenGenerating}.
+
+    L{contentInfluencesGeneration}, L{orphanElementInContent}, and
+    L{invalidElementInContent} control how
+    L{pyxb.binding.basis.complexTypeDefinition.orderedContent} affects
+    generated documents.
+    """
 
     __forBinding = True
     def _getForBinding (self):
