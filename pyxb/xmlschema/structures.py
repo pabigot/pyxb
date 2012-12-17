@@ -1452,6 +1452,27 @@ class ElementDeclaration (_ParticleTree_mixin, _SchemaComponent_mixin, _NamedCom
         return self.__typeDefinition
     def _typeDefinition (self, type_definition):
         self.__typeDefinition = type_definition
+        if (type_definition is not None) and (self.valueConstraint() is not None):
+            failed = True
+            if isinstance(self.__typeDefinition, SimpleTypeDefinition):
+                failed = False
+            elif isinstance(self.__typeDefinition, ComplexTypeDefinition):
+                # The corresponding type may not be resolved so we can't check
+                # its contentType, but we should know whether it could be
+                # complex.  Unfortunately we may not b
+                ct = type_definition.contentType()
+                if ct is None:
+                    if False == self.__typeDefinition._isComplexContent():
+                        failed = False
+                    else:
+                        _log.error('Unable to check value constraint on %s due to incomplete resolution of type', self.expandedName())
+                else:
+                    failed = not (isinstance(ct, tuple) and (ComplexTypeDefinition.CT_SIMPLE == ct[0]))
+            if failed:
+                type_en = self.__typeDefinition.expandedName()
+                if type_en is None:
+                    raise pyxb.SchemaValidationError('Value constraint on element %s with non-simple content' % (self.expandedName(),))
+                raise pyxb.SchemaValidationError('Value constraint on element %s with non-simple type %s' % (self.expandedName(), type_en))
         return self
 
     __substitutionGroupAttribute = None
@@ -1560,16 +1581,16 @@ class ElementDeclaration (_ParticleTree_mixin, _SchemaComponent_mixin, _NamedCom
             if (simpleType_node is not None) and (complexType_node is not None):
                 raise pyxb.SchemaValidationError('Cannot combine type attribute with simpleType or complexType child')
         if (rv.__typeDefinition is None) and (simpleType_node is not None):
-            rv.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(simpleType_node, **kw)
+            rv._typeDefinition(SimpleTypeDefinition.CreateFromDOM(simpleType_node, **kw))
         if (rv.__typeDefinition is None) and (complexType_node is not None):
-            rv.__typeDefinition = ComplexTypeDefinition.CreateFromDOM(complexType_node, **kw)
+            rv._typeDefinition(ComplexTypeDefinition.CreateFromDOM(complexType_node, **kw))
         if rv.__typeDefinition is None:
             if rv.__typeAttribute is None:
                 # Scan for particle types which were supposed to be enclosed in a complexType
                 for cn in node.childNodes:
                     if Particle.IsParticleNode(cn):
                         raise pyxb.SchemaValidationError('Node %s in element must be wrapped by complexType.' % (cn.localName,))
-                rv.__typeDefinition = ComplexTypeDefinition.UrTypeDefinition()
+                rv._typeDefinition(ComplexTypeDefinition.UrTypeDefinition())
         rv.__isResolved = (rv.__typeDefinition is not None) and (rv.__substitutionGroupAttribute is None)
         if not rv.__isResolved:
             rv._queueForResolution('creation')
@@ -1675,10 +1696,10 @@ class ElementDeclaration (_ParticleTree_mixin, _SchemaComponent_mixin, _NamedCom
         if self.__typeDefinition is None:
             assert self.__typeAttribute is not None
             type_en = self._namespaceContext().interpretQName(self.__typeAttribute)
-            self.__typeDefinition = type_en.typeDefinition()
-            if self.__typeDefinition is None:
+            td = type_en.typeDefinition()
+            if td is None:
                 raise pyxb.SchemaValidationError('Type declaration %s cannot be found' % (type_en,))
-
+            self._typeDefinition(td)
         self.__isResolved = True
         return self
 
@@ -2189,6 +2210,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
     __effectiveContent = None
     __pendingDerivationMethod = None
     __isComplexContent = None
+    def _isComplexContent (self):
+        return self.__isComplexContent
     __ctscRestrictionMode = None
     __contentStyle = None
     
@@ -3011,6 +3034,7 @@ class Particle (_ParticleTree_mixin, _SchemaComponent_mixin, pyxb.namespace.reso
 
         self.__term = self.__pendingTerm
         assert self.__term is not None
+
         return self
 
     def isResolved (self):
