@@ -27,7 +27,7 @@ assert 1 == len(p2.em)
 # Generate the document and externally verify that the em is between the two bs.
 doc = xhtml.html(head, body)
 try:
-    xmls = doc.toxml('utf-8')
+    xmls = doc.toDOM().toprettyxml()
 except pyxb.ValidationError as e:
     print e.details()
     raise
