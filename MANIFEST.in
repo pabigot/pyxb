@@ -35,7 +35,7 @@ exclude doc/*.eap
 prune doc/W3C
 
 # Examples that didn't go into bundles
-recursive-include examples *.txt *.py *.sh *.xsd *.xml *-patch *.out
+recursive-include examples *.txt *.py *.sh *.xsd *.xml *-patch *.out *.xhtml
 include examples/unicode_jp/pyxbgen_jp
 
 # Detritus
