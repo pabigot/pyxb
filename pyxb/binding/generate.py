@@ -275,7 +275,7 @@ def _GenerateAutomaton (automaton, template_map, containing_state, lines, **kw):
     au_src = []
     au_src.append(templates.replaceInText('''
 def %{name} ():
-    # Remove this helper function from the namespace after it's invoked
+    # Remove this helper function from the namespace after it is invoked
     global %{name}
     del %{name}
     import pyxb.utils.fac as fac
