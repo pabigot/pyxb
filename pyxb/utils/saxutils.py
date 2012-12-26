@@ -222,11 +222,16 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         return self.__fallbackNamespace
     __fallbackNamespace = None
 
-    # The namespace context that will be in effect at the start of the
-    # next element.  One of these is allocated at the start of each
-    # element; it moves to become the current namespace upon receipt
-    # of either the next element start or a namespace directive that
-    # will apply at that element start.
+    # The namespace context that will be in effect at the start of the next
+    # element, or C{None} if no namespace directive notifications have been
+    # received since the last element start or end.  Namespace directive
+    # notifications are received before the notification of element start in
+    # which they apply, and cause a "next namespace context" to be allocated
+    # referencing the current namespace.  The directive is applied to the next
+    # context.  A non-None next context becomes active on entry to the next
+    # element.  The next context is reset to None on entry to and exit from an
+    # element so subsequent new directives are applied to a fresh context
+    # inherited from the current context.
     __nextNamespaceContext = None
 
     # The namespace context that is in effect for this element.
@@ -310,14 +315,6 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         self.__targetNamespace = kw.pop('target_namespace', None)
         self.__locationTemplate = pyxb.utils.utility.Location(kw.pop('location_base', None))
 
-    # If there's a new namespace waiting to be used, make it the
-    # current namespace.  Return the current namespace.
-    def __updateNamespaceContext (self):
-        if self.__nextNamespaceContext is not None:
-            self.__namespaceContext = self.__nextNamespaceContext
-            self.__nextNamespaceContext = None
-        return self.__namespaceContext
-
     def setDocumentLocator (self, locator):
         """Save the locator object."""
         self.__locator = locator
@@ -330,12 +327,20 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         """
         self.reset()
 
+    def __getOrCreateNextNamespaceContext (self):
+        ns_ctx = self.__nextNamespaceContext
+        if ns_ctx is None:
+            assert self.__namespaceContext is not None
+            ns_ctx = pyxb.namespace.resolution.NamespaceContext(parent_context=self.__namespaceContext)
+            self.__nextNamespaceContext = ns_ctx
+        return ns_ctx
+
     def startPrefixMapping (self, prefix, uri):
         """Implement base class method.
 
         @note: For this to be invoked, the C{feature_namespaces} feature must
         be enabled in the SAX parser."""
-        self.__updateNamespaceContext().processXMLNS(prefix, uri)
+        self.__getOrCreateNextNamespaceContext().processXMLNS(prefix, uri)
 
     # The NamespaceContext management does not require any action upon
     # leaving the scope of a namespace directive.
@@ -346,20 +351,33 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         """Process the start of an element."""
         self.__flushPendingText()
 
-        # Get the context to be used for this element, and create a
-        # new context for the next contained element to be found.
-        ns_ctx = self.__updateNamespaceContext()
-
         # Get the element name, which is already a tuple with the namespace assigned.
         expanded_name = pyxb.namespace.ExpandedName(name, fallback_namespace=self.__fallbackNamespace)
 
+        # See if this element supports a targetNamespace attribute.  xs:schema
+        # and wsdl:definitions both do.
         tns_attr = pyxb.namespace.resolution.NamespaceContext._TargetNamespaceAttribute(expanded_name)
+
+        # If we need to assign a target namespace, we need a new context.
+        # Otherwise we use the context created from pending namespace
+        # directives, or we re-use the current context.
+        if tns_attr is not None:
+            ns_ctx = self.__getOrCreateNextNamespaceContext()
+        else:
+            ns_ctx = self.__nextNamespaceContext
+        if ns_ctx is None:
+            # Re-use the active context
+            ns_ctx = self.__namespaceContext
+        else:
+            # Update the active context
+            self.__namespaceContext = ns_ctx
+        self.__nextNamespaceContext = None
+
         if tns_attr is not None:
             # Not true for wsdl
             #assert ns_ctx.targetNamespace() is None
             ns_ctx.finalizeTargetNamespace(attrs.get(tns_attr.uriTuple()), including_context=self.__includingContext)
             assert ns_ctx.targetNamespace() is not None
-        self.__nextNamespaceContext = pyxb.namespace.resolution.NamespaceContext(parent_context=ns_ctx)
 
         # Save the state of the enclosing element, and create a new
         # state for this element.
@@ -379,8 +397,9 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         # the parent to which we are returning.
         this_state = self.__elementState
         parent_state = self.__elementState = self.__elementStateStack.pop()
-        self.__nextNamespaceContext = None
+        # Restore namespace context and prepare for new namespace directives
         self.__namespaceContext = parent_state.namespaceContext()
+        self.__nextNamespaceContext = None
 
         return this_state
 
