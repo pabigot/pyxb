@@ -38,31 +38,31 @@ class TracingSAXHandler (xml.sax.handler.ContentHandler):
     __trace = False
 
     def setDocumentLocator (self, locator):
-        _log.debug('setDocumentLocator %s', locator)
+        print 'setDocumentLocator %s' % (locator,)
 
     def startDocument (self):
-        _log.debug('startDocument')
+        print 'startDocument'
 
     def startPrefixMapping (self, prefix, uri):
-        _log.debug('startPrefixMapping %s %s', prefix, uri)
+        print 'startPrefixMapping %s %s' % (prefix, uri)
 
     def endPrefixMapping (self, prefix):
-        _log.debug('endPrefixMapping %s', prefix)
+        print 'endPrefixMapping %s' % (prefix,)
 
     def startElementNS (self, name, qname, attrs):
-        _log.debug('startElementNS %s %s', name, qname)
+        print 'startElementNS %s %s' % (name, qname)
 
     def endElementNS (self, name, qname):
-        _log.debug('endElementNS %s %s', name, qname)
+        print 'endElementNS %s %s' % (name, qname)
 
     def characters (self, content):
-        _log.debug('characters %s', content)
+        print 'characters %s' % (content,)
 
     def ignorableWhitespace (self, whitespace):
-        _log.debug('ignorableWhitespace len %d', len(whitespace))
+        print 'ignorableWhitespace len %d' % (len(whitespace),)
 
     def processingInstruction (self, target, data):
-        _log.debug('processingInstruction %s %s', target, data)
+        print 'processingInstruction %s %s' % (target, data)
 
 class _NoopSAXHandler (xml.sax.handler.ContentHandler):
     """A SAX handler class which doesn't do anything.  Used to get baseline
