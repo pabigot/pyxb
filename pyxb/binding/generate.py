@@ -283,11 +283,11 @@ def %{name} ():
     
     def stateSortKey (st):
         if isinstance(st.symbol, xs.structures.ModelGroup):
-            return st.symbol.bindingSortKey()
-        return st.symbol[0].bindingSortKey()
+            return st.symbol.schemaOrderSortKey()
+        return st.symbol[0].schemaOrderSortKey()
 
     def counterConditionSortKey (cc):
-        return cc.metadata.bindingSortKey()
+        return cc.metadata.schemaOrderSortKey()
 
     def updateInstructionSortKey (ui):
         return counterConditionSortKey(ui.counterCondition)
@@ -914,7 +914,7 @@ class %{ctd} (%{superclass}):
         elements = aux.edSingles.union(aux.edMultiples)
         
         outf.postscript().append("\n\n")
-        for ed in sorted(elements, key=lambda _c: _c.bindingSortKey()):
+        for ed in sorted(elements, key=lambda _c: _c.schemaOrderSortKey()):
             is_plural = ed in aux.edMultiples
             # @todo Detect and account for plurality change between this and base
             ef_map = ed._templateMap()
@@ -970,7 +970,7 @@ class %{ctd} (%{superclass}):
     # key - String used as dictionary key holding instance value of attribute (value_attr_name)
     # inspector - Name of the method used for inspection (attr_inspector)
     # mutator - Name of the method use for mutation (attr_mutator)
-    for au in sorted(ctd.attributeUses(), key=lambda _au: _au.attributeDeclaration().bindingSortKey()):
+    for au in sorted(ctd.attributeUses(), key=lambda _au: _au.attributeDeclaration().schemaOrderSortKey()):
         ad = au.attributeDeclaration()
         assert isinstance(ad.scope(), xs.structures.ComplexTypeDefinition), 'unexpected scope %s' % (ad.scope(),)
         au_map = ad._templateMap()
@@ -2606,7 +2606,7 @@ class Generator (object):
         if root_sets is None:
             raise pyxb.BindingGenerationError('Unable to partial-order named components')
         for rs in root_sets:
-            component_order.extend(sorted(rs, key=lambda _c: _c.bindingSortKey()))
+            component_order.extend(sorted(rs, key=lambda _c: _c.schemaOrderSortKey()))
     
         self.__componentGraph = component_graph
         self.__componentOrder = component_order

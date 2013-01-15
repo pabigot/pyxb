@@ -88,7 +88,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
     def _clearNamespaceContext (self):
         # Calculate the binding sort key for any archive before we discard the
         # namespace context, which we might need.
-        self.bindingSortKey()
+        self.schemaOrderSortKey()
         self.__namespaceContext = None
         return self
     __namespaceContext = None
@@ -344,12 +344,12 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
             self.__nameInBinding = other.__nameInBinding
         return self
 
-    def bindingSortKey (self):
+    def schemaOrderSortKey (self):
         """A key to be used when sorting components for binding generation.
 
         This is a tuple comprising the namespace URI, schema location, and
         line and column of the component definition within the schema."""
-        if self.__bindingSortKey is None:
+        if self.__schemaOrderSortKey is None:
             ns = None
             if isinstance(self, _NamedComponent_mixin):
                 ns = self.bindingNamespace()
@@ -367,9 +367,9 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
             loc = self._location()
             if loc is not None:
                 key_elts.extend([loc.locationBase, loc.lineNumber, loc.columnNumber])
-            self.__bindingSortKey = tuple(key_elts)
-        return self.__bindingSortKey
-    __bindingSortKey = None
+            self.__schemaOrderSortKey = tuple(key_elts)
+        return self.__schemaOrderSortKey
+    __schemaOrderSortKey = None
 
 
 class _ParticleTree_mixin (pyxb.cscRoot):
