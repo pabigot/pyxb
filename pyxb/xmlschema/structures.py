@@ -348,7 +348,10 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         """A key to be used when sorting components for binding generation.
 
         This is a tuple comprising the namespace URI, schema location, and
-        line and column of the component definition within the schema."""
+        line and column of the component definition within the schema.  The
+        purpose is to ensure consistent order of binding components in
+        generated code, to simplify maintenance involving the generated
+        sources."""
         if self.__schemaOrderSortKey is None:
             ns = None
             if isinstance(self, _NamedComponent_mixin):
@@ -371,6 +374,26 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         return self.__schemaOrderSortKey
     __schemaOrderSortKey = None
 
+    def facStateSortKey (self):
+        """A sort key matching preferred content order.
+
+        This is an ordinal (integer) used to control which candidate
+        transitions are attempted first when testing symbols against the
+        content automaton state.
+
+        @note: The value associated with a node (especially a L{ModelGroup} or
+        L{Particle} will be different for different complex types, and is
+        valid only during generation of the automata code for a given type."""
+        assert self.__facStateSortKey is not None
+        return self.__facStateSortKey
+
+    def _setFacStateSortKey (self, key):
+        """Set the automata state sort key.
+
+        @param key: the ordinal used for sorting."""
+        self.__facStateSortKey = key
+    __facStateSortKey = None
+    __PrivateTransient.add('facStateSortKey')
 
 class _ParticleTree_mixin (pyxb.cscRoot):
     def _walkParticleTree (self, visit, arg):

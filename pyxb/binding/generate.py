@@ -283,11 +283,11 @@ def %{name} ():
     
     def stateSortKey (st):
         if isinstance(st.symbol, xs.structures.ModelGroup):
-            return st.symbol.schemaOrderSortKey()
-        return st.symbol[0].schemaOrderSortKey()
+            return st.symbol.facStateSortKey()
+        return st.symbol[0].facStateSortKey()
 
     def counterConditionSortKey (cc):
-        return cc.metadata.schemaOrderSortKey()
+        return cc.metadata.facStateSortKey()
 
     def updateInstructionSortKey (ui):
         return counterConditionSortKey(ui.counterCondition)
@@ -636,16 +636,18 @@ def BuildTermTree (node):
         """
         
         if entered is None:
-            (parent_particle, terms) = arg[-1]
+            (parent_particle, terms) = arg.peekNodeTermPair()
             assert isinstance(parent_particle, xs.structures.Particle)
             assert isinstance(node, (xs.structures.ElementDeclaration, xs.structures.Wildcard))
+            node._setFacStateSortKey(arg.nextSequenceNumber())
             terms.append(pyxb.utils.fac.Symbol((parent_particle, node)))
         elif entered:
-            arg.append((node, []))
+            node._setFacStateSortKey(arg.nextSequenceNumber())
+            arg.addNode(node)
         else:
-            (xnode, terms) = arg.pop()
+            (xnode, terms) = arg.popNodeTermPair()
             assert xnode == node
-            (parent_particle, siblings) = arg[-1]
+            (parent_particle, siblings) = arg.peekNodeTermPair()
             if 1 == len(terms):
                 term = terms[0]
                 # Either node is a Particle, or it's a single-member model
@@ -674,14 +676,38 @@ def BuildTermTree (node):
                     term = pyxb.utils.fac.All(*terms, metadata=node)
             siblings.append(term)
 
+    class TermTreeArg (object):
+        __sequenceNumber = None
+        __termTreeList = None
+        __nodeTermPairs = None
+        def __init__ (self, node):
+            self.__sequenceNumber = 0
+            self.__termTreeList = []
+            self.__nodeTermPairs = [ (node, self.__termTreeList) ]
+
+        def termTree (self):
+            assert 1 == len(self.__nodeTermPairs)
+            assert 1 == len(self.__termTreeList)
+            return self.__termTreeList[0]
+
+        def peekNodeTermPair (self):
+            return self.__nodeTermPairs[-1]
+
+        def popNodeTermPair (self):
+            return self.__nodeTermPairs.pop()
+
+        def addNode (self, node):
+            self.__nodeTermPairs.append((node, []))
+
+        def nextSequenceNumber (self):
+            rv = self.__sequenceNumber
+            self.__sequenceNumber += 1
+            return rv
+
     assert isinstance(node, xs.structures.Particle)
-    parent_particles = [node]
-    ttlist = []
-    ttarg = [ (node, ttlist) ]
+    ttarg = TermTreeArg(node)
     node.walkParticleTree(_generateTermTree_visitor, ttarg)
-    assert 1 == len(ttarg)
-    assert 1 == len(ttlist)
-    term_tree = ttlist[0]
+    term_tree = ttarg.termTree()
     return term_tree
 
 def BuildPluralityData (term_tree):
