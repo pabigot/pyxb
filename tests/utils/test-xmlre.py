@@ -313,6 +313,7 @@ class TestXMLRE (unittest.TestCase):
         self.assertNoMatch(u"foo\\wbar", u"foo bar")
         self.assertNoMatch(u"foo\\wbar", u"foo&bar")
         self.assertMatches(u"foo\\wbar", u"fooWbar")
+        self.assertMatches(u"[\\w]*", u"fooWboar")
 
     def testMultiCharEscape_W(self):
         self.assertMatches(u"foo\\Wbar", u"foo bar")
