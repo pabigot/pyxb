@@ -144,6 +144,11 @@ class TestCodePointSet (unittest.TestCase):
         self.assertEqual(u"\u0041", CodePointSet(65).asSingleCharacter())
         self.assertEqual(u"\uFFFF", CodePointSet(0xFFFF).asSingleCharacter())
 
+class TestXML1p0e2 (unittest.TestCase):
+    def testChar (self):
+        if SupportsWideUnicode:
+            self.assertTrue(( 1+CodePointSet.MaxShortCodePoint, CodePointSet.MaxCodePoint ) in XML1p0e2.Char.asTuples())
+
 if '__main__' == __name__:
     unittest.main()
             

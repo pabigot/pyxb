@@ -110,16 +110,15 @@ class CodePointSet (object):
         else:
             s = int(value)
             e = s+1
-        if s > e:
+        if s >= e:
             raise ValueError('codepoint range value order')
 
         # Validate the range for the code points supported by this
-        # Python interpreter
+        # Python interpreter.  Recall that e is exclusive.
         if s > self.MaxCodePoint:
             return self
         if e > self.MaxCodePoint:
-            e = self.MaxCodePoint
-        e = min(e, self.MaxCodePoint)
+            e = self.MaxCodePoint+1
 
         # Index of first code point equal to or greater than s
         li = bisect.bisect_left(self.__codepoints, s)
@@ -243,7 +242,7 @@ class CodePointSet (object):
                 start = None
             else:
                 start = self.__codepoints[ri]
-        if start is not None:
+        if (start is not None) and (start <= self.MaxCodePoint):
             rv.append( (start, self.MaxCodePoint) )
         return rv
 
@@ -298,7 +297,7 @@ class XML1p0e2 (object):
         ( 0xE000, 0xFFFD )
         )
     if SupportsWideUnicode:
-        Char.extend( ( 0x10000, 0x10FFFF ) )
+        Char.add( ( 1+CodePointSet.MaxShortCodePoint, CodePointSet.MaxCodePoint ) )
 
     BaseChar = CodePointSet(
         ( 0x0041, 0x005A ),
