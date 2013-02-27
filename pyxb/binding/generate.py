@@ -1212,6 +1212,7 @@ class _ModuleNaming_mixin (object):
     __anonCTDIndex = None
     __uniqueInModule = None
     __uniqueInClass = None
+    __referencedFromClass = None
 
     _UniqueInModule = set([ 'pyxb', 'sys' ])
     """Identifiers that are reserved within a module.
@@ -1221,6 +1222,12 @@ class _ModuleNaming_mixin (object):
     definition and element names) are deconflicted from this set and
     from each other."""
     
+    _ReferencedFromClass = set([ 'pyxb', 'sys' ])
+    """Identifiers defined in module that are accessed unqualified from class.
+
+    These include standard import module names and globals such as
+    references to namespaces."""
+
     __ComponentBindingModuleMap = {}
 
     def generator (self):
@@ -1236,6 +1243,7 @@ class _ModuleNaming_mixin (object):
         self.__components = []
         self.__componentNameMap = {}
         self.__uniqueInModule = set()
+        self.__referencedFromClass = self._ReferencedFromClass.copy()
         self.__bindingIO = None
         self.__importedModules = []
         self.__namespaceDeclarations = []
@@ -1249,11 +1257,14 @@ class _ModuleNaming_mixin (object):
             return
         if not (module in self.__importedModules):
             self.__importedModules.append(module)
+            module_base = module.modulePath().split('.', 2)[0]
+            self.__referencedFromClass.add(module_base)
 
     def uniqueInClass (self, component):
         rv = self.__uniqueInClass.get(component)
         if rv is None:
             rv = set()
+            rv.update(self.__referencedFromClass)
             if isinstance(component, xs.structures.SimpleTypeDefinition):
                 rv.update(basis.simpleTypeDefinition._ReservedSymbols)
             else:
@@ -1407,6 +1418,7 @@ class _ModuleNaming_mixin (object):
         assert rv is None, 'Module %s already has reference to %s' % (self, namespace)
         if require_unique:
             name = utility.PrepareIdentifier(name, self.__uniqueInModule, **kw)
+        self.__referencedFromClass.add(name)
         if definition is None:
             if namespace.isAbsentNamespace():
                 definition = 'pyxb.namespace.CreateAbsentNamespace()'
