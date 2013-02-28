@@ -21,7 +21,7 @@ xsd='''<?xml version="1.0" encoding="UTF-8"?>
 
 #file('schema.xsd', 'w').write(xsd)
 code = pyxb.binding.generate.GeneratePython(schema_text=xsd)
-file('code.py', 'w').write(code)
+#file('code.py', 'w').write(code)
 
 rv = compile(code, 'test', 'exec')
 eval(rv)
