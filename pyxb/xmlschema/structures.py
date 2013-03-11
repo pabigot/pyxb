@@ -811,6 +811,8 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
                 assert isinstance(self, SimpleTypeDefinition)
                 if self._DA_restriction != this._derivationAlternative():
                     return False
+                if not this.baseTypeDefinition().isDerivationConsistent(other):
+                    return False
             this = this.baseTypeDefinition()
             if this.isUrTypeDefinition():
                 # Well, this certainly can't be a valid restriction of
@@ -4015,6 +4017,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         # its primitive type.  Note that these all may be in different
         # namespaces.
         bi.__baseTypeDefinition = parent_std
+        bi.__derivationAlternative = cls._DA_restriction
         if cls.VARIETY_atomic == bi.__variety:
             bi.__primitiveTypeDefinition = bi.__baseTypeDefinition.__primitiveTypeDefinition
 
