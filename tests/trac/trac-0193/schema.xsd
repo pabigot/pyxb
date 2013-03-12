@@ -6,12 +6,16 @@
   <simpleType name="Currency">
     <restriction base="int"/>
   </simpleType>
+  <simpleType name="Season">
+    <restriction base="Name"/>
+  </simpleType>
   <complexType name="OpenDeliveries">
     <complexContent>
       <restriction base="tns:Money">
         <sequence>
           <element name="Value" type="tns:SimpleOpenDeliveries"/>
           <element name="Currency" type="tns:Currency"/>
+          <element name="Season" type="tns:Season"/>
         </sequence>
       </restriction>
     </complexContent>
@@ -19,7 +23,8 @@
   <complexType name="Money">
     <sequence>
       <element name="Value" type="integer"/>
-      <element name="Currency" type="tns:Currency"/>
+      <element name="Currency" type="anySimpleType"/>
+      <element name="Season" type="anyType"/>
     </sequence>
   </complexType>
 </schema>

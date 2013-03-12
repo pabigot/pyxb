@@ -814,10 +814,6 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
                 if not this.baseTypeDefinition().isDerivationConsistent(other):
                     return False
             this = this.baseTypeDefinition()
-            if this.isUrTypeDefinition():
-                # Well, this certainly can't be a valid restriction of
-                # anything else.
-                break
         return False
 
     def _picklingReference (self):
@@ -3912,6 +3908,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
             # The baseTypeDefinition is the ur-type.
             bi.__baseTypeDefinition = ComplexTypeDefinition.UrTypeDefinition()
+            bi.__derivationAlternative = cls._DA_restriction
             # The simple ur-type has an absent variety, not an atomic
             # variety, so does not have a primitiveTypeDefinition
 
@@ -3984,6 +3981,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
         # Primitive types are based on the ur-type, and have
         # themselves as their primitive type definition.
+        bi.__derivationAlternative = cls._DA_restriction
         bi.__baseTypeDefinition = cls.SimpleUrTypeDefinition()
         bi.__primitiveTypeDefinition = bi
 
