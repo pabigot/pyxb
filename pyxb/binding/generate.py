@@ -914,6 +914,15 @@ class %{ctd} (%{superclass}):
         template_map['superclass'] = 'pyxb.binding.basis.complexTypeDefinition'
         assert base_type.nameInBinding() is not None
 
+    if inherits_from_base:
+        prolog_template += '''    _ElementMap = %{superclass}._ElementMap.copy()
+    _AttributeMap = %{superclass}._AttributeMap.copy()
+'''
+    else:
+        prolog_template += '''    _ElementMap = {}
+    _AttributeMap = {}
+'''
+
     # Support for deconflicting attributes, elements, and reserved symbols
     class_keywords = frozenset(basis.complexTypeDefinition._ReservedSymbols)
     class_unique = set()
@@ -1055,24 +1064,6 @@ class %{ctd} (%{superclass}):
         definitions.append('_HasWildcardElement = True')
     template_map['attribute_uses'] = ",\n        ".join(attribute_uses)
     template_map['element_uses'] = ",\n        ".join(element_uses)
-    if inherits_from_base:
-        map_decl = '''
-    _ElementMap = %{superclass}._ElementMap.copy()
-    _ElementMap.update({
-        %{element_uses}
-    })
-    _AttributeMap = %{superclass}._AttributeMap.copy()
-    _AttributeMap.update({
-        %{attribute_uses}
-    })'''
-    else:
-        map_decl = '''
-    _ElementMap = {
-        %{element_uses}
-    }
-    _AttributeMap = {
-        %{attribute_uses}
-    }'''
 
     template_map['registration'] = ''
     if ctd.name() is not None:
@@ -1081,7 +1072,12 @@ class %{ctd} (%{superclass}):
     
     template = ''.join([prolog_template,
                "    ", "\n    ".join(definitions), "\n",
-               map_decl, '''
+               '''    _ElementMap.update({
+        %{element_uses}
+    })
+    _AttributeMap.update({
+        %{attribute_uses}
+    })
 %{registration}
 
 '''])
