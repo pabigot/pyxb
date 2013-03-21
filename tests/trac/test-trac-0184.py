@@ -6,10 +6,7 @@ if __name__ == '__main__':
     logging.basicConfig()
 _log = logging.getLogger(__name__)
 import pyxb.binding.generate
-import pyxb.binding.datatypes as xs
-import pyxb.binding.basis
 import pyxb.utils.domutils
-import gc
 
 import os.path
 xsd='''<?xml version="1.0" encoding="UTF-8"?>
@@ -43,11 +40,9 @@ from pyxb.exceptions_ import *
 
 import unittest
 
-import os
-
 #pyxb.GlobalValidationConfig._setContentInfluencesGeneration(pyxb.GlobalValidationConfig.NEVER)
 
-class TestBug_201301012100(unittest.TestCase):
+class TestTrac0184(unittest.TestCase):
    def testNesting(selfs):
        xml = """<?xml version="1.0" encoding="UTF-8"?>
 <Test xmlns="http://foo.org/test">
