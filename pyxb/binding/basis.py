@@ -917,9 +917,8 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
             if location is None:
                 location = self._location()
             raise pyxb.SimpleContentAbsentError(self, location)
-        if validate_constraints:
+        if validate_constraints and not kw.pop('_nil', False):
             self.xsdConstraintsOK(location)
-
 
     # The class attribute name used to store the reference to the STD
     # component instance must be unique to the class, not to this base class.
