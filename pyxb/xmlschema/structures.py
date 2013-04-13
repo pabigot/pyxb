@@ -1480,7 +1480,7 @@ class ElementDeclaration (_ParticleTree_mixin, _SchemaComponent_mixin, _NamedCom
             elif isinstance(self.__typeDefinition, ComplexTypeDefinition):
                 # The corresponding type may not be resolved so we can't check
                 # its contentType, but we should know whether it could be
-                # complex.  Unfortunately we may not b
+                # complex.
                 ct = type_definition.contentType()
                 if ct is None:
                     if False == self.__typeDefinition._isComplexContent():
