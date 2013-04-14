@@ -18,6 +18,9 @@ class TestInScopeNames (unittest.TestCase):
     def show (self, node):
         xmlns_map = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node).inScopeNamespaces()
         #print '%s: %s' % (node.nodeName, ' ; '.join([ '%s=%s' % (_k, _v.uri()) for (_k, _v) in xmlns_map.items()]))
+        xmlns_map = xmlns_map.copy()
+        self.assertEqual(pyxb.namespace.XML.uri(), xmlns_map.pop('xml').uri())
+        self.assertEqual(pyxb.namespace.XMLNamespaces.uri(), xmlns_map.pop('xmlns').uri())
         return xmlns_map
 
     def test_6_2_2 (self):
@@ -38,16 +41,14 @@ class TestInScopeNames (unittest.TestCase):
         self.assertEqual('book', book.localName)
         ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(book)
         xmlns_map = self.show(book)
-        self.assertEqual(3, len(xmlns_map))
-        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
+        self.assertEqual(2, len(xmlns_map))
         self.assertEqual('urn:loc.gov:books', xmlns_map[None].uri())
         self.assertEqual('urn:ISBN:0-395-36341-6', xmlns_map['isbn'].uri())
 
         title = NonTextSibling(book.firstChild)
         self.assertEqual('title', title.localName)
         xmlns_map =self.show(title)
-        self.assertEqual(3, len(xmlns_map))
-        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
+        self.assertEqual(2, len(xmlns_map))
         self.assertEqual('urn:loc.gov:books', xmlns_map[None].uri())
         self.assertEqual('urn:ISBN:0-395-36341-6', xmlns_map['isbn'].uri())
 
@@ -60,17 +61,15 @@ class TestInScopeNames (unittest.TestCase):
         p = NonTextSibling(notes.firstChild)
         xmlns_map = self.show(p)
         self.assertEqual('p', p.localName)
-        self.assertEqual(3, len(xmlns_map))
+        self.assertEqual(2, len(xmlns_map))
         self.assertEqual(None, xmlns_map.get('xsi'))
-        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
         self.assertEqual('http://www.w3.org/1999/xhtml', xmlns_map[None].uri())
         self.assertEqual('urn:ISBN:0-395-36341-6', xmlns_map['isbn'].uri())
 
         x = NonTextSibling(p.nextSibling)
         xmlns_map = self.show(x)
         self.assertEqual('p', x.localName)
-        self.assertEqual(3, len(xmlns_map))
-        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
+        self.assertEqual(2, len(xmlns_map))
         self.assertEqual('urn:loc.gov:books', xmlns_map[None].uri())
         self.assertEqual('urn:ISBN:0-395-36341-6', xmlns_map['isbn'].uri())
 
@@ -94,13 +93,11 @@ class TestInScopeNames (unittest.TestCase):
         Beers = StringToDOM(xml).documentElement
         ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(Beers)
         xmlns_map = self.show(Beers)
-        self.assertEqual(1, len(xmlns_map))
-        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
+        self.assertEqual(0, len(xmlns_map))
         table = NonTextSibling(Beers.firstChild)
         self.assertEqual('table', table.localName)
         xmlns_map = self.show(table)
-        self.assertEqual(2, len(xmlns_map))
-        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
+        self.assertEqual(1, len(xmlns_map))
         self.assertEqual('http://www.w3.org/1999/xhtml', xmlns_map[None].uri())
         th = NonTextSibling(table.firstChild)
         self.assertEqual('th', th.localName)
@@ -112,8 +109,7 @@ class TestInScopeNames (unittest.TestCase):
         brandName = td.firstChild
         self.assertEqual('brandName', brandName.localName)
         xmlns_map = self.show(brandName)
-        self.assertEqual(1, len(xmlns_map))
-        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
+        self.assertEqual(0, len(xmlns_map))
 
 
 class TestNamespaceURIs (unittest.TestCase):

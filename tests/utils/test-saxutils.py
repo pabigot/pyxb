@@ -30,6 +30,12 @@ class TestInScopeNames (unittest.TestCase):
     def tearDown (self):
         TestState.StateSequence[:] = []
 
+    def stripUndeclaredNamespaces (self, xmlns_map):
+        xmlns_map = xmlns_map.copy()
+        self.assertEqual(pyxb.namespace.XML.uri(), xmlns_map.pop('xml').uri())
+        self.assertEqual(pyxb.namespace.XMLNamespaces.uri(), xmlns_map.pop('xmlns').uri())
+        return xmlns_map
+
     def test_6_2_2 (self):
         xmls = '''<?xml version="1.0"?>
 <!-- initially, the default namespace is "books" -->
@@ -58,26 +64,22 @@ class TestInScopeNames (unittest.TestCase):
         self.assertEqual(book.namespaceContext().inScopeNamespaces().get('isbn'), isbn_ns)
 
         title = TestState.StateSequence[2]
-        xmlns_map = title.namespaceContext().inScopeNamespaces()
-        self.assertEqual(3, len(xmlns_map))
-        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
+        xmlns_map = self.stripUndeclaredNamespaces(title.namespaceContext().inScopeNamespaces())
+        self.assertEqual(2, len(xmlns_map))
         self.assertEqual('urn:loc.gov:books', xmlns_map[None].uri())
         self.assertEqual('urn:ISBN:0-395-36341-6', xmlns_map['isbn'].uri())
 
         p = TestState.StateSequence[5]
-        xmlns_map = p.namespaceContext().inScopeNamespaces()
+        xmlns_map = self.stripUndeclaredNamespaces(p.namespaceContext().inScopeNamespaces())
         self.assertEqual(p.expandedName().localName(), 'p')
-        self.assertEqual(3, len(xmlns_map))
-        self.assertEqual(None, xmlns_map.get('xsi'))
-        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
+        self.assertEqual(2, len(xmlns_map))
         self.assertEqual('http://www.w3.org/1999/xhtml', xmlns_map[None].uri())
         self.assertEqual('urn:ISBN:0-395-36341-6', xmlns_map['isbn'].uri())
 
         x = TestState.StateSequence[7]
-        xmlns_map = x.namespaceContext().inScopeNamespaces()
+        xmlns_map = self.stripUndeclaredNamespaces(x.namespaceContext().inScopeNamespaces())
         self.assertEqual(x.expandedName().localName(), 'p')
-        self.assertEqual(3, len(xmlns_map))
-        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
+        self.assertEqual(2, len(xmlns_map))
         self.assertEqual('urn:loc.gov:books', xmlns_map[None].uri())
         self.assertEqual('urn:ISBN:0-395-36341-6', xmlns_map['isbn'].uri())
 
@@ -104,21 +106,18 @@ class TestInScopeNames (unittest.TestCase):
         saxer.parse(StringIO.StringIO(xmls))
 
         Beers = TestState.StateSequence[1]
-        xmlns_map = Beers.namespaceContext().inScopeNamespaces()
-        self.assertEqual(1, len(xmlns_map))
-        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
+        xmlns_map = self.stripUndeclaredNamespaces(Beers.namespaceContext().inScopeNamespaces())
+        self.assertEqual(0, len(xmlns_map))
         table = TestState.StateSequence[2]
         self.assertEqual(xhtml_ns.createExpandedName('table'), table.expandedName())
-        xmlns_map = table.namespaceContext().inScopeNamespaces()
-        self.assertEqual(2, len(xmlns_map))
-        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
+        xmlns_map = self.stripUndeclaredNamespaces(table.namespaceContext().inScopeNamespaces())
+        self.assertEqual(1, len(xmlns_map))
         self.assertEqual('http://www.w3.org/1999/xhtml', xmlns_map[None].uri())
         brandName = TestState.StateSequence[9]
-        xmlns_map = brandName.namespaceContext().inScopeNamespaces()
+        xmlns_map = self.stripUndeclaredNamespaces(brandName.namespaceContext().inScopeNamespaces())
         self.assertTrue(brandName.expandedName().namespace() is None)
         self.assertEqual('brandName', brandName.expandedName().localName())
-        self.assertEqual(1, len(xmlns_map))
-        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
+        self.assertEqual(0, len(xmlns_map))
 
 if '__main__' == __name__:
     unittest.main()

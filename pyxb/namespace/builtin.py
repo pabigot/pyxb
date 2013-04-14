@@ -232,6 +232,7 @@ built-in, and does not (cannot) have an associated schema."""
 XMLNamespaces = Namespace('http://www.w3.org/2000/xmlns/',
                           description='Namespaces in XML',
                           builtin_namespace='XMLNamespaces',
+                          is_undeclared_namespace=True,
                           bound_prefix='xmlns')
 """Namespaces in XML.  Not really a namespace, but is always available as C{xmlns}."""
 
