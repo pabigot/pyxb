@@ -338,6 +338,7 @@ def %{name} ():
             if isinstance(symbol, xs.structures.Wildcard):
                 au_src.append(templates.replaceInText('    symbol = pyxb.binding.content.WildcardUse(%{wildcard}, %{location})', wildcard=binding_module.literal(symbol, **kw), location=repr(particle._location())))
             elif isinstance(symbol, xs.structures.ElementDeclaration):
+                binding_module.importForDeclaration(symbol)
                 au_src.append(templates.replaceInText('    symbol = pyxb.binding.content.ElementUse(%{ctd}._UseForTag(%{field_tag}), %{location})', field_tag=binding_module.literal(symbol.expandedName(), **kw), location=repr(particle._location()), **template_map))
         au_src.append('    %s = fac.State(symbol, is_initial=%r, final_update=final_update, is_unordered_catenation=%r)' % (st_id, st.isInitial, st.isUnorderedCatenation))
         if st.subAutomata is not None:
@@ -972,6 +973,7 @@ class %{ctd} (%{superclass}):
     # Element %{id} (%{qname}) inherited from %{decl_type_en}''', decl_type_en=unicode(ed.scope().expandedName()), **ef_map))
                 continue
 
+            binding_module.importForDeclaration(ed);
             if ed.expandedName().localName() != ef_map['id']:
                 _log.warning('Element use %s.%s renamed to %s', ctd.expandedName(), ed.expandedName(), ef_map['id'])
             definitions.append(templates.replaceInText('''
@@ -1046,6 +1048,7 @@ class %{ctd} (%{superclass}):
         else:
             au_map['documentation'] = binding_module.literal(None)
 
+        binding_module.importForDeclaration(ad);
         attribute_uses.append(templates.replaceInText('%{use}.name() : %{use}', **au_map))
         if ad.expandedName().localName() != au_map['id']:
             _log.warning('Attribute %s.%s renamed to %s', ctd.expandedName(), ad.expandedName(), au_map['id'])
@@ -1095,6 +1098,7 @@ def GenerateED (ed, generator, **kw):
     template_map.setdefault('scope', binding_module.literal(None, **kw))
     template_map.setdefault('map_update', '')
 
+    binding_module.importForDeclaration(ed)
     outf.write(templates.replaceInText('''
 %{class} = pyxb.binding.basis.element(%{name_expr}, %{typeDefinition}%{element_aux_init})
 %{namespaceReference}.addCategoryObject('elementBinding', %{class}.name().localName(), %{class})
@@ -1248,7 +1252,7 @@ class _ModuleNaming_mixin (object):
 
     def _importModule (self, module):
         assert not isinstance(module, pyxb.namespace.Namespace)
-        assert isinstance(module, (_ModuleNaming_mixin, pyxb.namespace.Namespace, pyxb.namespace.archive.ModuleRecord)), 'Unexpected type %s' % (type(module),)
+        assert isinstance(module, (_ModuleNaming_mixin, pyxb.namespace.archive.ModuleRecord)), 'Unexpected type %s' % (type(module),)
         if isinstance(module, NamespaceModule) and (pyxb.namespace.XMLSchema == module.namespace()):
             return
         if not (module in self.__importedModules):
@@ -1312,14 +1316,15 @@ class _ModuleNaming_mixin (object):
 
     def moduleContents (self):
         template_map = {}
-        aux_imports = []
+        import_paths = set()
         for ns in self.__importedModules:
             if isinstance(ns, NamespaceModule):
                 ns = ns.moduleRecord()
+            assert self != ns
             module_path = ns.modulePath()
             assert module_path is not None, 'No module path for %s type %s' % (ns, type(ns))
-            aux_imports.append('import %s' % (module_path,))
-        template_map['aux_imports'] = "\n".join(aux_imports)
+            import_paths.add(module_path)
+        template_map['aux_imports'] = "\n".join([ "import %s" % (_mp,) for _mp in import_paths])
         template_map['namespace_decls'] = "\n".join(self.__namespaceDeclarations)
         template_map['module_uid'] = self.moduleUID()
         template_map['generation_uid_expr'] = repr(self.generator().generationUID())
@@ -1432,43 +1437,75 @@ class _ModuleNaming_mixin (object):
     def referenceNamespace (self, namespace):
         rv = self.__referencedNamespaces.get(namespace)
         if rv is None:
+            assert not (isinstance(self, NamespaceModule) and (self.namespace() == namespace))
             assert namespace.isBuiltinNamespace() or not namespace.isUndeclaredNamespace()
             if namespace.isBuiltinNamespace():
                 rv = namespace.builtinNamespaceRepresentation()
-            elif isinstance(self, NamespaceModule):
-                if (self.namespace() == namespace):
-                    rv = 'Namespace'
-                else:
-                    rv = 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
-                    '''
-                    namespace_module = self.ForNamespace(namespace)
-                    if namespace_module is not None:
-                        self._importModule(namespace_module)
-                        rv = '%s.Namespace' % (namespace_module.modulePath(),)
-                    else:
-                        assert False, 'Unexpected reference to %s' % (namespace,)
-                        #rv = 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
-                    '''
-            else:
-                assert isinstance(self, NamespaceGroupModule)
+            if rv is None:
+                # Not the local namespace or a built-in.  Give it a
+                # local name, potentially derived from its prefix.
+                # Then try to find an existing import that defines the
+                # namespace.  Then define the local name within the
+                # binding, either as a reference to a namespace
+                # reachable from an import or by doing a runtime
+                # lookup from the namespace URI if somehow no provider
+                # has been imported.  (This last case should apply
+                # only to namespace group modules.)
                 if namespace.prefix():
                     nsn = 'Namespace_%s' % (namespace.prefix(),)
                 else:
                     nsn = 'Namespace'
+                nsdef = None
                 for im in self.__importedModules:
-                    if isinstance(im, NamespaceModule) and (im.namespace() == namespace):
-                        rv = '%s.Namespace' % (im.modulePath(),)
-                        break
-                    if isinstance(im, NamespaceGroupModule):
-                        irv = im.__referencedNamespaces.get(namespace)
-                        if irv is not None:
-                            rv = self.defineNamespace(namespace, nsn, '%s.%s' % (im.modulePath(), irv), protected=True)
+                    if isinstance(im, (NamespaceModule, pyxb.namespace.archive.ModuleRecord)):
+                        if im.namespace() == namespace:
+                            nsdef = '%s.Namespace' % (im.modulePath(),)
                             break
-                if rv is None:
-                    rv =  self.defineNamespace(namespace, nsn, protected=True)
-                    assert 0 < len(self.__namespaceDeclarations)
+                    elif isinstance(im, NamespaceGroupModule):
+                        pass
+                    else:
+                        assert False, 'unexpected import from type %s %s' % (type(im), im,)
+                # If we failed to identify the namespace in an existing import,
+                # and this module is not a namespace group which includes the
+                # namespace as part of its content, something went wrong.
+                if (nsdef is None) and not (isinstance(self, NamespaceGroupModule) and self.moduleForNamespace(namespace) is not None):
+                    raise pyxb.LogicError('MISSING NSDEF: %s cannot be found for %s in imports' % (namespace, nsn))
+                    
+                rv =  self.defineNamespace(namespace, nsn, nsdef, protected=True)
+                assert 0 < len(self.__namespaceDeclarations)
             self.__referencedNamespaces[namespace] = rv
         return rv
+
+    def importForDeclaration (self, decl):
+        """Import the binding from which the declaration came.
+
+        Figure out where the declaration came from.  If it's not part
+        of this binding, make sure we import the binding associated
+        with the schema from which it came.  We need that, if not for
+        something in the declaration itself, at least to be able to
+        get the Namespace for the declaration's name.  None of this is
+        relevant if the declaration has no namespace."""
+        sdecl = decl
+        while sdecl._cloneSource() is not None:
+            sdecl = sdecl._cloneSource()
+        assert decl.expandedName() == sdecl.expandedName()
+        ns = decl.expandedName().namespace()
+        if ns is None:
+            return
+        assert sdecl._objectOrigin().moduleRecord().namespace() == ns
+        mr = sdecl._objectOrigin().moduleRecord()
+        if isinstance(self, NamespaceModule):
+            need_import = self.moduleRecord().modulePath() != mr.modulePath()
+        elif isinstance(self, NamespaceGroupModule):
+            need_import = True
+            for nm in self.namespaceModules():
+                if nm.moduleRecord().modulePath() == mr.modulePath():
+                    need_import = False
+                    break
+        else:
+            raise pyxb.LogicError('Unhandled module naming', self)
+        if need_import:
+            self._importModule(mr)
 
     def literal (self, *args, **kw):
         return self.__bindingIO.literal(*args, **kw)
@@ -1655,6 +1692,12 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
     def namespaceModules (self):
         return self.__namespaceModules
     __namespaceModules = None
+
+    def moduleForNamespace (self, namespace):
+        for nm in self.__namespaceModules:
+            if nm.namespace() == namespace:
+                return nm
+        return None
 
     __components = None
     __componentBindingName = None
