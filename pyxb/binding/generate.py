@@ -1428,10 +1428,9 @@ class _ModuleNaming_mixin (object):
     def referenceNamespace (self, namespace):
         rv = self.__referencedNamespaces.get(namespace)
         if rv is None:
+            assert namespace.isBuiltinNamespace() or not namespace.isUndeclaredNamespace()
             if namespace.isBuiltinNamespace():
                 rv = namespace.builtinNamespaceRepresentation()
-            elif namespace.isUndeclaredNamespace():
-                rv = namespace.modulePath()
             elif isinstance(self, NamespaceModule):
                 if (self.namespace() == namespace):
                     rv = 'Namespace'
