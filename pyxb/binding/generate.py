@@ -1409,11 +1409,15 @@ class _ModuleNaming_mixin (object):
 
     def _referencedNamespaces (self): return self.__referencedNamespaces
 
-    def defineNamespace (self, namespace, name, require_unique=True, definition=None, **kw):
+    def defineNamespace (self, namespace, name, definition=None, **kw):
         rv = self.__referencedNamespaces.get(namespace)
         assert rv is None, 'Module %s already has reference to %s' % (self, namespace)
-        if require_unique:
-            name = utility.PrepareIdentifier(name, self.__uniqueInModule, **kw)
+        # All module-level namespace declarations are reserved.
+        # Some may have a protected name.  The unprotected name
+        # shall always begin with 'Namespace'.  These names may
+        # be referenced from class implementations as well.
+        assert name.startswith('Namespace'), 'unexpected %s naming %s' % (name, namespace)
+        name = utility.PrepareIdentifier(name, self.__uniqueInModule, **kw)
         self.__referencedFromClass.add(name)
         if definition is None:
             if namespace.isAbsentNamespace():
@@ -1446,6 +1450,7 @@ class _ModuleNaming_mixin (object):
                         #rv = 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
                     '''
             else:
+                assert isinstance(self, NamespaceGroupModule)
                 if namespace.prefix():
                     nsn = 'Namespace_%s' % (namespace.prefix(),)
                 else:
@@ -1509,7 +1514,7 @@ class NamespaceModule (_ModuleNaming_mixin):
     __namespaceGroupModule = None
 
     _UniqueInModule = _ModuleNaming_mixin._UniqueInModule.copy()
-    _UniqueInModule.update([ 'Namespace', 'CreateFromDOM', 'CreateFromDocument' ])
+    _UniqueInModule.update([ 'CreateFromDOM', 'CreateFromDocument' ])
 
     def namespaceGroupHead (self):
         return self.__namespaceGroupHead
@@ -1549,7 +1554,7 @@ class NamespaceModule (_ModuleNaming_mixin):
         self._initializeUniqueInModule(self._UniqueInModule)
         self.__moduleRecord = module_record
         self.__namespace = self.__moduleRecord.namespace()
-        self.defineNamespace(self.__namespace, 'Namespace', require_unique=False)
+        self.defineNamespace(self.__namespace, 'Namespace')
         self._RecordModule(self)
         self.__components = components
         # wow! fromkeys actually IS useful!
@@ -1583,7 +1588,10 @@ _GenerationUID = %{generation_uid_expr}
 # Import bindings for namespaces imported into schema
 %{aux_imports}
 
+# NOTE: All namespace declarations are reserved within the binding
 %{namespace_decls}
+
+# NOTE: ModuleRecord is not reserved in the binding
 ModuleRecord = Namespace.lookupModuleRecordByUID(_GenerationUID, create_if_missing=True)
 ModuleRecord._setModule(sys.modules[__name__])
 
@@ -1652,8 +1660,6 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
     __componentBindingName = None
     __uniqueInModule = None
 
-    _UniqueInModule = _ModuleNaming_mixin._UniqueInModule.copy()
-    
     __UniqueInGroups = set()
     
     _GroupPrefix = '_group'
@@ -1692,6 +1698,7 @@ _GenerationUID = %{generation_uid_expr}
 # Import bindings for schemas in group
 %{aux_imports}
 
+# NOTE: All namespace declarations are reserved within the binding
 %{namespace_decls}
 ''', **template_map))
 
