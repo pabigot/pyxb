@@ -2920,7 +2920,7 @@ class ModelGroup (_ParticleTree_mixin, _SchemaComponent_mixin, _Annotated_mixin)
             comp = 'CHOICE'
         elif self.C_SEQUENCE == self.compositor():
             comp = 'SEQUENCE'
-        return '%s:(%s)' % (comp, ",".join( [ str(_p) for _p in self.particles() ] ) )
+        return '%s:(%s)' % (comp, u",".join( [ unicode(_p) for _p in self.particles() ] ) )
 
 class Particle (_ParticleTree_mixin, _SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mixin):
     """An XMLSchema U{Particle<http://www.w3.org/TR/xmlschema-1/#cParticle>} component."""
@@ -3833,7 +3833,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         elif self.VARIETY_list == self.variety():
             elts.append('list of %s' % (self.itemTypeDefinition().name(),))
         elif self.VARIETY_union == self.variety():
-            elts.append('union of %s' % (" ".join([str(_mtd.name()) for _mtd in self.memberTypeDefinitions()],)))
+            elts.append('union of %s' % (u" ".join([unicode(_mtd.name()) for _mtd in self.memberTypeDefinitions()],)))
         else:
             # Gets here if the type has not been resolved.
             elts.append('?')
@@ -3842,11 +3842,11 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             felts = []
             for (k, v) in self.__facets.items():
                 if v is not None:
-                    felts.append(str(v))
-            elts.append("\n  %s" % (','.join(felts),))
+                    felts.append(unicode(v))
+            elts.append(u"\n  %s" % (','.join(felts),))
         if self.__fundamentalFacets:
             elts.append("\n  ")
-            elts.append(','.join( [str(_f) for _f in self.__fundamentalFacets ]))
+            elts.append(u','.join( [unicode(_f) for _f in self.__fundamentalFacets ]))
         return 'STD[%s]' % (''.join(elts),)
 
     def _updateFromOther_csc (self, other):
@@ -4201,7 +4201,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                     for ai in range(0, cn.attributes.length):
                         attr = cn.attributes.item(ai)
                         # Convert name from unicode to string
-                        kw[str(attr.localName)] = attr.value
+                        kw[unicode(attr.localName)] = attr.value
                     try:
                         fi.setFromKeywords(**kw)
                     except pyxb.PyXBException as e:

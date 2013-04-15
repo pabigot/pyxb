@@ -147,14 +147,14 @@ class Facet (pyxb.cscRoot):
 
     def _valueString (self):
         if isinstance(self, _CollectionFacet_mixin):
-            return ','.join([ str(_i) for _i in self.items() ])
+            return u','.join([ unicode(_i) for _i in self.items() ])
         if (self.valueDatatype() is not None) and (self.value() is not None):
             try:
                 return self.valueDatatype().XsdLiteral(self.value())
             except Exception:
                 _log.exception('Stringize facet %s produced exception', self.Name())
                 raise
-        return str(self.value())
+        return unicode(self.value())
 
     def __str__ (self):
         rv = []
@@ -497,7 +497,7 @@ class _EnumerationElement (object):
         self.__value = value_datatype.Factory(self.unicodeValue(), _validate_constraints=False, _from_xml=True)
 
         if (self.__description is None) and (self.__annotation is not None):
-            self.__description = str(self.__annotation)
+            self.__description = unicode(self.__annotation)
 
     def __str__ (self):
         return utility.QuotedEscaped(self.unicodeValue())

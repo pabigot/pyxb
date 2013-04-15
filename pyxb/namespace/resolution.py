@@ -305,7 +305,7 @@ def ResolveSiblingNamespaces (sibling_namespaces):
                         dns = dc.expandedName().namespace()
                         if dns != ns:
                             deps.add(dns)
-                _log.info('Holding incomplete resolution %s depending on: ', ns.uri(), ' ; '.join([ str(_dns) for _dns in deps ]))
+                _log.info('Holding incomplete resolution %s depending on: ', ns.uri(), u' ; '.join([ unicode(_dns) for _dns in deps ]))
                 need_resolved_set.add(ns)
         # Exception termination check: if we have the same set of incompletely
         # resolved namespaces, and each has the same number of unresolved
@@ -317,7 +317,7 @@ def ResolveSiblingNamespaces (sibling_namespaces):
             state.append( (ns, len(ns._unresolvedComponents())) )
         state = tuple(state)
         if last_state == state:
-            raise pyxb.LogicError('Unexpected external dependency in sibling namespaces: %s' % ("\n  ".join( [str(_ns) for _ns in need_resolved_set ]),))
+            raise pyxb.LogicError('Unexpected external dependency in sibling namespaces: %s' % (u"\n  ".join( [unicode(_ns) for _ns in need_resolved_set ]),))
         last_state = state
 
 class NamespaceContext (object):
@@ -325,16 +325,16 @@ class NamespaceContext (object):
     """
 
     def __str__ (self):
-        rv = [ 'NamespaceContext ' ]
+        rv = [ u'NamespaceContext ' ]
         if self.defaultNamespace() is not None:
-            rv.extend([ '(defaultNamespace=', str(self.defaultNamespace()), ') '])
+            rv.extend([ '(defaultNamespace=', unicode(self.defaultNamespace()), ') '])
         if self.targetNamespace() is not None:
-            rv.extend([ '(targetNamespace=', str(self.targetNamespace()), ') '])
+            rv.extend([ '(targetNamespace=', unicode(self.targetNamespace()), ') '])
         rv.append("\n")
         for (pfx, ns) in self.inScopeNamespaces().items():
             if pfx is not None:
-                rv.append('  xmlns:%s=%s' % (pfx, str(ns)))
-        return ''.join(rv)
+                rv.append('  xmlns:%s=%s' % (pfx, unicode(ns)))
+        return u''.join(rv)
 
     __TargetNamespaceAttributes = { }
     @classmethod

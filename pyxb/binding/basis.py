@@ -593,8 +593,8 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         is the expanded name if the type has one, or the Python type name if
         it does not."""
         if cls._ExpandedName is not None:
-            return str(cls._ExpandedName)
-        return str(cls)
+            return unicode(cls._ExpandedName)
+        return unicode(cls)
 
     def _diagnosticName (self):
         """The best name available for this instance in diagnostics.
@@ -603,7 +603,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         otherwise it is the best name for the type of the instance per L{_Name}."""
         if self.__element is None:
             return self._Name()
-        return str(self.__element.name())
+        return unicode(self.__element.name())
 
 class _DynamicCreate_mixin (pyxb.cscRoot):
     """Helper to allow overriding the implementation class.
@@ -1794,7 +1794,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         return 'Element %s' % (self.name(),)
 
     def _description (self, name_only=False, user_documentation=True):
-        name = str(self.name())
+        name = unicode(self.name())
         if name_only:
             return name
         desc = [ name, ' (', self.typeDefinition()._description(name_only=True), ')' ]
@@ -1806,7 +1806,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             desc.extend([', substitutes for ', self.substitutionGroup()._description(name_only=True) ])
         if user_documentation and (self.documentation() is not None):
             desc.extend(["\n", self.documentation() ])
-        return ''.join(desc)
+        return u''.join(desc)
 
 class enumeration_mixin (pyxb.cscRoot):
     """Marker in case we need to know that a PST has an enumeration constraint facet."""

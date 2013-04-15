@@ -1138,7 +1138,7 @@ def _SetNameWithAccessors (component, container, is_plural, binding_module, nsm,
     assert component._scope() == container
     assert component.nameInBinding() is None, 'Use %s but binding name %s for %s' % (use_map['use'], component.nameInBinding(), component.expandedName())
     component.setNameInBinding(use_map['use'])
-    key_name = '%s_%s_%s' % (str(nsm.namespace()), container.nameInBinding(), component.expandedName())
+    key_name = u'%s_%s_%s' % (unicode(nsm.namespace()), container.nameInBinding(), component.expandedName())
     use_map['key'] = utility.PrepareIdentifier(key_name, class_unique, private=True)
     use_map['qname'] = unicode(component.expandedName())
     if isinstance(component, xs.structures.ElementDeclaration) and is_plural:
@@ -1600,7 +1600,7 @@ class NamespaceModule (_ModuleNaming_mixin):
     def _moduleUID_vx (self):
         if self.namespace().isAbsentNamespace():
             return 'Absent'
-        return str(self.namespace())
+        return unicode(self.namespace())
 
     def namespaceGroupMulti (self):
         return 1 < len(self.__namespaceGroup)
@@ -1767,9 +1767,9 @@ _GenerationUID = %{generation_uid_expr}
             if ns.isAbsentNamespace():
                 nss.append('Absent')
             else:
-                nss.append(str(ns))
+                nss.append(unicode(ns))
         nss.sort()
-        return ';'.join(nss)
+        return u';'.join(nss)
 
     def __str__ (self):
         return 'NGM:%s' % (self.modulePath(),)
@@ -1788,7 +1788,7 @@ def GeneratePython (schema_location=None,
         generator.addSchema(schema_text)
     modules = generator.bindingModules()
 
-    assert 1 == len(modules), '%s produced %d modules: %s' % (namespace, len(modules), " ".join([ str(_m) for _m in modules]))
+    assert 1 == len(modules), '%s produced %d modules: %s' % (namespace, len(modules), u" ".join([ unicode(_m) for _m in modules]))
     return modules.pop().moduleContents()
 
 import optparse
