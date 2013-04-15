@@ -1245,7 +1245,7 @@ class _ModuleNaming_mixin (object):
         self.__uniqueInModule = set()
         self.__referencedFromClass = self._ReferencedFromClass.copy()
         self.__bindingIO = None
-        self.__importedModules = []
+        self.__importModulePathMap = {}
         self.__namespaceDeclarations = []
         self.__referencedNamespaces = {}
         self.__uniqueInClass = {}
@@ -1253,12 +1253,22 @@ class _ModuleNaming_mixin (object):
     def _importModule (self, module):
         assert not isinstance(module, pyxb.namespace.Namespace)
         assert isinstance(module, (_ModuleNaming_mixin, pyxb.namespace.archive.ModuleRecord)), 'Unexpected type %s' % (type(module),)
-        if isinstance(module, NamespaceModule) and (pyxb.namespace.XMLSchema == module.namespace()):
-            return
-        if not (module in self.__importedModules):
-            self.__importedModules.append(module)
-            module_base = module.modulePath().split('.', 2)[0]
-            self.__referencedFromClass.add(module_base)
+        if isinstance(module, NamespaceModule):
+            if pyxb.namespace.XMLSchema == module.namespace():
+                return
+            module = module.moduleRecord()
+        assert isinstance(module, (pyxb.namespace.archive.ModuleRecord, NamespaceGroupModule))
+        if not (module in self.__importModulePathMap):
+            module_path = module.modulePath()
+            if 'pyxb' == module_path.split('.', 2)[0]:
+                assert 'pyxb' in self.uniqueInModule()
+                assert 'pyxb' in self.__referencedFromClass
+                module_path = None
+            else:
+                module_path = utility.PrepareIdentifier('ImportedBinding_' + module_path.replace('.', '_'),
+                                                        self.uniqueInModule(), protected=True)
+                self.__referencedFromClass.add(module_path)
+            self.__importModulePathMap[module] = module_path
 
     def uniqueInClass (self, component):
         rv = self.__uniqueInClass.get(component)
@@ -1317,14 +1327,14 @@ class _ModuleNaming_mixin (object):
     def moduleContents (self):
         template_map = {}
         import_paths = set()
-        for ns in self.__importedModules:
-            if isinstance(ns, NamespaceModule):
-                ns = ns.moduleRecord()
-            assert self != ns
-            module_path = ns.modulePath()
-            assert module_path is not None, 'No module path for %s type %s' % (ns, type(ns))
-            import_paths.add(module_path)
-        template_map['aux_imports'] = "\n".join([ "import %s" % (_mp,) for _mp in import_paths])
+        aux_imports = []
+        for (mr, as_path) in self.__importModulePathMap.iteritems():
+            assert self != mr
+            if as_path is not None:
+                aux_imports.append('import %s as %s' % (mr.modulePath(), as_path))
+            else:
+                aux_imports.append('import %s' % (mr.modulePath(),))
+        template_map['aux_imports'] = "\n".join(aux_imports)
         template_map['namespace_decls'] = "\n".join(self.__namespaceDeclarations)
         template_map['module_uid'] = self.moduleUID()
         template_map['generation_uid_expr'] = repr(self.generator().generationUID())
@@ -1344,6 +1354,15 @@ class _ModuleNaming_mixin (object):
         kw = self._initialBindingTemplateMap()
         self.__bindingIO = BindingIO(self, binding_file=binding_file, binding_file_path=binding_file_path, **kw)
     __modulePath = None
+
+    def pathFromImport (self, module, name):
+        """Python code reference to an object in an imported module"""
+        if isinstance(module, NamespaceModule):
+            module = module.moduleRecord()
+        as_path = self.__importModulePathMap[module]
+        if as_path is None:
+            as_path = module.modulePath()
+        return '%s.%s' % (as_path, name)
 
     def bindingFile (self):
         return self.__bindingFile
@@ -1400,7 +1419,7 @@ class _ModuleNaming_mixin (object):
         assert module_record is not None
         if self.generator().generationUID() != module_record.generationUID():
             self._importModule(module_record)
-            return '%s.%s' % (module_record.modulePath(), component.nameInBinding())
+            return self.pathFromImport(module_record, component.nameInBinding())
         component_module = _ModuleNaming_mixin.ComponentBindingModule(component)
         assert component_module is not None, 'No binding module for %s from %s in %s as %s' % (component, module_record, self.moduleRecord(), component.nameInBinding())
         name = component_module.__componentNameMap.get(component)
@@ -1409,7 +1428,7 @@ class _ModuleNaming_mixin (object):
             name = component.nameInBinding()
         if self != component_module:
             self._importModule(component_module)
-            name = '%s.%s' % (component_module.modulePath(), name)
+            name = self.pathFromImport(component_module, name)
         return name
 
     def _referencedNamespaces (self): return self.__referencedNamespaces
@@ -1456,10 +1475,10 @@ class _ModuleNaming_mixin (object):
                 else:
                     nsn = 'Namespace'
                 nsdef = None
-                for im in self.__importedModules:
-                    if isinstance(im, (NamespaceModule, pyxb.namespace.archive.ModuleRecord)):
+                for im in self.__importModulePathMap.keys():
+                    if isinstance(im, pyxb.namespace.archive.ModuleRecord):
                         if im.namespace() == namespace:
-                            nsdef = '%s.Namespace' % (im.modulePath(),)
+                            nsdef = self.pathFromImport(im, 'Namespace')
                             break
                     elif isinstance(im, NamespaceGroupModule):
                         pass
