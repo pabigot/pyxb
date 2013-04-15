@@ -1625,6 +1625,7 @@ class NamespaceModule (_ModuleNaming_mixin):
              , 'targetNamespace' : repr(self.__namespace.uri())
              , 'namespaceURI' : self.__namespace.uri()
              , 'namespaceReference' : self.referenceNamespace(self.__namespace)
+             , 'pyxb_version' : repr(pyxb.__version__)
              }
         return kw
 
@@ -1640,6 +1641,12 @@ import sys
 
 # Unique identifier for bindings created at the same time
 _GenerationUID = %{generation_uid_expr}
+
+# Version of PyXB used to generate the bindings
+_PyXBVersion = %{pyxb_version}
+# Generated bindings are not compatible across PyXB versions
+if pyxb.__version__ != _PyXBVersion:
+    raise pyxb.PyXBVersionError(_PyXBVersion)
 
 # Import bindings for namespaces imported into schema
 %{aux_imports}

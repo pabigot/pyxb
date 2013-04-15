@@ -53,6 +53,10 @@ class PyXBException (exceptions.Exception):
     def _str_from_unicode (self):
         return unicode(self).encode(pyxb._OutputEncoding)
 
+class PyXBVersionError (PyXBException):
+    """Raised on import of a binding generated with a different version of PYXB"""
+    pass
+
 class SchemaValidationError (PyXBException):
     """Raised when the XML hierarchy does not appear to be valid for an XML schema."""
     pass
