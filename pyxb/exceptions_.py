@@ -131,7 +131,7 @@ class StructuralBadDocumentError (BadDocumentError):
         self.__elementUse = kw.pop('element_use', None)
         if self.__content is not None:
             if self.__container is not None:
-                kw.setdefault('message', '%s cannot accept wildcard content %s' % (self.__container, self.__content))
+                kw.setdefault('message', '%s cannot accept wildcard content %s' % (self.__container._Name(), self.__content))
             elif self.__elementUse is not None:
                 kw.setdefault('message', '%s not consistent with content model for %s' % (self.__content, self.__elementUse))
             else:
@@ -173,7 +173,7 @@ class ValidationError (PyXBException):
     def details (self):
         """Provide information describing why validation failed.
 
-        In many cases, this is simple the informal string content that
+        In many cases, this is simply the informal string content that
         would be obtained through the C{str} built-in function.  For
         certain errors this method gives more details on what would be
         acceptable and where the descriptions can be found in the
@@ -398,6 +398,30 @@ class ExtraSimpleContentError (ContentValidationError):
     def __str__ (self):
         return 'Instance of %s already has simple content value assigned' % (self.instance._Name(),)
 
+class NonPluralAppendError (ContentValidationError):
+    """Attempt to append to an element which does not accept multiple instances."""
+
+    instance = None
+    """The binding instance containing the element"""
+
+    element_declaration = None
+    """The L{pyxb.binding.content.ElementDeclaration} contained in C{instance} that does not accept multiple instances"""
+
+    value = None
+    """The proposed addition to the element in the instance"""
+
+    def __init__ (self, instance, element_declaration, value):
+        """@param instance: the value for the L{instance} attribute.
+        @param element_declaration: the value for the L{element_declaration} attribute.
+        @param value: the value for the L{value} attribute."""
+        self.instance = instance
+        self.element_declaration = element_declaration
+        self.value = value
+        super(NonPluralAppendError, self).__init__(instance, element_declaration, value)
+
+    def __str__ (self):
+        return 'Instance of %s cannot append to element %s' % (self.instance._Name(), self.element_declaration.name())
+    
 class MixedContentError (ContentValidationError):
     """Non-element content added to a complex type instance that does not support mixed content."""
     

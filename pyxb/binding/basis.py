@@ -2421,7 +2421,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 if self.__wildcardElements is not None:
                     self._appendWildcardElement(value)
                     return self
-                raise pyxb.StructuralBadDocumentError('Validation is required when no element_decl can be found')
+                raise pyxb.StructuralBadDocumentError(container=self, content=value)
             # Attempt to place the value based on the content model
             num_cand = self.__automatonConfiguration.step(value, element_decl)
             if 1 <= num_cand:

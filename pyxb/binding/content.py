@@ -1036,7 +1036,7 @@ class ElementDeclaration (object):
         if ctd_instance._isNil():
             raise pyxb.ContentInNilInstanceError(ctd_instance, value)
         if not self.isPlural():
-            raise pyxb.StructuralBadDocumentError('Cannot append to element with non-plural multiplicity')
+            raise pyxb.NonPluralAppendError(ctd_instance, self, value)
         values = self.value(ctd_instance)
         if ctd_instance._validationConfig.forBinding:
             value = self.__elementBinding.compatibleValue(value)
