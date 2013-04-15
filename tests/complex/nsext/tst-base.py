@@ -14,7 +14,7 @@ class Test (unittest.TestCase):
     def testNamespaceInfo (self):
         ns = common.Namespace
         ns.validateComponentModel()
-        self.assertEqual(1, len(ns.moduleRecords()))
+        self.assertEqual(0, len(ns.moduleRecords()))
 
 if '__main__' == __name__:
     unittest.main()

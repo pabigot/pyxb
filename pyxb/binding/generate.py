@@ -1628,10 +1628,6 @@ _GenerationUID = %{generation_uid_expr}
 # NOTE: All namespace declarations are reserved within the binding
 %{namespace_decls}
 
-# NOTE: ModuleRecord is not reserved in the binding
-ModuleRecord = Namespace.lookupModuleRecordByUID(_GenerationUID, create_if_missing=True)
-ModuleRecord._setModule(sys.modules[__name__])
-
 def CreateFromDocument (xml_text, default_namespace=None, location_base=None):
     """Parse the given XML and use the document element to create a
     Python instance.

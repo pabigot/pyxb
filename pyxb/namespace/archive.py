@@ -609,8 +609,6 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
 
     def addModuleRecord (self, module_record):
         assert isinstance(module_record, ModuleRecord)
-        # This assertion will fail if the binding is loaded before its archive
-        # is scanned.
         assert not (module_record.generationUID() in self.__moduleRecordMap)
         self.__moduleRecordMap[module_record.generationUID()] = module_record
         return module_record
@@ -709,23 +707,6 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
         return self
     __modulePath = None
 
-    def module (self):
-        return self.__module
-    def _setModule (self, module):
-        self.__module = module
-        # This is a nice idea, but screws up the unit tests that already have
-        # ns1 and the like logged as expected prefixes.  Only causes a problem
-        # when the tests are run individually; dunno why.
-        #ns = self.namespace()
-        #if (ns.prefix() is None) and (module is not None):
-        #    try:
-        #        ns.setPrefix(os.path.basename(os.path.normpath(module.__file__)).split('.')[0])
-        #    except AttributeError:
-        #        pass
-        return self
-    __module = None
-    __PrivateTransient.add('module')
-
     def referencedNamespaces (self):
         return self.__referencedNamespaces
     def _setReferencedNamespaces (self, referenced_namespaces):
@@ -751,7 +732,6 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
         assert isinstance(generation_uid, pyxb.utils.utility.UniqueIdentifier)
         self.__generationUID = generation_uid
         self.__modulePath = kw.get('module_path')
-        self.__module = kw.get('module')
         self.__originMap = {}
         self.__referencedNamespaces = set()
         self.__categoryObjects = { }
@@ -767,7 +747,6 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
         assert not self.__isIncorporated
         self.__isLoadable = other.__isLoadable
         self.__modulePath = other.__modulePath
-        # self.__module already set correctly
         self.__originMap.update(other.__originMap)
         self.__referencedNamespaces.update(other.__referencedNamespaces)
         if not (other.__categoryObjects is None):
