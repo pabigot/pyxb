@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2009-2012, Peter A. Bigot
+# Copyright 2009-2013, Peter A. Bigot
 # Copyright 2012, Jon Foster
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
