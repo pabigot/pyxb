@@ -64,13 +64,13 @@ An example of a program using PyXB to interact with a `web service
 automatically-generated module.  First, retrieve the WSDL and generate the
 bindings::
 
- llc[766]$ pyxbgen \
+ llc[837]$  pyxbgen \
        --wsdl-location=http://wsf.cdyne.com/WeatherWS/Weather.asmx?WSDL \
        --module=weather \
        --write-for-customization
  Retrieving WSDL from http://wsf.cdyne.com/WeatherWS/Weather.asmx?WSDL
  WARNING:pyxb.binding.basis:Unable to convert DOM node {http://www.w3.org/2001/XMLSchema}schema at Weather.asmx?WSDL[4:4] to binding
- PS urn:uuid:ea640f34-4869-11e2-924d-c8600024e903
+ PS urn:uuid:029825d0-a6a3-11e2-a410-c8600024e903
  WARNING:pyxb.binding.generate:Complex type {http://ws.cdyne.com/WeatherWS/}ArrayOfWeatherDescription renamed to ArrayOfWeatherDescription_
  WARNING:pyxb.binding.generate:Complex type {http://ws.cdyne.com/WeatherWS/}ForecastReturn renamed to ForecastReturn_
  WARNING:pyxb.binding.generate:Complex type {http://ws.cdyne.com/WeatherWS/}WeatherReturn renamed to WeatherReturn_
@@ -82,15 +82,15 @@ Then write a program that uses them:
 
 And run it::
 
- llc[767]$ python client_get.py
+ llc[838]$ python client_get.py
  Weather forecast for Saint Paul, MN:
-  Monday, December 17 2012: Partly Cloudy, from 15 to 26
-  Tuesday, December 18 2012: , from 19 to 32
-  Wednesday, December 19 2012: Partly Cloudy, from 18 to 32
-  Thursday, December 20 2012: Mostly Cloudy, from 16 to 22
-  Friday, December 21 2012: Sunny, from 8 to 20
-  Saturday, December 22 2012: Partly Cloudy, from 8 to 21
-  Sunday, December 23 2012: Partly Cloudy, from 3 to 19
+  Friday, March 22 2013: Partly Cloudy, from 8 to 31
+  Saturday, March 23 2013: Partly Cloudy, from 17 to 34
+  Sunday, March 24 2013: Mostly Cloudy, from 21 to 34
+  Monday, March 25 2013: Partly Cloudy, from 21 to 33
+  Tuesday, March 26 2013: Partly Cloudy, from 21 to 34
+  Wednesday, March 27 2013: Partly Cloudy, from 19 to 36
+  Thursday, March 28 2013: Partly Cloudy, from 20 to 36
 
 That's it.
 
