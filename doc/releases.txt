@@ -44,6 +44,8 @@ support for validating exception attributes.
 1.2.2 (17 Apr 2013)
 -------------------
 
+Documentation: http://pyxb.sourceforge.net/PyXB-1.2.2
+
 Almost all changes are bug fixes, including issues with element order when
 extending types, name conflicts between XML and Python entities in the
 binding, and unicode problems in diagnostics.
@@ -76,6 +78,8 @@ The following reported `defects/enhancements
 
 1.2.1 (17 Dec 2012)
 -------------------
+
+Documentation: http://pyxb.sourceforge.net/PyXB-1.2.1
 
 .. warning::
 
@@ -126,6 +130,8 @@ The following reported `defects/enhancements
 
 1.2.0 (07 Nov 2012)
 -------------------
+
+Documentation: http://pyxb.sourceforge.net/PyXB-1.2.0
 
 This is a beta release intended to allow independent verification that the new
 content model works.  It is released on SourceForge, but will not be made
