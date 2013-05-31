@@ -197,11 +197,15 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
 
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
-        if 0 == len(args):
-            raise SimpleTypeValueError(cls, args)
-        text = args[0]
         have_kw_update = False
-        if isinstance(text, (str, unicode)):
+        if not kw.get('_nil'):
+            if 0 == len(args):
+                raise SimpleTypeValueError(cls, args)
+            text = args[0]
+        if kw.get('_nil'):
+            data = dict(zip(cls.__PythonFields, len(cls.__PythonFields) * [0,]))
+            negative_duration = False
+        elif isinstance(text, (str, unicode)):
             match = cls.__Lexical_re.match(text)
             if match is None:
                 raise SimpleTypeValueError(cls, text)
@@ -453,8 +457,11 @@ class dateTime (_PyXBDateTime_base, datetime.datetime):
     
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
+        
         ctor_kw = { }
-        if 1 == len(args):
+        if kw.get('_nil'):
+            ctor_kw = { 'year': 1900, 'month': 1, 'day': 1 }
+        elif 1 == len(args):
             value = args[0]
             if isinstance(value, types.StringTypes):
                 ctor_kw.update(cls._LexicalToKeywords(value))
@@ -562,7 +569,9 @@ class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.datetime):
         ctor_kw['hour'] = 0
         ctor_kw['minute'] = 0
         ctor_kw['second'] = 0
-        if 1 <= len(args):
+        if kw.get('_nil'):
+            pass
+        elif 1 <= len(args):
             value = args[0]
             if isinstance(value, types.StringTypes):
                 if 1 != len(args):
