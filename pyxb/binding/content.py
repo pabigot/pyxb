@@ -853,7 +853,7 @@ class _PluralBinding (collections.MutableSequence):
         return self.__list.index(x, i, j)
 
     def insert (self, i, x):
-        self.__list.insert(i, map(self.__convert, x))
+        self.__list.insert(i, self.__convert(x))
 
     def pop (self, i=-1):
         return self.__list.pop(i)
