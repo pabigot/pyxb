@@ -290,7 +290,7 @@ class _BDSNamespaceSupport (object):
             self.__namespacePrefixMap[namespace] = prefix
         return prefix
 
-    def namespacePrefix (self, namespace):
+    def namespacePrefix (self, namespace, enable_default_namespace=True):
         """Return the prefix to be used for the given namespace.
 
         This will L{declare <declareNamespace>} the namespace if it has not
@@ -299,13 +299,17 @@ class _BDSNamespaceSupport (object):
         @param namespace: The namespace for which a prefix is needed.  If the
         provided namespace is C{None} or an absent namespace, the C{None}
         value will be returned as the corresponding prefix.
+
+        @kw enable_default_namespace: Normally if the namespace is the default
+        namespace C{None} is returned to indicate this.  If this keyword is
+        C{False} then we need a namespace prefix even if this is the default.
         """
 
         if (namespace is None) or namespace.isAbsentNamespace():
             return None
         if isinstance(namespace, basestring):
             namespace = pyxb.namespace.NamespaceForURI(namespace, create_if_missing=True)
-        if self.__defaultNamespace == namespace:
+        if (self.__defaultNamespace == namespace) and enable_default_namespace:
             return None
         ns = self.__namespaces.get(namespace)
         if ns is None:
@@ -473,9 +477,9 @@ class BindingDOMSupport (object):
         """Declare a namespace that will be added to each created instance."""
         return cls.__NamespaceSupport.declareNamespace(namespace, prefix, add_to_map=True)
 
-    def namespacePrefix (self, namespace):
+    def namespacePrefix (self, namespace, enable_default_namespace=True):
         """Obtain the prefix for the given namespace using this instance's configuration."""
-        return self.__namespaceSupport.namespacePrefix(namespace)
+        return self.__namespaceSupport.namespacePrefix(namespace, enable_default_namespace)
 
     def namespacePrefixMap (self):
         """Get the map from namespaces to prefixes for this instance"""
@@ -501,7 +505,8 @@ class BindingDOMSupport (object):
         if isinstance(name, pyxb.namespace.ExpandedName):
             name = expanded_name.localName()
             namespace = expanded_name.namespace()
-            prefix = self.namespacePrefix(namespace)
+            # Attribute names do not use default namespace
+            prefix = self.namespacePrefix(namespace, enable_default_namespace=False)
             if prefix is not None:
                 name = '%s:%s' % (prefix, name)
         element.setAttributeNS(namespace, name, value)
