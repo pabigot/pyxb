@@ -236,15 +236,11 @@ class _BDSNamespaceSupport (object):
         C{unicode}.
         """
 
-        if self.__defaultNamespace is not None:
-            del self.__namespaces[self.__defaultNamespace]
         if isinstance(default_namespace, basestring):
             default_namespace = pyxb.namespace.NamespaceForURI(default_namespace, create_if_missing=True)
         if (default_namespace is not None) and default_namespace.isAbsentNamespace():
             raise pyxb.UsageError('Default namespace must not be an absent namespace')
         self.__defaultNamespace = default_namespace
-        if self.__defaultNamespace is not None:
-            self.__namespaces[self.__defaultNamespace] = None
 
     def namespacePrefixMap (self):
         """Return a map from Namespace instances to the prefix by which they
@@ -309,9 +305,12 @@ class _BDSNamespaceSupport (object):
             return None
         if isinstance(namespace, basestring):
             namespace = pyxb.namespace.NamespaceForURI(namespace, create_if_missing=True)
-        if not (namespace in self.__namespaces):
-            return self.declareNamespace(namespace)
-        return self.__namespaces[namespace]
+        if self.__defaultNamespace == namespace:
+            return None
+        ns = self.__namespaces.get(namespace)
+        if ns is None:
+            ns = self.declareNamespace(namespace)
+        return ns
 
     def namespaces (self):
         """Return the set of Namespace instances known to this instance."""
@@ -328,8 +327,6 @@ class _BDSNamespaceSupport (object):
         This flushes the list of namespaces for the document.  The
         defaultNamespace is not modified."""
         self.__namespaces = { }
-        if self.__defaultNamespace is not None:
-            self.__namespaces[self.__defaultNamespace] = None
         self.__prefixes = set()
         self.__namespacePrefixCounter = 0
         if prefix_map:
@@ -516,11 +513,12 @@ class BindingDOMSupport (object):
 
         @return: The document that has been created.
         @rtype: C{xml.dom.Document}"""
+        ns = self.__namespaceSupport.defaultNamespace()
+        if ns is not None:
+            self.document().documentElement.setAttributeNS(pyxb.namespace.XMLNamespaces.uri(), 'xmlns', ns.uri())
         for ( ns, pfx ) in self.__namespaceSupport.namespaces().items():
-            if pfx is None:
-                self.document().documentElement.setAttributeNS(pyxb.namespace.XMLNamespaces.uri(), 'xmlns', ns.uri())
-            else:
-                self.document().documentElement.setAttributeNS(pyxb.namespace.XMLNamespaces.uri(), 'xmlns:%s' % (pfx,), ns.uri())
+            assert pfx is not None
+            self.document().documentElement.setAttributeNS(pyxb.namespace.XMLNamespaces.uri(), 'xmlns:%s' % (pfx,), ns.uri())
         return self.document()
 
     def createChildElement (self, expanded_name, parent=None):
