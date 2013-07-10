@@ -95,7 +95,7 @@ class TestXMLRE (unittest.TestCase):
         (charset, position) = xmlre.MaybeMatchCharacterClass(text, 0)
         self.assertEqual(position, len(text))
         self.assertEqual(charset.negate(), unicode.BlockMap['Arrows'])
-        
+
         text = r'\p{IsWelsh}'
         self.assertRaises(xmlre.RegularExpressionError, xmlre.MaybeMatchCharacterClass, text, 0)
         text = r'\P{IsWelsh}'
@@ -149,7 +149,7 @@ class TestXMLRE (unittest.TestCase):
         self.assertEqual(charset, unicode.CodePointSet((ord('Z'), ord(']'))))
         text = u'Z-A]'
         self.assertRaises(xmlre.RegularExpressionError, xmlre._MatchPosCharGroup, text, 0)
-        
+
     def testMatchCharClassExpr (self):
         self.assertRaises(xmlre.RegularExpressionError, xmlre._MatchCharClassExpr, 'missing open', 0)
         self.assertRaises(xmlre.RegularExpressionError, xmlre._MatchCharClassExpr, '[missing close', 0)
@@ -176,7 +176,7 @@ class TestXMLRE (unittest.TestCase):
         expected.subtract(unicode.PropertyMap['Lo'])
         self.assertEqual(position, len(text))
         self.assertEqual(charset, expected)
-        
+
     def testXMLToPython (self):
         self.assertEqual(r'^123$', xmlre.XMLToPython(u'123'))
         # Note that single-char escapes in the expression are

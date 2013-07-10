@@ -11,7 +11,7 @@ class TestTrac0199 (unittest.TestCase):
     def setUp (self):
         self.__pyxb_version = pyxb.__version__
         pyxb.__version__ = 'NOT ' + self.__pyxb_version
-        
+
     def tearDown (self):
         pyxb.__version__ = self.__pyxb_version
 

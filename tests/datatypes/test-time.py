@@ -9,7 +9,7 @@ import pyxb.binding.datatypes as xsd
 import datetime
 
 class Test_time (unittest.TestCase):
-    
+
     def verifyTime (self, tm, with_usec=True, with_adj=(0,0), with_tzinfo=True):
         (hour_adj, minute_adj) = with_adj
         self.assertEqual(12 + hour_adj, tm.hour)
@@ -24,7 +24,7 @@ class Test_time (unittest.TestCase):
         self.assertRaises(pyxb.SimpleTypeValueError, xsd.time, '12:14:32.Z')
         self.assertRaises(pyxb.SimpleTypeValueError, xsd.time, '12:14:32.123405:00')
         self.assertRaises(pyxb.SimpleTypeValueError, xsd.time, '12:14:32.1234+05')
-        
+
     def testFromText (self):
         self.verifyTime(xsd.time('12:14:32'), with_usec=False, with_tzinfo=False)
         self.verifyTime(xsd.time('12:14:32.1234'), with_tzinfo=False)

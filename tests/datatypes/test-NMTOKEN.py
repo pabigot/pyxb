@@ -15,7 +15,7 @@ class Test_NMTOKEN (unittest.TestCase):
             self.assertEqual(f, xsd.NMTOKEN(f))
 
     def testInvalid (self):
-        invalid = [ 'With Spaces', 
+        invalid = [ 'With Spaces',
                     'With?Illegal', '??LeadingIllegal', 'TrailingIllegal??',
                     '  LeadingSpace', 'TrailingSpace   ']
         for f in invalid:

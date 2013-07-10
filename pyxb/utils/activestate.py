@@ -29,13 +29,13 @@ def detectXMLEncoding(fp):
         character coding including most of ASCII is used :-/
     """
     ### detection using BOM
-    
+
     ## the BOMs we know, by their pattern
-    bomDict={ # bytepattern : name              
-             (0x00, 0x00, 0xFE, 0xFF) : "utf_32_be",        
+    bomDict={ # bytepattern : name
+             (0x00, 0x00, 0xFE, 0xFF) : "utf_32_be",
              (0xFF, 0xFE, 0x00, 0x00) : "utf_32_le",
-             (0xFE, 0xFF, None, None) : "utf_16_be", 
-             (0xFF, 0xFE, None, None) : "utf_16_le", 
+             (0xFE, 0xFF, None, None) : "utf_16_be",
+             (0xFF, 0xFE, None, None) : "utf_16_le",
              (0xEF, 0xBB, 0xBF, None) : "utf_8",
             }
 
@@ -61,7 +61,7 @@ def detectXMLEncoding(fp):
     ##  now that BOM detection has failed we assume one byte character
     ##  encoding behaving ASCII - of course one could think of nice
     ##  algorithms further investigating on that matter, but I won't for now.
-    
+
 
     ### search xml declaration for encoding attribute
     import re

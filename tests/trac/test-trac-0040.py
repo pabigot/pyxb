@@ -56,7 +56,7 @@ class TestTrac0040 (unittest.TestCase):
         self.assertTrue(instance.validateBinding())
         # This is really the only thing that tests #40, but there
         self.assertEqual(instance.lu.xsdLiteral(), '1 two 3')
-        
+
         # These also caught a missed TypeError to PyXBException conversion
         self.assertRaises(pyxb.SimpleTypeValueError, SET_lu, instance, 1)
         self.assertRaises(pyxb.SimpleTypeValueError, SET_lu, instance, [[1,'two',3], ['two',3,4]])
@@ -85,4 +85,4 @@ class TestTrac0040 (unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    
+

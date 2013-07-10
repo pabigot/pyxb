@@ -52,7 +52,7 @@ class AttributeUse (pyxb.cscRoot):
 
     __id = None
     """Identifier used for this attribute within the owning class"""
-    
+
     __key = None
     """Private Python attribute used in instances to hold the attribute value"""
 
@@ -61,16 +61,16 @@ class AttributeUse (pyxb.cscRoot):
 
     __unicodeDefault = None
     """The default attribute value as a unicode string, or C{None}"""
-     
+
     __defaultValue = None
     """The default value as an instance of L{__dataType}, or C{None}"""
-    
+
     __fixed = False
     """C{True} if the attribute value cannot be changed"""
-    
+
     __required = False
     """C{True} if the attribute must appear in every instance of the type"""
-    
+
     __prohibited = False
     """C{True} if the attribute must not appear in any instance of the type"""
 
@@ -125,7 +125,7 @@ class AttributeUse (pyxb.cscRoot):
         @raise pyxb.SimpleTypeValueError: the L{unicode_default} cannot be used
         to initialize an instance of L{data_type}
         """
-        
+
         self.__name = name
         self.__id = id
         self.__key = key
@@ -144,7 +144,7 @@ class AttributeUse (pyxb.cscRoot):
         @rtype: L{pyxb.namespace.ExpandedName}
         """
         return self.__name
-    
+
     def defaultValue (self):
         """The default value of the attribute."""
         return self.__defaultValue
@@ -482,7 +482,7 @@ class AutomatonConfiguration (object):
             _log.warning('Incomplete content, expect %s' % (' or '.join(map(str, cfg.acceptableSymbols()))))
             raise pyxb.IncompleteElementContentError(self.__instance, cfg, symbols, symbol_set)
         return cfg
-    
+
     def diagnoseIncompleteContent (self):
         """Generate the exception explaining why the content is incomplete."""
         return self._diagnoseIncompleteContent(None, None)
@@ -640,7 +640,7 @@ class AutomatonConfiguration (object):
         if nec is not None:
             symbols.extend(nec)
         return symbols
-                    
+
 class _FACSymbol (pyxb.utils.fac.SymbolMatch_mixin):
     """Base class for L{pyxb.utils.fac.Symbol} instances associated with PyXB content models.
 
@@ -706,7 +706,7 @@ class ElementUse (_FACSymbol):
 
     def typeDefinition (self):
         """Return the element type.
-        
+
         Equivalent to L{elementDeclaration}().L{elementBinding()<pyxb.binding.content.ElementDeclaration.elementBinding>}.L{typeDefinition()<pyxb.binding.basis.element.typeDefinition>}."""
         return self.__elementDeclaration.elementBinding().typeDefinition()
 
@@ -719,12 +719,12 @@ class ElementUse (_FACSymbol):
         (rv, value) = self.__elementDeclaration._matches(value, element_decl)
         assert rv
         return value
-    
+
     def consumingClosure (self, sym):
         # Defer the potentially-expensive re-invocation of matchValue until
         # the closure is applied.
         return lambda _inst,_eu=self,_sy=sym: _eu.__elementDeclaration.setOrAppend(_inst, _eu.matchValue(_sy))
-        
+
     def match (self, symbol):
         """Satisfy L{pyxb.utils.fac.SymbolMatch_mixin}.
 
@@ -761,7 +761,7 @@ class WildcardUse (_FACSymbol):
     def matchValue (self, sym):
         (value, element_decl) = sym
         return value
-    
+
     def consumingClosure (self, sym):
         """Create a closure that will apply the value accepted by L{match} to a to-be-supplied instance."""
         return lambda _inst,_av=self.matchValue(sym): _inst._appendWildcardElement(_av)
@@ -800,7 +800,7 @@ class _PluralBinding (collections.MutableSequence):
     This is an adapter for Python list.  Any operation that can mutate an item
     in the list ensures the stored value is compatible with the element for
     which the list holds values."""
-    
+
     __list = None
     __elementBinding = None
 
@@ -1147,7 +1147,7 @@ class Wildcard (object):
 
     PC_skip = 'skip'
     """No namespace constraint is applied to the wildcard."""
-    
+
     PC_lax = 'lax'
     """Validate against available uniquely determined declaration."""
 
@@ -1172,7 +1172,7 @@ class Wildcard (object):
         """
         @keyword namespace_constraint: Required namespace constraint(s)
         @keyword process_contents: Required"""
-        
+
         # Namespace constraint and process contents are required parameters.
         nsc = kw['namespace_constraint']
         if isinstance(nsc, tuple):
@@ -1219,4 +1219,4 @@ class Wildcard (object):
 ## Local Variables:
 ## fill-column:78
 ## End:
-    
+

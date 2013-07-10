@@ -12,13 +12,13 @@ xsd='''
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
   <!-- Essentially: (a*)* -->
   <xsd:element name="a" type="xsd:string"/>
-  <xsd:complexType name="parametersType"> 
+  <xsd:complexType name="parametersType">
     <xsd:sequence minOccurs="0" maxOccurs="unbounded">
       <xsd:choice>
         <xsd:element ref="a" minOccurs="0" maxOccurs="unbounded"/>
       </xsd:choice>
-    </xsd:sequence>  
-  </xsd:complexType> 
+    </xsd:sequence>
+  </xsd:complexType>
   <xsd:element name="parameters" type="parametersType"/>
 </xsd:schema>
 '''

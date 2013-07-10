@@ -80,13 +80,13 @@ class _XMLSchema_instance (Namespace):
         @param value: One of L{PT_strict}, L{PT_lax}, L{PT_skip}, or C{None} (no change)
         @return: The current configuration for processing xsi:type attributes
         """
-        
+
         if value in (self.PT_strict, self.PT_lax, self.PT_skip):
             self.__processType = value
         elif value is not None:
             raise pyxb.ValueError(value)
         return self.__processType
-    
+
     def _InterpretTypeAttribute (self, type_name, ns_ctx, fallback_namespace, type_class):
         """Interpret the value of an xsi:type attribute as configured
         by L{ProcessTypeAttribute}.
@@ -94,16 +94,16 @@ class _XMLSchema_instance (Namespace):
         @param type_name: The QName value from U{xsi:type
         <http://www.w3.org/TR/xmlschema-1/#xsi_type>}.  If this is
         C{None}, C{type_class} is used as C{ret_type_class}.
-        
+
         @param ns_ctx: The NamespaceContext within which C{type_name}
         should be resolved
-        
+
         @param fallback_namespace: The namespace that should be used
         if C{type_name} has no prefix
-        
+
         @param type_class: The value to return if C{type_name} is
         missing or acceptably invalid (viz., due to L{PT_skip})
-        
+
         @return: A tuple C{(did_replace, ret_type_class)} where
         C{did_replace} is C{True} iff the C{ret_type_class} is not the
         same as C{type_class}, and C{ret_type_class} is the class that
@@ -140,7 +140,7 @@ class _XMLSchema_instance (Namespace):
 
         Overrides base class implementation, since there is no schema
         for this namespace. """
-        
+
         assert structures_module is not None
         schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:PyXB:xsi", generation_uid=BuiltInObjectUID, _bypass_preload=True)
         schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('type', schema))
@@ -169,7 +169,7 @@ class _XML (Namespace):
 
         Overrides base class implementation, since there is no schema
         for this namespace. """
-        
+
         assert structures_module is not None
         import pyxb.binding.datatypes as xsd
         from pyxb.namespace import archive
@@ -196,7 +196,7 @@ class _XML (Namespace):
                     structures_module.AttributeUse.CreateBaseInstance(schema, lang),
                     structures_module.AttributeUse.CreateBaseInstance(schema, id),
                     ]))
-        
+
         return self
 
 class _XMLSchema (Namespace):

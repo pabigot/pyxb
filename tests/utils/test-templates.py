@@ -38,7 +38,7 @@ class IfDefinedPatternTestCase (unittest.TestCase):
 
 class ConditionalPatternTestCase (unittest.TestCase):
     dictionary = _dictionary
-    
+
     def testBasic (self):
         self.assertEquals('three is defined', replaceInText('%{?three??three is defined?:three is not defined?}', **self.dictionary))
         self.assertEquals("%{EXCEPTION: name 'four' is not defined}", replaceInText('%{?four??four is defined?:four is not defined?}', **self.dictionary))

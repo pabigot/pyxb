@@ -1,7 +1,7 @@
-<xsd:schema targetNamespace="urn:trac-0073:profile" 
-   xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-   xmlns:base="urn:trac-0073:base" 
-   elementFormDefault="qualified"> 
+<xsd:schema targetNamespace="urn:trac-0073:profile"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   xmlns:base="urn:trac-0073:base"
+   elementFormDefault="qualified">
  <xsd:import namespace="urn:trac-0073:base"/>
        <xsd:complexType name="AbstractFeatureBaseType" abstract="true">
                 <xsd:complexContent>

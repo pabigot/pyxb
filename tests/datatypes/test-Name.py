@@ -15,7 +15,7 @@ class Test_Name (unittest.TestCase):
             self.assertEqual(f, xsd.Name(f))
 
     def testInvalid (self):
-        invalid = [ '.DotFirst', 'With Spaces', 
+        invalid = [ '.DotFirst', 'With Spaces',
                     'With?Illegal', '??LeadingIllegal', 'TrailingIllegal??',
                     '  LeadingSpace', 'TrailingSpace   ']
         for f in invalid:

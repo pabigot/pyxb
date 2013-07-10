@@ -14,7 +14,7 @@ class TestTrac0080 (unittest.TestCase):
     _NotAToken = ' leading spaces '
     _NotAnNCName = 'internal spaces'
     _NCName = 'simple'
-    
+
     def assignAttribute_ (self, instance, value):
         instance.anAttribute = value
 

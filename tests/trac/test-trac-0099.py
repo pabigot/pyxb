@@ -26,7 +26,7 @@ xsd='''<?xml version="1.0" encoding="UTF-8"?>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
-  <!-- A tricky complex type example from the OpenGIS Catalogue Service (CSW) -->  
+  <!-- A tricky complex type example from the OpenGIS Catalogue Service (CSW) -->
   <xs:element name="ElementSetName" type="ElementSetNameType" id="ElementSetName" default="summary"/>
   <xs:complexType name="ElementSetNameType" id="ElementSetNameType">
     <xs:simpleContent>
@@ -114,4 +114,4 @@ class TestTrac0099 (unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    
+

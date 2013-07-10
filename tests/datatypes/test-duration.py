@@ -94,7 +94,7 @@ class Test_duration (unittest.TestCase):
         duration = xsd.duration('P3DT5H3M')
         self.assertEqual('2002-10-30T17:17:32', xsd.dateTime(date + duration).xsdLiteral())
         self.assertEqual('2002-10-24T07:11:32', xsd.dateTime(date - duration).xsdLiteral())
-        
+
     def testCreation (self):
         base_date = xsd.dateTime('2000-01-10T00:00:00')
         delta_date = xsd.dateTime('2000-01-06T19:52:37.5')

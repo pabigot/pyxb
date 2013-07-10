@@ -92,14 +92,14 @@ class TestTrac0037 (unittest.TestCase):
         i[1:] = [ 'two' ]
         self.assertEqual(2, len(i))
         self.assertEqual(1, i.index('two'))
-        
+
     def testConstructor (self):
         self.assertRaises(pyxb.SimpleTypeValueError, structure, attr='three')
         i = structure(attr=4)
         self.assertTrue(i.validateBinding())
         i = structure(attr='two')
         self.assertTrue(i.validateBinding())
-        
+
     def testSet (self):
         i = structure()
         setAttr(i, 4)
@@ -118,4 +118,4 @@ class TestTrac0037 (unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    
+

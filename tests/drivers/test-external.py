@@ -91,7 +91,7 @@ class TestExternal (unittest.TestCase):
         self.assertEquals('one', instance.from_)
         self.assertEquals('un', instance.to)
         self.assertEqual(xml, ToDOM(instance).toxml("utf-8"))
-        
+
     def testBadWords (self):
         xml = '<ns1:word xmlns:ns1="URN:test-external"><from>five</from><to>pump</to></ns1:word>'
         self.assertRaises(SimpleTypeValueError, CreateFromDocument, xml)

@@ -27,7 +27,7 @@ class _TestIntegerType (object):
 
     def testParentage (self):
         self.assertTrue(self.PARENT_TYPE == self.THIS_TYPE.XsdSuperType())
-        
+
     def testRange (self):
         if self.MIN_IN_RANGE is not None:
             if not ((self.MIN_IN_RANGE-1) in self.PARENT_EXCLUDE):

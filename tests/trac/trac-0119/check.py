@@ -39,7 +39,7 @@ class TestTrac0119 (unittest.TestCase):
         # Can resolve in base module if fallback namespace overridden
         instance = base.CreateFromDocument(xmls, default_namespace=absent.Namespace)
         self.assertEquals('hi', instance.command.payload)
-        
+
     def testDefault (self):
         xmls='''<?xml version="1.0"?>
 <Message xmlns="urn:trac0119" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -56,7 +56,7 @@ class TestTrac0119 (unittest.TestCase):
         # Can resolve in base module if fallback namespace overridden
         instance = base.CreateFromDocument(xmls, default_namespace=absent.Namespace)
         self.assertEquals('hi', instance.command.payload)
-        
+
     def testUndefineNondefault (self):
         xmls='''<?xml version="1.0"?>
 <base:Message xmlns:base="urn:trac0119" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">

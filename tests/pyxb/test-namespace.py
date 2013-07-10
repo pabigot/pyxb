@@ -87,7 +87,7 @@ class TestExpandedName (unittest.TestCase):
         self.assertTrue(s2 > s1)
         self.assertTrue(en1 < s2)
         self.assertTrue(en2 > s1)
-        
+
     def testAbsent (self):
         an = pyxb.namespace.CreateAbsentNamespace()
         an2 = pyxb.namespace.CreateAbsentNamespace()
@@ -108,7 +108,7 @@ class TestExpandedName (unittest.TestCase):
         int_en = pyxb.namespace.ExpandedName(xsd, 'int')
         self.assertEqual(xsd_module.int, int_en.typeBinding())
         self.assertRaises(pyxb.NamespaceError, getattr, int_en, 'notACategory')
-        
+
 class TestCategories (unittest.TestCase):
     def testXSDCategories (self):
         # Need type and element bindings, along with all the component ones
@@ -129,4 +129,4 @@ class TestCategories (unittest.TestCase):
 
 if '__main__' == __name__:
     unittest.main()
-    
+

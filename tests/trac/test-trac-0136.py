@@ -31,7 +31,7 @@ class TestTrac_0136 (unittest.TestCase):
     TS_p10 = '2012-05-14T16:36:02.157+10:00'
     TS_Z = '2012-05-14T06:36:02.157Z'
     TS_naive = '2012-05-14T06:36:02.157'
-        
+
     Template = '<?xml version="1.0" ?><timestamp>%s</timestamp>'
 
     def genXML (self, ts):

@@ -177,7 +177,7 @@ class TestTrac0027 (unittest.TestCase):
 
     def testOptProCtor (self):
         self.assertRaises(pyxb.ProhibitedAttributeError, opt_pro, attr=1)
-        
+
     def testOptRest (self):
         self.assertEqual(3, len(opt_rest._AttributeMap))
         i = opt_rest()
@@ -191,4 +191,4 @@ class TestTrac0027 (unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    
+

@@ -10,7 +10,7 @@ from pyxb.utils.utility import UTCOffsetTimeZone
 import datetime
 
 class Test_dateTime (unittest.TestCase):
-    
+
     Canonical = datetime.datetime(2002, 10, 27, 12, 14, 32, 123400, None)
 
     def verifyTime (self, dt, with_usec=True, with_adj=(0,0), with_tzinfo=True):
@@ -30,7 +30,7 @@ class Test_dateTime (unittest.TestCase):
         self.assertRaises(pyxb.SimpleTypeValueError, xsd.dateTime, '2002-10-27 12:14:32.Z')
         self.assertRaises(pyxb.SimpleTypeValueError, xsd.dateTime, '2002-10-27 12:14:32.123405:00')
         self.assertRaises(pyxb.SimpleTypeValueError, xsd.dateTime, '2002-10-27 12:14:32.1234+05')
-        
+
     def testFromText (self):
         self.verifyTime(xsd.dateTime('  2002-10-27T12:14:32', _from_xml=True), with_usec=False, with_tzinfo=False)
         self.verifyTime(xsd.dateTime('2002-10-27T12:14:32  ', _from_xml=True), with_usec=False, with_tzinfo=False)
@@ -82,7 +82,7 @@ class Test_dateTime (unittest.TestCase):
         print dt.xsdLiteral()
         print str(dt)
         print dt.aslocal()
-        
+
 
 if __name__ == '__main__':
     unittest.main()

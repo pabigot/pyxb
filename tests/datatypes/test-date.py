@@ -9,7 +9,7 @@ import pyxb.binding.datatypes as xsd
 import datetime
 
 class Test_date (unittest.TestCase):
-    
+
     def verifyTime (self, dt, with_usec=True, with_adj=(0,0), with_tzinfo=True):
         self.assertEqual(2002, dt.year)
         self.assertEqual(10, dt.month)
@@ -18,7 +18,7 @@ class Test_date (unittest.TestCase):
 
     def testBad (self):
         self.assertRaises(pyxb.SimpleTypeValueError, xsd.date, '2002-10-27T')
-        
+
     def testFromText (self):
         self.verifyTime(xsd.date('  2002-10-27', _from_xml=True), with_usec=False, with_tzinfo=False)
         self.verifyTime(xsd.date('2002-10-27  ', _from_xml=True), with_usec=False, with_tzinfo=False)

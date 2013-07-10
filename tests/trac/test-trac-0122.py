@@ -35,7 +35,7 @@ class TestTrac0122 (unittest.TestCase):
 
     def setOptional (self, instance, value):
         instance.Optional = value
-        
+
     def setProhibitedNaive (self, instance, value):
         instance.Prohibited = value
 
@@ -44,7 +44,7 @@ class TestTrac0122 (unittest.TestCase):
     def setProhibited (self, instance, value):
         attr = instance._AttributeMap.get('Prohibited')
         attr.set(instance, value)
-        
+
     def getProhibited (self, instance):
         attr = instance._AttributeMap.get('Prohibited')
         return attr.value(instance)
@@ -73,4 +73,4 @@ class TestTrac0122 (unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    
+

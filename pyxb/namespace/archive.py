@@ -101,7 +101,7 @@ class NamespaceArchive (object):
         To the extent possible, the same file accessed through different paths
         returns the same L{NamespaceArchive} instance.
         """
-        
+
         nsa = NamespaceArchive(archive_path=archive_file, stage=cls._STAGE_uid)
         rv = cls.__NamespaceArchives.get(nsa.generationUID(), nsa)
         if rv == nsa:
@@ -116,7 +116,7 @@ class NamespaceArchive (object):
         """Scan for available archives, associating them with namespaces.
 
         This only validates potential archive contents; it does not load
-        namespace data from the archives.  If invoked with no arguments, 
+        namespace data from the archives.  If invoked with no arguments,
 
         @keyword archive_path: A list of files or directories in which
         namespace archives can be found.  The entries are separated by
@@ -140,9 +140,9 @@ class NamespaceArchive (object):
         @raise pickle.UnpicklingError: a C{required_archive_files} member does not
         contain a valid namespace archive.
         """
-        
+
         from pyxb.namespace import builtin
-        
+
         reset = reset or (archive_path is not None) or (required_archive_files is not None) or (cls.__NamespaceArchives is None)
         required_archives = []
         if reset:
@@ -162,7 +162,7 @@ class NamespaceArchive (object):
             if archive_path is None:
                 archive_path = GetArchivePath()
             if archive_path is not None:
-    
+
                 # Get archive instances for everything in the archive path
                 candidate_files = pyxb.utils.utility.GetMatchingFiles(archive_path, cls.__ArchivePattern_re,
                                                                       default_path_wildcard='+', default_path=GetArchivePath(),
@@ -175,14 +175,14 @@ class NamespaceArchive (object):
                         _log.exception('Cannot unpickle archive %s', afn)
                     except pyxb.NamespaceArchiveError as e:
                         _log.exception('Cannot process archive %s', afn)
-                
+
                 # Do this for two reasons: first, to get an iterable that won't
                 # cause problems when we remove unresolvable archives from
                 # archive_set; and second to aid with forced dependency inversion
                 # testing
                 ordered_archives = sorted(list(archive_set), lambda _a,_b: cmp(_a.archivePath(), _b.archivePath()))
                 ordered_archives.reverse()
-    
+
                 # Create a graph that identifies dependencies between the archives
                 archive_map = { }
                 for a in archive_set:
@@ -202,7 +202,7 @@ class NamespaceArchive (object):
                                 archive_graph.addEdge(a, da)
                     else:
                         archive_graph.addRoot(a)
-    
+
                 # Verify that there are no dependency loops.
                 archive_scc = archive_graph.sccOrder()
                 for scc in archive_scc:
@@ -262,7 +262,7 @@ class NamespaceArchive (object):
         Each module record represents"""
         return self.__moduleRecords
     __moduleRecords = None
-                
+
     @classmethod
     def ForPath (cls, archive_file):
         """Return the L{NamespaceArchive} instance that can be found at the
@@ -330,10 +330,10 @@ class NamespaceArchive (object):
         if not isinstance(output, file):
             output = open(output, 'wb')
         pickler = pickle.Pickler(output, -1)
-    
+
         # The format of the archive
         pickler.dump(NamespaceArchive.__PickleFormat)
-    
+
         # The UID for the set
         assert self.generationUID() is not None
         pickler.dump(self.generationUID())
@@ -467,7 +467,7 @@ class NamespaceArchive (object):
         name of a file to write to.
         """
         import sys
-        
+
         assert NamespaceArchive.__PicklingArchive is None
         NamespaceArchive.__PicklingArchive = self
         assert self.__moduleRecords is not None
@@ -482,7 +482,7 @@ class NamespaceArchive (object):
             # See http://bugs.python.org/issue3338
             recursion_limit = sys.getrecursionlimit()
             sys.setrecursionlimit(10 * recursion_limit)
-    
+
             pickler = self.__createPickler(output)
 
             assert isinstance(self.__moduleRecords, set)
@@ -503,7 +503,7 @@ class NamespaceArchive (object):
 
 class _ArchivableObject_mixin (pyxb.cscRoot):
     """Mix-in to any object that can be stored in a namespace within an archive."""
-    
+
     # Need to set this per category item
     __objectOrigin = None
     def _objectOrigin (self):
@@ -555,7 +555,7 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
 
     def _loadedFromArchive (self):
         return self.__loadedFromArchive
-    
+
     __wroteToArchive = None
     __loadedFromArchive = None
 
@@ -573,7 +573,7 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
 
     def __init__ (self, *args, **kw):
         super(_NamespaceArchivable_mixin, self).__init__(*args, **kw)
-        
+
     def _setLoadedFromArchive (self, archive):
         self.__loadedFromArchive = archive
         self._activate()
@@ -585,7 +585,7 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
         mr = self.__moduleRecordMap[archive.generationUID()]
         assert not mr.isIncorporated(), 'Removing archive %s after incorporation' % (archive.archivePath(),)
         del self.__moduleRecordMap[archive.generationUID()]
-        
+
     def isLoadable (self):
         """Return C{True} iff the component model for this namespace can be
         loaded from a namespace archive."""
@@ -621,7 +621,7 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
     def _setState_csc (self, kw):
         #assert not self.__isActive, 'ERROR: State set for active namespace %s' % (self,)
         return getattr(super(_NamespaceArchivable_mixin, self), '_getState_csc', lambda _kw: _kw)(kw)
-    
+
     def markNotLoadable (self):
         """Prevent loading this namespace from an archive.
 
@@ -634,7 +634,7 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
 
 class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
     __PrivateTransient = set()
-    
+
     def namespace (self):
         return self.__namespace
     __namespace = None
@@ -994,7 +994,7 @@ class NamespaceDependencies (object):
             all_components = set()
             for ns in self.siblingNamespaces():
                 [ all_components.add(_c) for _c in ns.components() if _c.hasBinding() ]
-                
+
             need_visit = all_components.copy()
             while 0 < len(need_visit):
                 c = need_visit.pop()

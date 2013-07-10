@@ -61,7 +61,7 @@
       <xs:extension base="xs:int"/>
     </xs:simpleContent>
   </xs:complexType>
-  <xs:element name="eCTwSC" type="tCTwSC"/> 
+  <xs:element name="eCTwSC" type="tCTwSC"/>
   <xs:element name="eCTwSCSequence">
     <xs:complexType>
       <xs:sequence minOccurs="0" maxOccurs="unbounded">

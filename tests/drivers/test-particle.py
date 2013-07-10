@@ -83,7 +83,7 @@ class TestParticle (unittest.TestCase):
         xml = '<h24 xmlns="URN:test"></h24>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(IncompleteElementContentError, h24.createFromDOM, dom.documentElement)
-        
+
         for num_elt in range(0, 5):
             xml = '<ns1:h24 xmlns:ns1="URN:test">%s</ns1:h24>' % (''.join(num_elt * ['<elt/>']),)
             dom = pyxb.utils.domutils.StringToDOM(xml)
@@ -100,7 +100,7 @@ class TestParticle (unittest.TestCase):
         xml = '<ns1:h24b xmlns:ns1="URN:test"></ns1:h24b>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(IncompleteElementContentError, h24b.createFromDOM, dom.documentElement)
-        
+
         for num_elt in range(0, 5):
             xml = '<ns1:h24b xmlns:ns1="URN:test">%s</ns1:h24b>' % (''.join(num_elt * ['<elt/>']),)
             dom = pyxb.utils.domutils.StringToDOM(xml)
@@ -115,5 +115,5 @@ class TestParticle (unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    
-        
+
+

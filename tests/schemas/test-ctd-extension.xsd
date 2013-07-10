@@ -20,7 +20,7 @@
 		</xs:complexContent>
 	</xs:complexType>
 	<xs:element name="oldAddressee" type="personName"/>
-	<xs:element name="addressee" type="extendedName"/><!-- Here's a little ugliness based on something in the wsdl spec. 
+	<xs:element name="addressee" type="extendedName"/><!-- Here's a little ugliness based on something in the wsdl spec.
 	     It's used to verify that wildcards get recognized after
 	     extension elements. -->
 	<xs:complexType name="tDoc">

@@ -5,7 +5,7 @@ from pyxb.bundles.wssplat.wsdl11 import _WSDL_binding_mixin, _WSDL_port_mixin, _
 class tBinding (raw_soapbind12.tBinding, _WSDL_binding_mixin):
     pass
 raw_soapbind12.tBinding._SetSupersedingClass(tBinding)
-    
+
 class tAddress (raw_soapbind12.tAddress, _WSDL_port_mixin):
     pass
 raw_soapbind12.tAddress._SetSupersedingClass(tAddress)

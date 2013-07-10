@@ -37,7 +37,7 @@ class TestTrac_0139 (unittest.TestCase):
     ascii = u'something'
     nihongo_enc = 'iso-2022-jp'
     nihongo = u'基盤地図情報ダウンロードデータ（GML版）'
-    
+
     def buildDocument (self, text, encoding):
         map = { 'text' : text }
         if encoding is None:

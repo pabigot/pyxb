@@ -61,7 +61,7 @@ class TestTrac_0089 (unittest.TestCase):
             xmls = '<base>%s</base>' % (nok,)
             self.assertRaises(pyxb.SimpleTypeValueError, CreateFromDocument, xmls)
             self.assertRaises(pyxb.SimpleTypeValueError, base, nok)
-        
+
     def testRestr (self):
         for ok in self.restr_valid:
             xmls = '<base>%s</base>' % (ok,)
@@ -72,7 +72,7 @@ class TestTrac_0089 (unittest.TestCase):
             xmls = '<base>%s</base>' % (nok,)
             self.assertRaises(pyxb.SimpleTypeValueError, CreateFromDocument, xmls)
             self.assertRaises(pyxb.SimpleTypeValueError, base, nok)
-        
+
     def testAlt (self):
         xmls = '<altrestr>C</altrestr>'
         instance = CreateFromDocument(xmls)

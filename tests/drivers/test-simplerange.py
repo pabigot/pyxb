@@ -20,7 +20,7 @@ class TestKML (unittest.TestCase):
         self.assertEqual(25.4, angle360(25.4))
         self.assertRaises(SimpleTypeValueError, angle360, 420.0)
         self.assertRaises(SimpleTypeValueError, angle360, -361.0)
-        
+
 if __name__ == '__main__':
     unittest.main()
-    
+

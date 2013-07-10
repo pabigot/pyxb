@@ -38,7 +38,7 @@ class Facet (pyxb.cscRoot):
 
     This provides association with STDs, a name, and a value for the facet.
     """
-    
+
     _Name = None
     @classmethod
     def Name (self):
@@ -128,7 +128,7 @@ class Facet (pyxb.cscRoot):
         assert (self.__valueDatatype is not None) or (self.__baseTypeDefinition is not None)
         super_fn = getattr(super(Facet, self), '_setFromKeywords_vb', lambda *a,**kw: self)
         return super_fn(**kw)
-    
+
     def setFromKeywords (self, **kw):
         """Public entrypoint to the _setFromKeywords_vb call hierarchy."""
         return self._setFromKeywords_vb(**kw)
@@ -166,13 +166,13 @@ class Facet (pyxb.cscRoot):
 class ConstrainingFacet (Facet):
     """One of the facets defined in section 4.3, which provide
     constraints on the lexical space of a type definition."""
-    
+
     # The prefix used for Python classes used for a constraining
     # facet.  Note that this is not the prefix used when generating a
     # Python class member that specifies a constraining instance, even
     # if it happens to be the same digraph.
     _FacetPrefix = 'CF'
-    
+
     def __init__ (self, **kw):
         super(ConstrainingFacet, self).__init__(**kw)
 
@@ -203,7 +203,7 @@ class ConstrainingFacet (Facet):
         rv = super_fn(**kw)
         self.__setFromKeywords(**kw)
         return rv
-        
+
 class _LateDatatype_mixin (pyxb.cscRoot):
     """Marker class to indicate that the facet instance must be told
     its datatype when it is constructed.
@@ -241,7 +241,7 @@ class _LateDatatype_mixin (pyxb.cscRoot):
         datatype from this value_type scanning up through the base
         type hierarchy is used.
         """
-        
+
         import pyxb.xmlschema.structures as structures
         if isinstance(value_type, structures.SimpleTypeDefinition):
             # Back up until we find something that actually has a
@@ -268,7 +268,7 @@ class _Fixed_mixin (pyxb.cscRoot):
         kwv = kw.get('fixed')
         if kwv is not None:
             self.__fixed = datatypes.boolean(kwv)
-        
+
     def _setFromKeywords_vb (self, **kw):
         """Extend base class.
 
@@ -278,7 +278,7 @@ class _Fixed_mixin (pyxb.cscRoot):
         self.__setFromKeywords(**kw)
         super_fn = getattr(super(_Fixed_mixin, self), '_setFromKeywords_vb', lambda *a,**kw: self)
         return super_fn(**kw)
-    
+
 class _CollectionFacet_mixin (pyxb.cscRoot):
     """Mix-in to handle facets whose values are collections, not scalars.
 
@@ -294,7 +294,7 @@ class _CollectionFacet_mixin (pyxb.cscRoot):
     __items = None
     def _setFromKeywords_vb (self, **kw):
         """Extend base class.
-        
+
         @keyword _constructor: If C{False} or absent, the object being
                                set is a member of the collection.  If
                                C{True}, the object being set is the
@@ -312,7 +312,7 @@ class _CollectionFacet_mixin (pyxb.cscRoot):
         return self.__items
 
     def items (self):
-        """The members of the collection, as a copy."""        
+        """The members of the collection, as a copy."""
         return self.__items[:]
 
     def iteritems (self):
@@ -321,7 +321,7 @@ class _CollectionFacet_mixin (pyxb.cscRoot):
 
 class CF_length (ConstrainingFacet, _Fixed_mixin):
     """A facet that specifies the length of the lexical representation of a value.
-    
+
     See U{http://www.w3.org/TR/xmlschema-2/#rf-length}
     """
     _Name = 'length'
@@ -333,7 +333,7 @@ class CF_length (ConstrainingFacet, _Fixed_mixin):
 
 class CF_minLength (ConstrainingFacet, _Fixed_mixin):
     """A facet that constrains the length of the lexical representation of a value.
-    
+
     See U{http://www.w3.org/TR/xmlschema-2/#rf-minLength}
     """
     _Name = 'minLength'
@@ -345,7 +345,7 @@ class CF_minLength (ConstrainingFacet, _Fixed_mixin):
 
 class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
     """A facet that constrains the length of the lexical representation of a value.
-    
+
     See U{http://www.w3.org/TR/xmlschema-2/#rf-minLength}
     """
     _Name = 'maxLength'
@@ -440,11 +440,11 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
 class _EnumerationElement (object):
     """This class represents individual values that appear within a
     L{CF_enumeration} collection."""
-    
+
     __value = None
     def value (self):
         """The Python value that is used for equality testing
-        against this enumeration. 
+        against this enumeration.
 
         This is an instance of L{enumeration.valueDatatype()<CF_enumeration.valueDatatype>},
         initialized from the unicodeValue."""
@@ -518,7 +518,7 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
     enumeration element and an optional prefix that identifies the
     owning simple type when the tag is promoted to module-level
     visibility.
-    
+
     "value" refers to the Python value held in the tag
 
     See U{http://www.w3.org/TR/xmlschema-2/#rf-enumeration}
@@ -637,7 +637,7 @@ class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
             return utility.NormalizeWhitespace(value, replace=True)
         assert self.value() == _WhiteSpace_enum.collapse, 'Unexpected value "%s" for whiteSpace facet' % (self.value(),)
         return utility.NormalizeWhitespace(value, collapse=True)
-    
+
     def _validateConstraint_vx (self, value):
         """No validation rules for whitespace facet."""
         return True
@@ -736,7 +736,7 @@ class CF_fractionDigits (ConstrainingFacet, _Fixed_mixin):
 
 class FundamentalFacet (Facet):
     """A fundamental facet provides information on the value space of the associated type."""
-    
+
     _FacetPrefix = 'FF'
 
     @classmethod
@@ -768,7 +768,7 @@ class FF_equal (FundamentalFacet):
 
     See U{http://www.w3.org/TR/xmlschema-2/#equal}
     """
-    
+
     _Name = 'equal'
 
 class FF_ordered (FundamentalFacet):

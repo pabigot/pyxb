@@ -60,7 +60,7 @@ class TestTrac_0056 (unittest.TestCase):
         #self.assertRaises(pyxb.BadDocumentError, CreateFromDocument, xmls)
         doc = pyxb.utils.domutils.StringToDOM(xmls)
         self.assertRaises(pyxb.ValidationError, CreateFromDOM, doc)
-        
+
 
 if __name__ == '__main__':
     unittest.main()

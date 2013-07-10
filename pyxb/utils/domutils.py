@@ -153,7 +153,7 @@ def LocateFirstChildElement (node, absent_ok=True, require_unique=False, ignore_
     @raise SchemaValidationError: C{require_unique} is C{True} and multiple
     child elements were identified
     """
-    
+
     candidate = None
     for cn in node.childNodes:
         if xml.dom.Node.ELEMENT_NODE == cn.nodeType:
@@ -185,7 +185,7 @@ def ExtractTextContent (node):
     catenating it into the return value.
 
     Returns C{None} if no text content (including whitespace) is found.
-    
+
     This is mainly used to strip comments out of the content of complex
     elements with simple types.
 
@@ -296,7 +296,7 @@ class _BDSNamespaceSupport (object):
 
     def namespacePrefix (self, namespace):
         """Return the prefix to be used for the given namespace.
-        
+
         This will L{declare <declareNamespace>} the namespace if it has not
         yet been observed.
 
@@ -304,7 +304,7 @@ class _BDSNamespaceSupport (object):
         provided namespace is C{None} or an absent namespace, the C{None}
         value will be returned as the corresponding prefix.
         """
-        
+
         if (namespace is None) or namespace.isAbsentNamespace():
             return None
         if isinstance(namespace, basestring):
@@ -321,7 +321,7 @@ class _BDSNamespaceSupport (object):
     # namespace for XML schema instances (C{xsi}
     def __resetNamespacePrefixMap (self):
         self.__namespacePrefixMap = { pyxb.namespace.XMLSchema_instance : 'xsi' }
-        
+
     def reset (self, prefix_map=False):
         """Reset this instance to the state it was when created.
 
@@ -334,7 +334,7 @@ class _BDSNamespaceSupport (object):
         self.__namespacePrefixCounter = 0
         if prefix_map:
             self.__resetNamespacePrefixMap()
-    
+
     def __init__ (self, default_namespace=None, namespace_prefix_map=None, inherit_from=None):
         """Create a new namespace declaration configuration.
 
@@ -449,7 +449,7 @@ class BindingDOMSupport (object):
         self.__requireXSIType = require_xsi_type
         self.__namespaceSupport = _BDSNamespaceSupport(default_namespace, namespace_prefix_map, inherit_from=self.__NamespaceSupport)
         self.reset()
-        
+
     __namespaceSupport = None
     __NamespaceSupport = _BDSNamespaceSupport()
 
@@ -648,9 +648,9 @@ class BindingDOMSupport (object):
     def appendTextChild (self, text, parent):
         """Add the text to the parent as a text node."""
         return parent.appendChild(self.document().createTextNode(text))
-        
+
 
 ## Local Variables:
 ## fill-column:78
 ## End:
-    
+

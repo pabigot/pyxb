@@ -36,7 +36,7 @@ _log = logging.getLogger(__name__)
 
 def _DumpDOM (n, depth=0):
     """Utility function to print a DOM tree."""
-    
+
     pfx = ' ' * depth
     if (xml.dom.Node.ELEMENT_NODE == n.nodeType):
         print '%sElement[%d] %s %s with %d children' % (pfx, n._indexInParent(), n, pyxb.namespace.ExpandedName(n.name), len(n.childNodes))
@@ -62,7 +62,7 @@ class _DOMSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
         """The document that is the root of the generated tree."""
         return self.__document
     __document = None
-    
+
     def startDocument (self):
         super(_DOMSAXHandler, self).startDocument()
         self.__document = Document(namespace_context=self.namespaceContext())
@@ -267,4 +267,4 @@ if '__main__' == __name__:
 ## Local Variables:
 ## fill-column:78
 ## End:
-    
+

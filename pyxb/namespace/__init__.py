@@ -50,7 +50,7 @@ class ExpandedName (object):
     using the category name as an accessor function.  That is, if the
     namespace of the expanded name C{en} has a category 'typeDefinition', then
     the following two expressions are equivalent::
-    
+
       en.typeDefinition()
       en.namespace().categoryMap('typeDefinition').get(en.localName())
 
@@ -141,7 +141,7 @@ class ExpandedName (object):
          - ( L{ExpandedName}, C{str}) : the namespace from the expanded name, and the local name
 
         Wherever C{str} occurs C{unicode} is also permitted.
-        
+
         @keyword fallback_namespace: Optional Namespace instance to use if the
         namespace would otherwise be None.  This is only used if it is an
         absent namespace.
@@ -241,7 +241,7 @@ class NamedObjectMap (dict):
         """The namespace to which the object map belongs."""
         return self.__namespace
     __namespace = None
-    
+
     def category (self):
         """The category of objects (e.g., typeDefinition, elementDeclaration)."""
         return self.__category
@@ -267,7 +267,7 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
     the category map; changes made to the map are reflected in the
     namespace.
     """
-    
+
     # Map from category strings to NamedObjectMap instances that
     # contain the dictionary for that category.
     __categoryMap = None
@@ -310,7 +310,7 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
         L{activates<archive._NamespaceArchivable_mixin.isActive>} a namespace.
 
         Existing maps are not affected."""
-                                                     
+
         self._activate()
         if self.__categoryMap is None:
             self.__categoryMap = { }
@@ -509,7 +509,7 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
         """Replace a component definition in the set of associated components.
 
         @raise KeyError: C{existing_def} is not in the set of components."""
-        
+
         self.__components.remove(existing_def)
         if replacement_def is not None:
             self.__components.add(replacement_def)
@@ -628,7 +628,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
     # were generated.  Not currently used, since we don't have different
     # binding configurations yet.
     __bindingConfiguration = None
- 
+
     # The namespace to use as the default namespace when constructing the
     # The namespace context used when creating built-in components that belong
     # to this namespace.  This is used to satisfy the low-level requirement
@@ -702,7 +702,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
 
         The URI must be non-None, and must not already be assigned to
         a Namespace instance.  See _NamespaceForURI().
-        
+
         User-created Namespace instances may also provide a description.
 
         Users should never provide a builtin_namespace parameter.
@@ -950,7 +950,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         Note that we must create the instance dynamically, since the
         information that goes into it has cross-dependencies that can't be
         resolved until this module has been completely loaded."""
-        
+
         if self.__initialNamespaceContext is None:
             isn = { }
             if self.__contextInScopeNamespaces is not None:

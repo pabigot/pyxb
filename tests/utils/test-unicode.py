@@ -103,7 +103,7 @@ class TestCodePointSet (unittest.TestCase):
         self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 60) ])
         c = CodePointSet(base).add((22, 41))
         self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 60) ])
-        
+
         # 0 1 15 16 20 31 40 61
         c = CodePointSet(base).add((15, 18))
         self.assertEqual(c.asTuples(), [ (0, 0), (15, 18), (20, 30), (40, 60) ])
@@ -111,7 +111,7 @@ class TestCodePointSet (unittest.TestCase):
         self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 30), (35, 65) ])
         c = CodePointSet(base).add((12, 16))
         self.assertEqual(c.asTuples(), [ (0, 0), (12, 16), (20, 30), (40, 60) ])
-        
+
     def testAsPattern (self):
         c = CodePointSet()
         self.assertEqual(u'[]', c.asPattern())
@@ -132,7 +132,7 @@ class TestCodePointSet (unittest.TestCase):
         c.add('+')
         self.assertEqual(u'[+\-]', c.asPattern())
 
-        
+
     def testAsSingleCharacter (self):
         c = CodePointSet()
         self.assertTrue(c.asSingleCharacter() is None)
@@ -151,5 +151,5 @@ class TestXML1p0e2 (unittest.TestCase):
 
 if '__main__' == __name__:
     unittest.main()
-            
-        
+
+

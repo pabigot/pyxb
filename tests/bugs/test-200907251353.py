@@ -10,14 +10,14 @@ import pyxb.utils.domutils
 
 import os.path
 xsd='''<?xml version="1.0" encoding="UTF-8"?>
-<xs:schema targetNamespace="whatever" 
+<xs:schema targetNamespace="whatever"
   xmlns:whatever="whatever"
   xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
  <xs:attribute name="lang">
   <xs:simpleType>
    <xs:union memberTypes="xs:language">
-    <xs:simpleType>    
+    <xs:simpleType>
      <xs:restriction base="xs:string">
       <xs:enumeration value=""/>
      </xs:restriction>

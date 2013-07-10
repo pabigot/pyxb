@@ -125,7 +125,7 @@ class TestFAC (unittest.TestCase):
             self.assertEqual(cm.exception.values, values)
         else:
             self.assertRaises(UpdateApplicationError, ui.apply, values)
-            
+
     def testInternals (self):
         #print self.ex.facToString()
         au = self.ex.buildAutomaton()
@@ -175,7 +175,7 @@ class TestFAC (unittest.TestCase):
             self.assertEqual(frozenset(e.acceptable), frozenset(['c', 'b']))
         except Exception as e:
             self.fail("Unexpected exception %s" % (e,))
-            
+
     # Example from email by Casey Jordan to xmlschema-dev mailing list
     # 20100810: http://lists.w3.org/Archives/Public/xmlschema-dev/2010Aug/0008.html
     # This expression is non-deterministic, but at the end only one path is
@@ -393,7 +393,7 @@ class TestFAC (unittest.TestCase):
             for c in word:
                 cfg = cfg.step(c)
             self.assertTrue(cfg.isAccepting())
-    
+
     def testNonAllTree (self):
         a1 = Symbol('a')
         a2 = Symbol('d')
@@ -407,7 +407,7 @@ class TestFAC (unittest.TestCase):
             for c in word:
                 cfg = cfg.step(c)
             self.assertTrue(cfg.isAccepting())
-    
+
     def testFilterXit (self):
         # This models part of the content of time-layoutElementType in
         # the DWMLgen schema from NDFD.  The initial state is reached

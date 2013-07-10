@@ -29,7 +29,7 @@ class TestSubstGroup (unittest.TestCase):
         instance = CreateFromDOM(dom.documentElement)
         self.assertEqual(instance.sgTime._element(), ISO8601)
         self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xml)
- 
+
         saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace)
         handler = saxer.getContentHandler()
         saxer.parse(StringIO.StringIO(xml))
@@ -44,7 +44,7 @@ class TestSubstGroup (unittest.TestCase):
         self.assertEqual(instance.sgTime._element(), pairTime)
         self.assertEqual(instance.sgTime.seconds, 34)
         self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xml)
- 
+
         saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace)
         handler = saxer.getContentHandler()
         saxer.parse(StringIO.StringIO(xml))
@@ -89,5 +89,5 @@ class TestSubstGroup (unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    
-        
+
+

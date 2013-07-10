@@ -18,7 +18,7 @@ class _TestIntegerType (object):
     """
     def testParentage (self):
         self.assertTrue(self.PARENT_TYPE == self.THIS_TYPE.XsdSuperType())
-        
+
     def testRange (self):
         self.assertRaises(SimpleTypeValueError, self.THIS_TYPE, self.MIN_IN_RANGE - 1)
         self.assertEquals(self.MIN_IN_RANGE, self.THIS_TYPE(self.MIN_IN_RANGE))

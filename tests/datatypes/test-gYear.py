@@ -40,6 +40,6 @@ class Test_gYear (unittest.TestCase):
         self.assertRaises((AttributeError, TypeError), setattr, v, 'month', 5)
         self.assertRaises((AttributeError, TypeError), setattr, v, 'day', 5)
 
-        
+
 if __name__ == '__main__':
     unittest.main()

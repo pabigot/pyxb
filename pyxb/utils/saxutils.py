@@ -98,14 +98,14 @@ class _NoopSAXHandler (xml.sax.handler.ContentHandler):
 
 class SAXInformationItem (object):
     """Class used to capture an item discovered in the body of an element."""
-    
+
     location = None
     """Where the item began in the document."""
 
     item = None
     """The item.  Generally either character information (as text) or a DOM
     Node instance or a binding instance."""
-    
+
     maybe_element = None
     """C{False} iff the L{item} is character information as opposed to element content."""
 
@@ -114,7 +114,7 @@ class SAXInformationItem (object):
     L{ElementDeclaration<pyxb.binding.content.ElementDeclaration>} used for
     the L{item}.  This will be C{None} for element content that does not have
     an enclosing CTD scope."""
-    
+
     def __init__ (self, location, item, maybe_element, element_decl=None):
         self.location = location
         self.item = item
@@ -568,5 +568,5 @@ if '__main__' == __name__:
 ## Local Variables:
 ## fill-column:78
 ## End:
-        
-    
+
+

@@ -66,10 +66,10 @@ class TestTime (unittest.TestCase):
         t = tTime.Factory(**self.KW_tXMTime)
         self.assertTrue(isinstance(t, tTime))
         self.assertTrue(isinstance(t, tXMTime))
-        
+
 
 
 if __name__ == '__main__':
     unittest.main()
-    
-        
+
+

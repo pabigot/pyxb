@@ -42,7 +42,7 @@ import unittest
 class TestTrac_200908041715 (unittest.TestCase):
     # Verify that we can reconstruct the element associated with
     # content values.
-    
+
     def testKeyword (self):
         instance = data(B=4)
         self.assertEqual(1, len(instance.orderedContent()))
@@ -55,7 +55,7 @@ class TestTrac_200908041715 (unittest.TestCase):
         cv = instance.orderedContent()[0]
         self.assertEqual(4, cv.value)
         self.assertEqual(cv.value._element(), tData._ElementMap['I'].elementBinding())
-        
+
     def testValue (self):
         instance = data(4)
         self.assertEqual(1, len(instance.orderedContent()))

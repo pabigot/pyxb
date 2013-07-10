@@ -77,7 +77,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
     # An xml.sax.xmlreader.Attributes instance providing the
     # attributes for the element.
     __attributes = None
-    
+
     # An xml.dom.Node corresponding to the (sub-)document
     __domDocument = None
 
@@ -400,4 +400,4 @@ def make_parser (*args, **kw):
 ## Local Variables:
 ## fill-column:78
 ## End:
-    
+

@@ -115,7 +115,7 @@ class testMinMaxLength (unittest.TestCase):
         self.assertEqual(8 * 'x', Password(8*'x'))
         self.assertEqual(15 * 'x', Password(15*'x'))
         self.assertRaises(SimpleFacetValueError, Password, 16*'x')
-        
+
     def testList (self):
         i = datatypes.integer(2)
         self.assertRaises(SimpleFacetValueError, AFew, [])

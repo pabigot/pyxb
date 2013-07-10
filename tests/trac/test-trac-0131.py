@@ -79,7 +79,7 @@ class TestTrac0131 (unittest.TestCase):
         self.assertEqual(instance.e, self.textu)
         instance = CreateFromDocument(xmls)
         self.assertEqual(instance.e, self.textu)
-        
+
     def testDeclaredParse (self):
         xmlu = self.declared_xmlu
         xmls = xmlu.encode('utf-8')
@@ -100,7 +100,7 @@ class TestTrac0131 (unittest.TestCase):
         self.assertEqual(instance.e, self.textu)
         instance = CreateFromDocument(xmls)
         self.assertEqual(instance.e, self.textu)
-        
+
     def testElementEncode (self):
         instance = bar()
         instance.e = self.textu
@@ -110,7 +110,7 @@ class TestTrac0131 (unittest.TestCase):
         instance = bar()
         instance.a = self.textu
         self.assertEqual(instance.a, self.textu)
-        
+
     def testuEncode (self):
         instance = foo(self.textu)
         self.assertEqual(instance, self.textu)

@@ -14,4 +14,4 @@ from pyxb.xmlschema.structures import Schema as schema
 ## Local Variables:
 ## fill-column:78
 ## End:
-    
+

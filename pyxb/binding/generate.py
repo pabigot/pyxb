@@ -97,7 +97,7 @@ class ReferenceWildcard (ReferenceLiteral):
     def __init__ (self, wildcard, **kw):
         self.__wildcard = wildcard
         super(ReferenceWildcard, self).__init__(**kw)
-        
+
         template_map = { }
         template_map['Wildcard'] = 'pyxb.binding.content.Wildcard'
         if (xs.structures.Wildcard.NC_any == wildcard.namespaceConstraint()):
@@ -157,10 +157,10 @@ class ReferenceFacet (ReferenceLiteral):
 
 class ReferenceEnumerationMember (ReferenceLiteral):
     enumerationElement = None
-    
+
     def __init__ (self, **kw):
         # NB: Pre-extended __init__
-        
+
         # All we really need is the enumeration element, so we can get
         # its tag, and a type definition or datatype, so we can create
         # the proper prefix.
@@ -199,7 +199,7 @@ def pythonLiteral (value, **kw):
     # For dictionaries, apply translation to all values (not keys)
     if isinstance(value, types.DictionaryType):
         return ', '.join([ '%s=%s' % (k, pythonLiteral(v, **kw)) for (k, v) in value.items() ])
-    
+
     # For lists, apply translation to all members
     if isinstance(value, types.ListType):
         return [ pythonLiteral(_v, **kw) for _v in value ]
@@ -280,7 +280,7 @@ def %{name} ():
     del %{name}
     import pyxb.utils.fac as fac
 ''', name=name))
-    
+
     def stateSortKey (st):
         if isinstance(st.symbol, xs.structures.ModelGroup):
             return st.symbol.facStateSortKey()
@@ -354,7 +354,7 @@ def %{name} ():
     au_src.append('    return fac.Automaton(states, counters, %r, containing_state=%s)' % (automaton.nullable, containing_state))
     lines.extend(au_src)
     return '%s()' % (name,)
-    
+
 def GenerateAutomaton (ctd, **kw):
     aux = _CTDAuxData.Get(ctd)
     binding_module = kw['binding_module']
@@ -465,7 +465,7 @@ def GenerateSTD (std, generator):
 
     binding_module = generator.moduleForComponent(std)
     outf = binding_module.bindingIO()
-    
+
     class_keywords = frozenset(basis.simpleTypeDefinition._ReservedSymbols)
     class_unique = set()
 
@@ -478,7 +478,7 @@ def GenerateSTD (std, generator):
     enum_facet = std.facets().get(facets.CF_enumeration)
     if (enum_facet is not None) and (enum_facet.ownerTypeDefinition() == std):
         parent_classes.append('pyxb.binding.basis.enumeration_mixin')
-        
+
     template_map = { }
     binding_name = template_map['std'] = binding_module.literal(std, **kw)
     if (std.expandedName() is not None) and (std.expandedName().localName() != binding_name):
@@ -596,7 +596,7 @@ def elementDeclarationMap (ed, binding_module, **kw):
     template_map['element_aux_init'] = ''
     if 0 < len(aux_init):
         template_map['element_aux_init'] = ', ' + ', '.join(aux_init)
-        
+
     return template_map
 
 import pyxb.utils.fac
@@ -620,22 +620,22 @@ def BuildTermTree (node):
 
     @return: An instance of L{pyxb.utils.fac.Node}
     """
-    
+
     def _generateTermTree_visitor (node, entered, arg):
         """Helper for constructing a L{FAC term tree<pyxb.utils.fac.Node>}.
-    
+
         This is passed to L{xs.structures.Particle.walkParticleTree}.
-    
+
         @param node: An instance of L{xs.structures._ParticleTree_mixin}
-    
+
         @param entered: C{True} entering an interior tree node, C{False}
         leaving an interior tree node, C{None} at a leaf node.
-    
+
         @param arg: A list of pairs C{(particle, terms)} where C{particle}
         is the L{xs.structures.Particle} instance containing a list of
         L{term trees<pyxb.utils.fac.Node>}.
         """
-        
+
         if entered is None:
             (parent_particle, terms) = arg.peekNodeTermPair()
             assert isinstance(parent_particle, xs.structures.Particle)
@@ -736,19 +736,19 @@ def BuildPluralityData (term_tree):
     def _ttMergeSets (parent, child):
         (p1, pm) = parent
         (c1, cm) = child
-        
+
         # Anything multiple in the child becomes multiple in the parent.
         pm.update(cm)
-    
+
         # Anything independently occuring once in both parent and child
         # becomes multiple in the parent.
         pm.update(c1.intersection(p1))
-    
+
         # Anything that was single in the parent (child) but is now
         # multiple is no longer single.
         p1.difference_update(pm)
         c1.difference_update(pm)
-    
+
         # Anything that was single in the parent and also single in the
         # child is no longer single in the parent.
         p1.symmetric_difference_update(c1)
@@ -758,7 +758,7 @@ def BuildPluralityData (term_tree):
         # will be placed.
         if isinstance(node, pyxb.utils.fac.MultiTermNode):
             arg.append([])
-            
+
     def _ttPostPluralityWalk (node, pos, arg):
         # Initialize a fresh result for this node
         singles = set()
@@ -824,7 +824,7 @@ def BuildPluralityData (term_tree):
 
 class _CTDAuxData (object):
     """Helper class holding information need in both preparation and generation."""
-    
+
     contentBasis = None
     termTree = None
     edSingles = None
@@ -861,7 +861,7 @@ def GenerateCTD (ctd, generator, **kw):
     binding_name = template_map['ctd'] = binding_module.literal(ctd, **kw)
     if (ctd.expandedName() is not None) and (ctd.expandedName().localName() != binding_name):
         _log.warning('Complex type %s renamed to %s', ctd.expandedName(), binding_name)
-    
+
     base_type = ctd.baseTypeDefinition()
     content_type_tag = ctd._contentTypeTag()
 
@@ -948,7 +948,7 @@ class %{ctd} (%{superclass}):
         plurality_data = {}
         aux = _CTDAuxData.Get(ctd)
         elements = aux.edSingles.union(aux.edMultiples)
-        
+
         outf.postscript().append("\n\n")
         for ed in sorted(elements, key=lambda _c: _c.schemaOrderSortKey()):
             is_plural = ed in aux.edMultiples
@@ -1072,7 +1072,7 @@ class %{ctd} (%{superclass}):
     if ctd.name() is not None:
         template_map['registration'] = templates.replaceInText("%{namespaceReference}.addCategoryObject('typeBinding', %{localName}, %{ctd})",
                                                                localName=binding_module.literal(ctd.name(), **kw), **template_map)
-    
+
     template = ''.join([prolog_template,
                "    ", "\n    ".join(definitions), "\n",
                '''    _ElementMap.update({
@@ -1221,7 +1221,7 @@ class _ModuleNaming_mixin (object):
     module.  Module-level schema-derived identifiers (such as type
     definition and element names) are deconflicted from this set and
     from each other."""
-    
+
     _ReferencedFromClass = set([ 'pyxb', 'sys' ])
     """Identifiers defined in module that are accessed unqualified from class.
 
@@ -1489,7 +1489,7 @@ class _ModuleNaming_mixin (object):
                 # namespace as part of its content, something went wrong.
                 if (nsdef is None) and not (isinstance(self, NamespaceGroupModule) and self.moduleForNamespace(namespace) is not None):
                     raise pyxb.LogicError('MISSING NSDEF: %s cannot be found for %s in imports' % (namespace, nsn))
-                    
+
                 rv =  self.defineNamespace(namespace, nsn, nsdef, protected=True)
                 assert 0 < len(self.__namespaceDeclarations)
             self.__referencedNamespaces[namespace] = rv
@@ -1657,7 +1657,7 @@ if pyxb.__version__ != _PyXBVersion:
 def CreateFromDocument (xml_text, default_namespace=None, location_base=None):
     """Parse the given XML and use the document element to create a
     Python instance.
-    
+
     @kw default_namespace The L{pyxb.Namespace} instance to use as the
     default namespace where there is no default namespace in scope.
     If unspecified or C{None}, the namespace of the module containing
@@ -1726,7 +1726,7 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
     __uniqueInModule = None
 
     __UniqueInGroups = set()
-    
+
     _GroupPrefix = '_group'
 
     def __init__ (self, generator, namespace_modules, **kw):
@@ -1813,7 +1813,7 @@ class Generator (object):
         self.__bindingRoot = binding_root
         return self
     __bindingRoot = None
-    
+
     def __moduleFilePath (self, module_elts, inhibit_extension=False):
         if isinstance(module_elts, basestring):
             module_elts = module_elts.split('.')
@@ -1833,7 +1833,7 @@ class Generator (object):
         # file system path to where the bindings are written
         # module path from which the bindings are normally imported
         # file object into which bindings are written
-        
+
         module_path = None
         if isinstance(module, NamespaceModule):
             mr = module.moduleRecord()
@@ -1945,7 +1945,7 @@ class Generator (object):
         @param substituent : The text prefix that should replace
         C{prefix} as a prefix in a schema location URI.
         """
-        
+
         self.__locationPrefixRewriteMap[prefix] = substituent
         return self
     def argAddLocationPrefixRewrite (self, prefix_rewrite):
@@ -1970,7 +1970,7 @@ class Generator (object):
         object and the value, will return a
         L{pyxb.xmlschema.structures.Schema} instance.  See
         L{addSchemaLocation}.
-        
+
         See also L{addSchemaLocation} and L{schemas}.
         """
         return self.__schemaLocationList
@@ -2058,7 +2058,7 @@ class Generator (object):
         self.__moduleList[:] = []
         self.__moduleList.extend(module_list)
         return self
-    
+
     def addModuleName (self, module_name):
         """Add a module name corresponding to an entrypoint schema.
 
@@ -2113,7 +2113,7 @@ class Generator (object):
         self.__archivePath = archive_path
         return self
     __archivePath = None
-        
+
     def noLoadNamespaces (self):
         """A frozenset of namespaces that many not be loaded from an archive."""
         return frozenset(self.__noLoadNamespaces)
@@ -2324,11 +2324,11 @@ class Generator (object):
         self.__generateToFiles = kw.get('generate_to_files', True)
         self.__uriContentArchiveDirectory = kw.get('uri_content_archive_directory')
         self.__loggingConfigFile = kw.get('logging_config_file')
-        
+
         if argv is not None:
             self.applyOptionValues(*self.optionParser().parse_args(argv))
         [ self.addSchemaLocation(_a) for _a in args ]
-        
+
         self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
 
         pyxb.namespace.XML.validateComponentModel()
@@ -2336,7 +2336,7 @@ class Generator (object):
     __stripSpaces_re = re.compile('\s\s\s+')
     def __stripSpaces (self, string):
         return self.__stripSpaces_re.sub(' ', string)
-    
+
     __OptionSetters = (
         ('binding_root', setBindingRoot),
         ('schema_root', setSchemaRoot),
@@ -2558,7 +2558,7 @@ class Generator (object):
 
     def assignModulePath (self, module_record, module_path=None):
         """Provide a Python module path for the module record.
-        
+
         This is the path by which the module bindings associated with
         C{module_record} will be imported.
 
@@ -2712,7 +2712,7 @@ class Generator (object):
             raise pyxb.BindingGenerationError('Unable to partial-order named components')
         for rs in root_sets:
             component_order.extend(sorted(rs, key=lambda _c: _c.schemaOrderSortKey()))
-    
+
         self.__componentGraph = component_graph
         self.__componentOrder = component_order
 
@@ -2795,7 +2795,7 @@ class Generator (object):
             else:
                 # No binding generation required
                 pass
-    
+
         simple_type_definitions = []
         complex_type_definitions = []
         for td in type_definitions:
@@ -2816,7 +2816,7 @@ class Generator (object):
             if isinstance(ngm, NamespaceGroupModule):
                 for m in ngm.namespaceModules():
                     m.addImportsFrom(ngm)
-    
+
         for std in simple_type_definitions:
             GenerateSTD(std, self)
         for ctd in complex_type_definitions:
@@ -2825,7 +2825,7 @@ class Generator (object):
             GenerateED(ed, self)
 
         self.__bindingModules = modules
-    
+
     __bindingModules = None
     def bindingModules (self, reset=False):
         if reset or (self.__componentGraph is None):
@@ -2833,7 +2833,7 @@ class Generator (object):
         if reset or (self.__bindingModules is None):
             self.__generateBindings()
         return self.__bindingModules
-    
+
     def writeNamespaceArchive (self):
         archive_file = self.archiveToFile()
         if archive_file is not None:

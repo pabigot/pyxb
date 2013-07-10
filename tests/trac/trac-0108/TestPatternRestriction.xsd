@@ -5,6 +5,6 @@
             <xs:pattern value=".*"/>
         </xs:restriction>
     </xs:simpleType>
-    
-    <xs:element name="test" type="TestPatternRestriction" />    
+
+    <xs:element name="test" type="TestPatternRestriction" />
 </xs:schema>

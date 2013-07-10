@@ -49,7 +49,7 @@ class TestTrac_0087 (unittest.TestCase):
         self.assertTrue(issubclass(class_, pyxb.binding.basis.complexTypeDefinition))
         # Simple type def
         self.assertTrue(issubclass(def_, pyxb.binding.datatypes.string))
-        
+
     def testPyxbSymbols (self):
         xmls = '<tgt:global value="text" xmlns:tgt="urn:tgt"/>'
         instance = CreateFromDocument(xmls)

@@ -40,7 +40,7 @@ class _Resolvable_mixin (pyxb.cscRoot):
 
         Override this in the child class."""
         raise NotImplementedError("_Resolvable_mixin.isResolved in %s"% (type(self).__name__,))
-    
+
     def _resolve (self):
         """Perform whatever steps are required to resolve this component.
 
@@ -49,7 +49,7 @@ class _Resolvable_mixin (pyxb.cscRoot):
         resolution process if the component itself depends on unresolved
         components.  The sole caller of this should be
         L{_NamespaceResolution_mixin.resolveDefinitions}.
-        
+
         This method is permitted (nay, encouraged) to raise an exception if
         resolution requires interpreting a QName and the named component
         cannot be found.
@@ -134,7 +134,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         assert isinstance(module_record, archive.ModuleRecord)
         module_record._setReferencedNamespaces(self.__referencedNamespaces)
         self.__referencedNamespaces.clear()
-        
+
     def referencedNamespaces (self):
         """Return the set of namespaces which appear in namespace declarations
         of schema with this namespace as target."""
@@ -154,7 +154,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         @keyword depends_on: C{None}, or an instance of L{_Resolvable_mixin}
         which C{resolvable} requires to be resolved in order to resolve
         itself.
-        
+
         @return: C{resolvable}
         """
         assert isinstance(resolvable, _Resolvable_mixin)
@@ -208,13 +208,13 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         """
         if not self.needsResolution():
             return True
-        
+
         while 0 < len(self.__unresolvedComponents):
             # Save the list of unresolved objects, reset the list to capture
             # any new objects defined during resolution, and attempt the
             # resolution for everything that isn't resolved.
             unresolved = self.__unresolvedComponents
-            
+
             self.__unresolvedComponents = []
             self.__unresolvedDependents = {}
             for resolvable in unresolved:
@@ -258,7 +258,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         self._releaseNamespaceContexts()
 
         return True
-    
+
     def _unresolvedComponents (self):
         """Returns a reference to the list of unresolved components."""
         return self.__unresolvedComponents
@@ -273,7 +273,7 @@ def ResolveSiblingNamespaces (sibling_namespaces):
 
     @param sibling_namespaces : A set of namespaces expected to be closed
     under dependency."""
-    
+
     for ns in sibling_namespaces:
         ns.configureCategories([archive.NamespaceArchive._AnonymousCategory()])
         ns.validateComponentModel()
@@ -348,7 +348,7 @@ class NamespaceContext (object):
     # Support for holding onto referenced namespaces until we have a target
     # namespace to give them to.
     __pendingReferencedNamespaces = None
-    
+
     def defaultNamespace (self):
         """The default namespace in effect at this node.  E.g., C{xmlns="URN:default"}."""
         return self.__defaultNamespace
@@ -514,14 +514,14 @@ class NamespaceContext (object):
             self.__inScopeNamespaces = builtin._UndeclaredNamespaceMap.copy()
             self.__inScopeNamespaces.update(in_scope_namespaces)
             self.__mutableInScopeNamespaces = True
-        
+
         if parent_context is not None:
             self.__inScopeNamespaces = parent_context.inScopeNamespaces()
             self.__mutableInScopeNamespaces = False
             self.__defaultNamespace = parent_context.defaultNamespace()
             self.__targetNamespace = parent_context.targetNamespace()
             self.__fallbackToTargetNamespace = parent_context.__fallbackToTargetNamespace
-            
+
         if self.__targetNamespace is None:
             self.__pendingReferencedNamespaces = set()
         attribute_map = {}
@@ -542,7 +542,7 @@ class NamespaceContext (object):
                     else:
                         key = pyxb.namespace.ExpandedName(None, attr.localName)
                     attribute_map[key] = attr.value
-        
+
         if finalize_target_namespace:
             tns_uri = None
             tns_attr = self._TargetNamespaceAttribute(expanded_name)
@@ -568,7 +568,7 @@ class NamespaceContext (object):
         namespace in this context.  Absence of a prefix maps to
         L{defaultNamespace()}, which must be provided (or defaults to the
         target namespace, if that is absent).
-        
+
         @param name: A QName.
         @type name: C{str} or C{unicode}
         @param name: Optional namespace to use for unqualified names when

@@ -29,7 +29,7 @@ def buildTest (num_reps, constraint='minOccurs="0" maxOccurs="1"'):
 </xs:schema>''' ])
 
     xmls = '<collection>' + ''.join(duse) + '</collection>'
-    
+
     return (schema, xmls)
 
 for size in xrange(1, max_reps):

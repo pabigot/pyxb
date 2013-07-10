@@ -78,7 +78,7 @@ class TestInScopeNames (unittest.TestCase):
 <Beers>
   <table xmlns='http://www.w3.org/1999/xhtml'>
    <th><td>Name</td><td>Origin</td><td>Description</td></th>
-   <tr> 
+   <tr>
      <td><brandName xmlns="">Huntsman</brandName></td>
      <td><origin xmlns="">Bath, UK</origin></td>
      <td>
@@ -122,4 +122,4 @@ class TestNamespaceURIs (unittest.TestCase):
 
 if '__main__' == __name__:
     unittest.main()
-    
+

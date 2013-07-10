@@ -26,7 +26,7 @@ Numerical Constraints and Automata with Counters
 Dag Hovland, Lecture Notes in Computer Science, 2009, Volume 5684,
 Theoretical Aspects of Computing - ICTAC 2009, Pages 231-245.  In what
 follows, this reference will be denoted B{HOV09}.
- 
+
 A regular expression is directly translated into a term tree, where
 nodes are operators such as sequence, choice, and counter
 restrictions, and the leaf nodes denote symbols in the language of the
@@ -145,7 +145,7 @@ class State (object):
     multiple locations in the tree, and the distinction between these
     positions is critical, a L{State} wrapper is provided to maintain
     distinct values."""
-    
+
     def __init__ (self, symbol, is_initial, final_update=None, is_unordered_catenation=False):
         """Create a FAC state.
 
@@ -317,7 +317,7 @@ class State (object):
         """
         return self.__transitionSet
     transitionSet = property(__get_transitionSet)
-    
+
     def _set_transitionSet (self, transition_set):
         """Method invoked during automaton construction to set the
         legal transitions from the state.
@@ -370,7 +370,7 @@ class State (object):
             else:
                 rv.append('Final if %s' % (' '.join(map(lambda _ui: str(_ui.counterCondition), self.__finalUpdate))))
         return '\n'.join(rv)
-    
+
 class CounterCondition (object):
     """A counter condition is a range limit on valid counter values.
 
@@ -394,7 +394,7 @@ class CounterCondition (object):
         counter is unbounded."""
         return self.__max
     max = property(__get_max)
-    
+
     __metadata = None
     def __get_metadata (self):
         """A pointer to application metadata provided when the condition was created."""
@@ -769,7 +769,7 @@ class Configuration_ABC (object):
 
     For non-deterministic automata, this is a L{MultiConfiguration}
     which records a set of L{Configuration}s."""
-    
+
     def acceptableSymbols (self):
         """Return the acceptable L{Symbol}s given the current
         configuration.
@@ -802,7 +802,7 @@ class Configuration_ABC (object):
         is::
 
            cfg = cfg.step(sym)
-        
+
         """
         raise NotImplementedError('%s.step' % (type(self).__name__,))
 
@@ -973,7 +973,7 @@ class Configuration (Configuration_ABC):
         Any transition that would require an unsatisfied counter
         update is also excluded.  Non-deterministic automata may
         result in a lits with multiple members. """
-        
+
         fac = self.__automaton
         transitions = []
         if symbol is None:
@@ -1105,12 +1105,12 @@ class MultiConfiguration (Configuration_ABC):
     See L{pyxb.binding.content.AutomatonConfiguration} for an
     alternative solution which holds actions associated with the
     transition until the non-determinism is resolved."""
-    
+
     __configurations = None
 
     def __init__ (self, configuration):
         self.__configurations = [ configuration]
-    
+
     def acceptableSymbols (self):
         acceptable = []
         for cfg in self.__configurations:
@@ -1174,7 +1174,7 @@ class Automaton (object):
         executed in a deterministic order."""
         return self.__states
     states = property(__get_states)
-    
+
     __counterConditions = None
     def __get_counterConditions (self):
         """The set of L{CounterCondition}s in the automaton.
@@ -1357,7 +1357,7 @@ class Node (object):
             self.__last = frozenset(self._last())
         return self.__last
     last = property(__get_last)
-    
+
     def _last (self):
         """Abstract method that defines L{last} for the subclass.
 
@@ -1373,7 +1373,7 @@ class Node (object):
             self.__nullable = self._nullable()
         return self.__nullable
     nullable = property(__get_nullable)
-    
+
     def _nullable (self):
         """Abstract method that defines L{nullable} for the subclass.
 
@@ -1390,7 +1390,7 @@ class Node (object):
 
     def _follow (self):
         """Abstract method that defines L{follow} for the subclass.
-        
+
         The return value should be a map from tuples of integers (positions)
         to a list of transitions, where a transition is a position and
         an update instruction."""
@@ -1586,7 +1586,7 @@ class Node (object):
 
 class MultiTermNode (Node):
     """Intermediary for nodes that have multiple child nodes."""
-    
+
     __terms = None
     def __get_terms (self):
         """The set of subordinate terms of the current node."""
@@ -1701,7 +1701,7 @@ class NumericalConstraint (Node):
                     rv[pp+q].append((q1, psi))
         assert not last_r1
         return rv
-                
+
     def _walkTermTree (self, position, pre, post, arg):
         if pre is not None:
             pre(self, position, arg)
@@ -1722,7 +1722,7 @@ class Choice (MultiTermNode):
     """A term that may be any one of a set of terms.
 
     This term matches if any one of its contained terms matches."""
-    
+
     _Precedence = -3
 
     def __init__ (self, *terms, **kw):
@@ -1731,7 +1731,7 @@ class Choice (MultiTermNode):
         The terms are provided as arguments.  All must be instances of
         a subclass of L{Node}."""
         super(Choice, self).__init__(*terms, **kw)
-        
+
     def _first (self):
         rv = set()
         for c in xrange(len(self.terms)):
@@ -1769,7 +1769,7 @@ class Choice (MultiTermNode):
 
 class Sequence (MultiTermNode):
     """A term that is an ordered sequence of terms."""
-    
+
     _Precedence = -2
 
     def __init__ (self, *terms, **kw):
@@ -1833,7 +1833,7 @@ class Sequence (MultiTermNode):
                     if not nt.nullable:
                         break
         return rv
-            
+
     def __str__ (self):
         elts = []
         for t in self.terms:

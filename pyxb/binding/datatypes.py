@@ -72,7 +72,7 @@ class anySimpleType (basis.simpleTypeDefinition, unicode):
         return value
 # anySimpleType is not treated as a primitive, because its variety
 # must be absent (not atomic).
-    
+
 class string (basis.simpleTypeDefinition, unicode):
     """XMLSchema datatype U{string<http://www.w3.org/TR/xmlschema-2/#string>}."""
     _XsdBaseType = anySimpleType
@@ -95,7 +95,7 @@ class boolean (basis.simpleTypeDefinition, types.IntType):
     """XMLSchema datatype U{boolean<http://www.w3.org/TR/xmlschema-2/#boolean>}."""
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('boolean')
-    
+
     @classmethod
     def XsdLiteral (cls, value):
         if value:
@@ -279,7 +279,7 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
                     kw.pop(fn, None)
             kw['microseconds'] = data.pop('microseconds', 0)
             data['seconds'] += kw['microseconds'] / 1000000.0
-            
+
         rv = super(duration, cls).__new__(cls, **kw)
         rv.__durationData = data
         rv.__negativeDuration = negative_duration
@@ -307,7 +307,7 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
             elts.append('T')
             elts.extend(time_elts)
         return ''.join(elts)
-        
+
 _PrimitiveDatatypes.append(duration)
 
 class _PyXBDateTime_base (basis.simpleTypeDefinition):
@@ -420,7 +420,7 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
             for k in kw.iterkeys():
                 kw[k] = getattr(dt, k)
             kw['tzinfo'] = cls._UTCTimeZone
-        
+
     @classmethod
     def XsdLiteral (cls, value):
         iso = value.replace(tzinfo=None).isoformat()
@@ -454,10 +454,10 @@ class dateTime (_PyXBDateTime_base, datetime.datetime):
 
     _Lexical_fmt = '%Y-%m-%dT%H:%M:%S'
     __CtorFields = ( 'year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond', 'tzinfo' )
-    
+
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
-        
+
         ctor_kw = { }
         if kw.get('_nil'):
             ctor_kw = { 'year': 1900, 'month': 1, 'day': 1 }
@@ -522,13 +522,13 @@ class time (_PyXBDateTime_base, datetime.time):
     @note: C{pyxb.PreserveInputTimeZone()} can be used to bypass the
     normalization to UTC.
     """
-    
+
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('time')
 
     _Lexical_fmt = '%H:%M:%S'
     __CtorFields = ( 'hour', 'minute', 'second', 'microsecond', 'tzinfo' )
-    
+
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
         ctor_kw = { }
@@ -639,7 +639,7 @@ class date (_PyXBDateOnly_base):
     the instance; however, the lexical representation generated for
     output is canonicalized (timezones no more than 12 hours off UTC).
     """
-    
+
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('date')
     _Lexical_fmt = '%Y-%m-%d'
     _Fields = ( 'year', 'month', 'day' )
@@ -910,7 +910,7 @@ class normalizedString (string):
     #
     # Alternatively, subclasses can override the _ValidateString_va
     # method.
-    
+
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('normalizedString')
 
     # @todo Implement pattern constraints and just rely on them
@@ -920,7 +920,7 @@ class normalizedString (string):
 
     _ValidRE = None
     _InvalidRE = None
-    
+
     @classmethod
     def __ValidateString (cls, value):
         # This regular expression doesn't work.  Don't know why.
@@ -972,7 +972,7 @@ class token (normalizedString):
     Tokens cannot leading or trailing space characters; any
     carriage return, line feed, or tab characters; nor any occurrence
     of two or more consecutive space characters."""
-    
+
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('token')
 
     @classmethod
@@ -1174,7 +1174,7 @@ def _BuildAutomaton ():
     return fac.Automaton(states, counters, True, containing_state=None)
 anyType._Automaton = _BuildAutomaton()
 
-    
+
 # anyType._IsUrType() is True; foo._IsUrType() for descendents of it
 # should be false.
 anyType._IsUrType = classmethod(lambda _c: _c == anyType)

@@ -45,7 +45,7 @@ except:
     pass
 
 import bisect
-        
+
 class CodePointSetError (LookupError):
     """Raised when some abuse of a L{CodePointSet} is detected."""
     pass
@@ -233,7 +233,7 @@ class CodePointSet (object):
 
         Each tuple C{(s, e)} indicates that the code points from C{s}
         (inclusive) to C{e}) (inclusive) are in the set."""
-        
+
         rv = []
         start = None
         for ri in xrange(len(self.__codepoints)):
@@ -255,7 +255,7 @@ class CodePointSet (object):
             rv.__codepoints.append(0)
             rv.__codepoints.extend(self.__codepoints)
         return rv
-    
+
     def asSingleCharacter (self):
         """If this set represents a single character, return it as its
         unicode string value.  Otherwise return C{None}."""
@@ -288,7 +288,7 @@ class XML1p0e2 (object):
     corresponding patterns for other uses of XML.  One significant
     change is that the original specification, used here, does not
     allow wide unicode characters."""
-    
+
     Char = CodePointSet(
         0x0009,
         0x000A,

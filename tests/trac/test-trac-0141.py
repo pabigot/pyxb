@@ -36,7 +36,7 @@ def MakeCamelCase (identifier):
 class TestTrac0141 (unittest.TestCase):
     def tearDown (cls):
         pyxb.utils.utility._SetXMLIdentifierToPython(None)
-        
+
     def testDefaultMakeIdentifier (self):
         self.assertEqual(MakeIdentifier('is_string'), 'is_string')
 
@@ -55,7 +55,7 @@ class TestTrac0141 (unittest.TestCase):
         self.assertTrue('simpleElement' in xlocals)
         instance = xlocals['simpleElement'](isClean=True)
         self.assertTrue(instance.isClean)
-        
+
     def testNormalBuild (self):
         instance = simple_element(is_clean=True)
         self.assertTrue(instance.is_clean)

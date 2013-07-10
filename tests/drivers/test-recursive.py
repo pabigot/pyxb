@@ -48,7 +48,7 @@ class TestXSIType (unittest.TestCase):
         self.assertTrue(left is not None)
         self.assertEqual('left', left.data)
         self.assertTrue(instance.right is None)
-        
+
     def testFiver (self):
         instance = node('root', node('left1', node('left2'), node('leftright')), node('right1', node('rightleft')))
         xml = '<node><data>root</data><left><data>left1</data><left><data>left2</data></left><right><data>leftright</data></right></left><right><data>right1</data><left><data>rightleft</data></left></right></node>'

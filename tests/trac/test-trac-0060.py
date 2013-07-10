@@ -69,7 +69,7 @@ class TestTrac_0060 (unittest.TestCase):
         self.__basis_log.level = self.__basis_loglevel
         XSI.ProcessTypeAttribute(XSI.PT_strict)
 
-    AString = 'hi'        
+    AString = 'hi'
     NotAnInteger = 'not an integer'
     AnInteger = 34
     BaseUntyped = '<base><child>%s</child></base>' % (NotAnInteger,)
@@ -135,7 +135,7 @@ class TestTrac_0060 (unittest.TestCase):
         instance = wc.wildcardElements()[0]
         self.assertTrue(isinstance(instance, String))
         self.assertEqual(self.NotAnInteger, instance.child)
-        
+
         xmls = '<wildcard>%s</wildcard>' % (self.BaseInteger,)
         wc = CreateFromDocument(xmls)
         instance = wc.wildcardElements()[0]

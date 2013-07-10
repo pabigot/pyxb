@@ -42,7 +42,7 @@ def _DefaultXMLIdentifierToPython (identifier):
     For historical reasons, this converts the identifier from a str to
     unicode in the system default encoding.  This should have no
     practical effect.
-    
+
     @param identifier : some XML identifier
 
     @return: C{unicode(identifier)}
@@ -153,7 +153,7 @@ def DeconflictKeyword (s, aux_keywords=frozenset()):
     See also L{MakeUnique}.
 
     @param s: string to be deconflicted
-    
+
     @keyword aux_keywords: optional iterable of additional strings
     that should be treated as keywords.
 
@@ -262,7 +262,7 @@ class _DeconflictSymbols_mixin (object):
 __TabCRLF_re = re.compile("[\t\n\r]")
 # Regular expressoin detecting sequences of two or more spaces
 __MultiSpace_re = re.compile(" +")
-    
+
 def NormalizeWhitespace (text, preserve=False, replace=False, collapse=False):
     """Normalize the given string.
 
@@ -301,7 +301,7 @@ class Graph:
     indicates that some aspect of C{source} requires that some aspect
     of C{target} already be available.
     """
-    
+
     def __init__ (self, root=None):
         self.__roots = None
         if root is not None:
@@ -509,7 +509,7 @@ class Graph:
 
         @return: The SCC set, or C{None} if the node is not present in
         the results of Tarjan's algorithm."""
-        
+
         return self.sccMap(**kw).get(node)
 
     def cyclomaticComplexity (self):
@@ -521,7 +521,7 @@ class Graph:
         assert not (source in self.__dfsWalked)
         self.__dfsWalked.add(source)
         for target in self.__edgeMap.get(source, []):
-            if not (target in self.__dfsWalked): 
+            if not (target in self.__dfsWalked):
                 self.__dfsWalk(target)
         self.__dfsOrder.append(source)
 
@@ -564,7 +564,7 @@ class Graph:
             if len(self.__dfsOrder) != len(self.__nodes):
                 raise Exception('DFS walk did not cover all nodes (walk %d versus nodes %d)' % (len(self.__dfsOrder), len(self.__nodes)))
         return self.__dfsOrder
-        
+
     def rootSetOrder (self):
         """Return the nodes of the graph as a sequence of root sets.
 
@@ -603,7 +603,7 @@ LocationPrefixRewriteMap_ = { }
 
 def SetLocationPrefixRewriteMap (prefix_map):
     """Set the map that is used to by L{NormalizeLocation} to rewrite URI prefixes."""
-    
+
     LocationPrefixRewriteMap_.clear()
     LocationPrefixRewriteMap_.update(prefix_map)
 
@@ -629,7 +629,7 @@ def NormalizeLocation (uri, parent_uri=None, prefix_map=None):
     @param prefix_map : A map used to rewrite URI prefixes.  If
     C{None}, the value defaults to that stored by
     L{SetLocationPrefixRewriteMap}.
-    
+
     """
     if uri is None:
         return uri
@@ -745,7 +745,7 @@ def OpenOrCreate (file_name, tag=None, preserve_contents=False):
     else:
         fp.seek(2) # os.SEEK_END
     return fp
-            
+
 # hashlib didn't show up until 2.5, and sha is deprecated in 2.6.
 __Hasher = None
 try:
@@ -754,7 +754,7 @@ try:
 except ImportError:
     import sha
     __Hasher = sha.new
-    
+
 def HashForText (text):
     """Calculate a cryptographic hash of the given string.
 
@@ -811,7 +811,7 @@ class UniqueIdentifier (object):
         """The string unique identifier"""
         return self.__uid
     __uid = None
-    
+
     # Support pickling, which is done using only the UID.
     def __getnewargs__ (self):
         return (self.__uid,)
@@ -947,7 +947,7 @@ class UTCOffsetTimeZone (datetime.tzinfo):
     def tzname (self, dt):
         """Return the name of the timezone in the format expected by XML Schema."""
         return self.__tzName
-    
+
     def dst (self, dt):
         """Returns a constant zero duration."""
         return self.__ZeroDuration
@@ -956,7 +956,7 @@ class UTCOffsetTimeZone (datetime.tzinfo):
         if isinstance(other, UTCOffsetTimeZone):
             return cmp(self.__utcOffset_min, other.__utcOffset_min)
         return cmp(self.__utcOffset_min, other.utcoffset(datetime.datetime.now()))
-        
+
 
 class LocalTimeZone (datetime.tzinfo):
     """A C{datetime.tzinfo} subclass for the local time zone.
@@ -1024,7 +1024,7 @@ class PrivateTransient_mixin (pyxb.cscRoot):
     # Suffix used when creating the class member variable in which the
     # transient members are cached.
     __Attribute = '__PrivateTransient'
-    
+
     def __getstate__ (self):
         state = self.__dict__.copy()
         # Note that the aggregate set is stored in a class variable
@@ -1126,7 +1126,7 @@ def GetMatchingFiles (path, pattern=None, default_path_wildcard=None, default_pa
                 if not recursive:
                     break
     return matching_files
-    
+
 class Location (object):
     __locationBase = None
     __lineNumber = None

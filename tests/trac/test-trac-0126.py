@@ -37,7 +37,7 @@ class TestTrac0126 (unittest.TestCase):
         instance = Element()
         self.assertEqual(None, instance.Required)
         self.assertEqual(None, instance.Optional)
-        
+
         pyxb.RequireValidWhenGenerating(False)
         self.assertEqual('<Element/>', instance.toDOM().documentElement.toxml("utf-8"))
         pyxb.RequireValidWhenGenerating(True)
@@ -49,4 +49,4 @@ class TestTrac0126 (unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    
+

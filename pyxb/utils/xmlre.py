@@ -97,7 +97,7 @@ def _MatchCharClassEsc(text, position):
     @raise RegularExpressionError: if the expression is syntactically
     invalid.
     """
-  
+
     mo = _CharClassEsc_re.match(text, position)
     if mo:
         escape_code = mo.group(0)
@@ -211,7 +211,7 @@ def _MatchCharClassExpr(text, position):
     character class.
 
     @param position: The offset of the start of the character group.
-    
+
     @return: A pair C{(cps, p)} where C{cps} is a
     L{pyxb.utils.unicode.CodePointSet} containing the code points
     associated with the property, and C{p} is the text offset
@@ -256,7 +256,7 @@ def MaybeMatchCharacterClass (text, position):
 
     @param position: The offset of the start of the potential
     expression.
-    
+
     @return: C{None} if C{position} does not begin a character class
     expression; otherwise a pair C{(cps, p)} where C{cps} is a
     L{pyxb.utils.unicode.CodePointSet} containing the code points associated with

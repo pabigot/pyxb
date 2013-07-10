@@ -10,7 +10,7 @@ import pyxb.utils.domutils
 
 import os.path
 xsd='''<?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
            elementFormDefault="qualified">
     <xs:complexType mixed="true" name="tsAnyType">
         <xs:sequence>

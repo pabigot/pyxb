@@ -126,15 +126,15 @@ class TestTrac0153 (unittest.TestCase):
 
     def testOrphan2 (self):
         i = self.makeMulti()
-        xmls = i.toxml('utf-8', root_only=True) 
+        xmls = i.toxml('utf-8', root_only=True)
         self.assertEqual(self.ExpectedMulti, xmls)
         self.assertEqual(3, len(i.bold))
         dropped = i.bold.pop(0)
-        xmls = i.toxml('utf-8', root_only=True) 
+        xmls = i.toxml('utf-8', root_only=True)
         self.assertEqual(vc.orphanElementInContent, vc.IGNORE_ONCE)
         self.assertEqual('<text>t1t3<bold>b4</bold><ital>i5</ital><bold>b6</bold></text>', xmls)
         vc._setOrphanElementInContent(vc.GIVE_UP)
-        xmls = i.toxml('utf-8', root_only=True) 
+        xmls = i.toxml('utf-8', root_only=True)
         # Elements in declaration order, non-element content at end
         self.assertEqual('<text><bold>b4</bold><bold>b6</bold><ital>i5</ital>t1t3</text>', xmls)
 
@@ -149,4 +149,4 @@ class TestTrac0153 (unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    
+

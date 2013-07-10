@@ -73,7 +73,7 @@
             <xsd:element name="cnamGrpIndex" minOccurs="1" maxOccurs="1"  type="XBAppGroupIndex"/>
             <xsd:element name="ersGrpIndex" minOccurs="1" maxOccurs="1"  type="XBAppGroupIndex"/>
             <xsd:element name="maxCallDuration" minOccurs="1" maxOccurs="1"  type="XBMaxCallDuration"/>
-            
+
             <xsd:element name="acct" minOccurs="0" maxOccurs="1" type="XBAccount"/>
             <xsd:element name="auth" minOccurs="0" maxOccurs="1" type="XBAuthentication"/>
 
@@ -250,7 +250,7 @@
             <xsd:maxLength value="20"/>
         </xsd:restriction>
     </xsd:simpleType>
-  
+
 <!-- minInclusive used to be 1001, after enum type added -->
 <!-- default value for enum type is 53 -->
     <xsd:simpleType name="XBPortAddress">
@@ -453,7 +453,7 @@
             <xsd:enumeration value="disable"/>
         </xsd:restriction>
     </xsd:simpleType>
-  
+
 <!-- digitMatch will be 1 or more digits -->
     <xsd:simpleType name="digitMatchType">
         <xsd:restriction base="xsd:string">

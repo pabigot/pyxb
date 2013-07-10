@@ -39,7 +39,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
     def _SetValidationConfig (cls, validation_config):
         """Set the validation configuration for this class."""
         cls._validationConfig_ = validation_config
-    
+
     @classmethod
     def _GetValidationConfig (cls):
         """The L{pyxb.ValidationConfig} instance that applies to this class.
@@ -84,7 +84,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         @deprecated: use L{_validationConfig} and check specific requirements."""
         vo = self._validationConfig
         return vo.forBinding and vo.forDocument
-    
+
     _ExpandedName = None
     """The expanded name of the component."""
 
@@ -162,7 +162,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         <http://www.w3.org/TR/xmlschema-1/#xsi_nil>} set to C{true}.
 
         @return: C{None} if the element used to create the instance is not
-        U{nillable<http://www.w3.org/TR/xmlschema-1/#nillable>}. 
+        U{nillable<http://www.w3.org/TR/xmlschema-1/#nillable>}.
         If it is nillable, returns C{True} or C{False} depending on
         whether the instance itself is U{nil<http://www.w3.org/TR/xmlschema-1/#xsi_nil>}.
         """
@@ -476,7 +476,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
 
         @param dom_node: an xml.dom Node instance, possibly C{None}
         """
-        
+
         # Extract keywords that match field names
         attribute_settings = { }
         if dom_node is not None:
@@ -536,7 +536,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         pass @C{'utf-8'} here.  Because this method follows the contract of
         the corresponding C{xml.dom.Node} method, it does not automatically
         get the default PyXB output encoding.
-        
+
         @param bds: Optional L{pyxb.utils.domutils.BindingDOMSupport} instance
         to use for creation. If not provided (default), a new generic one is
         created.
@@ -622,7 +622,7 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
       raw.wsdl._SetSupersedingClass(mywsdl)
 
     """
-    
+
     @classmethod
     def __SupersedingClassAttribute (cls):
         return '_%s__SupersedingClass' % (cls.__name__,)
@@ -763,7 +763,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
 
         @raise AttributeError: if the facet map has not been defined"""
         return getattr(cls, cls.__FacetMapAttributeName())
-    
+
     @classmethod
     def _InitializeFacetMap (cls, *args):
         """Initialize the facet map for this datatype.
@@ -880,7 +880,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
     # unless told not to.
     def __init__ (self, *args, **kw):
         """Initialize a newly created STD instance.
-        
+
         Usually there is one positional argument, which is a value that can be
         converted to the underlying Python type.
 
@@ -1006,7 +1006,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
     @classmethod
     def XsdConstraintsOK (cls, value, location=None):
         """Validate the given value against the constraints on this class.
-        
+
         @raise pyxb.SimpleTypeValueError: if any constraint is violated.
         """
 
@@ -1475,7 +1475,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         """C{True} if the element content cannot be changed"""
         return self.__fixed
     __fixed = False
-    
+
     def substitutionGroup (self):
         """The L{element} instance to whose substitution group this element
         belongs.  C{None} if this element is not part of a substitution
@@ -1498,7 +1498,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
 
     def _real_substitutesFor (self, other):
         """Determine whether an instance of this element can substitute for the other element.
-        
+
         See U{Substitution Group OK<http://www.w3.org/TR/xmlschema-1/#cos-equiv-derived-ok-rec>}.
 
         @todo: Do something about blocking constraints.  This ignores them, as
@@ -1552,7 +1552,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         self.__documentation = documentation
         self.__xsdLocation = location
         super(element, self).__init__()
-        
+
     def __call__ (self, *args, **kw):
         """Invoke the Factory method on the type associated with this element.
 
@@ -1704,7 +1704,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             node = node.documentElement
         expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
         return cls.CreateDOMBinding(node, expanded_name.elementBinding(), _fallback_namespace=fallback_namespace)
-        
+
     def elementForName (self, name):
         """Return the element that should be used if this element binding is
         permitted and an element with the given name is encountered.
@@ -1845,7 +1845,7 @@ class _Content (object):
 
     def __init__ (self, value):
         self.__value = value
-        
+
 class ElementContent (_Content):
     """Marking wrapper for element content.
 
@@ -1880,7 +1880,7 @@ class ElementContent (_Content):
         @keyword instance: Alternative path to providing C{element_declaration}
         @keyword tag: Alternative path to providing C{element_declaration}
         """
-        
+
         import pyxb.binding.content
         super(ElementContent, self).__init__(value)
         if instance is not None:
@@ -2094,7 +2094,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _validatedChildren (self):
         """Provide the child elements and non-element content in an order
         consistent with the content model.
-        
+
         Returns a sequence of tuples representing a valid path through the
         content model where each transition corresponds to one of the member
         element instances within this instance.  The tuple is a pair
@@ -2200,7 +2200,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     # documented in L{orderedContent}.  When simple content is used, it is as
     # documented in L{value}.
     __content = None
-    
+
     def orderedContent (self):
         """Return the element and non-element content of the instance in order.
 
@@ -2233,7 +2233,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
         @note: The returned value is mutable, allowing the caller to change
         the order to be used.
-        
+
         @raise pyxb.NotComplexContentError: this is not a complex type with mixed or element-only content
         """
         if self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE):
@@ -2294,7 +2294,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _automatonConfiguration (self):
         """For whitebox testing use only"""
         return self.__automatonConfiguration
-    
+
     def reset (self):
         """Reset the instance.
 
@@ -2306,7 +2306,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         to influence the generation of documents from the binding instance
         without changing its (element) content.
         """
-        
+
         self._resetContent(reset_elements=True)
         for au in self._AttributeMap.values():
             au.reset(self)
@@ -2351,7 +2351,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         else:
             element_binding = element_decl.elementBinding()
         return (element_binding, element_decl)
-        
+
     def append (self, value, **kw):
         """Add the value to the instance.
 
@@ -2362,7 +2362,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         @raise pyxb.ContentValidationError: the value is not permitted at the current
         state of the content model.
         """
-        
+
         # @todo: Allow caller to provide default element use; it's available
         # in saxer.
         element_decl = kw.get('_element_decl', None)
@@ -2460,7 +2460,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _appendWildcardElement (self, value):
         self._addContent(ElementContent(value, None))
         self.__wildcardElements.append(value)
-        
+
     def extend (self, value_list, _fallback_namespace=None, _from_xml=False, _location=None):
         """Invoke L{append} for each value in the list, in turn."""
         [ self.append(_v, _fallback_namespace=_fallback_namespace, _from_xml=_from_xml, _location=_location) for _v in value_list ]
@@ -2487,7 +2487,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     @classmethod
     def _IsMixed (cls):
         return (cls._CT_MIXED == cls._ContentTypeTag)
-    
+
     def _finalizeContentModel (self):
         # Override parent implementation.
         if self.__automatonConfiguration:
@@ -2583,4 +2583,4 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 ## Local Variables:
 ## fill-column:78
 ## End:
-    
+

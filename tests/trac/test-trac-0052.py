@@ -51,7 +51,7 @@ class TestTrac_0052 (unittest.TestCase):
         self.assertTrue(isinstance(wc2, xml.dom.Node))
         self.assertEqual(xml.dom.Node.ELEMENT_NODE, wc2.nodeType)
         self.assertEqual('3', wc2.attributes.get(pyxb.namespace.ExpandedName('wca').uriTuple()))
-        
+
 
 if __name__ == '__main__':
     unittest.main()

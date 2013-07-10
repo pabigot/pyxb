@@ -13,19 +13,19 @@ import sys
 
 import os.path
 xsd='''
-<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" version="8 1.87" targetNamespace="URN:test-trac-0057">  
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" version="8 1.87" targetNamespace="URN:test-trac-0057">
 
-  <xsd:element name="ObsProject"> 
-    <xsd:complexType> 
-      <xsd:sequence> 
-        <xsd:element name="assignedPriority" type="xsd:int"/>  
-        <xsd:element name="timeOfCreation" type="xsd:string"/>  
-      </xsd:sequence>  
-      <xsd:attribute name="schemaVersion" type="xsd:string" use="required" fixed="8"/>  
-      <xsd:attribute name="revision" type="xsd:string" default="1.87"/>  
-      <xsd:attribute name="almatype" type="xsd:string" use="required" fixed="APDM::ObsProject"/> 
-    </xsd:complexType> 
-  </xsd:element>  
+  <xsd:element name="ObsProject">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="assignedPriority" type="xsd:int"/>
+        <xsd:element name="timeOfCreation" type="xsd:string"/>
+      </xsd:sequence>
+      <xsd:attribute name="schemaVersion" type="xsd:string" use="required" fixed="8"/>
+      <xsd:attribute name="revision" type="xsd:string" default="1.87"/>
+      <xsd:attribute name="almatype" type="xsd:string" use="required" fixed="APDM::ObsProject"/>
+    </xsd:complexType>
+  </xsd:element>
 
 
 </xsd:schema>
@@ -72,7 +72,7 @@ class TestTrac_0057 (unittest.TestCase):
             self.assertEqual(1, len(accept))
             assigned_priority_ed = ObsProject.typeDefinition()._UseForTag(Namespace.createExpandedName('assignedPriority'))
             self.assertEqual(accept[0].elementDeclaration(), assigned_priority_ed)
-        
+
     def testDisable (self):
         pyxb.RequireValidWhenParsing(False)
         instance = CreateFromDocument(self.XMLS)
@@ -90,10 +90,10 @@ class TestTrac_0057 (unittest.TestCase):
             # Verify the exception tells us what was left
             time_of_creation_ed = ObsProject.typeDefinition()._UseForTag(Namespace.createExpandedName('timeOfCreation'))
             self.assertEqual(instance.timeOfCreation, cm.exception.symbol_set[time_of_creation_ed][0])
-            
+
         doc = pyxb.utils.domutils.StringToDOM(self.XMLS)
         instance = CreateFromDOM(doc)
-        pyxb.RequireValidWhenGenerating(False) 
+        pyxb.RequireValidWhenGenerating(False)
         xml = instance.toxml("utf-8", root_only=True)
         self.assertEquals(xml, self.XMLS)
 

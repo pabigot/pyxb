@@ -20,7 +20,7 @@ class DeconfictSymbolsTtest (unittest.TestCase):
         self.assertEquals(3, len(DST_sub._ReservedSymbols))
 
 class BasicTest (unittest.TestCase):
-    
+
     cases = ( ( r'"1\x042"', "1\0042" ) # expanded octal
             , ( r'"1\x042"', '1\0042' ) # expanded octal (single quotes do not affect escaping)
             , ( "r'1\\0042'", r'1\0042' ) # preserve unexpanded octal
@@ -43,7 +43,7 @@ class BasicTest (unittest.TestCase):
             , ( u"u\"'\"", u"'" )           # unicode single quote works
             , ( u"u\"\\u00220\\u0022\"", u'"\u0030"' ) # unicode with double quotes works
             )
-            
+
 
     def testPrepareIdentifier (self):
         in_use = set()
@@ -325,7 +325,7 @@ class TestGraph (unittest.TestCase):
         self.assertEqual(23, len(graph.nodes()))
         self.assertEqual(123, len(graph.edges()))
         self.assertRaises(Exception, graph.dfsOrder)
-        
+
     def testDFSOrder5 (self):
         graph = Graph()
         graph.addEdge(1, 2)
@@ -500,7 +500,7 @@ class TestUniqueIdentifier (unittest.TestCase):
         u1b = UniqueIdentifier('one')
         self.assertEqual(u1, u1b)
         self.assertEqual(id(u1), id(u1b))
-        
+
     def testNoUID (self):
         u1 = UniqueIdentifier()
         self.assertTrue(u1.uid() is not None)
@@ -510,7 +510,7 @@ class TestUniqueIdentifier (unittest.TestCase):
     def testPickling (self):
         import pickle
         import StringIO
-        
+
         u1 = UniqueIdentifier()
         outstr = StringIO.StringIO()
         pickler = pickle.Pickler(outstr, -1)
@@ -554,7 +554,7 @@ class TestGetMatchingFiles (unittest.TestCase):
     def setUp (self):
         self.__directory = tempfile.mkdtemp()
         #print 'setup %s' % (self.__directory,)
-        
+
         dir_hierarchy = [ 'd1', 'd2', 'd3', 'd1/d11', 'd1/d12', 'd1/d12/d121' ]
         [ os.mkdir(os.path.join(self.__directory, _d)) for _d in dir_hierarchy ]
         files = [ 'd1/f1a.wxs', 'd1/f1b.wxs', 'd1/f1c',
@@ -661,5 +661,5 @@ class TestGetMatchingFiles (unittest.TestCase):
 
 if '__main__' == __name__:
     unittest.main()
-            
-        
+
+

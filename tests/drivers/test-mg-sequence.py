@@ -134,7 +134,7 @@ class TestMGSeq (unittest.TestCase):
             # Verify the exception tells us what was left over
             first_ed = altsequence._ElementMap['first']
             self.assertEqual(instance.first[2], cm.exception.symbol_set[first_ed][0])
-            
+
     def testTooManyInMiddle (self):
         xml = '<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><second_multi/><second_multi/><second_multi/><third/></ns1:altwrapper>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
@@ -143,5 +143,5 @@ class TestMGSeq (unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    
-        
+
+

@@ -9,17 +9,17 @@ from xml.dom import Node
 
 import os.path
 xsd='''<?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"> 
-    
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
     <xs:simpleType name="TestEnum">
         <xs:restriction base="xs:string">
             <xs:enumeration value="foo"/>
             <xs:enumeration value="bar"/>
         </xs:restriction>
     </xs:simpleType>
-    
+
     <xs:element name="root" type="TestEnum" nillable="true"/>
-    
+
 </xs:schema>'''
 
 code = pyxb.binding.generate.GeneratePython(schema_text=xsd)
@@ -56,4 +56,4 @@ class TestTrac0195 (unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    
+

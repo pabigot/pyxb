@@ -14,7 +14,7 @@ class Test_ENTITY (unittest.TestCase):
             self.assertEqual(f, xsd.ENTITY(f))
 
     def testInvalid (self):
-        invalid = [ '.DotFirst', 'With Spaces', 'With:Colon', 
+        invalid = [ '.DotFirst', 'With Spaces', 'With:Colon',
                     'With?Illegal', '??LeadingIllegal', 'TrailingIllegal??',
                     '  LeadingSpace', 'TrailingSpace   ']
         for f in invalid:

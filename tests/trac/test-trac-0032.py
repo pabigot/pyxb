@@ -107,7 +107,7 @@ class TestTrac0032 (unittest.TestCase):
         self.assertEqual(1, len(instance.li))
         self.assertTrue(instance.validateBinding())
         self.assertEqual(1, len(instance.orderedContent()))
-        
+
         instance.li = []
         instance.li.append([1,2,3])
         instance.li.append([2,3,4])
@@ -117,4 +117,4 @@ class TestTrac0032 (unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    
+

@@ -51,7 +51,7 @@ class TestTrac_0094 (unittest.TestCase):
     def testToXML (self):
         instance = xs.string(self.body, _element=anything)
         self.assertEqual(instance.toxml("utf-8", root_only=True), self.xmls)
-        
+
     def testContainerCtor (self):
         i = xs.string(self.body, _element=anything)
         instance = container(anything=i)
@@ -59,7 +59,7 @@ class TestTrac_0094 (unittest.TestCase):
         instance = container(anything=xs.string(self.body))
         implicit_xml = instance.toxml("utf-8")
         self.assertEqual(explicit_xml, implicit_xml)
-        
+
     def testContainerAssignment (self):
         i = xs.string(self.body, _element=anything)
         instance = container()

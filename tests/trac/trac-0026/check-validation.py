@@ -12,7 +12,7 @@
 # . ContentValidationError
 # - - BatchElementContentError
 # - - + IncompleteElementContentError
-# - - + UnprocessedElementContentError            
+# - - + UnprocessedElementContentError
 # - - IncrementalElementContentError
 # - - + UnrecognizedContentError
 # - + ExtraSimpleContentError
@@ -236,7 +236,7 @@ class TestSimpleContentAbsentError (unittest.TestCase):
     def testDisplayExceptionDoc (self):
         if DisplayException:
             instance = trac26.CreateFromDocument(self.BadSeq_xmls)
-        
+
     def testDisplayExceptionReset (self):
         if DisplayException:
             instance = trac26.eCTwSC(3)
@@ -344,7 +344,7 @@ class TestMissingAttributeError (unittest.TestCase):
         self.assertTrue(instance.validateBinding())
         instance = trac26.CreateFromDocument(self.Good_xmls)
         self.assertEqual(self.Good_xmls, instance.toxml('utf-8', root_only=True))
-    
+
     def testBatch (self):
         instance = trac26.tAttributes()
         with self.assertRaises(pyxb.MissingAttributeError) as cm:
@@ -419,7 +419,7 @@ class TestProhibitedAttributeError (unittest.TestCase):
         au = instance._AttributeMap['aProhibited']
         with self.assertRaises(pyxb.ProhibitedAttributeError) as cm:
             au.set(instance, 6)
-        
+
     def testDocument (self):
         instance = None
         with self.assertRaises(pyxb.ProhibitedAttributeError) as cm:
@@ -511,7 +511,7 @@ class TestAttributeOnSimpleTypeError (unittest.TestCase):
         self.assertEqual(1, e.location.lineNumber)
         self.assertEqual(7, e.location.columnNumber)
         self.assertEqual(str(e), "Simple type {http://www.w3.org/2001/XMLSchema}int cannot support attribute bits")
-        
+
     def testDisplay (self):
         if DisplayException:
             instance = trac26.CreateFromDocument(self.Bad_xmls)
@@ -528,7 +528,7 @@ class TestUnprocessedKeywordContentError (unittest.TestCase):
         self.assertEqual(3, e.keywords['foo'])
         self.assertTrue(e.location is None)
         self.assertEqual(str(e), 'Unprocessed keywords instantiating tAttributes: foo')
-        
+
 class TestExtraSimpleContentError (unittest.TestCase):
 
     def testSchemaSupport (self):
@@ -557,7 +557,7 @@ class TestExtraSimpleContentError (unittest.TestCase):
 class TestMixedContentError (unittest.TestCase):
     Good_xmls = '<eCTwSCSequence><eCTwSC>2</eCTwSC></eCTwSCSequence>'
     Bad_xmls = '<eCTwSCSequence><eCTwSC>2</eCTwSC>noise</eCTwSCSequence>'
-    
+
     def testSchemaSupport (self):
         instance = trac26.eCTwSCSequence()
         instance.append(trac26.eCTwSC(2))
@@ -574,7 +574,7 @@ class TestMixedContentError (unittest.TestCase):
         self.assertEqual(e.instance, instance)
         self.assertEqual(e.value, 'noise')
         self.assertEqual(str(e), 'Invalid non-element content')
-        
+
     def testDocument (self):
         instance = None
         with self.assertRaises(pyxb.MixedContentError) as cm:
@@ -585,7 +585,7 @@ class TestMixedContentError (unittest.TestCase):
         self.assertEqual(34, e.location.columnNumber)
         self.assertEqual(e.value, 'noise')
         self.assertEqual(str(e), 'Invalid non-element content at <unknown>[1:34]')
-        
+
     def testDisplay (self):
         if DisplayException:
             instance = trac26.eCTwSCSequence()
@@ -606,7 +606,7 @@ The <class 'trac26.CTD_ANON_3'> automaton is in an accepting state.
 The following element and wildcard content would be accepted:
 \tAn element eInt per trac26.xsd[83:8]
 \tA wildcard per trac26.xsd[84:8]'''
-    
+
     def testSchemaSupport (self):
         instance = trac26.eInts()
         instance.append(1)
@@ -629,7 +629,7 @@ The following element and wildcard content would be accepted:
         self.assertTrue(isinstance(acceptable[1], pyxb.binding.content.WildcardUse))
         self.assertEqual(str(e), 'Invalid content eCTwSC (expect eInt or xs:any)')
         self.assertEqual(e.details(), self.Bad_details)
-        
+
     def testDocument (self):
         instance = None
         with self.assertRaises(pyxb.UnrecognizedContentError) as cm:
@@ -649,7 +649,7 @@ The following element and wildcard content would be accepted:
         if DisplayException:
             instance = trac26.eInts()
             instance.append(trac26.eCTwSC(2))
-        
+
     def testDisplayDoc (self):
         if DisplayException:
             instance = trac26.CreateFromDocument(self.Bad_xmls)
@@ -691,7 +691,7 @@ The following content was not processed by the automaton:
         self.assertEqual(1, len(syms))
         self.assertEqual(instance.cardinal, syms[0])
         self.assertEqual(e.details(), self.Bad_details)
-        
+
 class TestUnprocessedElementContentError (unittest.TestCase):
     Bad_details = '''The containing element eTranslateCardMulti is defined at trac26.xsd[132:2].
 The containing element type tTranslateCardMulti is defined at trac26.xsd[125:2]
@@ -794,7 +794,7 @@ class TestContentInNilInstanceError (unittest.TestCase):
         e = cm.exception
         self.assertTrue(e.location is None)
         self.assertEqual(e.instance, instance)
-        
+
     def testContentSet (self):
         instance = trac26.eNilOneInt(_nil=True)
         with self.assertRaises(pyxb.ContentInNilInstanceError) as cm:
@@ -831,7 +831,7 @@ class TestContentInNilInstanceError (unittest.TestCase):
         e = cm.exception
         self.assertTrue(e.location is None)
         self.assertEqual(e.instance, instance)
-        
+
 class TestSimpleListValueError (unittest.TestCase):
     # Note: Unable to come up with code to test raise in _CheckValidValue;
     # values get validated before that point.

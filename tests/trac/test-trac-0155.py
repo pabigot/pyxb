@@ -10,9 +10,9 @@ import pyxb.utils.domutils
 
 import os.path
 xsd='''<?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
-           xmlns="http://schema.omg.org/spec/CTS2/1.0/Core" 
-           targetNamespace="http://schema.omg.org/spec/CTS2/1.0/Core" 
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://schema.omg.org/spec/CTS2/1.0/Core"
+           targetNamespace="http://schema.omg.org/spec/CTS2/1.0/Core"
            elementFormDefault="qualified">
     <xs:complexType mixed="true" name="tsAnyType">
         <xs:sequence>

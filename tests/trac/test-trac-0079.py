@@ -49,7 +49,7 @@ class TestTrac0079 (unittest.TestCase):
         self.assertEqual(cpl.__doc__, u'ctd cpl')
         self.assertEqual(cpl.text.__doc__, u'elt cpl.text')
         self.assertEqual(anon.typeDefinition().__doc__, u'elt anon')
-        
+
 if __name__ == '__main__':
     unittest.main()
-    
+

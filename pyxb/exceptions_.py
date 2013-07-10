@@ -124,7 +124,7 @@ class StructuralBadDocumentError (BadDocumentError):
     def content (self):
         """The value which could not be reconciled with the content model."""
         return self.__content
-    
+
     def __init__ (self, *args, **kw):
         """Raised when processing document and the content model is not satisfied.
 
@@ -253,7 +253,7 @@ class ContentInNilInstanceError (ElementValidationError):
         super(ContentInNilInstanceError, self).__init__(instance, content, location)
 
     def __unicode__ (self):
-        from pyxb.namespace.builtin import XMLSchema_instance as XSI        
+        from pyxb.namespace.builtin import XMLSchema_instance as XSI
         return '%s with %s=true cannot have content' % (self.instance._diagnosticName(), XSI.nil)
     __str__ = PyXBException._str_from_unicode
 
@@ -342,7 +342,7 @@ class AttributeOnSimpleTypeError (ComplexTypeValidationError):
 
     Note that elements with complex type and simple content may have
     attributes; elements with simple type must not."""
-    
+
     instance = None
     """The simple type binding instance on which no attributes exist."""
 
@@ -351,7 +351,7 @@ class AttributeOnSimpleTypeError (ComplexTypeValidationError):
 
     value = None
     """The value proposed to be assigned to the non-existent attribute."""
-    
+
     def __init__ (self, instance, tag, value, location=None):
         """@param instance: the value for the L{instance} attribute.
         @param tag: the value for the L{tag} attribute.
@@ -437,10 +437,10 @@ class NonPluralAppendError (ContentValidationError):
     def __unicode__ (self):
         return 'Instance of %s cannot append to element %s' % (self.instance._Name(), self.element_declaration.name())
     __str__ = PyXBException._str_from_unicode
-    
+
 class MixedContentError (ContentValidationError):
     """Non-element content added to a complex type instance that does not support mixed content."""
-    
+
     instance = None
     """The binding instance."""
 
@@ -502,7 +502,7 @@ class IncrementalElementContentError (ContentValidationError):
 
     value = None
     """The value that could not be associated with allowable content."""
-    
+
     def __init__ (self, instance, automaton_configuration, value, location=None):
         """@param instance: the value for the L{instance} attribute.
         @param automaton_configuration: the value for the L{automaton_configuration} attribute.
@@ -547,7 +547,7 @@ class UnrecognizedContentError (IncrementalElementContentError):
             location = ' at %s' % (self.location,)
         return 'Invalid content %s%s (expect %s)' % (value, location, expect)
     __str__ = PyXBException._str_from_unicode
-        
+
     def details (self):
         import pyxb.binding.basis
         import pyxb.binding.content
@@ -584,7 +584,7 @@ class BatchElementContentError (ContentValidationError):
 
     This exception occurs in post-construction validation using a
     fresh validating automaton."""
-    
+
     instance = None
     """The binding instance being constructed."""
 
@@ -719,7 +719,7 @@ class SimpleTypeValueError (ValidationError):
     """Raised when a simple type value does not satisfy its constraints."""
     type = None
     """The L{pyxb.binding.basis.simpleTypeDefinition} that constrains values."""
-    
+
     value = None
     """The value that violates the constraints of L{type}.  In some
     cases this is a tuple of arguments passed to a constructor that
@@ -740,7 +740,7 @@ class SimpleTypeValueError (ValidationError):
 
     def __unicode__ (self):
         import pyxb.binding.basis
-        if isinstance(self.value, pyxb.binding.basis._TypeBinding_mixin): 
+        if isinstance(self.value, pyxb.binding.basis._TypeBinding_mixin):
             return 'Type %s cannot be created from %s: %s' % (self.type._Name(), self.value._Name(), self.value)
         return 'Type %s cannot be created from: %s' % (self.type._Name(), self.value)
     __str__ = PyXBException._str_from_unicode
@@ -778,7 +778,7 @@ class SimpleFacetValueError (SimpleTypeValueError):
 
     type = None
     """The L{pyxb.binding.basis.simpleTypeDefinition} that constrains values."""
-    
+
     value = None
     """The value that violates the constraints of L{type}.  In some
     cases this is a tuple of arguments passed to a constructor that
@@ -824,7 +824,7 @@ class AttributeValidationError (ValidationError):
 
     tag = None
     """The name of the attribute."""
-    
+
     instance = None
     """The binding instance, if available."""
 
@@ -930,7 +930,7 @@ class ReservedNameError (BindingError):
 class PyXBError (exceptions.Exception):
     """Base class for exceptions that indicate a problem that the user probably can't fix."""
     pass
-    
+
 class UsageError (PyXBError):
     """Raised when the code detects user violation of an API."""
 
