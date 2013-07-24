@@ -295,7 +295,7 @@ class ElementChangeError (ElementValidationError):
         super(ElementChangeError, self).__init__(element, value, location)
 
     def __unicode__ (self):
-        return 'Element %s has fixed content %s' % (self.element.name(), self.value)
+        return 'Value %s for element %s incompatible with fixed content' % (self.value, self.element.name())
     __str__ = PyXBException._str_from_unicode
 
 class ComplexTypeValidationError (ValidationError):

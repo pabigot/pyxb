@@ -72,6 +72,7 @@ class TestTrac0099 (unittest.TestCase):
             i = fixs('other')
         e = cm.exception
         self.assertEqual(e.value, 'other')
+        self.assertEqual('Value other for element fixs incompatible with fixed content', str(e))
 
     def testComplexCtor (self):
         i = complex(defi=52)
