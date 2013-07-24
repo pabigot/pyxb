@@ -995,18 +995,35 @@ class ElementDeclaration (object):
         For plural values, this is an empty collection.  For non-plural
         values, it is C{None} unless the element has a default value, in which
         case it is that value.
+
+        @todo: This should recursively support filling in default content, as
+        when the plural list requires a non-zero minimum number of entries.
         """
         if self.isPlural():
             return _PluralBinding(element_binding=self.__elementBinding)
         return self.__elementBinding.defaultValue()
 
+    def resetValue (self):
+        """Return the reset value for this element.
+
+        For plural values, this is an empty collection.  For non-plural
+        values, it is C{None}, corresponding to absence of an assigned
+        element.
+        """
+        if self.isPlural():
+            return _PluralBinding(element_binding=self.__elementBinding)
+        return None
+
     def value (self, ctd_instance):
-        """Return the value for this use within the given instance."""
-        return getattr(ctd_instance, self.__key, self.defaultValue())
+        """Return the value for this use within the given instance.
+
+        Note that this is the L{resetValue()}, not the L{defaultValue()}, if
+        the element has not yet been assigned a value."""
+        return getattr(ctd_instance, self.__key, self.resetValue())
 
     def reset (self, ctd_instance):
         """Set the value for this use in the given element to its default."""
-        setattr(ctd_instance, self.__key, self.defaultValue())
+        setattr(ctd_instance, self.__key, self.resetValue())
         return self
 
     def set (self, ctd_instance, value):

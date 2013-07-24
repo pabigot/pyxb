@@ -76,10 +76,15 @@ class TestTrac0099 (unittest.TestCase):
     def testComplexCtor (self):
         i = complex(defi=52)
         self.assertEqual(None, i.uncs)
-        self.assertEqual('value', i.defs)
+        self.assertEqual(None, i.defs)
         self.assertEqual(52, i.defi)
-        self.assertEqual('fixed', i.fixs)
-        self.assertEqual(21, i.fixi)
+        self.assertEqual(None, i.fixs)
+        self.assertEqual(None, i.fixi)
+
+        self.assertEqual('value', i._UseForTag('defs').defaultValue())
+        self.assertEqual(32, i._UseForTag('defi').defaultValue())
+        self.assertEqual('fixed', i._UseForTag('fixs').defaultValue())
+        self.assertEqual(21, i._UseForTag('fixi').defaultValue())
 
         if sys.version_info[:2] < (2, 7):
             self.assertRaises(pyxb.ElementChangeError, complex, fixs='hi')
