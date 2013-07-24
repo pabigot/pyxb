@@ -2127,8 +2127,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         If an element use has no associated values, it must not appear in the
         returned map.
 
-        @raise pyxb.SimpleTypeValueError: when unable tconverting element
-        content the binding declaration type.
+        @raise pyxb.SimpleTypeValueError: when unable to convert element
+        content to the binding declaration type.
         """
         rv = { }
         for eu in self._ElementMap.values():
