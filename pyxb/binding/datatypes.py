@@ -505,7 +505,10 @@ class dateTime (_PyXBDateTime_base, datetime.datetime):
 
         @rtype: C{datetime.datetime} (B{NOT} C{xsd.dateTime})
         """
-        return self.replace(tzinfo=self._UTCTimeZone).astimezone(self._LocalTimeZone)
+        dt = self
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=self._UTCTimeZone)
+        return dt.astimezone(self._LocalTimeZone)
 
 _PrimitiveDatatypes.append(dateTime)
 
