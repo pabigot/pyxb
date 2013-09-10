@@ -17,6 +17,7 @@
 
 import pyxb
 import pyxb.namespace
+import pyxb.namespace.resolution
 import pyxb.utils.saxutils
 import pyxb.utils.saxdom
 import xml.dom
@@ -81,6 +82,23 @@ def NodeAttribute (node, attribute_ncname, attribute_ns=None):
     if attr is None:
         return None
     return attr.value
+
+def NodeAttributeQName (node, attribute_ncname, attribute_ns=None):
+    """Like L{NodeAttribute} but where the content is a QName that must be
+    resolved in the context of the node.
+
+    @param attribute_ncname: as in L{NodeAttribute}
+    @keyword attribute_ns: as in L{NodeAttribute}
+
+    @return: The expanded name to which the value of the attribute resolves
+    given current namespaces, or C{None} if the attribute is not present
+    @rtype: L{pyxb.namespace.ExpandedName}
+    """
+    attr = NodeAttribute(node, attribute_ncname, attribute_ns)
+    if attr is None:
+        return None
+    nsc = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
+    return nsc.interpretQName(attr)
 
 def LocateUniqueChild (node, tag, absent_ok=True, namespace=pyxb.namespace.XMLSchema):
     """Locate a unique child of the DOM node.

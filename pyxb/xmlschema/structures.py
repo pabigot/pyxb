@@ -1107,10 +1107,10 @@ class _AttributeWildcard_mixin (pyxb.cscRoot):
                 attributes.append(node)
             elif xsd.nodeIsNamed(node, 'attributeGroup'):
                 # This must be an attributeGroupRef
-                agd_attr = domutils.NodeAttribute(node, 'ref')
-                if agd_attr is None:
+                agd_en = domutils.NodeAttributeQName(node, 'ref')
+                if agd_en is None:
                     raise pyxb.SchemaValidationError('Require ref attribute on internal attributeGroup elements')
-                attribute_groups.append(agd_attr)
+                attribute_groups.append(agd_en)
             elif xsd.nodeIsNamed(node, 'anyAttribute'):
                 if any_attribute is not None:
                     raise pyxb.SchemaValidationError('Multiple anyAttribute children are not allowed')
@@ -1165,8 +1165,8 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
          conform."""
         return self.__typeDefinition
 
-    # The string value of the XSD type attribute
-    __typeAttribute = None
+    # The expanded name content of the XSD type attribute
+    __typeExpandedName = None
 
     def __init__ (self, *args, **kw):
         super(AttributeDeclaration, self).__init__(*args, **kw)
@@ -1188,7 +1188,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         bi = cls(**kw)
         if std is not None:
             bi.__typeDefinition = std
-        bi.__typeAttribute = None
+        bi.__typeExpandedName = None
         return bi
 
     # CFD:AD CFD:AttributeDeclaration
@@ -1231,7 +1231,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         rv._annotationFromDOM(node)
         rv._valueConstraintFromDOM(node)
 
-        rv.__typeAttribute = domutils.NodeAttribute(node, 'type')
+        rv.__typeExpandedName = domutils.NodeAttributeQName(node, 'type')
 
         kw.pop('node', None)
         kw['owner'] = rv
@@ -1239,7 +1239,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         st_node = domutils.LocateUniqueChild(node, 'simpleType')
         if st_node is not None:
             rv.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(st_node, **kw)
-        elif rv.__typeAttribute is None:
+        elif rv.__typeExpandedName is None:
             rv.__typeDefinition = SimpleTypeDefinition.SimpleUrTypeDefinition()
 
         if rv.__typeDefinition is None:
@@ -1256,13 +1256,12 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
         # Although the type definition may not be resolved, *this* component
         # is resolved, since we don't look into the type definition for anything.
-        assert self.__typeAttribute is not None, 'AD %s is unresolved but has no typeAttribute field' % (self.expandedName(),)
-        type_en = self._namespaceContext().interpretQName(self.__typeAttribute)
-        self.__typeDefinition = type_en.typeDefinition()
+        assert self.__typeExpandedName is not None, 'AD %s is unresolved but had no type attribute field' % (self.expandedName(),)
+        self.__typeDefinition = self.__typeExpandedName.typeDefinition()
         if self.__typeDefinition is None:
-            raise pyxb.SchemaValidationError('Type reference %s cannot be found' % (type_en,))
+            raise pyxb.SchemaValidationError('Type reference %s cannot be found' % (self.__typeExpandedName,))
         if not isinstance(self.__typeDefinition, SimpleTypeDefinition):
-            raise pyxb.SchemaValidationError('Need %s to be a simple type' % (type_en,))
+            raise pyxb.SchemaValidationError('Need %s to be a simple type' % (self.__typeExpandedName,))
 
         return self
 
@@ -1314,8 +1313,8 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvabl
     def prohibited (self):
         return self.USE_prohibited == self.__use
 
-    # The string value of the XSD ref attribute
-    __refAttribute = None
+    # The expanded name value of the XSD ref attribute
+    __refExpandedName = None
 
     __restrictionOf = None
     def restrictionOf (self):
@@ -1403,8 +1402,8 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvabl
 
         rv._valueConstraintFromDOM(node)
 
-        rv.__refAttribute = domutils.NodeAttribute(node, 'ref')
-        if rv.__refAttribute is None:
+        rv.__refExpandedName = domutils.NodeAttributeQName(node, 'ref')
+        if rv.__refExpandedName is None:
             # Create an anonymous declaration
             kw.pop('node', None)
             kw['owner'] = rv
@@ -1422,10 +1421,9 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvabl
     def _resolve (self):
         if self.isResolved():
             return self
-        ad_en = self._namespaceContext().interpretQName(self.__refAttribute)
-        self.__attributeDeclaration = ad_en.attributeDeclaration()
+        self.__attributeDeclaration = self.__refExpandedName.attributeDeclaration()
         if self.__attributeDeclaration is None:
-            raise pyxb.SchemaValidationError('Attribute declaration %s cannot be found' % (ad_en,))
+            raise pyxb.SchemaValidationError('Attribute declaration %s cannot be found' % (self.__refExpandedName,))
 
         assert isinstance(self.__attributeDeclaration, AttributeDeclaration)
 
@@ -1491,14 +1489,14 @@ class ElementDeclaration (_ParticleTree_mixin, _SchemaComponent_mixin, _NamedCom
                     failed = not (isinstance(ct, tuple) and (ComplexTypeDefinition.CT_SIMPLE == ct[0]))
             if failed:
                 type_en = self.__typeDefinition.expandedName()
-                if type_en is None:
+                if self.__typeExpandedName is None:
                     raise pyxb.SchemaValidationError('Value constraint on element %s with non-simple content' % (self.expandedName(),))
-                raise pyxb.SchemaValidationError('Value constraint on element %s with non-simple type %s' % (self.expandedName(), type_en))
+                raise pyxb.SchemaValidationError('Value constraint on element %s with non-simple type %s' % (self.expandedName(), self.__typeExpandedName))
         return self
 
-    __substitutionGroupAttribute = None
+    __substitutionGroupExpandedName = None
 
-    __typeAttribute = None
+    __typeExpandedName = None
 
     __nillable = False
     def nillable (self):
@@ -1583,7 +1581,7 @@ class ElementDeclaration (_ParticleTree_mixin, _SchemaComponent_mixin, _NamedCom
         rv._annotationFromDOM(node)
         rv._valueConstraintFromDOM(node)
 
-        rv.__substitutionGroupAttribute = domutils.NodeAttribute(node, 'substitutionGroup')
+        rv.__substitutionGroupExpandedName = domutils.NodeAttributeQName(node, 'substitutionGroup')
 
         kw.pop('node', None)
         kw['owner'] = rv
@@ -1595,10 +1593,10 @@ class ElementDeclaration (_ParticleTree_mixin, _SchemaComponent_mixin, _NamedCom
         rv.__identityConstraintDefinitions = identity_constraints
 
         rv.__typeDefinition = None
-        rv.__typeAttribute = domutils.NodeAttribute(node, 'type')
+        rv.__typeExpandedName = domutils.NodeAttributeQName(node, 'type')
         simpleType_node = domutils.LocateUniqueChild(node, 'simpleType')
         complexType_node = domutils.LocateUniqueChild(node, 'complexType')
-        if rv.__typeAttribute is not None:
+        if rv.__typeExpandedName is not None:
             if (simpleType_node is not None) and (complexType_node is not None):
                 raise pyxb.SchemaValidationError('Cannot combine type attribute with simpleType or complexType child')
         if (rv.__typeDefinition is None) and (simpleType_node is not None):
@@ -1606,13 +1604,13 @@ class ElementDeclaration (_ParticleTree_mixin, _SchemaComponent_mixin, _NamedCom
         if (rv.__typeDefinition is None) and (complexType_node is not None):
             rv._typeDefinition(ComplexTypeDefinition.CreateFromDOM(complexType_node, **kw))
         if rv.__typeDefinition is None:
-            if rv.__typeAttribute is None:
+            if rv.__typeExpandedName is None:
                 # Scan for particle types which were supposed to be enclosed in a complexType
                 for cn in node.childNodes:
                     if Particle.IsParticleNode(cn):
                         raise pyxb.SchemaValidationError('Node %s in element must be wrapped by complexType.' % (cn.localName,))
                 rv._typeDefinition(ComplexTypeDefinition.UrTypeDefinition())
-        rv.__isResolved = (rv.__typeDefinition is not None) and (rv.__substitutionGroupAttribute is None)
+        rv.__isResolved = (rv.__typeDefinition is not None) and (rv.__substitutionGroupExpandedName is None)
         if not rv.__isResolved:
             rv._queueForResolution('creation')
 
@@ -1707,19 +1705,17 @@ class ElementDeclaration (_ParticleTree_mixin, _SchemaComponent_mixin, _NamedCom
 
         #if self._scopeIsIndeterminate():
         #   _log.debug('WARNING: Resolving ED %s with indeterminate scope (is this a problem?)', self.expandedName())
-        if self.__substitutionGroupAttribute is not None:
-            sg_en = self._namespaceContext().interpretQName(self.__substitutionGroupAttribute)
-            sga = sg_en.elementDeclaration()
+        if self.__substitutionGroupExpandedName is not None:
+            sga = self.__substitutionGroupExpandedName.elementDeclaration()
             if sga is None:
-                raise pyxb.SchemaValidationError('Element declaration refers to unrecognized substitution group %s' % (sg_en,))
+                raise pyxb.SchemaValidationError('Element declaration refers to unrecognized substitution group %s' % (self.__substitutionGroupExpandedName,))
             self.__substitutionGroupAffiliation = sga
 
         if self.__typeDefinition is None:
-            assert self.__typeAttribute is not None
-            type_en = self._namespaceContext().interpretQName(self.__typeAttribute)
-            td = type_en.typeDefinition()
+            assert self.__typeExpandedName is not None
+            td = self.__typeExpandedName.typeDefinition()
             if td is None:
-                raise pyxb.SchemaValidationError('Type declaration %s cannot be found' % (type_en,))
+                raise pyxb.SchemaValidationError('Type declaration %s cannot be found' % (self.__typeExpandedName,))
             self._typeDefinition(td)
         self.__isResolved = True
         return self
@@ -2046,16 +2042,15 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
         return rv.__setContentFromDOM(node, **kw)
 
-    __baseAttribute = None
-
+    __baseExpandedName = None
 
     __ckw = None
     __anyAttribute = None
-    __attributeGroupAttributes = None
+    __attributeGroupNames = None
     __usesC1 = None
     __usesC1C2 = None
     __attributeGroups = None
-    __PrivateTransient.update(['ckw', 'anyAttribute', 'attributeGroupAttributes', 'usesC1', 'usesC1C2', 'attributeGroups' ])
+    __PrivateTransient.update(['ckw', 'anyAttribute', 'attributeGroupNames', 'usesC1', 'usesC1C2', 'attributeGroups' ])
 
     # Handle attributeUses, attributeWildcard, contentType
     def __completeProcessing (self, method, content_style):
@@ -2065,8 +2060,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             uses_c1 = self.__usesC1 # attribute children
             uses_c2 = set()  # attribute group children
             self.__attributeGroups = []
-            for ag_attr in self.__attributeGroupAttributes:
-                ag_en = self._namespaceContext().interpretQName(ag_attr)
+            for ag_en in self.__attributeGroupNames:
                 agd = ag_en.attributeGroupDefinition()
                 if agd is None:
                     raise pyxb.SchemaValidationError('Attribute group %s cannot be found' % (ag_en,))
@@ -2430,8 +2424,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                     method = self.DM_extension
                 else:
                     raise pyxb.SchemaValidationError('Expected restriction or extension as sole child of %s in %s' % (content_node.nodeName, self.name()))
-                self.__baseAttribute = domutils.NodeAttribute(ions, 'base')
-                if self.__baseAttribute is None:
+                self.__baseExpandedName = domutils.NodeAttributeQName(ions, 'base')
+                if self.__baseExpandedName is None:
                     raise pyxb.SchemaValidationError('Element %s missing base attribute' % (ions.nodeName,))
                 self.__baseTypeDefinition = None
                 # The content is defined by the restriction/extension element
@@ -2442,12 +2436,12 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         self.__ctscRestrictionNode = ctsc_restriction_node
         self.__ctscClause2STD = clause2_std
 
-        (attributes, attribute_group_attrs, any_attribute) = self._attributeRelevantChildren(definition_node_list)
+        (attributes, attribute_group_names, any_attribute) = self._attributeRelevantChildren(definition_node_list)
         self.__usesC1 = set()
         for cn in attributes:
             au = AttributeUse.CreateFromDOM(cn, **kw)
             self.__usesC1.add(au)
-        self.__attributeGroupAttributes = attribute_group_attrs
+        self.__attributeGroupNames = attribute_group_names
         self.__anyAttribute = any_attribute
 
         if self.__isComplexContent:
@@ -2485,14 +2479,13 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
         # See whether we've resolved through to the base type
         if self.__baseTypeDefinition is None:
-            base_en = self._namespaceContext().interpretQName(self.__baseAttribute)
-            base_type = base_en.typeDefinition()
+            base_type = self.__baseExpandedName.typeDefinition()
             if base_type is None:
-                raise pyxb.SchemaValidationError('Cannot locate %s: need import?' % (base_en,))
+                raise pyxb.SchemaValidationError('Cannot locate %s: need import?' % (self.__baseExpandedName,))
             if not base_type.isResolved():
                 # Have to delay resolution until the type this
                 # depends on is available.
-                self._queueForResolution('unresolved base type %s' % (base_en,), depends_on=base_type)
+                self._queueForResolution('unresolved base type %s' % (self.__baseExpandedName,), depends_on=base_type)
                 return self
             self.__baseTypeDefinition = base_type
 
@@ -2576,9 +2569,9 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
         return bi
 
     __anyAttribute = None
-    __attributeGroupAttributes = None
-    __refAttribute = None
-    __PrivateTransient.update(['anyAttribute', 'attributeGroupAttributes'])
+    __attributeGroupNames = None
+    __refExpandedName = None
+    __PrivateTransient.update(['anyAttribute', 'attributeGroupNames'])
 
 
     # CFD:AGD CFD:AttributeGroupDefinition
@@ -2600,18 +2593,18 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
         rv._annotationFromDOM(node)
 
         # Attribute group definitions must not be references
-        rv.__refAttribute = domutils.NodeAttribute(node, 'ref')
-        if rv.__refAttribute is not None:
+        rv.__refExpandedName = domutils.NodeAttributeQName(node, 'ref')
+        if rv.__refExpandedName is not None:
             raise pyxb.SchemaValidationError('Attribute reference at top level')
 
         kw.pop('node', None)
         kw['owner'] = rv
 
-        (attributes, attribute_group_attrs, any_attribute) = rv._attributeRelevantChildren(node.childNodes)
+        (attributes, attribute_group_names, any_attribute) = rv._attributeRelevantChildren(node.childNodes)
         rv.__attributeUses = set()
         for cn in attributes:
             rv.__attributeUses.add(AttributeUse.CreateFromDOM(cn, **kw))
-        rv.__attributeGroupAttributes = attribute_group_attrs
+        rv.__attributeGroupNames = attribute_group_names
         rv.__anyAttribute = any_attribute
 
         # Unconditionally queue for resolution, to avoid repeating the
@@ -2631,8 +2624,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
 
         uses = self.__attributeUses
         attribute_groups = []
-        for ag_attr in self.__attributeGroupAttributes:
-            ag_en = self._namespaceContext().interpretQName(ag_attr)
+        for ag_en in self.__attributeGroupNames:
             agd = ag_en.attributeGroupDefinition()
             if agd is None:
                 raise pyxb.SchemaValidationError('Attribute group %s cannot be found' % (ag_en,))
@@ -2952,7 +2944,7 @@ class Particle (_ParticleTree_mixin, _SchemaComponent_mixin, pyxb.namespace.reso
         return self.__term
     __pendingTerm = None
 
-    __refAttribute = None
+    __refExpandedName = None
     __resolvableType = None
 
     def effectiveTotalRange (self):
@@ -3027,10 +3019,9 @@ class Particle (_ParticleTree_mixin, _SchemaComponent_mixin, pyxb.namespace.reso
 
         # @RESOLUTION@
         if ModelGroup == self.__resolvableType:
-            ref_en = self._namespaceContext().interpretQName(self.__refAttribute)
-            group_decl = ref_en.modelGroupDefinition()
+            group_decl = self.__refExpandedName.modelGroupDefinition()
             if group_decl is None:
-                raise pyxb.SchemaValidationError('Model group reference %s cannot be found' % (ref_en,))
+                raise pyxb.SchemaValidationError('Model group reference %s cannot be found' % (self.__refExpandedName,))
 
             self.__pendingTerm = group_decl.modelGroup()
             assert self.__pendingTerm is not None
@@ -3038,12 +3029,11 @@ class Particle (_ParticleTree_mixin, _SchemaComponent_mixin, pyxb.namespace.reso
             # 3.9.2 says use 3.3.2, which is Element.  The element inside a
             # particle is a localElement, so we either get the one it refers
             # to (which is top-level), or create a local one here.
-            if self.__refAttribute is not None:
+            if self.__refExpandedName is not None:
                 assert self.__pendingTerm is None
-                ref_en = self._namespaceContext().interpretQName(self.__refAttribute)
-                self.__pendingTerm = ref_en.elementDeclaration()
+                self.__pendingTerm = self.__refExpandedName.elementDeclaration()
                 if self.__pendingTerm is None:
-                    raise pyxb.SchemaValidationError('Unable to locate element referenced by %s' % (ref_en,))
+                    raise pyxb.SchemaValidationError('Unable to locate element referenced by %s' % (self.__refExpandedName,))
             assert self.__pendingTerm is not None
 
             # Whether this is a local declaration or one pulled in from the
@@ -3102,18 +3092,18 @@ class Particle (_ParticleTree_mixin, _SchemaComponent_mixin, pyxb.namespace.reso
         kw.pop('node', None)
         kw['owner'] = rv
 
-        rv.__refAttribute = domutils.NodeAttribute(node, 'ref')
+        rv.__refExpandedName = domutils.NodeAttributeQName(node, 'ref')
         rv.__pendingTerm = None
         rv.__resolvableType = None
         if xsd.nodeIsNamed(node, 'group'):
             # 3.9.2 says use 3.8.2, which is ModelGroup.  The group
             # inside a particle is a groupRef.  If there is no group
             # with that name, this throws an exception as expected.
-            if rv.__refAttribute is None:
+            if rv.__refExpandedName is None:
                 raise pyxb.SchemaValidationError('group particle without reference')
             rv.__resolvableType = ModelGroup
         elif xsd.nodeIsNamed(node, 'element'):
-            if rv.__refAttribute is None:
+            if rv.__refExpandedName is None:
                 schema = kw.get('schema')
                 assert schema is not None
                 target_namespace = schema.targetNamespaceForNode(node, ElementDeclaration)
@@ -3655,9 +3645,9 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         return self.__baseTypeDefinition
 
     __memberTypes = None
-    __itemTypeAttribute = None
-    __baseAttribute = None
-    __memberTypesAttribute = None
+    __itemTypeExpandedName = None
+    __baseExpandedName = None
+    __memberTypesExpandedNames = None
     __localFacets = None
 
     # A map from a subclass of facets.Facet to an instance of that class.
@@ -4081,8 +4071,8 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
     def __initializeFromList (self, body, **kw):
         self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
-        self.__itemTypeAttribute = domutils.NodeAttribute(body, 'itemType')
-        if self.__itemTypeAttribute is None:
+        self.__itemTypeExpandedName = domutils.NodeAttributeQName(body, 'itemType')
+        if self.__itemTypeExpandedName is None:
             # NOTE: The newly created anonymous item type will
             # not be resolved; the caller needs to handle
             # that.
@@ -4091,15 +4081,19 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
     def __initializeFromRestriction (self, body, **kw):
         if self.__baseTypeDefinition is None:
-            self.__baseAttribute = domutils.NodeAttribute(body, 'base')
-            if self.__baseAttribute is None:
+            self.__baseExpandedName = domutils.NodeAttributeQName(body, 'base')
+            if self.__baseExpandedName is None:
                 self.__baseTypeDefinition = self.CreateFromDOM(self.__singleSimpleTypeChild(body, other_elts_ok=True), **kw)
         return self.__completeResolution(body, None, self._DA_restriction)
 
     __localMemberTypes = None
     def __initializeFromUnion (self, body, **kw):
         self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
-        self.__memberTypesAttribute = domutils.NodeAttribute(body, 'memberTypes')
+        mta = domutils.NodeAttribute(body, 'memberTypes')
+        self.__memberTypesExpandedNames = None
+        if mta is not None:
+            nsc = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(body)
+            self.__memberTypesExpandedNames = map(nsc.interpretQName, mta.split())
         if self.__localMemberTypes is None:
             self.__localMemberTypes = []
             for cn in body.childNodes:
@@ -4255,11 +4249,10 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
     def __completeResolution (self, body, variety, alternative):
         assert self.__variety is None
         if self.__baseTypeDefinition is None:
-            assert self.__baseAttribute is not None
-            base_en = self._namespaceContext().interpretQName(self.__baseAttribute)
-            base_type = base_en.typeDefinition()
+            assert self.__baseExpandedName is not None
+            base_type = self.__baseExpandedName.typeDefinition()
             if not isinstance(base_type, SimpleTypeDefinition):
-                raise pyxb.SchemaValidationError('Unable to locate base type %s' % (base_en,))
+                raise pyxb.SchemaValidationError('Unable to locate base type %s' % (self.__baseExpandedName,))
             self.__baseTypeDefinition = base_type
         # If the base type exists but has not yet been resolved,
         # delay processing this type until the one it depends on
@@ -4289,11 +4282,10 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             self.__primitiveTypeDefinition = ptd
         elif self.VARIETY_list == variety:
             if self._DA_list == alternative:
-                if self.__itemTypeAttribute is not None:
-                    it_en = self._namespaceContext().interpretQName(self.__itemTypeAttribute)
-                    self.__itemTypeDefinition = it_en.typeDefinition()
+                if self.__itemTypeExpandedName is not None:
+                    self.__itemTypeDefinition = self.__itemTypeExpandedName.typeDefinition()
                     if not isinstance(self.__itemTypeDefinition, SimpleTypeDefinition):
-                        raise pyxb.SchemaValidationError('Unable to locate STD %s for items' % (it_en,))
+                        raise pyxb.SchemaValidationError('Unable to locate STD %s for items' % (self.__itemTypeExpandedName,))
             elif self._DA_restriction == alternative:
                 self.__itemTypeDefinition = self.__baseTypeDefinition.__itemTypeDefinition
             else:
@@ -4308,10 +4300,9 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                     mtd = []
                     # If present, first extract names from memberTypes,
                     # and add each one to the list
-                    if self.__memberTypesAttribute is not None:
-                        for mn in self.__memberTypesAttribute.split():
+                    if self.__memberTypesExpandedNames is not None:
+                        for mn_en in self.__memberTypesExpandedNames:
                             # THROW if type has not been defined
-                            mn_en = self._namespaceContext().interpretQName(mn)
                             std = mn_en.typeDefinition()
                             if std is None:
                                 raise pyxb.SchemaValidationError('Unable to locate member type %s' % (mn_en,))
