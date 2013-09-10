@@ -256,17 +256,21 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
                     data['seconds'] = 24 * 60 * 60.0 - data['seconds']
             data['minutes'] = 0
             data['hours'] = 0
+        elif isinstance(text, types.IntType) and (1 < len(args)):
+            # Apply the arguments as in the underlying Python constructor
+            data = dict(zip(cls.__PythonFields[:len(args)], args))
+            negative_duration = False
         else:
             raise SimpleTypeValueError(cls, text)
         if not have_kw_update:
-            rem_time = data['seconds']
+            rem_time = data.pop('seconds', 0)
             if (0 != (rem_time % 1)):
-                data['microseconds'] = types.IntType(1000000 * (rem_time % 1))
+                data['microseconds'] = data.pop('microseconds', 0) + types.IntType(1000000 * (rem_time % 1))
                 rem_time = rem_time // 1
             data['seconds'] = rem_time % 60
-            rem_time = data['minutes'] + (rem_time // 60)
+            rem_time = data.pop('minutes', 0) + (rem_time // 60)
             data['minutes'] = rem_time % 60
-            rem_time = data['hours'] + (rem_time // 60)
+            rem_time = data.pop('hours', 0) + (rem_time // 60)
             data['hours'] = rem_time % 24
             data['days'] += (rem_time // 24)
             for fn in cls.__PythonFields:
