@@ -2324,6 +2324,7 @@ class Generator (object):
         self.__generateToFiles = kw.get('generate_to_files', True)
         self.__uriContentArchiveDirectory = kw.get('uri_content_archive_directory')
         self.__loggingConfigFile = kw.get('logging_config_file')
+        self.__unnamedModulePaths = set()
 
         if argv is not None:
             self.applyOptionValues(*self.optionParser().parse_args(argv))
@@ -2582,6 +2583,8 @@ class Generator (object):
                 module_path = namespace.prefix()
             # Prefer an existing assignment over a new one
             module_path = self.namespaceModuleMap().get(namespace.uri(), module_path)
+        if (module_path is None) and self.generateToFiles():
+            module_path = pyxb.utils.utility.MakeUnique('binding', self.__unnamedModulePaths)
         if (module_path is not None) and self.modulePrefix(): # non-empty value
             # Prepend a configured module prefix
             module_path = '.'.join([self.modulePrefix(), module_path])
