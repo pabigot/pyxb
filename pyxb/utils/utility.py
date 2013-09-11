@@ -952,6 +952,7 @@ class UTCOffsetTimeZone (datetime.tzinfo):
         """Returns a constant zero duration."""
         return self.__ZeroDuration
 
+    # python3: retain since functools.total_ordering() unavailable in 2.6
     def __cmp__ (self, other):
         if isinstance(other, UTCOffsetTimeZone):
             return cmp(self.__utcOffset_min, other.__utcOffset_min)
@@ -1152,6 +1153,7 @@ class Location (object):
     lineNumber = property(lambda _s: _s.__lineNumber)
     columnNumber = property(lambda _s: _s.__columnNumber)
 
+    # python3: retain since functools.total_ordering() unavailable in 2.6
     def __cmp__ (self, other):
         """Comparison by locationBase, then lineNumber, then columnNumber."""
         if other is None:

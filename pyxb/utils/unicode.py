@@ -81,6 +81,7 @@ class CodePointSet (object):
         internal representation."""
         return self.__codepoints
 
+    # python3: retain since functools.total_ordering() unavailable in 2.6
     def __cmp__ (self, other):
         """Equality is delegated to the codepoints list."""
         return cmp(self.__codepoints, other.__codepoints)

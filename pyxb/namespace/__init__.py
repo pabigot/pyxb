@@ -204,6 +204,7 @@ class ExpandedName (object):
             return type(self.__localName).__hash__(self.__localName)
         return tuple.__hash__(self.__expandedName)
 
+    # python3: retain since functools.total_ordering() unavailable in 2.6
     def __cmp__ (self, other):
         if other is None: # None is below everything else
             return cmp(1, -1)
