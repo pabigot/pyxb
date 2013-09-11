@@ -180,7 +180,7 @@ class NamespaceArchive (object):
                 # cause problems when we remove unresolvable archives from
                 # archive_set; and second to aid with forced dependency inversion
                 # testing
-                ordered_archives = sorted(list(archive_set), lambda _a,_b: cmp(_a.archivePath(), _b.archivePath()))
+                ordered_archives = sorted(list(archive_set), key=lambda _a: _a.archivePath())
                 ordered_archives.reverse()
 
                 # Create a graph that identifies dependencies between the archives

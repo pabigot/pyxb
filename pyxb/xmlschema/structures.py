@@ -1803,9 +1803,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         """
         if reset or (self.__localScopedDeclarations is None):
             rve = [ _ed for _ed in self.__scopedElementDeclarations.values() if (self == _ed.scope()) ]
-            rve.sort(lambda _a, _b: cmp(_a.expandedName(), _b.expandedName()))
+            rve.sort(key=lambda _x: _x.expandedName())
             rva = [ _ad for _ad in self.__scopedAttributeDeclarations.values() if (self == _ad.scope()) ]
-            rva.sort(lambda _a, _b: cmp(_a.expandedName(), _b.expandedName()))
+            rva.sort(key=lambda _x: _x.expandedName())
             self.__localScopedDeclarations = rve
             self.__localScopedDeclarations.extend(rva)
         return self.__localScopedDeclarations

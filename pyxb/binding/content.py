@@ -863,8 +863,8 @@ class _PluralBinding (collections.MutableSequence):
     def reverse (self):
         self.__list.reverse()
 
-    def sort (self, cmp=None, key=None, reverse=False):
-        self.__list.sort(cmp, key, reverse)
+    def sort (self, key=None, reverse=False):
+        self.__list.sort(key=key, reverse=reverse)
 
     def __str__ (self):
         return self.__list.__str__()
