@@ -636,7 +636,7 @@ class AutomatonConfiguration (object):
             (preferred_sequence, psym) = self.__processPreferredSequence(preferred_sequence, symbol_set, vc)
             if psym is not None:
                 if not (vc.orphanElementInContent in ( vc.IGNORE_ONCE, vc.GIVE_UP )):
-                    raise pyxb.OrphanElementContentError(self.__instance, pxym.value)
+                    raise pyxb.OrphanElementContentError(self.__instance, psym.value)
         if nec is not None:
             symbols.extend(nec)
         return symbols

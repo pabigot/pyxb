@@ -683,7 +683,7 @@ class InvalidPreferredElementContentError (BatchElementContentError):
         self.symbol_set = symbol_set
         self.preferred_symbol = preferred_symbol
         # Bypass immediate parent so we preserve the last argument
-        super(BatchElementContentError, self).__init__(instance, fac_configuration, symbols, symbol_set, preferred_content)
+        super(BatchElementContentError, self).__init__(instance, fac_configuration, symbols, symbol_set, preferred_symbol)
 
 
 class OrphanElementContentError (ContentValidationError):
