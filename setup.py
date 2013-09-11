@@ -99,7 +99,6 @@ class test (Command):
         number = 0
         import sys
         import traceback
-        import new
         import unittest
         import types
 
@@ -133,7 +132,7 @@ class test (Command):
                 g['__file__'] = fn
 
                 # Create a module into which the test will be evaluated.
-                module = new.module(test_name)
+                module = types.ModuleType(test_name)
 
                 # The generated code uses __name__ to look up the
                 # containing module in sys.modules.
