@@ -10,18 +10,18 @@ from xml.dom import Node
 import os.path
 xsd='''<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-	<xs:element name="elt" type="xs:string"/>
-	<xs:complexType name="empty"/>
-	<xs:complexType name="simple">
-		<xs:simpleContent>
-			<xs:extension base="xs:string"/>
-		</xs:simpleContent>
-	</xs:complexType>
-	<xs:complexType name="complex">
-		<xs:sequence>
-			<xs:element ref="elt"/>
-		</xs:sequence>
-	</xs:complexType>
+  <xs:element name="elt" type="xs:string"/>
+  <xs:complexType name="empty"/>
+  <xs:complexType name="simple">
+    <xs:simpleContent>
+      <xs:extension base="xs:string"/>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="complex">
+    <xs:sequence>
+      <xs:element ref="elt"/>
+    </xs:sequence>
+  </xs:complexType>
 </xs:schema>'''
 
 code = pyxb.binding.generate.GeneratePython(schema_text=xsd)

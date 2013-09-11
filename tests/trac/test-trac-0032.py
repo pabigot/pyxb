@@ -11,22 +11,22 @@ import pyxb.binding.datatypes as xs
 import os.path
 xsd='''<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-	<xs:simpleType name="intList">
-		<xs:list itemType="xs:int"/>
-	</xs:simpleType>
-	<xs:element name="li" type="intList"/>
-	<xs:complexType name="tAggregate">
-		<xs:sequence>
-			<xs:element ref="li"/>
-		</xs:sequence>
-	</xs:complexType>
-	<xs:element name="aggregate" type="tAggregate"/>
-	<xs:complexType name="tMultiAggregate">
-		<xs:sequence>
-			<xs:element ref="li" maxOccurs="unbounded"/>
-		</xs:sequence>
-	</xs:complexType>
-	<xs:element name="multi" type="tMultiAggregate"/>
+  <xs:simpleType name="intList">
+    <xs:list itemType="xs:int"/>
+  </xs:simpleType>
+  <xs:element name="li" type="intList"/>
+  <xs:complexType name="tAggregate">
+    <xs:sequence>
+      <xs:element ref="li"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="aggregate" type="tAggregate"/>
+  <xs:complexType name="tMultiAggregate">
+    <xs:sequence>
+      <xs:element ref="li" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="multi" type="tMultiAggregate"/>
 </xs:schema>'''
 
 code = pyxb.binding.generate.GeneratePython(schema_text=xsd)

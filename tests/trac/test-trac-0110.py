@@ -12,15 +12,15 @@ xsd='''<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema
     xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-	<xs:simpleType name="intList">
-		<xs:list itemType="xs:int"/>
-	</xs:simpleType>
+  <xs:simpleType name="intList">
+    <xs:list itemType="xs:int"/>
+  </xs:simpleType>
 
-	<xs:complexType name="tSingle">
-		<xs:sequence>
-			<xs:element name="li" type="intList" maxOccurs="1"/>
-		</xs:sequence>
-	</xs:complexType>
+  <xs:complexType name="tSingle">
+    <xs:sequence>
+      <xs:element name="li" type="intList" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
 
 </xs:schema>'''
 

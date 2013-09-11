@@ -68,7 +68,7 @@ class TestTrac0155 (unittest.TestCase):
         #print dom.toprettyxml()
         #print txml.toxml()
         #print self.Expected
-	self.assertEqual(txml.toxml(), self.Expected)
+        self.assertEqual(txml.toxml(), self.Expected)
 
 
 if __name__ == '__main__':

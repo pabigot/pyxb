@@ -11,7 +11,7 @@ import pyxb.utils.domutils
 import os.path
 xsd=u'''<?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-	<xs:element name="anything" type="xs:anyType" nillable="true"/>
+  <xs:element name="anything" type="xs:anyType" nillable="true"/>
         <xs:element name="container">
                 <xs:complexType>
                         <xs:sequence>

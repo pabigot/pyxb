@@ -15,16 +15,16 @@ xsd='''<?xml version="1.0" encoding="UTF-8"?>
      <xs:restriction base="xs:string"/>
   </xs:simpleType>
   <xs:element name="selt" type="stype"/>
-	<xs:complexType name="wrapper">
-		<xs:sequence>
-			<xs:element name="first" minOccurs="0"/>
-			<xs:element name="second" minOccurs="0"/>
-			<xs:any namespace="##any" minOccurs="0" maxOccurs="3" processContents="lax"/>
-		</xs:sequence>
-		<xs:attribute name="myattr" use="optional" type="xs:boolean"/>
-		<xs:anyAttribute namespace="##any" processContents="lax"/>
-	</xs:complexType>
-	<xs:element name="wrapper" type="wrapper"/>
+  <xs:complexType name="wrapper">
+    <xs:sequence>
+      <xs:element name="first" minOccurs="0"/>
+      <xs:element name="second" minOccurs="0"/>
+      <xs:any namespace="##any" minOccurs="0" maxOccurs="3" processContents="lax"/>
+    </xs:sequence>
+    <xs:attribute name="myattr" use="optional" type="xs:boolean"/>
+    <xs:anyAttribute namespace="##any" processContents="lax"/>
+  </xs:complexType>
+  <xs:element name="wrapper" type="wrapper"/>
 </xs:schema>
 '''
 

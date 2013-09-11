@@ -25,11 +25,11 @@ xsd='''<?xml version="1.0" encoding="utf-8"?>
         <xs:simpleType name="tAltRestr">
                 <xs:restriction base="tBase">
                     <xs:enumeration value="C"/>
-		</xs:restriction>
+    </xs:restriction>
         </xs:simpleType>
-	<xs:element name="base" type="tBase"/>
-	<xs:element name="restr" type="tRestr"/>
-	<xs:element name="altrestr" type="tAltRestr"/>
+  <xs:element name="base" type="tBase"/>
+  <xs:element name="restr" type="tRestr"/>
+  <xs:element name="altrestr" type="tAltRestr"/>
 </xs:schema>
 '''
 
