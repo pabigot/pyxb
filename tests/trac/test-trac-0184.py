@@ -43,7 +43,7 @@ import unittest
 #pyxb.GlobalValidationConfig._setContentInfluencesGeneration(pyxb.GlobalValidationConfig.NEVER)
 
 class TestTrac0184(unittest.TestCase):
-   def testNesting(selfs):
+   def testNesting(self):
        xml = """<?xml version="1.0" encoding="UTF-8"?>
 <Test xmlns="http://foo.org/test">
 <a>A</a>
@@ -51,10 +51,9 @@ class TestTrac0184(unittest.TestCase):
 <c>C</c>
 </Test>"""
        instance = CreateFromDocument(xml)
-       try:
-           print instance.toxml()
-       except pyxb.ValidationError, e:
-           print e.details()
+       dom = instance.toDOM()
+       self.assertEqual(instance.toxml('utf-8'),
+                        u'<?xml version="1.0" encoding="utf-8"?><ns1:Test xmlns:ns1="http://foo.org/test"><ns1:a>A</ns1:a><ns1:b>B</ns1:b><ns1:c>C</ns1:c></ns1:Test>')
 
 if __name__ == '__main__':
     unittest.main()

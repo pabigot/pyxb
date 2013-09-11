@@ -46,7 +46,6 @@ class TestTrac0099a (unittest.TestCase):
             return
         with self.assertRaises(pyxb.SchemaValidationError) as cm:
             code = pyxb.binding.generate.GeneratePython(schema_text=xsd)
-            print code
         self.assertEqual(u'Value constraint on element complex with non-simple content', str(cm.exception))
 
 if __name__ == '__main__':

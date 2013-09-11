@@ -14,7 +14,6 @@ class TestTrac0207 (unittest.TestCase):
 
     def testDuration (self):
         dur = xsd.duration("P10675199DT2H48M5.4775807S")
-        print repr(dur)
         self.assertEqual(dur.days, 10675199)
         self.assertEqual(dur.seconds, 10085)
         self.assertEqual(dur.microseconds, 477580)
