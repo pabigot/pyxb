@@ -807,7 +807,7 @@ class base64Binary (basis.simpleTypeDefinition, types.StringType):
             xmls = args[0]
             try:
                 args = (base64.standard_b64decode(xmls),) + args[1:]
-            except TypeError as e:
+            except TypeError:
                 raise SimpleTypeValueError(cls, xmls)
             # This is what it costs to try to be a validating processor.
             if cls.__Lexical_re.match(xmls) is None:

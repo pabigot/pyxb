@@ -678,7 +678,7 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
             ctor = cls._SupersedingClass()
         try:
             return ctor(*args, **kw)
-        except TypeError as e:
+        except TypeError:
             raise pyxb.SimpleTypeValueError(ctor, args)
 
 class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
@@ -871,9 +871,9 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         assert issubclass(cls, _TypeBinding_mixin)
         try:
             return super(simpleTypeDefinition, cls).__new__(cls, *args, **kw)
-        except ValueError as e:
+        except ValueError:
             raise pyxb.SimpleTypeValueError(cls, args)
-        except OverflowError as e:
+        except OverflowError:
             raise pyxb.SimpleTypeValueError(cls, args)
 
     # Validate the constraints after invoking the parent constructor,
@@ -909,7 +909,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         args = self._ConvertArguments(args, kw)
         try:
             super(simpleTypeDefinition, self).__init__(*args, **kw)
-        except OverflowError as e:
+        except OverflowError:
             raise pyxb.SimpleTypeValueError(type(self), args)
         if apply_attributes and (dom_node is not None):
             self._setAttributesFromKeywordsAndDOM(kw, dom_node)

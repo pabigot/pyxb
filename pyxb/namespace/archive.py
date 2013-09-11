@@ -171,9 +171,9 @@ class NamespaceArchive (object):
                     try:
                         nsa = cls.__GetArchiveInstance(afn, stage=cls._STAGE_readModules)
                         archive_set.add(nsa)
-                    except pickle.UnpicklingError as e:
+                    except pickle.UnpicklingError:
                         _log.exception('Cannot unpickle archive %s', afn)
-                    except pyxb.NamespaceArchiveError as e:
+                    except pyxb.NamespaceArchiveError:
                         _log.exception('Cannot process archive %s', afn)
 
                 # Do this for two reasons: first, to get an iterable that won't

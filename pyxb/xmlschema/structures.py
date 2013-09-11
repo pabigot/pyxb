@@ -1488,7 +1488,6 @@ class ElementDeclaration (_ParticleTree_mixin, _SchemaComponent_mixin, _NamedCom
                 else:
                     failed = not (isinstance(ct, tuple) and (ComplexTypeDefinition.CT_SIMPLE == ct[0]))
             if failed:
-                type_en = self.__typeDefinition.expandedName()
                 if self.__typeExpandedName is None:
                     raise pyxb.SchemaValidationError('Value constraint on element %s with non-simple content' % (self.expandedName(),))
                 raise pyxb.SchemaValidationError('Value constraint on element %s with non-simple type %s' % (self.expandedName(), self.__typeExpandedName))
@@ -4576,7 +4575,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
                         }
                 try:
                     schema_instance = Schema.CreateFromLocation(**ckw)
-                except Exception as e:
+                except Exception:
                     _log.exception('Import %s cannot read schema location %s (%s)', ns, self.__schemaLocation, schema_location)
                     raise
             self.__schema = schema_instance

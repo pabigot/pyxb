@@ -23,7 +23,6 @@ import StringIO
 import datetime
 import errno
 
-from pyxb.utils import fac
 from pyxb.utils import utility
 from pyxb.utils import templates
 from pyxb.binding import basis
@@ -32,7 +31,6 @@ from pyxb.binding import facets
 
 import types
 import sys
-import traceback
 import os.path
 import logging
 import logging.config
@@ -362,7 +360,6 @@ def GenerateAutomaton (ctd, **kw):
     automaton = aux.automaton
     if automaton is None:
         return None
-    serial_map = { 'automata': 1 }
     lines = []
     name = _GenerateAutomaton(automaton, template_map, 'None', lines, **kw)
     return (name, lines)
@@ -945,7 +942,6 @@ class %{ctd} (%{superclass}):
     # subclasses.
 
     if isinstance(content_basis, xs.structures.Particle):
-        plurality_data = {}
         aux = _CTDAuxData.Get(ctd)
         elements = aux.edSingles.union(aux.edMultiples)
 
@@ -1326,7 +1322,6 @@ class _ModuleNaming_mixin (object):
 
     def moduleContents (self):
         template_map = {}
-        import_paths = set()
         aux_imports = []
         for (mr, as_path) in self.__importModulePathMap.iteritems():
             assert self != mr

@@ -560,7 +560,6 @@ class UnrecognizedContentError (IncrementalElementContentError):
             rv.append('The unrecognized content %s begins at %s' % (self.value._diagnosticName(), self.location))
         else:
             rv.append('The unrecognized content is %s' % (self.value._diagnosticName(),))
-        ty = type(self.instance)
         rv.append('The %s automaton %s in an accepting state.' % (self.instance._Name(), self.automaton_configuration.isAccepting() and "is" or "is not"))
         if isinstance(self.instance, pyxb.binding.basis.complexTypeDefinition) and self.instance._IsMixed():
             rv.append('Character information content would be permitted.')
@@ -616,7 +615,6 @@ class BatchElementContentError (ContentValidationError):
         if i._element() is not None:
             rv.append('The containing element %s is defined at %s.' % (i._element().name(), i._element().xsdLocation()))
         rv.append('The containing element type %s is defined at %s' % (self.instance._Name(), unicode(self.instance._XSDLocation)))
-        ty = type(self.instance)
         rv.append('The %s automaton %s in an accepting state.' % (self.instance._Name(), self.fac_configuration.isAccepting() and "is" or "is not"))
         if self.symbols is None:
             rv.append('Any accepted content has been stored in instance')

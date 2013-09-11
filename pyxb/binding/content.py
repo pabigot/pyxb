@@ -625,7 +625,6 @@ class AutomatonConfiguration (object):
                     raise pyxb.InvalidPreferredElementContentError(self.__instance, cfg, symbols, symbol_set, psym)
                 break
             cfg = selected_xit.apply(cfg)
-            psym_wait = False
         cfg = self._diagnoseIncompleteContent(symbols, symbol_set)
         if symbol_set:
             raise pyxb.UnprocessedElementContentError(self.__instance, cfg, symbols, symbol_set)
