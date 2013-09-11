@@ -598,7 +598,7 @@ def elementDeclarationMap (ed, binding_module, **kw):
 
 import pyxb.utils.fac
 import operator
-
+import functools
 
 # A Symbol in the term tree is a pair consisting of the containing
 # particle (for location information) and one of an
@@ -670,7 +670,7 @@ def BuildTermTree (node):
                     # is not worth the pain.  Create a "symbol" for the
                     # state and hold the alternatives in it.
                     assert node.C_ALL == node.compositor()
-                    assert reduce(operator.and_, map(lambda _s: isinstance(_s, pyxb.utils.fac.Node), terms), True)
+                    assert functools.reduce(operator.and_, map(lambda _s: isinstance(_s, pyxb.utils.fac.Node), terms), True)
                     term = pyxb.utils.fac.All(*terms, metadata=node)
             siblings.append(term)
 

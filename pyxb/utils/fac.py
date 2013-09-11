@@ -58,6 +58,7 @@ retained between matches.
 """
 
 import operator
+import functools
 import logging
 
 log_ = logging.getLogger(__name__)
@@ -1042,7 +1043,7 @@ class Configuration (Configuration_ABC):
                 return False
             # Any unprocessed sub-automata must be nullable
             if self.__subAutomata is not None:
-                if not reduce(operator.and_, map(lambda _sa: _sa.nullable, self.__subAutomata), True):
+                if not functools.reduce(operator.and_, map(lambda _sa: _sa.nullable, self.__subAutomata), True):
                     return False
             # This state must be accepting
             return self.__state.isAccepting(self.__counterValues)
