@@ -3539,6 +3539,10 @@ class NotationDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Annot
         rv._annotationFromDOM(node)
         return rv
 
+    # bR:ND
+    def _bindingRequires_vx (self, include_lax):
+        return frozenset()
+
 # 3.13.1
 class Annotation (_SchemaComponent_mixin):
     """An XMLSchema U{Annotation<http://www.w3.org/TR/xmlschema-1/#cAnnotation>} component."""
