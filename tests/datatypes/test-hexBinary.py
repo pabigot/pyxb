@@ -21,7 +21,7 @@ class Test_hexBinary (unittest.TestCase):
             v = xsd.hexBinary.Factory(ev)
             self.assertEqual(v, ev)
             v = xsd.hexBinary.Factory(ev, _from_xml=True)
-            self.assertEqual(len(ev)/2, len(v))
+            self.assertEqual(len(ev)//2, len(v))
             self.assertEqual(ev.upper(), v.xsdLiteral())
 
     def testBadStrings (self):

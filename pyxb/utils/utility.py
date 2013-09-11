@@ -927,7 +927,7 @@ class UTCOffsetTimeZone (datetime.tzinfo):
             elif isinstance(spec, int):
                 self.__utcOffset_min = spec
             elif isinstance(spec, datetime.timedelta):
-                self.__utcOffset_min = spec.seconds / 60
+                self.__utcOffset_min = spec.seconds // 60
             else:
                 raise TypeError('%s: unexpected type %s' % (type(self), type(spec)))
         self.__utcOffset_td = datetime.timedelta(minutes=self.__utcOffset_min)

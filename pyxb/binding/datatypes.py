@@ -668,7 +668,7 @@ class date (_PyXBDateOnly_base):
         if self.tzinfo is None:
             return None
         sdt = self.replace(hour=0, minute=0, second=0, tzinfo=self._UTCTimeZone)
-        utc_offset = (sdt - self).seconds / self.__SecondsPerMinute
+        utc_offset = (sdt - self).seconds // self.__SecondsPerMinute
         if utc_offset > self.__MinutesPerHalfDay:
             utc_offset -= self.__MinutesPerDay
         return pyxb.utils.utility.UTCOffsetTimeZone(utc_offset)
