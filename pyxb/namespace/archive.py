@@ -727,7 +727,7 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
         self.__namespace = namespace
         assert (generation_uid != builtin.BuiltInObjectUID) or namespace.isBuiltinNamespace()
         self.__isPublic = kw.get('is_public', False)
-        self.__isIncoporated = kw.get('is_incorporated', False)
+        self.__isIncorporated = kw.get('is_incorporated', False)
         self.__isLoadable = kw.get('is_loadable', True)
         assert isinstance(generation_uid, pyxb.utils.utility.UniqueIdentifier)
         self.__generationUID = generation_uid
