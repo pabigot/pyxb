@@ -38,7 +38,7 @@ class TestTrac_0136 (unittest.TestCase):
         return self.Template % (ts,)
 
     def testNormalize (self):
-        pyxb.PreserveInputTimeZone(False);
+        pyxb.PreserveInputTimeZone(False)
         i_p10 = CreateFromDocument(self.genXML(self.TS_p10))
         i_Z = CreateFromDocument(self.genXML(self.TS_Z))
         self.assertEqual(i_p10, i_Z)
@@ -48,7 +48,7 @@ class TestTrac_0136 (unittest.TestCase):
         self.assertTrue(i_naive.tzinfo is None)
 
     def testUnnormalized (self):
-        pyxb.PreserveInputTimeZone(True);
+        pyxb.PreserveInputTimeZone(True)
         i_p10 = CreateFromDocument(self.genXML(self.TS_p10))
         i_Z = CreateFromDocument(self.genXML(self.TS_Z))
         self.assertEqual(i_p10, i_Z)

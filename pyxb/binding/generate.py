@@ -969,7 +969,7 @@ class %{ctd} (%{superclass}):
     # Element %{id} (%{qname}) inherited from %{decl_type_en}''', decl_type_en=unicode(ed.scope().expandedName()), **ef_map))
                 continue
 
-            binding_module.importForDeclaration(ed);
+            binding_module.importForDeclaration(ed)
             if ed.expandedName().localName() != ef_map['id']:
                 _log.warning('Element use %s.%s renamed to %s', ctd.expandedName(), ed.expandedName(), ef_map['id'])
             definitions.append(templates.replaceInText('''
@@ -1012,7 +1012,7 @@ class %{ctd} (%{superclass}):
     # Attribute %{id} inherited from %{decl_type_en}''', decl_type_en=unicode(ad.scope().expandedName()), **au_map))
             continue
         assert isinstance(au_map, dict)
-        aur = au;
+        aur = au
         while aur.restrictionOf() is not None:
             aur = aur.restrictionOf()
         if au != aur:
@@ -1044,7 +1044,7 @@ class %{ctd} (%{superclass}):
         else:
             au_map['documentation'] = binding_module.literal(None)
 
-        binding_module.importForDeclaration(ad);
+        binding_module.importForDeclaration(ad)
         attribute_uses.append(templates.replaceInText('%{use}.name() : %{use}', **au_map))
         if ad.expandedName().localName() != au_map['id']:
             _log.warning('Attribute %s.%s renamed to %s', ctd.expandedName(), ad.expandedName(), au_map['id'])

@@ -45,7 +45,7 @@ class TestTrac_0052 (unittest.TestCase):
         xmls = '<testElt><wc1/><wc2 wca="3"/></testElt>'
         # Hide the warning about failure to convert wc1/wc2 to bindings
         self.__basis_log.setLevel(logging.ERROR)
-        instance = CreateFromDocument(xmls);
+        instance = CreateFromDocument(xmls)
         self.assertEqual(2, len(instance.wildcardElements()))
         wc2 = instance.wildcardElements()[1]
         self.assertTrue(isinstance(wc2, xml.dom.Node))

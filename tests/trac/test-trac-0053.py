@@ -46,18 +46,18 @@ import xml.dom
 class TestTrac_0053 (unittest.TestCase):
     def testBase (self):
         xmls = '<base attr="value"/>'
-        instance = CreateFromDocument(xmls);
+        instance = CreateFromDocument(xmls)
         self.assertTrue(isinstance(instance.attr, list))
         self.assertEqual(1, len(instance.attr))
         self.assertEqual("value", instance.attr[0])
 
     def testExt (self):
         xmls = '<ext eattr="value"/>'
-        instance = CreateFromDocument(xmls);
+        instance = CreateFromDocument(xmls)
         self.assertEqual("value", instance.eattr)
         # Creation from DOM takes a different code path
         domn = pyxb.utils.domutils.StringToDOM(xmls)
-        instance = CreateFromDOM(domn);
+        instance = CreateFromDOM(domn)
         self.assertEqual("value", instance.eattr)
 
     def testExtMissingRequired (self):

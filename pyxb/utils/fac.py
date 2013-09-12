@@ -1793,7 +1793,7 @@ class Sequence (MultiTermNode):
 
     def _last (self):
         rv = set()
-        c = len(self.terms) - 1;
+        c = len(self.terms) - 1
         while 0 <= c:
             t = self.terms[c]
             rv.update([ (c,) + _lc for _lc in t.last])

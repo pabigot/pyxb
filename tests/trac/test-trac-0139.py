@@ -103,7 +103,7 @@ class TestTrac_0139 (unittest.TestCase):
         self.assertTrue(isinstance(parser, xml.sax.expatreader.ExpatParser))
         if self.have_libxml2:
             import drv_libxml2
-            self.useLibXML2Parser();
+            self.useLibXML2Parser()
             parser = pyxb.utils.saxutils.make_parser()
             self.assertTrue(isinstance(parser, drv_libxml2.LibXml2Reader))
 
@@ -116,7 +116,7 @@ class TestTrac_0139 (unittest.TestCase):
         if not self.have_libxml2:
             _log.warning('%s: testASCII_libxml2_str bypassed since libxml2 not present', __file__)
             return
-        self.useLibXML2Parser();
+        self.useLibXML2Parser()
         xmls = self.ascii_xml
         # ERROR: This should be fine, see trac/147
         if sys.version_info[:2] == (2, 7):
@@ -134,7 +134,7 @@ class TestTrac_0139 (unittest.TestCase):
         if not self.have_libxml2:
             _log.warning('%s: testASCII_libxml2_file bypassed since libxml2 not present', __file__)
             return
-        self.useLibXML2Parser();
+        self.useLibXML2Parser()
         xmls = file(self.path_ascii).read()
         instance = CreateFromDocument(xmls)
         self.assertEqual(self.ascii, instance)
@@ -161,13 +161,13 @@ class TestTrac_0139 (unittest.TestCase):
         if not self.have_libxml2:
             _log.warning('%s: testNihongo_libxml2_file bypassed since libxml2 not present', __file__)
             return
-        self.useLibXML2Parser();
+        self.useLibXML2Parser()
         xmls = file(self.path_nihongo).read()
         instance = CreateFromDocument(xmls)
         self.assertEqual(self.nihongo, instance)
 
     def testASCII_stringio (self):
-        f = file(self.path_ascii).read();
+        f = file(self.path_ascii).read()
         sio = StringIO.StringIO(self.ascii_xml).read()
         self.assertEqual(f, sio)
 

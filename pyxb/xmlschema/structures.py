@@ -3432,7 +3432,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
         kw.pop('node', None)
         kw['owner'] = rv
 
-        #self._annotationFromDOM(node);
+        #self._annotationFromDOM(node)
         rv.__isResolved = True
         icc = None
         if xsd.nodeIsNamed(node, 'key'):

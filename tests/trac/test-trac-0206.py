@@ -24,15 +24,15 @@ class TestTrac0206 (unittest.TestCase):
     def testBasic (self):
         self.assertFalse(pyxb.PreserveInputTimeZone())
         dt = xsd.dateTime(self.Time)
-        self.assertEqual('2013-08-30 07:56:45+00:00', str(dt));
-        self.assertEqual('2013-08-30 09:56:45+02:00', str(dt.aslocal()));
+        self.assertEqual('2013-08-30 07:56:45+00:00', str(dt))
+        self.assertEqual('2013-08-30 09:56:45+02:00', str(dt.aslocal()))
 
     def testPreserve (self):
         pyxb.PreserveInputTimeZone(True)
         self.assertTrue(pyxb.PreserveInputTimeZone())
         dt = xsd.dateTime(self.Time)
-        self.assertEqual('2013-08-30 11:56:45+04:00', str(dt));
-        self.assertEqual('2013-08-30 09:56:45+02:00', str(dt.aslocal()));
+        self.assertEqual('2013-08-30 11:56:45+04:00', str(dt))
+        self.assertEqual('2013-08-30 09:56:45+02:00', str(dt.aslocal()))
 
 if __name__ == '__main__':
     unittest.main()

@@ -44,7 +44,7 @@ import unittest
 class TestTrac_0087 (unittest.TestCase):
     def testReservedWords (self):
         # Element global
-        self.assertTrue(isinstance(global_, pyxb.binding.basis.element));
+        self.assertTrue(isinstance(global_, pyxb.binding.basis.element))
         # Complex type class
         self.assertTrue(issubclass(class_, pyxb.binding.basis.complexTypeDefinition))
         # Simple type def
