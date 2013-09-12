@@ -2569,9 +2569,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
 
     __anyAttribute = None
     __attributeGroupNames = None
-    __refExpandedName = None
     __PrivateTransient.update(['anyAttribute', 'attributeGroupNames'])
-
 
     # CFD:AGD CFD:AttributeGroupDefinition
     @classmethod
@@ -2592,8 +2590,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
         rv._annotationFromDOM(node)
 
         # Attribute group definitions must not be references
-        rv.__refExpandedName = domutils.NodeAttributeQName(node, 'ref')
-        if rv.__refExpandedName is not None:
+        if domutils.NodeAttribute(node, 'ref'):
             raise pyxb.SchemaValidationError('Attribute reference at top level')
 
         kw.pop('node', None)
