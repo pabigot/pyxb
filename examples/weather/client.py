@@ -1,3 +1,4 @@
+from __future__ import print_function
 import weather
 import time
 import sys
@@ -29,12 +30,12 @@ resp = soap_resp.Body.wildcardElements()[0]
 
 fc_return = resp.GetCityForecastByZIPResult
 if fc_return.Success:
-    print 'Got response for %s, %s:' % (fc_return.City, fc_return.State)
+    print('Got response for %s, %s:' % (fc_return.City, fc_return.State))
     for fc in fc_return.ForecastResult.Forecast:
         when = time.strftime('%A, %B %d %Y', fc.Date.timetuple())
         outlook = fc.Desciption # typos in WSDL left unchanged
         low = fc.Temperatures.MorningLow
         high = fc.Temperatures.DaytimeHigh
-        print '  %s: %s, from %s to %s' % (when, outlook, low, high)
+        print('  %s: %s, from %s to %s' % (when, outlook, low, high))
         
     

@@ -26,6 +26,7 @@ interface is supported, and only for storing the XML information, not for
 converting it back into document format.
 """
 
+from __future__ import print_function
 import xml.dom
 import pyxb.utils.saxutils
 import StringIO
@@ -39,21 +40,21 @@ def _DumpDOM (n, depth=0):
 
     pfx = ' ' * depth
     if (xml.dom.Node.ELEMENT_NODE == n.nodeType):
-        print '%sElement[%d] %s %s with %d children' % (pfx, n._indexInParent(), n, pyxb.namespace.ExpandedName(n.name), len(n.childNodes))
+        print('%sElement[%d] %s %s with %d children' % (pfx, n._indexInParent(), n, pyxb.namespace.ExpandedName(n.name), len(n.childNodes)))
         ins = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(n).inScopeNamespaces()
-        print '%s%s' % (pfx, ' ; '.join([ '%s=%s' % (_k, _v.uri()) for (_k, _v) in ins.items()]))
+        print('%s%s' % (pfx, ' ; '.join([ '%s=%s' % (_k, _v.uri()) for (_k, _v) in ins.items()])))
         for (k, v) in n.attributes.items():
-            print '%s %s=%s' % (pfx, pyxb.namespace.ExpandedName(k), v)
+            print('%s %s=%s' % (pfx, pyxb.namespace.ExpandedName(k), v))
         for cn in n.childNodes:
             _DumpDOM(cn, depth+1)
     elif (xml.dom.Node.TEXT_NODE == n.nodeType):
         #print '%sText "%s"' % (pfx, n.value)
         pass
     elif (xml.dom.Node.DOCUMENT_NODE == n.nodeType):
-        print 'Document node'
+        print('Document node')
         _DumpDOM(n.firstChild, depth)
     else:
-        print 'UNRECOGNIZED %s' % (n.nodeType,)
+        print('UNRECOGNIZED %s' % (n.nodeType,))
 
 class _DOMSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
     """SAX handler class that transforms events into a DOM tree."""

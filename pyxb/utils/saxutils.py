@@ -22,6 +22,7 @@ element in the stream.  These classes are extended for specific parsing needs
 (e.g., L{pyxb.binding.saxer}).
 """
 
+from __future__ import print_function
 import xml.sax
 import xml.sax.handler
 import pyxb.namespace
@@ -38,31 +39,31 @@ class TracingSAXHandler (xml.sax.handler.ContentHandler):
     __trace = False
 
     def setDocumentLocator (self, locator):
-        print 'setDocumentLocator %s' % (locator,)
+        print('setDocumentLocator %s' % (locator,))
 
     def startDocument (self):
-        print 'startDocument'
+        print('startDocument')
 
     def startPrefixMapping (self, prefix, uri):
-        print 'startPrefixMapping %s %s' % (prefix, uri)
+        print('startPrefixMapping %s %s' % (prefix, uri))
 
     def endPrefixMapping (self, prefix):
-        print 'endPrefixMapping %s' % (prefix,)
+        print('endPrefixMapping %s' % (prefix,))
 
     def startElementNS (self, name, qname, attrs):
-        print 'startElementNS %s %s' % (name, qname)
+        print('startElementNS %s %s' % (name, qname))
 
     def endElementNS (self, name, qname):
-        print 'endElementNS %s %s' % (name, qname)
+        print('endElementNS %s %s' % (name, qname))
 
     def characters (self, content):
-        print 'characters %s' % (content,)
+        print('characters %s' % (content,))
 
     def ignorableWhitespace (self, whitespace):
-        print 'ignorableWhitespace len %d' % (len(whitespace),)
+        print('ignorableWhitespace len %d' % (len(whitespace),))
 
     def processingInstruction (self, target, data):
-        print 'processingInstruction %s %s' % (target, data)
+        print('processingInstruction %s %s' % (target, data))
 
 class _NoopSAXHandler (xml.sax.handler.ContentHandler):
     """A SAX handler class which doesn't do anything.  Used to get baseline
@@ -558,12 +559,12 @@ if '__main__' == __name__:
     lxml.sax.saxify(tree, ldh)
     ldt3 = time.time()
 
-    print 'minidom read %f, parse %f, total %f' % (dt2-dt1, dt3-dt2, dt3-dt1)
-    print 'SAX+noop create %f, parse %f, total %f' % (snt2-snt1, snt3-snt2, snt3-snt1)
-    print 'SAX+ns create %f, parse %f, total %f' % (sbt2-sbt1, sbt3-sbt2, sbt3-sbt1)
-    print 'PyXB SAXDOM-based create %f, parse %f, total %f' % (pdt2-pdt1, pdt3-pdt2, pdt3-pdt1)
-    print 'LXML+SAX tree %f, parse %f, total %f' % (lst2-lst1, lst3-lst2, lst3-lst1)
-    print 'LXML+pulldom DOM tree %f, parse %f, total %f' % (ldt2-ldt1, ldt3-ldt2, ldt3-ldt1)
+    print('minidom read %f, parse %f, total %f' % (dt2-dt1, dt3-dt2, dt3-dt1))
+    print('SAX+noop create %f, parse %f, total %f' % (snt2-snt1, snt3-snt2, snt3-snt1))
+    print('SAX+ns create %f, parse %f, total %f' % (sbt2-sbt1, sbt3-sbt2, sbt3-sbt1))
+    print('PyXB SAXDOM-based create %f, parse %f, total %f' % (pdt2-pdt1, pdt3-pdt2, pdt3-pdt1))
+    print('LXML+SAX tree %f, parse %f, total %f' % (lst2-lst1, lst3-lst2, lst3-lst1))
+    print('LXML+pulldom DOM tree %f, parse %f, total %f' % (ldt2-ldt1, ldt3-ldt2, ldt3-ldt1))
 
 ## Local Variables:
 ## fill-column:78

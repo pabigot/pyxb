@@ -1,3 +1,4 @@
+from __future__ import print_function
 import GeoCoder
 from pyxb import BIND
 import sys
@@ -50,11 +51,11 @@ else:
 
 for item in items:
     if (item.lat is None) or item.lat._isNil():
-        print 'Warning: Address did not resolve'
-    print '''
+        print('Warning: Address did not resolve')
+    print('''
 %s %s %s %s %s
 %s, %s  %s
 %s %s''' % (item.number, item.prefix, item.street, item.type, item.suffix,
             item.city, item.state, item.zip,
-            item.lat, item.long)
+            item.lat, item.long))
     

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import logging
 if __name__ == '__main__':
     logging.basicConfig()
@@ -18,7 +19,7 @@ class Test_QName (unittest.TestCase):
         for f in invalid:
             try:
                 xsd.QName(f)
-                print 'Unexpected pass with %s' % (f,)
+                print('Unexpected pass with %s' % (f,))
             except:
                 pass
             self.assertRaises(SimpleTypeValueError, xsd.QName, f)

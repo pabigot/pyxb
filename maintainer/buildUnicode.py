@@ -26,6 +26,7 @@ C{pyxb/utils/unicode_data.py}.
 
 """
 
+from __future__ import print_function
 import textwrap
 import re
 
@@ -112,14 +113,14 @@ def emitCategoryMap (data_file):
     for k, v in list(category_map.iteritems()):
         category_map[k] = condenseCodepoints(v)
 
-    print '# Unicode general category properties: %d properties' % (len(category_map),)
-    print 'PropertyMap = {'
+    print('# Unicode general category properties: %d properties' % (len(category_map),))
+    print('PropertyMap = {')
     for (k, v) in sorted(category_map.iteritems()):
-        print '  # %s: %d codepoint groups (%d codepoints)' % (k, len(v), countCodepoints(v))
-        print "  %-4s : CodePointSet([" % ("'%s'" % k,)
-        print "           %s" % (rangesToPython(v, indent=11, width=67),)
-        print "         ]),"
-    print '  }'
+        print('  # %s: %d codepoint groups (%d codepoints)' % (k, len(v), countCodepoints(v)))
+        print("  %-4s : CodePointSet([" % ("'%s'" % k,))
+        print("           %s" % (rangesToPython(v, indent=11, width=67),))
+        print("         ]),")
+    print('  }')
 
 def emitBlockMap (data_file):
     block_map = { }
@@ -137,20 +138,20 @@ def emitBlockMap (data_file):
         block = mo.group('block').replace(' ', '')
         block_map.setdefault(block, []).append( (rmin, rmax) )
 
-    print '# Unicode code blocks: %d blocks' % (len(block_map),)
-    print 'BlockMap = {'
+    print('# Unicode code blocks: %d blocks' % (len(block_map),))
+    print('BlockMap = {')
     for k in sorted(block_map.keys()):
         v = block_map.get(k)
-        print '  %s : CodePointSet(' % (repr(k),)
-        print '     %s' % (rangesToPython(v, indent=6, width=67),)
-        print '  ),'
-    print '  }'
+        print('  %s : CodePointSet(' % (repr(k),))
+        print('     %s' % (rangesToPython(v, indent=6, width=67),))
+        print('  ),')
+    print('  }')
 
-print '''# -*- coding: utf-8 -*-
+print('''# -*- coding: utf-8 -*-
 # Unicode property and category maps.
 
 from pyxb.utils.unicode import CodePointSet
-'''
+''')
 
 emitBlockMap('Blocks-4.txt')
 emitCategoryMap('UnicodeData-3.1.0.txt')

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import pyxb.utils.domutils
 import xml.dom
 import xml.dom.minidom
@@ -12,7 +13,7 @@ import pyxb.namespace
 xmls = open('NDFDgen.xml').read()
 dom = xml.dom.minidom.parseString(xmls)
 body_dom = dom.documentElement.firstChild.nextSibling.firstChild.nextSibling
-print body_dom
+print(body_dom)
 
 # Service interface types
 import ndfd
@@ -25,25 +26,25 @@ doc = xml.dom.minidom.parseString(uri_src.read())
 spec = wsdl.definitions.createFromDOM(doc.documentElement, process_schema=True)
 
 binding = spec.binding[0]
-print binding.name
+print(binding.name)
 port_type = spec.portType[0]
-print port_type.name
+print(port_type.name)
 bop = binding.operationMap()[body_dom.localName]
-print bop.toxml("utf-8")
+print(bop.toxml("utf-8"))
 pop = port_type.operationMap()[body_dom.localName]
-print pop.toxml("utf-8")
+print(pop.toxml("utf-8"))
 input = pop.input
-print input.toxml("utf-8")
-print type(input)
-print input.message
+print(input.toxml("utf-8"))
+print(type(input))
+print(input.message)
 im_en = input._namespaceContext().interpretQName(input.message)
-print im_en
+print(im_en)
 msg = im_en.message()
-print msg
+print(msg)
 for p in msg.part:
-    print p.toxml("utf-8")
+    print(p.toxml("utf-8"))
 msg_ns = pyxb.namespace.NamespaceForURI(body_dom.namespaceURI)
-print '%s %s' % (body_dom.namespaceURI, msg_ns)
+print('%s %s' % (body_dom.namespaceURI, msg_ns))
 
 parts = msg.part
 nodes = body_dom.childNodes
@@ -55,10 +56,10 @@ while parts and nodes:
     assert nodes
     n = nodes.pop(0)
     if p.name != n.localName:
-        print 'Desynchronized: part %s expected node %s' % (p.name, n.localName)
+        print('Desynchronized: part %s expected node %s' % (p.name, n.localName))
         nodes.insert(0, n)
         continue
-    print '%s %s' % (p.name, n.localName)
+    print('%s %s' % (p.name, n.localName))
 
 #print '%s yielded %s' msg_ns
 

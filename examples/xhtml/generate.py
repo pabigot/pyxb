@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import pyxb.bundles.common.xhtml1 as xhtml
 import pyxb.utils.domutils
 
@@ -29,7 +30,7 @@ doc = xhtml.html(head, body)
 try:
     xmls = doc.toDOM().toprettyxml()
 except pyxb.ValidationError as e:
-    print e.details()
+    print(e.details())
     raise
 file('genout.xhtml', 'w').write(xmls)
 

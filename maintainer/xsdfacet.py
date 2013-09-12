@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import pyxb.xmlschema
 import pyxb.binding.generate
@@ -8,6 +9,6 @@ if 0 == len(files):
     files = [ 'pyxb/standard/schemas/XMLSchema.xsd' ]
 
 rv = pyxb.binding.generate.GeneratePython(schema_location=files[0], generate_facets=True)
-print '''# ---------
+print('''# ---------
 %s
-# -------------''' % (rv,)
+# -------------''' % (rv,))

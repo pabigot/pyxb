@@ -1,3 +1,4 @@
+from __future__ import print_function
 import dict
 import urllib2
 import pyxb.utils.domutils as domutils
@@ -20,4 +21,4 @@ for d in dle.Dictionary:
     di_resp = dict.CreateFromDOM(domutils.StringToDOM(resp))
     # Do the "encode" garbage because one of these dictionaries has a
     # non-ASCII character
-    print "%s (%s)\n%s\n" % (d.Name.encode('utf-8'), d.Id.encode('utf-8'), di_resp.encode('utf-8'))
+    print("%s (%s)\n%s\n" % (d.Name.encode('utf-8'), d.Id.encode('utf-8'), di_resp.encode('utf-8')))

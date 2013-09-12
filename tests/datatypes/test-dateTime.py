@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import logging
 if __name__ == '__main__':
     logging.basicConfig()
@@ -73,15 +74,15 @@ class Test_dateTime (unittest.TestCase):
     # machine that uses DST.
     def XtestBogus (self):
         dt = xsd.dateTime.today()
-        print dt.xsdLiteral()
-        print str(dt)
-        print dt.aslocal()
+        print(dt.xsdLiteral())
+        print(str(dt))
+        print(dt.aslocal())
         # NB: duration does not support months in Python version
         delta = xsd.duration('P%dD' % (365 / 2))
         dt = xsd.dateTime(dt + delta)
-        print dt.xsdLiteral()
-        print str(dt)
-        print dt.aslocal()
+        print(dt.xsdLiteral())
+        print(str(dt))
+        print(dt.aslocal())
 
 
 if __name__ == '__main__':

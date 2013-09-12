@@ -1,3 +1,4 @@
+from __future__ import print_function
 import DWML
 import datetime
 import pyxb
@@ -76,7 +77,7 @@ for p in req_msg.part:
         # Fatal error if a field required by the message is not available
         raise Exception('%s: %s has no value' % (p.name, p.typeReference.expandedName()))
     else:
-        print '%s: %s' % (p.name, p.typeReference.expandedName())
+        print('%s: %s' % (p.name, p.typeReference.expandedName()))
         # Make sure the value is of the expected type
         type_binding = p.typeReference.expandedName().typeBinding()
         if not isinstance(fv, type_binding):
@@ -138,22 +139,22 @@ r = None
 try:
     r = DWML.CreateFromDocument(rxml)
 except pyxb.UnrecognizedContentError as e:
-    print '*** ERROR validating response:'
-    print e.details()
+    print('*** ERROR validating response:')
+    print(e.details())
 if r is None:
     pyxb.RequireValidWhenParsing(False)
     r = DWML.CreateFromDocument(rxml)
 
 # Start spitting out the processed data.
 product = r.head.product
-print '%s %s' % (product.title, product.category)
+print('%s %s' % (product.title, product.category))
 source = r.head.source
-print ", ".join(source.production_center.content())
+print(", ".join(source.production_center.content()))
 data = r.data[0]
 
 for i in range(len(data.location)):
     loc = data.location[i]
-    print '%s [%s %s]' % (loc.location_key, loc.point.latitude, loc.point.longitude)
+    print('%s [%s %s]' % (loc.location_key, loc.point.latitude, loc.point.longitude))
     for p in data.parameters:
         if p.applicable_location != loc.location_key:
             continue
@@ -163,7 +164,7 @@ for i in range(len(data.location)):
                 maxt = t
             elif 'minimum' == t.type:
                 mint = t
-            print '%s (%s): %s' % (t.name, t.units, " ".join([ str(_v.value()) for _v in t.value_ ]))
+            print('%s (%s): %s' % (t.name, t.units, " ".join([ str(_v.value()) for _v in t.value_ ])))
         time_layout = None
         for tl in data.time_layout:
             if tl.layout_key == mint.time_layout:
@@ -172,5 +173,5 @@ for i in range(len(data.location)):
         for ti in range(len(time_layout.start_valid_time)):
             start = time_layout.start_valid_time[ti].value()
             end = time_layout.end_valid_time[ti]
-            print '%s: min %s, max %s' % (time.strftime('%A, %B %d %Y', start.timetuple()),
-                                          mint.value_[ti].value(), maxt.value_[ti].value())
+            print('%s: min %s, max %s' % (time.strftime('%A, %B %d %Y', start.timetuple()),
+                                          mint.value_[ti].value(), maxt.value_[ti].value()))

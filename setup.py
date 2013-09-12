@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 # The current version of the system.  Format is #.#.#[-DEV].
 version = '1.2.3-DEV'
 
@@ -87,7 +89,7 @@ class test (Command):
         while dirs:
             dir = dirs.pop(0)
             if self.trace_tests:
-                print 'Searching for tests in %s' % (dir,)
+                print('Searching for tests in %s' % (dir,))
             for f in os.listdir(dir):
                 fn = os.path.join(dir, f)
                 statb = os.stat(fn)
@@ -149,9 +151,9 @@ class test (Command):
                     if (type == type(obj)) and issubclass(obj, unittest.TestCase):
                         suite.addTest(loader.loadTestsFromTestCase(obj))
                 if self.trace_tests:
-                    print '%s imported' % (fn,)
+                    print('%s imported' % (fn,))
             except Exception as e:
-                print '%s failed in %s: %s' % (fn, stage, e)
+                print('%s failed in %s: %s' % (fn, stage, e))
                 raise
 
         # Run everything
@@ -183,7 +185,7 @@ possible_bundles = []
 try:
     possible_bundles.extend(os.listdir(bundle_base))
 except OSError as e:
-    print "Directory %s bundle search failed: %s" % (bundle_base, e)
+    print("Directory %s bundle search failed: %s" % (bundle_base, e))
 for possible_bundle in possible_bundles:
     bundle_root = os.path.join(bundle_base, possible_bundle)
     if not os.path.isdir(bundle_root):
@@ -199,7 +201,7 @@ for possible_bundle in possible_bundles:
             if setup_path and '.' != setup_path:
                 prefix_path = setup_path + os.path.sep
                 if not package_relpath.startswith(prefix_path):
-                    print "Unable to determine relative path from %s to %s installation" % (setup_path, bundle_path)
+                    print("Unable to determine relative path from %s to %s installation" % (setup_path, bundle_path))
                     sys.exit(1)
                 package_relpath = package_relpath[len(prefix_path):]
         package = package_relpath.replace(os.path.sep, '.')
@@ -208,7 +210,7 @@ for possible_bundle in possible_bundles:
         if wxs_files:
             b_data[package] = wxs_files
     if 0 < len(b_data):
-        print 'Found bundle in %s' % (bundle_root,)
+        print('Found bundle in %s' % (bundle_root,))
         packages.extend(b_packages)
         package_data.update(b_data)
 

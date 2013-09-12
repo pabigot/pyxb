@@ -1,3 +1,4 @@
+from __future__ import print_function
 import pyxb
 import po3
 import address
@@ -10,13 +11,13 @@ addr.city = 'Anytown'
 addr.state = 'AK'
 addr.zip = 12341
 
-print addr.toxml("utf-8")
+print(addr.toxml("utf-8"))
 
 try:
     ny = address.USState('NY')
     assert False
 except pyxb.SimpleTypeValueError as e:
-    print e
+    print(e)
 
 
 

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import dict
 import urllib2
 import pyxb.utils.domutils as domutils
@@ -12,8 +13,8 @@ uri = 'http://services.aonaware.com/DictService/DictService.asmx/Define?word=%s'
 rxml = urllib2.urlopen(uri).read()
 resp = dict.CreateFromDOM(domutils.StringToDOM(rxml))
 
-print 'Definitions of %s:' % (resp.Word,)
+print('Definitions of %s:' % (resp.Word,))
 for definition in resp.Definitions.Definition:
-    print 'From %s (%s):' % (definition.Dictionary.Name, definition.Dictionary.Id)
-    print definition.WordDefinition
-    print
+    print('From %s (%s):' % (definition.Dictionary.Name, definition.Dictionary.Id))
+    print(definition.WordDefinition)
+    print()

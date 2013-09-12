@@ -1,3 +1,4 @@
+from __future__ import print_function
 import pyxb.utils.domutils
 import xml.dom.minidom
 import cablelabs.core as core
@@ -35,7 +36,7 @@ ext = core.ExtType(venue)
 try:
     cgt.Ext = ext
 except pyxb.ValidationError as e:
-    print e.details()
+    print(e.details())
     raise
 
 # Unfortunately cgt with just an Ext element does not validate.  Each
@@ -52,18 +53,18 @@ adi3.ContentGroup.append(cgt)
 try:
     xmls = adi3.toDOM().toprettyxml()
 except pyxb.ValidationError as e:
-    print e.details()
+    print(e.details())
     raise
 
 # Show off the pretty document
-print xmls
+print(xmls)
 
 # Let's convert it back.  This showed a different misunderstanding of
 # the schema too complicated to replicate here.
 try:
     instance = core.CreateFromDocument(xmls)
 except pyxb.ValidationError as e:
-    print e.details()
+    print(e.details())
     raise
 
 ivenue = instance.ContentGroup[0].Ext.wildcardElements()[0]
@@ -79,4 +80,4 @@ cgt.Ext.append(custom.Venue('another location'))
 cgt.Ext.append(custom.Venue('and yet another'))
 
 xmls = adi3.toDOM().toprettyxml()
-print xmls
+print(xmls)

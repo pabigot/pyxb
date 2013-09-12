@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import logging
 if __name__ == '__main__':
     logging.basicConfig()
@@ -20,9 +21,9 @@ class TestTrac0114 (unittest.TestCase):
 
     def validateDOM (self, instance):
         self.assertEqual
-        print 'a NS: %s / %s' % (a.namespaceURI, a.tagName)
-        print 'aext NS: %s / %s' % (aext.namespaceURI, aext.tagName)
-        print 'xyz NS: %s / %s' % (xyz.namespaceURI, xyz.tagName)
+        print('a NS: %s / %s' % (a.namespaceURI, a.tagName))
+        print('aext NS: %s / %s' % (aext.namespaceURI, aext.tagName))
+        print('xyz NS: %s / %s' % (xyz.namespaceURI, xyz.tagName))
 
     def testMiniDOM (self):
         dom = xml.dom.minidom.parseString(self.xmlString)

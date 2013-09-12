@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import logging
 if __name__ == '__main__':
     logging.basicConfig()
@@ -48,7 +49,7 @@ for size in xrange(1, max_reps):
     doc = CreateFromDocument(xmls)
     ct1 = time.time()
 
-    print "%d gen=%g cpl=%g ld=%g prs=%g" % (size, t1 - t0, t2 - t1, t3 - t2, ct1 - ct0)
+    print("%d gen=%g cpl=%g ld=%g prs=%g" % (size, t1 - t0, t2 - t1, t3 - t2, ct1 - ct0))
     # Should not take more than a second (really, less than 10ms)
     assert (ct1 - ct0) < 1.0
     #file('code.py', 'w').write(code)

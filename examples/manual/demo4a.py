@@ -1,3 +1,4 @@
+from __future__ import print_function
 import address
 
 addr = address.USAddress()
@@ -7,4 +8,4 @@ addr.city = 'Anytown'
 addr.state = 'AK'
 addr.zip = 12341
 
-print addr.toxml("utf-8")
+print(addr.toxml("utf-8"))

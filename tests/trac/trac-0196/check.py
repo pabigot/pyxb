@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import logging
 if __name__ == '__main__':
     logging.basicConfig()
@@ -42,13 +43,13 @@ uu_i = uu.elt(**elt_kw)
 
 i = mix.elt(qq_i, qu_i, uq_i, uu_i)
 try:
-    print i.toDOM().toprettyxml()
+    print(i.toDOM().toprettyxml())
 except pyxb.ValidationError as e:
-    print e.details()
+    print(e.details())
     raise
 
 i = mix.uue(a='a')
-print i.toxml('utf-8')
+print(i.toxml('utf-8'))
 
 class TestTrac0196 (unittest.TestCase):
 

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import logging
 if __name__ == '__main__':
     logging.basicConfig()
@@ -21,7 +22,7 @@ class Test_NMTOKEN (unittest.TestCase):
         for f in invalid:
             try:
                 xsd.NMTOKEN(f)
-                print 'Unexpected success with %s' % (f,)
+                print('Unexpected success with %s' % (f,))
             except:
                 pass
             self.assertRaises(SimpleTypeValueError, xsd.NMTOKEN, f)

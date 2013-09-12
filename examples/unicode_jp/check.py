@@ -2,6 +2,7 @@
 #
 # Validate the Japanese GML bindings
 
+from __future__ import print_function
 import os.path
 import pyxb.utils.saxutils
 import fgd_gml
@@ -30,7 +31,7 @@ class ExampleUnicode_JP (unittest.TestCase):
         try:
             import drv_libxml2
         except ImportError:
-            print 'WARNING: libxml2 not installed, test not valid'
+            print('WARNING: libxml2 not installed, test not valid')
             self.shortPass = True
             return
         self.shift_jis = self.tryit('data/shift_jis/FG-GML-13-RailCL25000-20080331-0001.xml')
