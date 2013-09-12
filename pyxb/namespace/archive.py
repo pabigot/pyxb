@@ -940,7 +940,8 @@ class NamespaceDependencies (object):
     def namespaceGraph (self, reset=False):
         if reset or (self.__namespaceGraph is None):
             self.__namespaceGraph = pyxb.utils.utility.Graph()
-            map(self.__namespaceGraph.addRoot, self.rootNamespaces())
+            for ns in self.rootNamespaces():
+                self.__namespaceGraph.addRoot(ns)
 
             # Make sure all referenced namespaces have valid components
             need_check = self.__rootNamespaces.copy()

@@ -1221,7 +1221,8 @@ class Automaton (object):
 
     def __init__ (self, states, counter_conditions, nullable, containing_state=None):
         self.__states = frozenset(states)
-        map(lambda _s: _s._set_automaton(self), self.__states)
+        for st in self.__states:
+            st._set_automaton(self)
         self.__counterConditions = frozenset(counter_conditions)
         self.__nullable = nullable
         self.__containingState = containing_state
