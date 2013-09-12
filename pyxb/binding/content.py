@@ -822,7 +822,7 @@ class _PluralBinding (collections.MutableSequence):
 
     def __setitem__ (self, key, value):
         if isinstance(key, slice):
-            self.__list.__setitem__(key, map(self.__convert, value))
+            self.__list.__setitem__(key, [ self.__convert(_v) for _v in value])
         else:
             self.__list.__setitem__(key, self.__convert(value))
 

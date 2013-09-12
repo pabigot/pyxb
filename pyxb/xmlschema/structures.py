@@ -4096,7 +4096,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         self.__memberTypesExpandedNames = None
         if mta is not None:
             nsc = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(body)
-            self.__memberTypesExpandedNames = map(nsc.interpretQName, mta.split())
+            self.__memberTypesExpandedNames = [ nsc.interpretQName(_mten) for _mten in mta.split() ]
         if self.__localMemberTypes is None:
             self.__localMemberTypes = []
             for cn in body.childNodes:

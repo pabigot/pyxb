@@ -1021,7 +1021,7 @@ class Configuration (Configuration_ABC):
         return filter(update_filter, filter(match_filter, transitions))
 
     def acceptableSymbols (self):
-        return map(lambda _xit: _xit.consumedSymbol(), self.candidateTransitions())
+        return [ _xit.consumedSymbol() for _xit in self.candidateTransitions()]
 
     def step (self, symbol):
         transitions = self.candidateTransitions(symbol)
