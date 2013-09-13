@@ -4555,7 +4555,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
         schema_location = pyxb.utils.utility.NormalizeLocation(domutils.NodeAttribute(node, 'schemaLocation'), importing_schema.location())
         self.__schemaLocation = schema_location
         ns = self.__namespace = pyxb.namespace.NamespaceForURI(uri, create_if_missing=True)
-        need_schema = not (ns.isLoadable() or ns.isBuiltinNamespace())
+        need_schema = ns.isImportAugmentable()
         if not need_schema:
             # Discard location if we expect to be able to learn about this
             # namespace from an archive or a built-in description

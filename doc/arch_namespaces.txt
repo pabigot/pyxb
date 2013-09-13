@@ -241,8 +241,8 @@ The Namespace Archive Model
 Recall that the contents of a namespace can be defined from multiple sources.
 While in the simplest cases the namespace is defined by combining components
 from one or more schemas, the set of schemas that define a namespace may be
-different for different documents; see
-http://www.xfront.com/VariableContentContainers.html.
+different for different documents.  One way this is used is the `dangling
+types<http://www.xfront.com/VariableContentContainers.html#method4>` pattern.
 
 Another not uncommon situation is to use a namespace `profile`, which is a
 subset of the full namespace intended for use in a particular application.
@@ -250,12 +250,24 @@ For example, the Geography Markup Language defines three profiles denoted
 "GML-SF" for "simple features"; these profiles do not include the more complex
 structures that are needed for unusual situations.
 
-To support namespace profiles, PyXB must do two things:
+Finally, some use cases require that a namespace be extended with
+application-specific information provided in a schema that adds to rather than
+replaces the base namespace definition.  As with profiles these extensions
+should be provided in separate Python modules, but unlike profiles the
+original binding must be imported separately to provide the application's
+perspective of the full namespace content.
 
-- Use a different Python binding module for the profile as opposed to the
-  full namespace definition
+To support these cases, PyXB must:
 
-- Use a different archive for the profile
+- Support distinct Python binding modules for one namespace (e.g., dangling
+  type implementations and profiles)
+
+- Support shared Python binding modules for one namespace (e.g., a base
+  namespace with application-specific extensions)
+
+- Ensure the component model for each binding module is retained within a
+  single archive regardless of whether that component model is complete for
+  the module's namespace
 
 Naive management of these multiple information sources will cause havoc, since
 namespaces do not allow multiple objects to share the same name.

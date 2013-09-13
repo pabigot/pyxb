@@ -9,12 +9,12 @@ Generic Options
 
 .. table:: Generic Options
 
-   =============  =========  ======  ==================================================  
-    Long Option    Argument   Alt     Description                                        
-   =============  =========  ======  ==================================================  
+   =============  =========  ======  ==================================================
+    Long Option    Argument   Alt     Description
+   =============  =========  ======  ==================================================
    ``--version``                     :ref:`show program's version number and exit<pyxbgen--version>`
    ``--help``                ``-h``  :ref:`show this help message and exit<pyxbgen--help>`
-   =============  =========  ======  ==================================================  
+   =============  =========  ======  ==================================================
 
 .. _pyxbgen--version:
 
@@ -35,15 +35,15 @@ Specify and locate schema for which bindings should be generated.
 
 .. table:: Identifying Schema
 
-   ===================================  =============  ======  ==================================================  
-    Long Option                          Argument       Alt     Description                                        
-   ===================================  =============  ======  ==================================================  
+   ===================================  =============  ======  ==================================================
+    Long Option                          Argument       Alt     Description
+   ===================================  =============  ======  ==================================================
    ``--schema-location``                *FILE_or_URL*  ``-u``  :ref:`Add the location of an entrypoint schema.  The...<pyxbgen--schema-location>`
    ``--schema-root``                    *DIRECTORY*            :ref:`The directory from which entrypoint schemas...<pyxbgen--schema-root>`
    ``--schema-stripped-prefix``         *TEXT*                 :ref:`Optional string that is stripped from the...<pyxbgen--schema-stripped-prefix>`
    ``--location-prefix-rewrite``        *TEXT*                 :ref:`Add a rewrite entry for schema locations....<pyxbgen--location-prefix-rewrite>`
    ``--uri-content-archive-directory``  *DIRECTORY*            :ref:`The directory path into which any content...<pyxbgen--uri-content-archive-directory>`
-   ===================================  =============  ======  ==================================================  
+   ===================================  =============  ======  ==================================================
 
 .. _pyxbgen--schema-location:
 
@@ -95,15 +95,15 @@ Specify where generated bindings should be written, and how they will be accesse
 
 .. table:: Configuring Bindings
 
-   ================================  ===========  ======  ==================================================  
-    Long Option                       Argument     Alt     Description                                        
-   ================================  ===========  ======  ==================================================  
+   ================================  ===========  ======  ==================================================
+    Long Option                       Argument     Alt     Description
+   ================================  ===========  ======  ==================================================
    ``--module``                      *MODULE*     ``-m``  :ref:`Add a module name corresponding to an entrypoint...<pyxbgen--module>`
    ``--module-prefix``               *MODULE*             :ref:`The prefix for binding modules. The base name for...<pyxbgen--module-prefix>`
    ``--binding-root``                *DIRECTORY*          :ref:`The directory path into which generated bindings...<pyxbgen--binding-root>`
    ``--write-for-customization``                  ``-r``  :ref:`Indicates whether the binding Python code should...<pyxbgen--write-for-customization>`
    ``--no-write-for-customization``                       :ref:`Indicates whether the binding Python code should...<pyxbgen--no-write-for-customization>`
-   ================================  ===========  ======  ==================================================  
+   ================================  ===========  ======  ==================================================
 
 .. _pyxbgen--module:
 
@@ -156,13 +156,13 @@ Locating and loading (or inhibiting load of) namespace archives.
 
 .. table:: Reading Namespace Archives
 
-   =======================  =========  ====  ==================================================  
-    Long Option              Argument   Alt   Description                                        
-   =======================  =========  ====  ==================================================  
-   ``--archive-path``       *PATH*           :ref:`A colon-separated list of paths from which...<pyxbgen--archive-path>`
-   ``--pre-load-archive``   *FILE*           :ref:`Name of a file containing a stored archive from...<pyxbgen--pre-load-archive>`
-   ``--no-load-namespace``  *URI*            :ref:`Mark that the specified namespace should not be...<pyxbgen--no-load-namespace>`
-   =======================  =========  ====  ==================================================  
+   ==================================  =========  ====  ==================================================
+    Long Option                         Argument   Alt   Description
+   ==================================  =========  ====  ==================================================
+   ``--archive-path``                  *PATH*           :ref:`A colon-separated list of paths from which...<pyxbgen--archive-path>`
+   ``--import-augmentable-namespace``  *URI*            :ref:`Mark that the specified namespace may be...<pyxbgen--import-augmentable-namespace>`
+   ``--no-load-namespace``             *URI*            :ref:`Mark that the specified namespace should not be...<pyxbgen--no-load-namespace>`
+   ==================================  =========  ====  ==================================================
 
 .. _pyxbgen--archive-path:
 
@@ -174,13 +174,18 @@ environment variable, or the standard path configured at installation
 time.  Any file with the extension ``.wxs`` found in one of these
 directories is examined to see whether it is a namespace archive.
 
-.. _pyxbgen--pre-load-archive:
+.. _pyxbgen--import-augmentable-namespace:
 
-``--pre-load-archive``
-^^^^^^^^^^^^^^^^^^^^^^
-Name of a file containing a stored archive from which namespaces should
-be read prior to processing schema. Files to be pre-loaded are not
-affected by ``noLoadNamespace``.
+``--import-augmentable-namespace``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Mark that the specified namespace may be importAugmentableed by new
+bindings. Normally namespaces that are available from archives are
+considered to be complete, and schema locations in import directives are
+ignored.  Use this to indicate that the bindings being generated import
+new bindings. Note that attempts to import schema that contributed to
+the archive will only be detected if the archive was generated from the
+same schemaLocation URI; if the archive was generated from a different
+source component definitions might conflict.
 
 .. _pyxbgen--no-load-namespace:
 
@@ -199,15 +204,15 @@ Control the location and content of a namespace archive corresponding to a bindi
 
 .. table:: Writing Namespace Archives
 
-   ===============================  =========  ====  ==================================================  
-    Long Option                      Argument   Alt   Description                                        
-   ===============================  =========  ====  ==================================================  
+   ===============================  =========  ====  ==================================================
+    Long Option                      Argument   Alt   Description
+   ===============================  =========  ====  ==================================================
    ``--archive-to-file``            *FILE*           :ref:`Optional file into which the archive of namespaces...<pyxbgen--archive-to-file>`
    ``--public-namespace``           *URI*            :ref:`Indicates, for specific namespaces, whether their...<pyxbgen--public-namespace>`
    ``--private-namespace``          *URI*            :ref:`Indicates, for specific namespaces, whether their...<pyxbgen--private-namespace>`
    ``--default-namespace-public``                    :ref:`Indicates whether unmentioned namespaces will be...<pyxbgen--default-namespace-public>`
    ``--default-namespace-private``                   :ref:`Indicates whether unmentioned namespaces will be...<pyxbgen--default-namespace-private>`
-   ===============================  =========  ====  ==================================================  
+   ===============================  =========  ====  ==================================================
 
 .. _pyxbgen--archive-to-file:
 
@@ -266,12 +271,12 @@ Control the style and content of the generated bindings.  This is not well-suppo
 
 .. table:: Configuring Binding Code Generation
 
-   =========================  =========  ====  ==================================================  
-    Long Option                Argument   Alt   Description                                        
-   =========================  =========  ====  ==================================================  
+   =========================  =========  ====  ==================================================
+    Long Option                Argument   Alt   Description
+   =========================  =========  ====  ==================================================
    ``--validate-changes``                      :ref:`Indicates whether the bindings should validate...<pyxbgen--validate-changes>`
    ``--no-validate-changes``                   :ref:`Indicates whether the bindings should validate...<pyxbgen--no-validate-changes>`
-   =========================  =========  ====  ==================================================  
+   =========================  =========  ====  ==================================================
 
 .. _pyxbgen--validate-changes:
 
@@ -294,11 +299,11 @@ Anything else.
 
 .. table:: Miscellaneous Options
 
-   =========================  =========  ====  ==================================================  
-    Long Option                Argument   Alt   Description                                        
-   =========================  =========  ====  ==================================================  
+   =========================  =========  ====  ==================================================
+    Long Option                Argument   Alt   Description
+   =========================  =========  ====  ==================================================
    ``--logging-config-file``  *FILE*           :ref:`A file provided to L{logging.config.fileConfig} to...<pyxbgen--logging-config-file>`
-   =========================  =========  ====  ==================================================  
+   =========================  =========  ====  ==================================================
 
 .. _pyxbgen--logging-config-file:
 
@@ -315,14 +320,14 @@ Don't use these.  They don't exist.  If they did, they'd do different things at 
 
 .. table:: Maintainer Options
 
-   =================================  =========  ====  ==================================================  
-    Long Option                        Argument   Alt   Description                                        
-   =================================  =========  ====  ==================================================  
+   =================================  =========  ====  ==================================================
+    Long Option                        Argument   Alt   Description
+   =================================  =========  ====  ==================================================
    ``--allow-absent-module``                           :ref:`Indicates whether the code generator is permitted...<pyxbgen--allow-absent-module>`
    ``--no-allow-absent-module``                        :ref:`Indicates whether the code generator is permitted...<pyxbgen--no-allow-absent-module>`
    ``--allow-builtin-generation``                      :ref:`Indicates whether bindings will be written for...<pyxbgen--allow-builtin-generation>`
    ``--no-allow-builtin-generation``                   :ref:`Indicates whether bindings will be written for...<pyxbgen--no-allow-builtin-generation>`
-   =================================  =========  ====  ==================================================  
+   =================================  =========  ====  ==================================================
 
 .. _pyxbgen--allow-absent-module:
 
@@ -369,11 +374,11 @@ Options relevant to generating bindings from WSDL service descriptions
 
 .. table:: WSDL Options
 
-   ===================  =============  ======  ==================================================  
-    Long Option          Argument       Alt     Description                                        
-   ===================  =============  ======  ==================================================  
+   ===================  =============  ======  ==================================================
+    Long Option          Argument       Alt     Description
+   ===================  =============  ======  ==================================================
    ``--wsdl-location``  *FILE_or_URL*  ``-W``  :ref:`Generate bindings for the types stanza of the...<pyxbgen--wsdl-location>`
-   ===================  =============  ======  ==================================================  
+   ===================  =============  ======  ==================================================
 
 .. _pyxbgen--wsdl-location:
 

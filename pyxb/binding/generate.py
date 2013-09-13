@@ -2110,7 +2110,7 @@ class Generator (object):
     __archivePath = None
 
     def noLoadNamespaces (self):
-        """A frozenset of namespaces that many not be loaded from an archive."""
+        """A frozenset of namespaces that must not be loaded from an archive."""
         return frozenset(self.__noLoadNamespaces)
     def _setNoLoadNamespaces (self, namespace_set):
         """Record the set of namespaces that should not be loaded from an archive.
@@ -2130,20 +2130,29 @@ class Generator (object):
         self.__noLoadNamespaces.add(pyxb.namespace.NamespaceInstance(namespace))
     __noloadNamespaces = None
 
-    def preLoadArchives (self):
-        """A list of paths to archives that should be loaded, in order, prior to parsing schema."""
-        return frozenset(self.__preLoadArchives)
-    def addPreLoadArchive (self, archive_file):
-        """Name of a file containing a stored archive from which
-        namespaces should be read prior to processing schema.
+    def importAugmentableNamespaces (self):
+        """A list of namespaces for which new bindings are allowd."""
+        return frozenset(self.__importAugmentableNamespaces)
+    def _setImportAugmentableNamespaces (self, namespace_set):
+        """Return the set of namespaces that may be augmented by import directives."""
+        self.__importAugmentableNamespaces.clear()
+        self.__importAugmentableNamespaces.update([ pyxb.namespace.NamespaceInstance(_ns) for _ns in namespace_set ])
+    def addImportAugmentableNamespace (self, namespace_file):
+        """Mark that the specified namespace may be importAugmentableed by new bindings.
 
-        Files to be pre-loaded are not affected by
-        C{noLoadNamespace}."""
-        self.__preLoadArchives.append(archive_file)
-    def _setPreLoadArchives (self, pre_load_archives):
-        self.__preLoadArchives[:] = pre_load_archives
-        return self
-    __preLoadArchives = None
+        Normally namespaces that are available from archives are
+        considered to be complete, and schema locations in import
+        directives are ignored.  Use this to indicate that the
+        bindings being generated import new bindings.
+
+        Note that attempts to import schema that contributed to the
+        archive will only be detected if the archive was generated
+        from the same schemaLocation URI; if the archive was generated
+        from a different source component definitions might
+        conflict."""
+        self.__importAugmentableNamespaces.add(pyxb.namespace.NamespaceInstance(namespace))
+        self.__importAugmentableNamespaces.append(archive_file)
+    __importAugmentableNamespaces = None
 
     def archiveToFile (self):
         """Optional file into which the archive of namespaces will be written.
@@ -2275,7 +2284,7 @@ class Generator (object):
         @keyword module_prefix: Invokes L{setModulePrefix}
         @keyword archive_path: Invokes L{setArchivePath}
         @keyword no_load_namespaces: Invokes L{_setNoLoadNamespaces}
-        @keyword pre_load_archives: Invokes L{_setPreLoadArchives}
+        @keyword import_augmentable_namespaces: Invokes L{_setImportAugmentableNamespaces}
         @keyword archive_to_file: Invokes L{setArchiveToFile}
         @keyword public_namespace: Invokes L{setNamespaceVisibility}
         @keyword private_namespace: Invokes L{setNamespaceVisibility}
@@ -2304,7 +2313,7 @@ class Generator (object):
         self.__modulePrefix = kw.get('module_prefix')
         self.__archivePath = kw.get('archive_path', pyxb.namespace.archive.GetArchivePath())
         self.__noLoadNamespaces = kw.get('no_load_namespaces', set()).copy()
-        self.__preLoadArchives = kw.get('pre_load_archives', [])[:]
+        self.__importAugmentableNamespaces = kw.get('import_augmentable_namespaces', set()).copy()
         self.__archiveToFile = kw.get('archive_to_file')
         self.__namespaceVisibilityMap = {}
         self._setNamespaceVisibilities(kw.get('public_namespaces', set()), kw.get('private_namespaces', set()))
@@ -2343,7 +2352,7 @@ class Generator (object):
         ('module_prefix', setModulePrefix),
         ('archive_path', setArchivePath),
         ('no_load_namespace', _setNoLoadNamespaces),
-        ('pre_load_archive', _setPreLoadArchives),
+        ('import_augmentable_namespace', _setImportAugmentableNamespaces),
         ('archive_to_file', setArchiveToFile),
         ('default_namespace_public', setDefaultNamespacePublic),
         ('validate_changes', setValidateChanges),
@@ -2431,9 +2440,9 @@ class Generator (object):
             group = optparse.OptionGroup(parser, 'Reading Namespace Archives', 'Locating and loading (or inhibiting load of) namespace archives.')
             group.add_option('--archive-path', metavar="PATH",
                              help=self.__stripSpaces(self.archivePath.__doc__))
-            group.add_option('--pre-load-archive', metavar="FILE",
+            group.add_option('--import-augmentable-namespace', metavar="URI",
                              action='append',
-                             help=self.__stripSpaces(self.addPreLoadArchive.__doc__))
+                             help=self.__stripSpaces(self.addImportAugmentableNamespace.__doc__))
             group.add_option('--no-load-namespace', metavar="URI",
                              action='append',
                              help=self.__stripSpaces(self.addNoLoadNamespace.__doc__))
@@ -2521,8 +2530,8 @@ class Generator (object):
             opts.append('--archive-path=' + self.archivePath())
         for ns in self.noLoadNamespaces():
             opts.append('--no-load-namespace=' + ns.uri())
-        for fps in self.preLoadArchives():
-            opts.append('--pre-load-archive=' + fps)
+        for ns in self.importAugmentableNamespaces():
+            opts.append('--import-augmentable-namespace=' + ns.uri())
         if self.archiveToFile() is not None:
             opts.append('--archive-to-file=' + self.archiveToFile())
         for (ns, visibility) in self.namespaceVisibilityMap():
@@ -2591,19 +2600,24 @@ class Generator (object):
         if self.__didResolveExternalSchema:
             return
 
-        # Find all the namespaces we were told to pre-load.  These may
-        # be namespaces for which we already have bindings that we
-        # intend to augment with private extensions.
-        required_archives = pyxb.namespace.archive.NamespaceArchive.PreLoadArchives(self.archivePath(), self.preLoadArchives())
-        for nsa in required_archives:
-            nsa.readNamespaces()
+        # Locate all relevant archives and the namespaces they
+        # provide.
+        pyxb.namespace.archive.NamespaceArchive.PreLoadArchives(self.archivePath())
 
         # Mark the namespaces we were told not to load.  These may be
         # namespaces for which we already have bindings in the search
         # path, but we want to generate completely new ones.
         for ns in self.noLoadNamespaces():
             assert isinstance(ns, pyxb.namespace.Namespace)
+            _log.info("Namespace %s marked not loadable" % (ns,))
             ns.markNotLoadable()
+
+        # Mark the namespaces that we permit to be extended by import
+        # statements.
+        for ns in self.importAugmentableNamespaces():
+            assert isinstance(ns, pyxb.namespace.Namespace)
+            _log.info("Namespace %s marked import-augmentable" % (ns,))
+            ns.setImportAugmentable(True)
 
         # Read all the schema we were told about.
         while self.__schemaLocationList:

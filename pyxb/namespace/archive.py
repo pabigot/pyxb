@@ -112,11 +112,11 @@ class NamespaceArchive (object):
     __ArchivePattern_re = re.compile('\.wxs$')
 
     @classmethod
-    def PreLoadArchives (cls, archive_path=None, required_archive_files=None, reset=False):
+    def PreLoadArchives (cls, archive_path=None, reset=False):
         """Scan for available archives, associating them with namespaces.
 
         This only validates potential archive contents; it does not load
-        namespace data from the archives.  If invoked with no arguments,
+        namespace data from the archives.
 
         @keyword archive_path: A list of files or directories in which
         namespace archives can be found.  The entries are separated by
@@ -126,37 +126,21 @@ class NamespaceArchive (object):
         C{True}.  For any directory in the path, all files ending with
         C{.wxs} are examined.
 
-        @keyword required_archive_files: A list of paths to files that must
-        resolve to valid namespace archives.
-
         @keyword reset: If C{False} (default), the most recently read set of
         archives is returned; if C{True}, the archive path is re-scanned and the
         namespace associations validated.
-
-        @return: A list of L{NamespaceArchive} instances corresponding to the
-        members of C{required_archive_files}, in order.  If
-        C{required_archive_files} was not provided, returns an empty list.
-
-        @raise pickle.UnpicklingError: a C{required_archive_files} member does not
-        contain a valid namespace archive.
         """
 
         from pyxb.namespace import builtin
 
-        reset = reset or (archive_path is not None) or (required_archive_files is not None) or (cls.__NamespaceArchives is None)
-        required_archives = []
+        reset = reset or (archive_path is not None) or (cls.__NamespaceArchives is None)
         if reset:
             # Get a list of pre-existing archives, initializing the map if
             # this is the first time through.
             if cls.__NamespaceArchives is None:
                 cls.__NamespaceArchives = { }
             existing_archives = set(cls.__NamespaceArchives.values())
-            archive_set = set(required_archives)
-
-            # Get archives for all required files
-            if required_archive_files is not None:
-                for afn in required_archive_files:
-                    required_archives.append(cls.__GetArchiveInstance(afn, stage=cls._STAGE_readModules))
+            archive_set = set()
 
             # Ensure we have an archive path.  If not, don't do anything.
             if archive_path is None:
@@ -221,8 +205,6 @@ class NamespaceArchive (object):
             for archive in existing_archives.difference(archive_set):
                 _log.info('Discarding excluded archive %s', archive)
                 archive.discard()
-
-        return required_archives
 
     def archivePath (self):
         """Path to the file in which this namespace archive is stored."""
@@ -593,6 +575,23 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
             if mr.isLoadable():
                 return True
         return False
+
+    def isImportAugmentable (self):
+        """Return C{True} iff the component model for this namespace may be
+        extended by import directives.
+
+        This is the case if the namespace has been marked with
+        L{setImportAugmentable}, or if there is no archive or built-in that
+        provides a component model for the namespace."""
+        if self.__isImportAugmentable:
+            return True
+        for mr in self.moduleRecords():
+            if mr.isLoadable() or mr.isIncorporated():
+                return False
+        return True
+    def setImportAugmentable (self, value=True):
+        self.__isImportAugmentable = value
+    __isImportAugmentable = False
 
     def loadableFrom (self):
         """Return the list of archives from which components for this

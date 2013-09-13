@@ -35,7 +35,9 @@ apihtml:
 	PYTHONPATH=.. $(EPYDOC) $(EPYDOCOPTS)
 
 pyxbgen_cli.txt: ../pyxb/binding/generate.py ../maintainer/gendoc
-	PYTHONPATH=.. ../maintainer/gendoc > $@
+	PYTHONPATH=.. ../maintainer/gendoc \
+        | sed -e 's@  *$$@@' \
+        > $@
 
 GENERATED_TXT += pyxbgen_cli.txt
 

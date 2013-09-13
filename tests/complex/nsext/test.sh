@@ -1,23 +1,29 @@
 PYXB_ARCHIVE_PATH=.
 export PYXB_ARCHIVE_PATH
 
+test_name=${0}
+
+fail () {
+  echo 1>&2 "${test_name} FAILED: ${@}"
+  exit 1
+}
+
 # cat >/dev/null <<EOT
 
 rm -f *.wxs *.wxs- *.pyc common.py common4app.py app.py
 
 pyxbgen \
   --schema-location=base.xsd --module=common \
-  --archive-to-file=common.wxs || exit 1
+  --archive-to-file=common.wxs || fail cannot generate base schema
 
 #pyxbdump common.wxs
-python tst-base.py || exit 1
+python tst-base.py || fail base binding test
 
 echo '**************************'
 
 pyxbgen \
   --schema-location=extend.xsd --module=common4app \
-  --pre-load-archive=common.wxs \
-  --archive-to-file=common4app.wxs || exit 1
+  --archive-to-file=common4app.wxs || fail bindings for extended
   
 # pyxbdump common4app.wxs
 python tst-extend.py || exit 1

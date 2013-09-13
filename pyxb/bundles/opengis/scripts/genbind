@@ -72,7 +72,7 @@ ${SCHEMA_DIR}/sensorML/1.0.1/sensorML.xsd sensorML_1_0_1
 ${SCHEMA_DIR}/om/1.0.0/om.xsd om_1_0
 ${SCHEMA_DIR}/om/2.0/observation.xsd om_2_0
 ${SCHEMA_DIR}/swes/2.0/swes.xsd swes_2_0
-${SCHEMA_DIR}/sos/1.0.0/sosAll.xsd sos_1_0 --pre-load-archive=${ARCHIVE_DIR}/filter.wxs
+${SCHEMA_DIR}/sos/1.0.0/sosAll.xsd sos_1_0 --import-augmentable-namespace=http://www.opengis.net/ogc
 ${SCHEMA_DIR}/sos/2.0/sos.xsd sos_2_0
 ${SCHEMA_DIR}/sampling/1.0.0/sampling.xsd sampling_1_0
 ${SCHEMA_DIR}/tml/1.0.0/tml.xsd tml

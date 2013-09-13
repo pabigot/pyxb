@@ -302,13 +302,13 @@ types.  The required build command is::
   pyxbgen \
     --schema-location=${SCHEMA_DIR}/sos/1.0.0/sosAll.xsd --module sos_1_0 \
     --archive-path=${ARCHIVE_DIR} \
-    --pre-load-archive=${ARCHIVE_DIR}/filter.wxs
+    --import-augmentable-namespace=http://www.opengis.net/ogc
 
-The :ref:`pyxbgen--pre-load-archive` directive causes PyXB to read the
-contents of that archive into its active database prior to processing any
-schema.  Consequently, when reference to the ``ogc4sos.xsd`` schema is
-encountered, PyXB detects that, although it already has definitions for
-components in that namespace, this particular schema has not yet been read.
-PyXB reads the additional components, and generates bindings for the
-additional material into a private module ``_ogc`` which is then imported
-into the ``sos_1_0`` module.
+The :ref:`pyxbgen--import-augmentable-namespace` directive causes PyXB to
+allow import directives within the schema to add material to the content
+already loaded from an archive.  Consequently, when reference to the
+``ogc4sos.xsd`` schema is encountered, PyXB detects that, although it
+already has definitions for components in that namespace, this particular
+schema has not yet been read.  PyXB reads the additional components, and
+generates bindings for the additional material into a private module
+``_ogc`` which is then imported into the ``sos_1_0`` module.
