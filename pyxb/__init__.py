@@ -69,10 +69,10 @@ __url__ = 'http://pyxb.sourceforge.net'
 __license__ = 'Apache License 2.0'
 
 # Bring in the exception hierarchy
-from exceptions_ import *
+from .exceptions_ import *
 
 # Bring in namespace stuff
-import namespace
+from . import namespace
 
 class BIND (object):
     """Bundle data for automated binding generation.

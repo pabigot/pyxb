@@ -47,7 +47,7 @@ from pyxb.exceptions_ import *
 import types
 import pyxb.namespace
 import pyxb.utils.unicode
-import basis
+from . import basis
 import re
 import binascii
 import base64
@@ -1147,8 +1147,7 @@ class positiveInteger (nonNegativeInteger):
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('positiveInteger')
 _DerivedDatatypes.append(positiveInteger)
 
-import datatypes_facets
-import content
+from . import content
 
 class anyType (basis.complexTypeDefinition):
     """XMLSchema datatype U{anyType<http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType>}."""

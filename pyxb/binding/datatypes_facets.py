@@ -5,8 +5,8 @@ U{constraining facets<http://www.w3.org/TR/xmlschema-2/index.html#rf-facets>}.  
 one time, the C{maintainer/xsdfacet.py} script could be used to
 generate this.  No idea if that's still true.
 """
-import facets
-from datatypes import *
+from . import facets
+from .datatypes import *
 gDay._CF_pattern = facets.CF_pattern()
 gDay._CF_enumeration = facets.CF_enumeration(value_datatype=gDay)
 gDay._CF_minExclusive = facets.CF_minExclusive(value_datatype=anySimpleType)

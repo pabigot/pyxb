@@ -25,8 +25,8 @@ value spaces.
 
 import pyxb
 import types
-import datatypes
-import basis
+from . import datatypes
+from . import basis
 from pyxb.utils import utility
 import re
 import logging

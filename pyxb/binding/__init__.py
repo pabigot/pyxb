@@ -4,11 +4,11 @@
 
 # Automatically include all the stuff that's necessary for basic
 # running.  There are order dependencies here.
-from pyxb.binding import basis
-from pyxb.binding import datatypes
-from pyxb.binding import facets
-from pyxb.binding import datatypes_facets
-from pyxb.binding import content
+from . import basis
+from . import datatypes
+from . import facets
+from . import datatypes_facets
+from . import content
 
 # Do not include the stuff that's required only for code generation
 # noimport generate
