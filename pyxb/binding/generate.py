@@ -2587,9 +2587,9 @@ class Generator (object):
         return module_record
 
     __didResolveExternalSchema = False
-    def resolveExternalSchema (self, reset=False):
-        if self.__didResolveExternalSchema and (not reset):
-            raise pyxb.PyXBException('Cannot resolve external schema multiple times')
+    def resolveExternalSchema (self):
+        if self.__didResolveExternalSchema:
+            return
 
         # Find all the namespaces we were told to pre-load.  These may
         # be namespaces for which we already have bindings that we
@@ -2667,9 +2667,8 @@ class Generator (object):
                     component_graph.addEdge(c, cd)
         return component_graph
 
-    def __resolveComponentDependencies (self, reset=False):
-        if reset or (not self.__didResolveExternalSchema):
-            self.resolveExternalSchema(reset)
+    def __resolveComponentDependencies (self):
+        self.resolveExternalSchema()
 
         bindable_fn = lambda _c: isinstance(_c, xs.structures.ElementDeclaration) or _c.isTypeDefinition()
 
@@ -2825,10 +2824,10 @@ class Generator (object):
         self.__bindingModules = modules
 
     __bindingModules = None
-    def bindingModules (self, reset=False):
-        if reset or (self.__componentGraph is None):
-            self.__resolveComponentDependencies(reset)
-        if reset or (self.__bindingModules is None):
+    def bindingModules (self):
+        if self.__componentGraph is None:
+            self.__resolveComponentDependencies()
+        if self.__bindingModules is None:
             self.__generateBindings()
         return self.__bindingModules
 
