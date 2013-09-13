@@ -26,6 +26,35 @@ import logging
 
 _log = logging.getLogger(__name__)
 
+def BackfillComparisons (cls):
+    """Class decorator that fills in missing ordering methods.
+
+    Concept derived from Python 2.7.5 functools.total_ordering,
+    but this version requires that __eq__ and __lt__ be provided,
+    and unconditionally overrides __ne__, __gt__, __le__, and __ge__
+    with the derived versions.
+
+    This is still necessary in Python 3 because in Python 3 the
+    comparison x >= y is done by the __ge__ inherited from object,
+    which does not handle the case where x and y are not the same type
+    even if the underlying y < x would convert x to be compatible. """
+
+    def applyconvert (cls, derived):
+        for (opn, opx) in derived:
+            opx.__name__ = opn
+            opx.__doc__ = getattr(int, opn).__doc__
+            setattr(cls, opn, opx)
+
+    applyconvert(cls, (
+            ('__gt__', lambda self, other: not (self.__lt__(other) or self.__eq__(other))),
+            ('__le__', lambda self, other: self.__lt__(other) or self.__eq__(other)),
+            ('__ge__', lambda self, other: not self.__lt__(other))
+            ))
+    applyconvert(cls, (
+            ('__ne__', lambda self, other: not self.__eq__(other)),
+            ))
+    return cls
+
 def QuotedEscaped (s):
     """Convert a string into a literal value that can be used in Python source.
 
@@ -882,6 +911,7 @@ class UniqueIdentifier (object):
     def __repr__ (self):
         return 'pyxb.utils.utility.UniqueIdentifier(%s)' % (repr(self.uid()),)
 
+@BackfillComparisons
 class UTCOffsetTimeZone (datetime.tzinfo):
     """A C{datetime.tzinfo} subclass that helps deal with UTC
     conversions in an ISO8601 world.
@@ -952,12 +982,16 @@ class UTCOffsetTimeZone (datetime.tzinfo):
         """Returns a constant zero duration."""
         return self.__ZeroDuration
 
-    # python3: retain since functools.total_ordering() unavailable in 2.6
-    def __cmp__ (self, other):
+    def __otherForComparison (self, other):
         if isinstance(other, UTCOffsetTimeZone):
-            return cmp(self.__utcOffset_min, other.__utcOffset_min)
-        return cmp(self.__utcOffset_min, other.utcoffset(datetime.datetime.now()))
+            return other.__utcOffset_min
+        return other.utcoffset(datetime.datetime.now())
 
+    def __eq__ (self, other):
+        return self.__utcOffset_min == self.__otherForComparison(other)
+
+    def __lt__ (self, other):
+        return self.__utcOffset_min < self.__otherForComparison(other)
 
 class LocalTimeZone (datetime.tzinfo):
     """A C{datetime.tzinfo} subclass for the local time zone.
@@ -1128,6 +1162,7 @@ def GetMatchingFiles (path, pattern=None, default_path_wildcard=None, default_pa
                     break
     return matching_files
 
+@BackfillComparisons
 class Location (object):
     __locationBase = None
     __lineNumber = None
@@ -1153,17 +1188,43 @@ class Location (object):
     lineNumber = property(lambda _s: _s.__lineNumber)
     columnNumber = property(lambda _s: _s.__columnNumber)
 
-    # python3: retain since functools.total_ordering() unavailable in 2.6
-    def __cmp__ (self, other):
+    def __cmpSingleUnlessNone (self, v1, v2):
+        if v1 is None:
+            if v2 is None:
+                return None
+            return 1
+        if v2 is None:
+            return -1
+        if v1 < v2:
+            return -1
+        if v1 == v2:
+            return 0
+        return 1
+
+    def __cmpTupleUnlessNone (self, v1, v2):
+        rv = self.__cmpUnlessNone(self.__locationBase, other.__locationBase)
+        if rv is None:
+            rv = self.__cmpUnlessNone(self.__lineNumber, other.__lineNumber)
+        if rv is None:
+            rv = self.__cmpUnlessNone(self.__columnNumber, other.__columnNumber)
+        return rv
+
+    def __eq__ (self, other):
         """Comparison by locationBase, then lineNumber, then columnNumber."""
         if other is None:
-            return 1
-        rv = cmp(self.__locationBase, other.__locationBase)
-        if 0 == rv:
-            rv = cmp(self.__lineNumber, other.__lineNumber)
-        if 0 == rv:
-            rv = cmp(self.__columnNumber, other.__columnNumber)
-        return rv
+            return False
+        rv = self.__cmpTupleAgainstNone(self, other)
+        if rv is None:
+            return True
+        return 0 == rv
+
+    def __lt__ (self, other):
+        if other is None:
+            return False
+        rv = self.__cmpTupleAgainstNone(self, other)
+        if rv is None:
+            return False
+        return -1 == rv
 
     def __str__ (self):
         if self.locationBase is None:

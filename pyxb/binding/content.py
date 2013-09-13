@@ -29,6 +29,7 @@ import pyxb
 import pyxb.namespace
 import pyxb.utils.fac
 from pyxb.binding import basis
+import pyxb.utils.utility
 
 import xml.dom
 import logging
@@ -793,6 +794,7 @@ import collections
 # instance of list that's held internally.  Inherit from the ABC that
 # represents list-style data structures so we can identify both lists and
 # these things which are not lists.
+@pyxb.utils.utility.BackfillComparisons
 class _PluralBinding (collections.MutableSequence):
     """Helper for element content that supports multiple occurences.
 
@@ -873,22 +875,11 @@ class _PluralBinding (collections.MutableSequence):
         if isinstance(other, _PluralBinding):
             return self.__list.__eq__(other.__list)
         return self.__list.__eq__(other)
-    def __ne__ (self, other):
-        return not (other == self)
 
     def __le__ (self, other):
         if isinstance(other, _PluralBinding):
             return self.__list.__le__(other.__list)
         return self.__list.__le__(other)
-    def __ge__ (self, other):
-        return (other <= self)
-
-    def __lt__ (self, other):
-        if isinstance(other, _PluralBinding):
-            return self.__list.__lt__(other.__list)
-        return self.__list.__lt__(other)
-    def __gt__ (self, other):
-        return (other < self)
 
 class ElementDeclaration (object):
     """Aggregate the information relevant to an element of a complex type.

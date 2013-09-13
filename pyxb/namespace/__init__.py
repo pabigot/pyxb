@@ -27,6 +27,7 @@ import logging
 
 _log = logging.getLogger(__name__)
 
+@pyxb.utils.utility.BackfillComparisons
 class ExpandedName (object):
 
     """Represent an U{expanded name
@@ -204,17 +205,25 @@ class ExpandedName (object):
             return type(self.__localName).__hash__(self.__localName)
         return tuple.__hash__(self.__expandedName)
 
-    # python3: retain since functools.total_ordering() unavailable in 2.6
-    def __cmp__ (self, other):
-        if other is None: # None is below everything else
-            return cmp(1, -1)
+    def __otherForCompare (self, other):
         if isinstance(other, (str, unicode)):
             other = ( None, other )
         if not isinstance(other, tuple):
             other = other.__uriTuple
         if isinstance(other[0], Namespace):
             other = ( other[0].uri(), other[1] )
-        return cmp(self.__uriTuple, other)
+        return other
+
+    def __eq__ (self, other):
+        if other is None:
+            return False
+        ot = self.__otherForCompare(other)
+        return self.__uriTuple == self.__otherForCompare(other)
+
+    def __lt__ (self, other):
+        if other is None:
+            return False
+        return self.__uriTuple < self.__otherForCompare(other)
 
     def getAttribute (self, dom_node):
         """Return the value of the attribute identified by this name in the given node.

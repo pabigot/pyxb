@@ -34,6 +34,7 @@ and refers to U{Unicode Standard Annex #27: Unicode 3.1
 
 import re
 import logging
+import pyxb.utils.utility
 
 _log = logging.getLogger(__name__)
 
@@ -50,6 +51,7 @@ class CodePointSetError (LookupError):
     """Raised when some abuse of a L{CodePointSet} is detected."""
     pass
 
+@pyxb.utils.utility.BackfillComparisons
 class CodePointSet (object):
     """Represent a set of Unicode code points.
 
@@ -81,10 +83,12 @@ class CodePointSet (object):
         internal representation."""
         return self.__codepoints
 
-    # python3: retain since functools.total_ordering() unavailable in 2.6
-    def __cmp__ (self, other):
+    def __eq__ (self, other):
         """Equality is delegated to the codepoints list."""
-        return cmp(self.__codepoints, other.__codepoints)
+        return self.__codepoints == other.__codepoints
+
+    def __lt__ (self, other):
+        return self.__codepoints < other.__codepoints
 
     def __init__ (self, *args):
         self.__codepoints = []
