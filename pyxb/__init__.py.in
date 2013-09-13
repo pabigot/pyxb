@@ -244,7 +244,7 @@ class ValidationConfig (object):
     """If an error occurs ignore it and continue with the next one.  (E.g., if
     an element in a content list fails skip it and continue with the next
     element in the list.)"""
-    
+
     GIVE_UP = 2
     """If an error occurs ignore it and stop using whatever provided the cause
     of the error.  (E.g., if an element in a content list fails stop
@@ -286,7 +286,7 @@ class ValidationConfig (object):
             raise ValueError(value)
         self.__orphanElementInContent = value
     orphanElementInContent = property(__getOrphanElementInContent)
-    
+
     __invalidElementInContent = IGNORE_ONCE
     def __getInvalidElementInContent (self):
         """How to handle invalid elements in content lists.
