@@ -49,7 +49,7 @@ class update_version (Command):
     def run (self):
         for f in self.files:
             text = file('%s.in' % (f,)).read()
-            for (k, v) in self.substitutions.items():
+            for (k, v) in self.substitutions.iteritems():
                 text = text.replace('@%s@' % (k,), v)
             os.chmod(f, os.stat(f)[stat.ST_MODE] | stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH)
             file(f,'w').write(text)
@@ -147,7 +147,7 @@ class test (Command):
 
                 # Find all subclasses of unittest.TestCase that were
                 # in the test source and add them to the suite.
-                for (nm, obj) in g.items():
+                for (nm, obj) in g.iteritems():
                     if (type == type(obj)) and issubclass(obj, unittest.TestCase):
                         suite.addTest(loader.loadTestsFromTestCase(obj))
                 if self.trace_tests:

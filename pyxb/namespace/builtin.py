@@ -219,7 +219,7 @@ class _XMLSchema (Namespace):
 
         # Provide access to the binding classes
         self.configureCategories(['typeBinding', 'elementBinding'])
-        for ( en, td ) in self.typeDefinitions().items():
+        for ( en, td ) in self.typeDefinitions().iteritems():
             if td.pythonSupport() is not None:
                 self.addCategoryObject('typeBinding', en, td.pythonSupport())
 

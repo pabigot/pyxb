@@ -282,7 +282,7 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
 
     def categories (self):
         """The list of individual categories held in this namespace."""
-        return self.__categoryMap.keys()
+        return list(self.__categoryMap.keys())
 
     def _categoryMap (self):
         """Return the whole map from categories to named objects."""
@@ -350,8 +350,8 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
         @note: This is a high-cost operation, as every item in every category
         map must be examined to see whether its value field matches
         C{existing_def}."""
-        for (cat, registry) in self.__categoryMap.items():
-            for (k, v) in registry.items():
+        for (cat, registry) in self.__categoryMap.iteritems():
+            for (k, v) in registry.items(): # NB: Not iteritems
                 if v == existing_def:
                     del registry[k]
                     if replacement_def is not None:
@@ -376,15 +376,15 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
 
     def _namedObjects (self):
         objects = set()
-        for category_map in self.__categoryMap.values():
-            objects.update(category_map.values())
+        for category_map in self.__categoryMap.itervalues():
+            objects.update(category_map.itervalues())
         return objects
 
     def _loadNamedObjects (self, category_map):
         """Add the named objects from the given map into the set held by this namespace.
         It is an error to name something which is already present."""
-        self.configureCategories(category_map.keys())
-        for category in category_map.keys():
+        self.configureCategories(category_map.iterkeys())
+        for category in category_map.iterkeys():
             current_map = self.categoryMap(category)
             new_map = category_map[category]
             for (local_name, component) in new_map.iteritems():
@@ -688,7 +688,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
     @classmethod
     def AvailableNamespaces (cls):
         """Return a set of all Namespace instances defined so far."""
-        return cls.__AbsentNamespaces.union(cls.__Registry.values())
+        return cls.__AbsentNamespaces.union(cls.__Registry.itervalues())
 
     def __init__ (self, uri,
                   description=None,
@@ -955,7 +955,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         if self.__initialNamespaceContext is None:
             isn = { }
             if self.__contextInScopeNamespaces is not None:
-                for (k, v) in self.__contextInScopeNamespaces.items():
+                for (k, v) in self.__contextInScopeNamespaces.iteritems():
                     isn[k] = self.__identifyNamespace(v)
             kw = { 'target_namespace' : self
                  , 'default_namespace' : self.__identifyNamespace(self.__contextDefaultNamespace)

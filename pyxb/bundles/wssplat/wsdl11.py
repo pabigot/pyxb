@@ -280,7 +280,7 @@ class tDefinitions (raw_wsdl11.tDefinitions):
                 if isinstance(wc, xml.dom.Node) and pyxb.namespace.XMLSchema.nodeIsNamed(wc, 'schema'):
                     # Try to load component models for any namespace referenced by this.
                     # Probably shouldn't need to do this except for imported ones.
-                    for ns in self.namespaceContext().inScopeNamespaces().values():
+                    for ns in self.namespaceContext().inScopeNamespaces().itervalues():
                         try:
                             ns.validateComponentModel()
                         except Exception as e:
@@ -296,7 +296,7 @@ class tDefinitions (raw_wsdl11.tDefinitions):
 
     def __finalizeReferences (self):
         tns = self.namespaceContext().targetNamespace()
-        for m in tns.messages().values():
+        for m in tns.messages().itervalues():
             for p in m.part:
                 if (p.element is not None) and (p.elementReference is None):
                     elt_en = p._namespaceContext().interpretQName(p.element)

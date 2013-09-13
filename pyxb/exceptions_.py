@@ -483,7 +483,7 @@ class UnprocessedKeywordContentError (ContentValidationError):
         super(UnprocessedKeywordContentError, self).__init__(instance, keywords, location)
 
     def __unicode__ (self):
-        return 'Unprocessed keywords instantiating %s: %s' % (self.instance._Name(), ' '.join(self.keywords.keys()))
+        return 'Unprocessed keywords instantiating %s: %s' % (self.instance._Name(), ' '.join(self.keywords.iterkeys()))
     __str__ = PyXBException._str_from_unicode
 
 class IncrementalElementContentError (ContentValidationError):

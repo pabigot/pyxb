@@ -331,7 +331,7 @@ class NamespaceContext (object):
         if self.targetNamespace() is not None:
             rv.extend([ '(targetNamespace=', unicode(self.targetNamespace()), ') '])
         rv.append("\n")
-        for (pfx, ns) in self.inScopeNamespaces().items():
+        for (pfx, ns) in self.inScopeNamespaces().iteritems():
             if pfx is not None:
                 rv.append('  xmlns:%s=%s' % (pfx, unicode(ns)))
         return u''.join(rv)
@@ -380,7 +380,7 @@ class NamespaceContext (object):
         """Return a prefix associated with the given namespace in this
         context, or None if the namespace is the default or is not in
         scope."""
-        for (pfx, ns) in self.__inScopeNamespaces.items():
+        for (pfx, ns) in self.__inScopeNamespaces.iteritems():
             if namespace == ns:
                 return pfx
         return None

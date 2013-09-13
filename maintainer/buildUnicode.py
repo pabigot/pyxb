@@ -140,7 +140,7 @@ def emitBlockMap (data_file):
 
     print('# Unicode code blocks: %d blocks' % (len(block_map),))
     print('BlockMap = {')
-    for k in sorted(block_map.keys()):
+    for k in sorted(block_map.iterkeys()):
         v = block_map.get(k)
         print('  %s : CodePointSet(' % (repr(k),))
         print('     %s' % (rangesToPython(v, indent=6, width=67),))

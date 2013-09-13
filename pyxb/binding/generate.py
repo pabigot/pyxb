@@ -196,7 +196,7 @@ class ReferenceEnumerationMember (ReferenceLiteral):
 def pythonLiteral (value, **kw):
     # For dictionaries, apply translation to all values (not keys)
     if isinstance(value, types.DictionaryType):
-        return ', '.join([ '%s=%s' % (k, pythonLiteral(v, **kw)) for (k, v) in value.items() ])
+        return ', '.join([ '%s=%s' % (k, pythonLiteral(v, **kw)) for (k, v) in value.iteritems() ])
 
     # For lists, apply translation to all members
     if isinstance(value, types.ListType):
@@ -389,7 +389,7 @@ def GenerateFacets (td, generator, **kw):
     outf = binding_module.bindingIO()
     facet_instances = []
     gen_enum_tag = _useEnumerationTags(td)
-    for (fc, fi) in td.facets().items():
+    for (fc, fi) in td.facets().iteritems():
         #if (fi is None) or (fi.ownerTypeDefinition() != td):
         #    continue
         if (fi is None) and (fc in td.baseTypeDefinition().facets()):
@@ -414,7 +414,7 @@ def GenerateFacets (td, generator, **kw):
         outf.write("%s = %s(%s)\n" % binding_module.literal( (facet_var, fc, argset ), **kw))
         facet_instances.append(binding_module.literal(facet_var, **kw))
         if (fi is not None) and is_collection:
-            for i in fi.items():
+            for i in fi.iteritems():
                 if isinstance(i, facets._EnumerationElement):
                     enum_config = '%s.addEnumeration(unicode_value=%s, tag=%s)' % binding_module.literal( ( facet_var, i.unicodeValue(), i.tag() ), **kw)
                     if gen_enum_tag and (i.tag() is not None):
@@ -439,7 +439,7 @@ def GenerateFacets (td, generator, **kw):
                 fi = mtd.facets().get(facets.CF_enumeration)
                 if fi is None:
                     continue
-                for i in fi.items():
+                for i in fi.iteritems():
                     assert isinstance(i, facets._EnumerationElement)
                     etd = i.enumeration().ownerTypeDefinition()
                     enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i, **kw)
@@ -1470,7 +1470,7 @@ class _ModuleNaming_mixin (object):
                 else:
                     nsn = 'Namespace'
                 nsdef = None
-                for im in self.__importModulePathMap.keys():
+                for im in self.__importModulePathMap.iterkeys():
                     if isinstance(im, pyxb.namespace.archive.ModuleRecord):
                         if im.namespace() == namespace:
                             nsdef = self.pathFromImport(im, 'Namespace')

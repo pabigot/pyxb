@@ -354,7 +354,7 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
         lexical_re = cls.__LexicalREMap.get(cls)
         if lexical_re is None:
             pattern = '^' + cls._Lexical_fmt + '%Z?$'
-            for (k, v) in cls.__PatternMap.items():
+            for (k, v) in cls.__PatternMap.iteritems():
                 pattern = pattern.replace(k, v)
             lexical_re = re.compile(pattern)
             cls.__LexicalREMap[cls] = lexical_re

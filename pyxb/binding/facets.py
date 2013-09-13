@@ -147,7 +147,7 @@ class Facet (pyxb.cscRoot):
 
     def _valueString (self):
         if isinstance(self, _CollectionFacet_mixin):
-            return u','.join([ unicode(_i) for _i in self.items() ])
+            return u','.join([ unicode(_i) for _i in self.iteritems() ])
         if (self.valueDatatype() is not None) and (self.value() is not None):
             try:
                 return self.valueDatatype().XsdLiteral(self.value())

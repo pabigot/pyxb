@@ -384,11 +384,11 @@ class _BDSNamespaceSupport (object):
             self.__prefixes.update(inherit_from.__prefixes)
         if default_namespace is not None:
             self.setDefaultNamespace(default_namespace)
-        prefixes = set(self.__namespacePrefixMap.values())
+        prefixes = set(self.__namespacePrefixMap.itervalues())
         prefixes.update(self.__prefixes)
         if namespace_prefix_map is not None:
             prefixes = set()
-            for (ns, pfx) in namespace_prefix_map.items():
+            for (ns, pfx) in namespace_prefix_map.iteritems():
                 ns = pyxb.namespace.NamespaceInstance(ns)
                 if pfx in prefixes:
                     raise pyxb.LogicError('Cannot assign same prefix to multiple namespacess: %s' % (pfx,))
@@ -539,7 +539,7 @@ class BindingDOMSupport (object):
         ns = self.__namespaceSupport.defaultNamespace()
         if ns is not None:
             self.document().documentElement.setAttributeNS(pyxb.namespace.XMLNamespaces.uri(), 'xmlns', ns.uri())
-        for ( ns, pfx ) in self.__namespaceSupport.namespaces().items():
+        for ( ns, pfx ) in self.__namespaceSupport.namespaces().iteritems():
             assert pfx is not None
             self.document().documentElement.setAttributeNS(pyxb.namespace.XMLNamespaces.uri(), 'xmlns:%s' % (pfx,), ns.uri())
         return self.document()

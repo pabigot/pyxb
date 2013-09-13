@@ -139,7 +139,7 @@ class NamespaceArchive (object):
             # this is the first time through.
             if cls.__NamespaceArchives is None:
                 cls.__NamespaceArchives = { }
-            existing_archives = set(cls.__NamespaceArchives.values())
+            existing_archives = set(cls.__NamespaceArchives.itervalues())
             archive_set = set()
 
             # Ensure we have an archive path.  If not, don't do anything.
@@ -391,7 +391,7 @@ class NamespaceArchive (object):
                 for (cat, names) in origin.categoryMembers().iteritems():
                     if not (cat in ns.categories()):
                         continue
-                    cross_objects = names.intersection(ns.categoryMap(cat).keys())
+                    cross_objects = names.intersection(ns.categoryMap(cat).iterkeys())
                     if 0 < len(cross_objects):
                         raise pyxb.NamespaceArchiveError('Archive %s namespace %s module %s origin %s archive/active conflict on category %s: %s' % (self.__archivePath, ns, mr, origin, cat, " ".join(cross_objects)))
                     _log.info('%s no conflicts on %d names', cat, len(names))
@@ -543,7 +543,7 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
 
     def isActive (self, empty_inactive=False):
         if self.__isActive and empty_inactive:
-            for (ct, cm) in self._categoryMap().items():
+            for (ct, cm) in self._categoryMap().iteritems():
                 if 0 < len(cm):
                     return True
             return False
@@ -766,7 +766,7 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
         assert self.__categoryObjects is None
         assert not self.__constructedLocally
         ns = self.namespace()
-        ns.configureCategories(category_objects.keys())
+        ns.configureCategories(category_objects.iterkeys())
         for (cat, obj_map) in category_objects.iteritems():
             current_map = ns.categoryMap(cat)
             for (local_name, component) in obj_map.iteritems():
@@ -846,7 +846,7 @@ class _ObjectOrigin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.cscRoot):
     def originatedObjects (self):
         if self.__originatedObjects is None:
             components = set()
-            [ components.update(_v.values()) for _v in self.__categoryObjectMap.itervalues() ]
+            [ components.update(_v.itervalues()) for _v in self.__categoryObjectMap.itervalues() ]
             self.__originatedObjects = frozenset(components)
         return self.__originatedObjects
 

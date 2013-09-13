@@ -1570,7 +1570,7 @@ class Node (object):
         maps using positions."""
         rv = []
         rv.append('r\t= %s' % (str(self),))
-        states = self.follow.keys()
+        states = list(self.follow.iterkeys())
         rv.append('sym(r)\t= %s' % (' '.join(map(str, map(self.posNodeMap.get, states)))))
         rv.append('first(r)\t= %s' % (' '.join(map(str, self.first))))
         rv.append('last(r)\t= %s' % (' '.join(map(str, self.last))))

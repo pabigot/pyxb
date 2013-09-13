@@ -35,7 +35,7 @@ class TestTrac0111 (unittest.TestCase):
     Expected = set( ('clubs', 'hearts', 'diamonds', 'spades') )
     def testItems (self):
         vals = set()
-        for ee in cards.items():
+        for ee in cards.iteritems():
             self.assertTrue(isinstance(ee, cards._CF_enumeration._CollectionFacet_itemType))
             vals.add(ee.value())
         self.assertEqual(self.Expected, vals)
@@ -49,7 +49,7 @@ class TestTrac0111 (unittest.TestCase):
 
     def testValues (self):
         vals = set()
-        for e in cards.values():
+        for e in cards.itervalues():
             vals.add(e)
         self.assertEqual(self.Expected, vals)
 

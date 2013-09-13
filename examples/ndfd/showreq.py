@@ -8,7 +8,7 @@ import pyxb.namespace
 #import DWML
 #print 'Validating DWML'
 #DWML.Namespace.validateSchema()
-#print 'Validated DWML: types %s' % ("\n".join(DWML.Namespace.typeDefinitions().keys()),)
+#print 'Validated DWML: types %s' % ("\n".join(DWML.Namespace.typeDefinitions().iterkeys()),)
 
 xmls = open('NDFDgen.xml').read()
 dom = xml.dom.minidom.parseString(xmls)

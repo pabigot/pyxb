@@ -481,11 +481,11 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         attribute_settings = { }
         if dom_node is not None:
             attribute_settings.update(self.__AttributesFromDOM(dom_node))
-        for fu in self._AttributeMap.values():
+        for fu in self._AttributeMap.itervalues():
             iv = kw.pop(fu.id(), None)
             if iv is not None:
                 attribute_settings[fu.name()] = iv
-        for (attr_en, value) in attribute_settings.items():
+        for (attr_en, value) in attribute_settings.iteritems():
             self._setAttribute(attr_en, value)
 
     def toDOM (self, bds=None, parent=None, element_name=None):
@@ -2016,7 +2016,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         self.reset()
         self._setAttributesFromKeywordsAndDOM(kw, dom_node)
         did_set_kw_elt = False
-        for fu in self._ElementMap.values():
+        for fu in self._ElementMap.itervalues():
             iv = kw.pop(fu.id(), None)
             if iv is not None:
                 did_set_kw_elt = True
@@ -2082,7 +2082,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         disabled validation.  Consequently, it may not generate valid XML.
         """
         order = []
-        for ed in self._ElementMap.values():
+        for ed in self._ElementMap.itervalues():
             value = ed.value(self)
             if value is None:
                 continue
@@ -2132,7 +2132,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         content to the binding declaration type.
         """
         rv = { }
-        for eu in self._ElementMap.values():
+        for eu in self._ElementMap.itervalues():
             value = eu.value(self)
             if value is None:
                 continue
@@ -2148,7 +2148,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         return rv
 
     def _validateAttributes (self):
-        for au in self._AttributeMap.values():
+        for au in self._AttributeMap.itervalues():
             au.validate(self)
 
     def _validateBinding_vx (self):
@@ -2276,7 +2276,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
     def _resetContent (self, reset_elements=False):
         if reset_elements:
-            for eu in self._ElementMap.values():
+            for eu in self._ElementMap.itervalues():
                 eu.reset(self)
         nv = None
         if self._ContentTypeTag in (self._CT_MIXED, self._CT_ELEMENT_ONLY):
@@ -2309,7 +2309,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         """
 
         self._resetContent(reset_elements=True)
-        for au in self._AttributeMap.values():
+        for au in self._AttributeMap.itervalues():
             au.reset(self)
         self._resetAutomaton()
         return self
@@ -2509,7 +2509,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
     def _setDOMFromAttributes (self, dom_support, element):
         """Add any appropriate attributes from this instance into the DOM element."""
-        for au in self._AttributeMap.values():
+        for au in self._AttributeMap.itervalues():
             if pyxb.GlobalValidationConfig.forDocument:
                 au.validate(self)
             au.addDOMAttribute(dom_support, self, element)
@@ -2571,12 +2571,12 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 desc.append(', element-only content')
         if (0 < len(cls._AttributeMap)) or (cls._AttributeWildcard is not None):
             desc.append("\nAttributes:\n  ")
-            desc.append("\n  ".join([ _au._description(user_documentation=False) for _au in cls._AttributeMap.values() ]))
+            desc.append("\n  ".join([ _au._description(user_documentation=False) for _au in cls._AttributeMap.itervalues() ]))
             if cls._AttributeWildcard is not None:
                 desc.append("\n  Wildcard attribute(s)")
         if (0 < len(cls._ElementMap)) or cls._HasWildcardElement:
             desc.append("\nElements:\n  ")
-            desc.append("\n  ".join([ _eu._description(user_documentation=False) for _eu in cls._ElementMap.values() ]))
+            desc.append("\n  ".join([ _eu._description(user_documentation=False) for _eu in cls._ElementMap.itervalues() ]))
             if cls._HasWildcardElement:
                 desc.append("\n  Wildcard element(s)")
         return ''.join(desc)
