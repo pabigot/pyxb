@@ -318,7 +318,7 @@ class _BDSNamespaceSupport (object):
         provided namespace is C{None} or an absent namespace, the C{None}
         value will be returned as the corresponding prefix.
 
-        @kw enable_default_namespace: Normally if the namespace is the default
+        @keyword enable_default_namespace: Normally if the namespace is the default
         namespace C{None} is returned to indicate this.  If this keyword is
         C{False} then we need a namespace prefix even if this is the default.
         """

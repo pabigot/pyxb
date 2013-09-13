@@ -222,8 +222,8 @@ class ValidationConfig (object):
         from a binding instance.
 
         This applies at invocation of
-        L{toDOM()<pyxb.binding._TypeBinding_mixin.toDOM>}.
-        L{toxml()<pyxb.binding._TypeBinding_mixin.toDOM>} invokes C{toDOM()}."""
+        L{toDOM()<pyxb.binding.basis._TypeBinding_mixin.toDOM>}.
+        L{toxml()<pyxb.binding.basis._TypeBinding_mixin.toDOM>} invokes C{toDOM()}."""
         return self.__forDocument
     def _setForDocument (self, value):
         """Configure whether validation should be performed when generating
