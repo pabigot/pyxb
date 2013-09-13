@@ -20,9 +20,9 @@ xsd=u'''<?xml version="1.0" encoding="utf-8"?>
 </xs:schema>
 '''
 
-#file('schema.xsd', 'w').write(xsd)
+#open('schema.xsd', 'w').write(xsd)
 code = pyxb.binding.generate.GeneratePython(schema_text=xsd)
-#file('code.py', 'w').write(code)
+#open('code.py', 'w').write(code)
 #print code
 
 rv = compile(code.encode('utf-8'), 'test', 'exec')
@@ -126,7 +126,7 @@ class TestTrac_0139 (unittest.TestCase):
             self.assertEqual(self.ascii, instance)
 
     def testASCII_expat_file (self):
-        xmls = file(self.path_ascii).read()
+        xmls = open(self.path_ascii).read()
         instance = CreateFromDocument(xmls)
         self.assertEqual(self.ascii, instance)
 
@@ -135,7 +135,7 @@ class TestTrac_0139 (unittest.TestCase):
             _log.warning('%s: testASCII_libxml2_file bypassed since libxml2 not present', __file__)
             return
         self.useLibXML2Parser()
-        xmls = file(self.path_ascii).read()
+        xmls = open(self.path_ascii).read()
         instance = CreateFromDocument(xmls)
         self.assertEqual(self.ascii, instance)
 
@@ -144,7 +144,7 @@ class TestTrac_0139 (unittest.TestCase):
         self.assertRaises(UnicodeEncodeError, CreateFromDocument, xmls)
 
     def testNihongo_expat_file (self):
-        xmls = file(self.path_nihongo).read()
+        xmls = open(self.path_nihongo).read()
         self.assertRaises(xml.sax.SAXParseException, CreateFromDocument, xmls)
 
     def testNihongo_libxml2_str (self):
@@ -162,12 +162,12 @@ class TestTrac_0139 (unittest.TestCase):
             _log.warning('%s: testNihongo_libxml2_file bypassed since libxml2 not present', __file__)
             return
         self.useLibXML2Parser()
-        xmls = file(self.path_nihongo).read()
+        xmls = open(self.path_nihongo).read()
         instance = CreateFromDocument(xmls)
         self.assertEqual(self.nihongo, instance)
 
     def testASCII_stringio (self):
-        f = file(self.path_ascii).read()
+        f = open(self.path_ascii).read()
         sio = StringIO.StringIO(self.ascii_xml).read()
         self.assertEqual(f, sio)
 

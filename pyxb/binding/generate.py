@@ -1887,7 +1887,7 @@ class Generator (object):
                 sub_path = self.__moduleFilePath(module_elts[:1+n], inhibit_extension=True)
                 init_path = os.path.join(sub_path, '__init__.py')
                 if not os.path.exists(init_path):
-                    file(init_path, 'w')
+                    open(init_path, 'w')
         return (binding_file_path, binding_file, module_path)
 
     def schemaRoot (self):

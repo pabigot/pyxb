@@ -1,7 +1,7 @@
 from __future__ import print_function
 import po1
 
-xml = file('po1.xml').read()
+xml = open('po1.xml').read()
 order = po1.CreateFromDocument(xml)
 
 print('%s is sending %s %d thing(s):' % (order.billTo.name, order.shipTo.name, len(order.items.item)))

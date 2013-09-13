@@ -13,9 +13,9 @@ xsd='''<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <xsd:element name="timestamp" type="xsd:dateTime"/>
 </xsd:schema>'''
 
-#file('schema.xsd', 'w').write(xsd)
+#open('schema.xsd', 'w').write(xsd)
 code = pyxb.binding.generate.GeneratePython(schema_text=xsd)
-#file('code.py', 'w').write(code)
+#open('code.py', 'w').write(code)
 
 rv = compile(code, 'test', 'exec')
 eval(rv)

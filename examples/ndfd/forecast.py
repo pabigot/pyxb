@@ -21,7 +21,7 @@ print(uri)
 
 # Retrieve the data
 xmls = urllib2.urlopen(uri).read()
-file('forecast.xml', 'w').write(xmls)
+open('forecast.xml', 'w').write(xmls)
 #print xmls
 
 # Convert it to  DWML object

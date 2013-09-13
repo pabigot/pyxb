@@ -18,8 +18,8 @@ uri = urllib2.Request('http://rpc.geocoder.us/service/soap/',
                       { 'SOAPAction' : "http://rpc.geocoder.us/Geo/Coder/US#geocode", 'Content-Type': 'text/xml' } )
 
 rxml = urllib2.urlopen(uri).read()
-#file('response.xml', 'w').write(rxml)
-#rxml = file('response.xml').read()
+#open('response.xml', 'w').write(rxml)
+#rxml = open('response.xml').read()
 response = soapenv.CreateFromDocument(rxml)
 
 # OK, here we get into ugliness due to WSDL's concept of schema in the

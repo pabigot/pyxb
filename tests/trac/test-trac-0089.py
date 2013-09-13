@@ -33,9 +33,9 @@ xsd='''<?xml version="1.0" encoding="utf-8"?>
 </xs:schema>
 '''
 
-#file('schema.xsd', 'w').write(xsd)
+#open('schema.xsd', 'w').write(xsd)
 code = pyxb.binding.generate.GeneratePython(schema_text=xsd)
-#file('code.py', 'w').write(code)
+#open('code.py', 'w').write(code)
 #print code
 
 rv = compile(code, 'test', 'exec')

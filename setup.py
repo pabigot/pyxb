@@ -48,11 +48,11 @@ class update_version (Command):
 
     def run (self):
         for f in self.files:
-            text = file('%s.in' % (f,)).read()
+            text = open('%s.in' % (f,)).read()
             for (k, v) in self.substitutions.iteritems():
                 text = text.replace('@%s@' % (k,), v)
             os.chmod(f, os.stat(f)[stat.ST_MODE] | stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH)
-            file(f,'w').write(text)
+            open(f,'w').write(text)
             os.chmod(f, os.stat(f)[stat.ST_MODE] & ~(stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH))
 
 class test (Command):
@@ -122,7 +122,7 @@ class test (Command):
                     number += 1
 
                 # Read the test source in and compile it
-                rv = compile(file(fn).read(), test_name, 'exec')
+                rv = compile(open(fn).read(), test_name, 'exec')
                 state = 'evaluate'
 
                 # Make a copy of the globals array so we don't

@@ -263,7 +263,7 @@ if '__main__' == __name__:
     if 1 < len(sys.argv):
         xml_file = sys.argv[1]
 
-    doc = parse(file(xml_file))
+    doc = parse(open(xml_file))
 
 ## Local Variables:
 ## fill-column:78

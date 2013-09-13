@@ -12,14 +12,14 @@ if 1 < len(sys.argv):
 # Create an envelope, and give it a body that is the request for the
 # service we want.
 env = soapenv.Envelope(soapenv.Body(weather.GetCityForecastByZIP(ZIP=str(zip))))
-file('request.xml', 'w').write(env.toxml("utf-8"))
+open('request.xml', 'w').write(env.toxml("utf-8"))
 
 # Invoke the service
 uri = urllib2.Request('http://wsf.cdyne.com/WeatherWS/Weather.asmx',
                       env.toxml("utf-8"),
                       { 'SOAPAction' : "http://ws.cdyne.com/WeatherWS/GetCityForecastByZIP", 'Content-Type': 'text/xml' } )
 rxml = urllib2.urlopen(uri).read()
-file('response.xml', 'w').write(rxml)
+open('response.xml', 'w').write(rxml)
 
 # Convert the response to a SOAP envelope, then extract the actual
 # response from the wildcard elements of the body.  Note that because

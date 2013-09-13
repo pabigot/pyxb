@@ -1,7 +1,7 @@
 from __future__ import print_function
 import po2
 
-order = po2.CreateFromDocument(file('po1.xml').read())
+order = po2.CreateFromDocument(open('po1.xml').read())
 
 print('%s is sending %s %d thing(s):' % (order.billTo.name, order.shipTo.name, len(order.items.item)))
 for item in order.items.item:

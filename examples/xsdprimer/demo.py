@@ -4,7 +4,7 @@ import ipo
 import xml.dom.minidom
 import time
 
-xml_text = file('ipo.xml').read()
+xml_text = open('ipo.xml').read()
 
 order = ipo.CreateFromDOM(xml.dom.minidom.parseString(xml_text).documentElement)
 

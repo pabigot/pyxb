@@ -396,13 +396,13 @@ class TestOpenOrCreate_ExistingTagMatch (unittest.TestCase, _TestOpenOrCreate_mi
         filename = self.fileName()
         tag = 'MyTagXX'
         text = 'This file has the tag %s in it' % (tag,)
-        file(filename, 'w').write(text)
-        self.assertEqual(text, file(filename).read())
+        open(filename, 'w').write(text)
+        self.assertEqual(text, open(filename).read())
         of = OpenOrCreate(filename, tag=tag)
         text = 'New version with tag %s' % (tag,)
         of.write(text)
         of.close()
-        self.assertEqual(text, file(filename).read())
+        self.assertEqual(text, open(filename).read())
 
 class TestOpenOrCreate_ExistingTagMismatch (unittest.TestCase, _TestOpenOrCreate_mixin):
     setUp = _TestOpenOrCreate_mixin.setUp
@@ -412,11 +412,11 @@ class TestOpenOrCreate_ExistingTagMismatch (unittest.TestCase, _TestOpenOrCreate
         filename = self.fileName()
         tag = 'MyTagXX'
         text = 'This file has the tag NotMyTag in it'
-        file(filename, 'w').write(text)
+        open(filename, 'w').write(text)
         # Verify that opening for append will be positioned after the text.
         if 'win32' != sys.platform:
-            self.assertTrue(0 < file(filename, 'a').tell())
-        self.assertEqual(text, file(filename).read())
+            self.assertTrue(0 < open(filename, 'a').tell())
+        self.assertEqual(text, open(filename).read())
         self.assertRaises(OSError, OpenOrCreate, filename, tag=tag)
 
 class TestHashForText (unittest.TestCase):
@@ -563,7 +563,7 @@ class TestGetMatchingFiles (unittest.TestCase):
                   'd1/d11/f11a.wxs', 'd1/d11/f11b.wxs',
                   'd1/d12/f12a.wxs', 'd1/d12/f12b',
                   'd1/d12/d121/f121a.wxs' ]
-        [ file(os.path.join(self.__directory, _f), 'w') for _f in files ]
+        [ open(os.path.join(self.__directory, _f), 'w') for _f in files ]
 
         self.__haveSymlink = hasattr(os, 'symlink')
         if self.__haveSymlink:

@@ -11,7 +11,7 @@ import os.path
 schema_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../schemas/po1.xsd'))
 code = pyxb.binding.generate.GeneratePython(schema_location=schema_path)
 
-#file('code.py', 'w').write(code)
+#open('code.py', 'w').write(code)
 rv = compile(code, 'test', 'exec')
 eval(rv)
 

@@ -29,9 +29,9 @@ xsd='''<?xml version="1.0" encoding="UTF-8"?>
 </xs:schema>
 '''
 
-#file('schema.xsd', 'w').write(xsd)
+#open('schema.xsd', 'w').write(xsd)
 code = pyxb.binding.generate.GeneratePython(schema_text=xsd)
-#file('code.py', 'w').write(code)
+#open('code.py', 'w').write(code)
 #print code
 
 rv = compile(code, 'test', 'exec')
@@ -47,7 +47,7 @@ class TestBug_200908271556(unittest.TestCase):
     # Somebody cares, so make this OS-dependent.
     __statm = None
     if sys.platform.startswith('linux'):
-        __statm = file('/proc/%d/statm' % (os.getpid(),))
+        __statm = open('/proc/%d/statm' % (os.getpid(),))
 
     def __getMem (self):
         if self.__statm is not None:

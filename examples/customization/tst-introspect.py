@@ -7,7 +7,7 @@ import unittest
 class TestComplex (unittest.TestCase):
 
     def setUp (self):
-        xmls = file('test.xml').read()
+        xmls = open('test.xml').read()
         self.instance = custom.CreateFromDocument(xmls)
 
     def testRawSubclassHierarchy (self):

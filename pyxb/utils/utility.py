@@ -676,7 +676,7 @@ def TextFromURI (uri, archive_directory=None):
     if stream is None:
         # No go as URI; give file a chance
         try:
-            stream = file(uri)
+            stream = open(uri)
             exc = None
         except Exception as e:
             if exc is None:
@@ -734,7 +734,7 @@ def OpenOrCreate (file_name, tag=None, preserve_contents=False):
         except Exception as e:
             if not (isinstance(e, (OSError, IOError)) and (errno.EEXIST == e.errno)):
                 raise
-    fp = file(file_name, 'ab+')
+    fp = open(file_name, 'ab+')
     if (tag is not None) and (0 < os.fstat(fp.fileno()).st_size):
         text = fp.read(4096)
         if 0 > text.find(tag):

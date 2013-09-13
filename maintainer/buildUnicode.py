@@ -76,7 +76,7 @@ def rangesToPython (ranges, indent=11, width=67):
 
 def emitCategoryMap (data_file):
     category_map = {}
-    unicode_data = file(data_file)
+    unicode_data = open(data_file)
     range_first = None
     last_codepoint = -1
     while True:
@@ -125,7 +125,7 @@ def emitCategoryMap (data_file):
 def emitBlockMap (data_file):
     block_map = { }
     block_re = re.compile('(?P<min>[0-9A-F]+)(?P<spans>\.\.|; )(?P<max>[0-9A-F]+);\s(?P<block>.*)$')
-    block_data = file(data_file)
+    block_data = open(data_file)
     while True:
         line = block_data.readline()
         if 0 == len(line):

@@ -11,11 +11,11 @@ def ShowOrder (order):
 
 if False:
     import pyxb.utils.domutils
-    xmld = pyxb.utils.domutils.StringToDOM(file(xml_file).read())
+    xmld = pyxb.utils.domutils.StringToDOM(open(xml_file).read())
     dom_value = ipo.CreateFromDOM(xmld.documentElement)
     ShowOrder(dom_value)
 
 saxer = pyxb.binding.saxer.make_parser()
 handler = saxer.getContentHandler()
-saxer.parse(file(xml_file))
+saxer.parse(open(xml_file))
 ShowOrder(handler.rootObject())

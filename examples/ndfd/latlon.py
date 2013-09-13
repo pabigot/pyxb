@@ -95,10 +95,10 @@ soap_message = '''<?xml version="1.0" encoding="ISO-8859-1"?>
   <SOAP-ENV:Body>''' + dom.documentElement.toxml("utf-8") + '''</SOAP-ENV:Body>
 </SOAP-ENV:Envelope>'''
   
-#soap_message = file('NDFDgen.xml').read()
-#soap_message = file('test.xml').read()
+#soap_message = open('NDFDgen.xml').read()
+#soap_message = open('test.xml').read()
 # Save the request message so it can be examined later
-file('req.xml', 'w').write(soap_message)
+open('req.xml', 'w').write(soap_message)
 
 # Pull the SOAPAction and endpoint out of the WSDL spec.  This is gross.
 spec_ns = spec.namespaceContext().targetNamespace()
@@ -116,10 +116,10 @@ uri = urllib2.Request(endpoint,
                       soap_message,
                       { 'SOAPAction' : soap_action, 'Content-Type': 'text/xml' } )
 rxml = urllib2.urlopen(uri).read()
-#rxml = file('rawresp.xml').read()
+#rxml = open('rawresp.xml').read()
 
 # Save the raw SOAP-wrapped response
-file('rawresp.xml', 'w').write(rxml)
+open('rawresp.xml', 'w').write(rxml)
 
 # The NDFD interface is "interesting" in that the response message for
 # the SOAP interface is encoded as a text string, rather than being
@@ -129,8 +129,8 @@ resp = soapenv.CreateFromDOM(rdom)
 v = resp.Body.wildcardElements()[0]
 rxml = v.childNodes[0].childNodes[0].value
 # Save the extracted response
-file('resp.xml', 'w').write(rxml)
-#rxml = file('resp.xml').read()
+open('resp.xml', 'w').write(rxml)
+#rxml = open('resp.xml').read()
 
 # Create the binding instance from the response.  If there's a
 # problem, diagnose the issue, then try again with validation

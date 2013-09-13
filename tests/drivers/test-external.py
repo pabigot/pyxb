@@ -32,7 +32,7 @@ st_generator.addSchemaLocation('shared-types.xsd')
 st_modules = st_generator.bindingModules()
 assert 1 == len(st_modules)
 code = st_modules.pop().moduleContents()
-file('st.py', 'w').write(code)
+open('st.py', 'w').write(code)
 rv = compile(code, 'shared-types', 'exec')
 exec code in st.__dict__
 
@@ -49,7 +49,7 @@ assert 1 == len(modules)
 m = modules.pop()
 assert m.namespace() != stns
 code = m.moduleContents()
-file('te.py', 'w').write(code)
+open('te.py', 'w').write(code)
 rv = compile(code, 'test-external', 'exec')
 eval(rv)
 

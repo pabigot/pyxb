@@ -17,7 +17,7 @@ def first_element_child (n):
 
 class TestTrac0114 (unittest.TestCase):
 
-    xmlString = file('namespace_other_issue.xml').read()
+    xmlString = open('namespace_other_issue.xml').read()
 
     def validateDOM (self, instance):
         self.assertEqual

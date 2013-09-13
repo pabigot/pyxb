@@ -6,7 +6,7 @@ from xml.dom import Node
 
 pyxb.utils.domutils.BindingDOMSupport.SetDefaultNamespace(xhtml.Namespace)
 
-src = file('in.xhtml').read()
+src = open('in.xhtml').read()
 i1 = xhtml.CreateFromDocument(src)
 xmls = i1.toDOM().toxml('utf-8')
-file('out.xhtml', 'w').write(xmls)
+open('out.xhtml', 'w').write(xmls)

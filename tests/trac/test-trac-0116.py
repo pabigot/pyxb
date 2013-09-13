@@ -14,7 +14,7 @@ xsd='''<?xml version="1.0" encoding="utf-8"?>
 </xsd:schema>'''
 
 code = pyxb.binding.generate.GeneratePython(schema_text=xsd)
-#file('binding0116.py', 'w').write(code)
+#open('binding0116.py', 'w').write(code)
 
 rv = compile(code, 'test', 'exec')
 eval(rv)

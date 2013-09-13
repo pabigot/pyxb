@@ -20,7 +20,7 @@ class ExampleUnicode_JP (unittest.TestCase):
         # Make sure we find the files, for tests where we are not
         # in the examples/unicode_jp directory
         path = os.path.join(os.path.dirname(__file__), path)
-        xmls = file(path).read()
+        xmls = open(path).read()
         instance = fgd_gml.CreateFromDocument(xmls)
         for name in instance.name:
             return name.value()
