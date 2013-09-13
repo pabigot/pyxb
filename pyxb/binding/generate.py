@@ -2137,8 +2137,8 @@ class Generator (object):
         """Return the set of namespaces that may be augmented by import directives."""
         self.__importAugmentableNamespaces.clear()
         self.__importAugmentableNamespaces.update([ pyxb.namespace.NamespaceInstance(_ns) for _ns in namespace_set ])
-    def addImportAugmentableNamespace (self, namespace_file):
-        """Mark that the specified namespace may be importAugmentableed by new bindings.
+    def addImportAugmentableNamespace (self, namespace):
+        """Mark that the specified namespace may be imported by new bindings.
 
         Normally namespaces that are available from archives are
         considered to be complete, and schema locations in import
@@ -2151,7 +2151,6 @@ class Generator (object):
         from a different source component definitions might
         conflict."""
         self.__importAugmentableNamespaces.add(pyxb.namespace.NamespaceInstance(namespace))
-        self.__importAugmentableNamespaces.append(archive_file)
     __importAugmentableNamespaces = None
 
     def archiveToFile (self):
