@@ -21,9 +21,8 @@ reference it below.
 """
 
 import pyxb
-import exceptions
 
-class PyXBException (exceptions.Exception):
+class PyXBException (Exception):
     """Base class for exceptions that indicate a problem that the user should fix."""
 
     """The arguments passed to the exception constructor."""
@@ -48,7 +47,7 @@ class PyXBException (exceptions.Exception):
             args = (kw.pop('message'),)
         self._args = args
         self._kw = kw
-        exceptions.Exception.__init__(self, *args)
+        super(PyXBException, self).__init__(*args)
 
     def _str_from_unicode (self):
         return unicode(self).encode(pyxb._OutputEncoding)
@@ -79,10 +78,7 @@ class SchemaUniquenessError (PyXBException):
     include processing would have avoided this, so somebody asked for
     it specifically."""
     def __init__ (self, namespace, schema_location, existing_schema, *args, **kw):
-        # Prior to 2.5, exceptions did not inherit from object, and
-        # super could not be used.
-        #super(SchemaUniquenessError, self).__init__(*args, **kw)
-        PyXBException.__init__(self, *args, **kw)
+        super(SchemaUniquenessError, self).__init__(*args, **kw)
         self.__namespace = namespace
         self.__schemaLocation = schema_location
         self.__existingSchema = existing_schema
@@ -925,7 +921,7 @@ class ReservedNameError (BindingError):
         return '%s is a reserved name within %s' % (self.name, self.instance._Name())
     __str__ = PyXBException._str_from_unicode
 
-class PyXBError (exceptions.Exception):
+class PyXBError (Exception):
     """Base class for exceptions that indicate a problem that the user probably can't fix."""
     pass
 
