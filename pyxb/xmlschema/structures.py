@@ -4696,7 +4696,7 @@ class Schema (_SchemaComponent_mixin):
         """Return True iff the schema has an attribute with the given (nc)name."""
         if isinstance(attr_name, basestring):
             attr_name = pyxb.namespace.ExpandedName(None, attr_name)
-        return self.__attributeMap.has_key(attr_name)
+        return attr_name in self.__attributeMap
 
     def schemaAttribute (self, attr_name):
         """Return the schema attribute value associated with the given (nc)name.

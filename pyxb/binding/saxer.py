@@ -108,7 +108,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
                '_location' : self.location() }
 
         # Note whether the node is marked nil
-        if attrs.has_key(self.__XSINilTuple):
+        if self.__XSINilTuple in attrs:
             kw['_nil'] = pyxb.binding.datatypes.boolean(attrs.getValue(self.__XSINilTuple))
 
         if content is None:
@@ -328,7 +328,7 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
             type_class = element_binding.typeDefinition()
 
         # Process an xsi:type attribute, if present
-        if attrs.has_key(self.__XSITypeTuple):
+        if self.__XSITypeTuple in attrs:
             (did_replace, type_class) = XSI._InterpretTypeAttribute(attrs.getValue(self.__XSITypeTuple), ns_ctx, self.fallbackNamespace(), type_class)
             if did_replace:
                 element_binding = None
