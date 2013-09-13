@@ -83,6 +83,9 @@ class CodePointSet (object):
         internal representation."""
         return self.__codepoints
 
+    def __hash__ (self):
+        return hash(self.__codepoints)
+
     def __eq__ (self, other):
         """Equality is delegated to the codepoints list."""
         return self.__codepoints == other.__codepoints

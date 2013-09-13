@@ -987,6 +987,9 @@ class UTCOffsetTimeZone (datetime.tzinfo):
             return other.__utcOffset_min
         return other.utcoffset(datetime.datetime.now())
 
+    def __hash__ (self):
+        return hash(self.__utcOffset_min)
+
     def __eq__ (self, other):
         return self.__utcOffset_min == self.__otherForComparison(other)
 
@@ -1202,18 +1205,21 @@ class Location (object):
         return 1
 
     def __cmpTupleUnlessNone (self, v1, v2):
-        rv = self.__cmpUnlessNone(self.__locationBase, other.__locationBase)
+        rv = self.__cmpSingleUnlessNone(v1.__locationBase, v2.__locationBase)
         if rv is None:
-            rv = self.__cmpUnlessNone(self.__lineNumber, other.__lineNumber)
+            rv = self.__cmpSingleUnlessNone(v1.__lineNumber, v2.__lineNumber)
         if rv is None:
-            rv = self.__cmpUnlessNone(self.__columnNumber, other.__columnNumber)
+            rv = self.__cmpSingleUnlessNone(v1.__columnNumber, v2.__columnNumber)
         return rv
+
+    def __hash__ (self):
+        return hash((self.__locationBase, self.__lineNumber, self.__columnNumber))
 
     def __eq__ (self, other):
         """Comparison by locationBase, then lineNumber, then columnNumber."""
         if other is None:
             return False
-        rv = self.__cmpTupleAgainstNone(self, other)
+        rv = self.__cmpTupleUnlessNone(self, other)
         if rv is None:
             return True
         return 0 == rv
@@ -1221,7 +1227,7 @@ class Location (object):
     def __lt__ (self, other):
         if other is None:
             return False
-        rv = self.__cmpTupleAgainstNone(self, other)
+        rv = self.__cmpTupleUnlessNone(self, other)
         if rv is None:
             return False
         return -1 == rv

@@ -871,6 +871,9 @@ class _PluralBinding (collections.MutableSequence):
     def __str__ (self):
         return self.__list.__str__()
 
+    def __hash__ (self):
+        return hash(self.__list__)
+
     def __eq__ (self, other):
         if isinstance(other, _PluralBinding):
             return self.__list.__eq__(other.__list)
