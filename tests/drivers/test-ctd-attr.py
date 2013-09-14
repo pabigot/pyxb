@@ -31,9 +31,9 @@ class TestCTD (unittest.TestCase):
     # Make sure that name collisions are deconflicted in favor of the
     # element declaration.
     def testDeconflict (self):
-        self.assert_(isinstance(structure, pyxb.binding.basis.element))
-        self.assert_(issubclass(structure_, pyxb.binding.basis.complexTypeDefinition))
-        self.assert_(pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY == structure_._ContentTypeTag)
+        self.assertTrue(isinstance(structure, pyxb.binding.basis.element))
+        self.assertTrue(issubclass(structure_, pyxb.binding.basis.complexTypeDefinition))
+        self.assertTrue(pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY == structure_._ContentTypeTag)
 
     def testSimple (self):
         self.assertEqual('test', simple_('test').value())
@@ -69,7 +69,7 @@ class TestCTD (unittest.TestCase):
         self.assertRaises(MissingAttributeError, CreateFromDocument, '<emptyWithAttr xmlns="URN:testCTD"/>')
         instance = CreateFromDocument('<emptyWithAttr capitalized="false" xmlns="URN:testCTD"/>')
         self.assertEqual('irish', instance.language)
-        self.assert_(not instance.capitalized)
+        self.assertTrue(not instance.capitalized)
         self.assertEqual(5432, instance.port)
         self.assertEqual('top default', instance.tlAttr)
         self.assertEqual('stone', instance.immutable)
@@ -83,13 +83,13 @@ class TestCTD (unittest.TestCase):
 
         instance = CreateFromDocument('<emptyWithAttr capitalized="true" language="hebrew"  xmlns="URN:testCTD"/>')
         self.assertEqual('hebrew', instance.language)
-        self.assert_(instance.capitalized)
+        self.assertTrue(instance.capitalized)
         self.assertEqual(5432, instance.port)
         # Raw constructor generates default everything; optional
         # attributes may have value None.
         instance = emptyWithAttr()
         self.assertEqual('irish', instance.language)
-        self.assert_(instance.capitalized is None)
+        self.assertTrue(instance.capitalized is None)
         self.assertEqual(5432, instance.port)
         self.assertRaises(pyxb.MissingAttributeError, ToDOM, instance)
         instance.capitalized = False

@@ -32,11 +32,11 @@ class _TestIntegerType (object):
         if self.MIN_IN_RANGE is not None:
             if not ((self.MIN_IN_RANGE-1) in self.PARENT_EXCLUDE):
                 self.assertRaises(SimpleTypeValueError, self.THIS_TYPE, self.MIN_IN_RANGE - 1)
-            self.assertEquals(self.MIN_IN_RANGE, self.THIS_TYPE(self.MIN_IN_RANGE))
+            self.assertEqual(self.MIN_IN_RANGE, self.THIS_TYPE(self.MIN_IN_RANGE))
         if self.ZERO_IN_RANGE:
-            self.assertEquals(0, self.THIS_TYPE(0))
+            self.assertEqual(0, self.THIS_TYPE(0))
         if self.MAX_IN_RANGE is not None:
-            self.assertEquals(self.MAX_IN_RANGE, self.THIS_TYPE(self.MAX_IN_RANGE))
+            self.assertEqual(self.MAX_IN_RANGE, self.THIS_TYPE(self.MAX_IN_RANGE))
             if not ((self.MAX_IN_RANGE+1) in self.PARENT_EXCLUDE):
                 self.assertRaises(SimpleTypeValueError, self.THIS_TYPE, self.MAX_IN_RANGE+1)
 
@@ -55,14 +55,14 @@ class _TestIntegerType (object):
             p = None
             if not (n in self.PARENT_EXCLUDE):
                 p = self.PARENT_TYPE(n)
-                self.assertEquals(n, p)
+                self.assertEqual(n, p)
             if ((self.MIN_IN_RANGE is None) or (self.MIN_IN_RANGE <= n)) \
                and ((self.MAX_IN_RANGE is None) or (n <= self.MAX_IN_RANGE)):
                 bs = self.THIS_TYPE(s)
-                self.assertEquals(n, bs)
-                self.assertEquals(s, bs.xsdLiteral())
+                self.assertEqual(n, bs)
+                self.assertEqual(s, bs.xsdLiteral())
                 bp = self.THIS_TYPE(p)
-                self.assertEquals(n, bp)
+                self.assertEqual(n, bp)
             else:
                 self.assertRaises(SimpleTypeValueError, self.THIS_TYPE, s)
                 if p is not None:

@@ -29,7 +29,7 @@ class TestCTDExtension (unittest.TestCase):
 
     def testStructure (self):
         # Extension should be a subclass of parent
-        self.assert_(issubclass(extendedName, personName))
+        self.assertTrue(issubclass(extendedName, personName))
         # References in subclass to parent class elements/attributes
         # should be the same, unless content model requires they be
         # different.

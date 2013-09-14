@@ -24,10 +24,10 @@ class TestUnion (unittest.TestCase):
         self.assertEqual(5, myUnion.Factory(5))
         self.assertEqual(5, myUnion.Factory('5'))
         self.assertRaises(SimpleTypeValueError, myUnion.Factory, 10)
-        self.assert_(isinstance(myUnion.Factory('5'), singleDigit))
-        self.assert_(isinstance(myUnion.Factory('one'), english))
+        self.assertTrue(isinstance(myUnion.Factory('5'), singleDigit))
+        self.assertTrue(isinstance(myUnion.Factory('one'), english))
         self.assertEqual(welsh.un, myUnion.Factory('un'))
-        self.assert_(isinstance(myUnion.Factory('un'), welsh))
+        self.assertTrue(isinstance(myUnion.Factory('un'), welsh))
         self.assertEqual(english.one, myUnion.Factory('one'))
         self.assertRaises(LogicError, myUnion, 'five')
 

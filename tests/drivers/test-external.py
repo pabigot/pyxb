@@ -88,8 +88,8 @@ class TestExternal (unittest.TestCase):
     def testWords (self):
         xml = '<ns1:word xmlns:ns1="URN:test-external"><from>one</from><to>un</to></ns1:word>'
         instance = CreateFromDocument(xml)
-        self.assertEquals('one', instance.from_)
-        self.assertEquals('un', instance.to)
+        self.assertEqual('one', instance.from_)
+        self.assertEqual('un', instance.to)
         self.assertEqual(xml, ToDOM(instance).toxml("utf-8"))
 
     def testBadWords (self):
@@ -99,10 +99,10 @@ class TestExternal (unittest.TestCase):
     def testComplexShared (self):
         xml = '<ns1:lwords language="english" newlanguage="welsh" xmlns:ns1="URN:test-external">un</ns1:lwords>'
         instance = CreateFromDocument(xml)
-        self.assertEquals(instance._element(), lwords)
+        self.assertEqual(instance._element(), lwords)
         self.assertTrue(isinstance(instance.value(), st.welsh))
-        self.assertEquals('english', instance.language)
-        self.assertEquals('welsh', instance.newlanguage)
+        self.assertEqual('english', instance.language)
+        self.assertEqual('welsh', instance.newlanguage)
 
     def testCrossedRestriction (self):
         # Content model elements that are consistent with parent

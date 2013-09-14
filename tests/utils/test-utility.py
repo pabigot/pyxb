@@ -16,8 +16,8 @@ class DST_sub (DST_base):
 
 class DeconfictSymbolsTtest (unittest.TestCase):
     def testDeconflict (self):
-        self.assertEquals(2, len(DST_base._ReservedSymbols))
-        self.assertEquals(3, len(DST_sub._ReservedSymbols))
+        self.assertEqual(2, len(DST_base._ReservedSymbols))
+        self.assertEqual(3, len(DST_sub._ReservedSymbols))
 
 class BasicTest (unittest.TestCase):
 
@@ -47,68 +47,68 @@ class BasicTest (unittest.TestCase):
 
     def testPrepareIdentifier (self):
         in_use = set()
-        self.assertEquals('id', PrepareIdentifier('id', in_use))
-        self.assertEquals('id_', PrepareIdentifier('id', in_use))
-        self.assertEquals('id_2', PrepareIdentifier('id_', in_use))
-        self.assertEquals('id_3', PrepareIdentifier('id____', in_use))
-        self.assertEquals('_id', PrepareIdentifier('id', in_use, protected=True))
-        self.assertEquals('_id_', PrepareIdentifier('id', in_use, protected=True))
-        self.assertEquals('__id', PrepareIdentifier('id', in_use, private=True))
-        self.assertEquals('__id_', PrepareIdentifier('id', in_use, private=True))
+        self.assertEqual('id', PrepareIdentifier('id', in_use))
+        self.assertEqual('id_', PrepareIdentifier('id', in_use))
+        self.assertEqual('id_2', PrepareIdentifier('id_', in_use))
+        self.assertEqual('id_3', PrepareIdentifier('id____', in_use))
+        self.assertEqual('_id', PrepareIdentifier('id', in_use, protected=True))
+        self.assertEqual('_id_', PrepareIdentifier('id', in_use, protected=True))
+        self.assertEqual('__id', PrepareIdentifier('id', in_use, private=True))
+        self.assertEqual('__id_', PrepareIdentifier('id', in_use, private=True))
 
         reserved = frozenset([ 'Factory' ])
         in_use = set()
-        self.assertEquals('Factory_', PrepareIdentifier('Factory', in_use, reserved))
-        self.assertEquals('Factory_2', PrepareIdentifier('Factory', in_use, reserved))
-        self.assertEquals('Factory_3', PrepareIdentifier('Factory', in_use, reserved))
+        self.assertEqual('Factory_', PrepareIdentifier('Factory', in_use, reserved))
+        self.assertEqual('Factory_2', PrepareIdentifier('Factory', in_use, reserved))
+        self.assertEqual('Factory_3', PrepareIdentifier('Factory', in_use, reserved))
 
         in_use = set()
-        self.assertEquals('global_', PrepareIdentifier('global', in_use))
-        self.assertEquals('global_2', PrepareIdentifier('global', in_use))
-        self.assertEquals('global_3', PrepareIdentifier('global', in_use))
+        self.assertEqual('global_', PrepareIdentifier('global', in_use))
+        self.assertEqual('global_2', PrepareIdentifier('global', in_use))
+        self.assertEqual('global_3', PrepareIdentifier('global', in_use))
 
         in_use = set()
-        self.assertEquals('n24_hours', PrepareIdentifier('24 hours', in_use))
+        self.assertEqual('n24_hours', PrepareIdentifier('24 hours', in_use))
 
     def testQuotedEscape (self):
         for ( expected, input ) in self.cases:
             result = QuotedEscaped(input)
             # Given "expected" value may not be correct.  Don't care as
             # long as the evalution produces the input.
-            #self.assertEquals(expected, result)
-            self.assertEquals(input, eval(result))
+            #self.assertEqual(expected, result)
+            self.assertEqual(input, eval(result))
 
     def testMakeIdentifier (self):
-        self.assertEquals('id', MakeIdentifier('id'))
-        self.assertEquals('id', MakeIdentifier(u'id'))
-        self.assertEquals('id_sep', MakeIdentifier(u'id_sep'))
-        self.assertEquals('id_sep', MakeIdentifier(u'id sep'))
-        self.assertEquals('id_sep_too', MakeIdentifier(u'id-sep too'))
-        self.assertEquals('idid', MakeIdentifier(u'id&id'))
-        self.assertEquals('id', MakeIdentifier('_id'))
-        self.assertEquals('id_', MakeIdentifier('_id_'))
-        self.assertEquals('emptyString', MakeIdentifier(''))
-        self.assertEquals('emptyString', MakeIdentifier('_'))
+        self.assertEqual('id', MakeIdentifier('id'))
+        self.assertEqual('id', MakeIdentifier(u'id'))
+        self.assertEqual('id_sep', MakeIdentifier(u'id_sep'))
+        self.assertEqual('id_sep', MakeIdentifier(u'id sep'))
+        self.assertEqual('id_sep_too', MakeIdentifier(u'id-sep too'))
+        self.assertEqual('idid', MakeIdentifier(u'id&id'))
+        self.assertEqual('id', MakeIdentifier('_id'))
+        self.assertEqual('id_', MakeIdentifier('_id_'))
+        self.assertEqual('emptyString', MakeIdentifier(''))
+        self.assertEqual('emptyString', MakeIdentifier('_'))
 
     def testCamelCase (self):
-        self.assertEquals('one_and_two', MakeIdentifier('one_and_two'))
-        self.assertEquals('one_and_two', MakeIdentifier('one-and-two'))
-        self.assertEquals('oneAndTwo', MakeIdentifier('one_and_two', camel_case=True))
-        self.assertEquals('oneAndTwo', MakeIdentifier('one-and-two', camel_case=True))
+        self.assertEqual('one_and_two', MakeIdentifier('one_and_two'))
+        self.assertEqual('one_and_two', MakeIdentifier('one-and-two'))
+        self.assertEqual('oneAndTwo', MakeIdentifier('one_and_two', camel_case=True))
+        self.assertEqual('oneAndTwo', MakeIdentifier('one-and-two', camel_case=True))
 
     def testDeconflictKeyword (self):
-        self.assertEquals('id', DeconflictKeyword('id'))
-        self.assertEquals('for_', DeconflictKeyword('for'))
+        self.assertEqual('id', DeconflictKeyword('id'))
+        self.assertEqual('for_', DeconflictKeyword('for'))
 
     def testMakeUnique (self):
         in_use = set()
-        self.assertEquals('id', MakeUnique('id', in_use))
-        self.assertEquals(1, len(in_use))
-        self.assertEquals('id_', MakeUnique('id', in_use))
-        self.assertEquals(2, len(in_use))
-        self.assertEquals('id_2', MakeUnique('id', in_use))
-        self.assertEquals(3, len(in_use))
-        self.assertEquals(set(( 'id', 'id_', 'id_2' )), in_use)
+        self.assertEqual('id', MakeUnique('id', in_use))
+        self.assertEqual(1, len(in_use))
+        self.assertEqual('id_', MakeUnique('id', in_use))
+        self.assertEqual(2, len(in_use))
+        self.assertEqual('id_2', MakeUnique('id', in_use))
+        self.assertEqual(3, len(in_use))
+        self.assertEqual(set(( 'id', 'id_', 'id_2' )), in_use)
 
 class TestGraph (unittest.TestCase):
 
@@ -131,21 +131,21 @@ class TestGraph (unittest.TestCase):
         graph = Graph()
         [ graph.addEdge(*_e) for _e in self._Edges ]
         roots = graph.roots().copy()
-        self.assertEquals(1, len(roots))
-        self.assertEquals(1, roots.pop())
+        self.assertEqual(1, len(roots))
+        self.assertEqual(1, roots.pop())
 
     def testTarjan (self):
         graph = Graph()
         [ graph.addEdge(*_e) for _e in self._Edges ]
         scc = graph.scc()
-        self.assertEquals(1, len(scc))
-        self.assertEquals(set([5, 7, 8]), set(scc[0]))
+        self.assertEqual(1, len(scc))
+        self.assertEqual(set([5, 7, 8]), set(scc[0]))
 
     def testRootIsNode (self):
         graph = Graph()
         graph.addRoot(4)
-        self.assertEquals(1, len(graph.nodes()))
-        self.assertEquals(graph.roots(), graph.nodes())
+        self.assertEqual(1, len(graph.nodes()))
+        self.assertEqual(graph.roots(), graph.nodes())
 
     def testDFSOrder1 (self):
         graph = Graph()

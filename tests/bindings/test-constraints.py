@@ -83,10 +83,10 @@ class testMaxInclusive (unittest.TestCase):
         self.assertEqual(5, datatypes.byte(5))
         self.assertRaises(SimpleTypeValueError, datatypes.byte, 256)
         self.assertRaises(SimpleTypeValueError, datatypes.byte, 255)
-        self.assertEquals(127, datatypes.byte(127))
+        self.assertEqual(127, datatypes.byte(127))
         self.assertRaises(SimpleTypeValueError, datatypes.byte, -150)
         self.assertRaises(SimpleTypeValueError, datatypes.byte, -129)
-        self.assertEquals(-128, datatypes.byte(-128))
+        self.assertEqual(-128, datatypes.byte(-128))
 
 class testMinMaxExclusive (unittest.TestCase):
     def test (self):

@@ -31,17 +31,17 @@ class TestMGAll (unittest.TestCase):
         xml = '<ns1:required xmlns:ns1="URN:test-mg-all"><first/><second/><third/></ns1:required>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = required.createFromDOM(dom.documentElement)
-        self.assert_(isinstance(instance.first, required.memberElement('first').typeDefinition()))
-        self.assert_(isinstance(instance.second, required.memberElement('second').typeDefinition()))
-        self.assert_(isinstance(instance.third, required.memberElement('third').typeDefinition()))
+        self.assertTrue(isinstance(instance.first, required.memberElement('first').typeDefinition()))
+        self.assertTrue(isinstance(instance.second, required.memberElement('second').typeDefinition()))
+        self.assertTrue(isinstance(instance.third, required.memberElement('third').typeDefinition()))
 
     def testRequiredMisordered (self):
         xml = '<ns1:required xmlns:ns1="URN:test-mg-all"><third/><first/><second/></ns1:required>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = required.createFromDOM(dom.documentElement)
-        self.assert_(isinstance(instance.first, required.memberElement('first').typeDefinition()))
-        self.assert_(isinstance(instance.second, required.memberElement('second').typeDefinition()))
-        self.assert_(isinstance(instance.third, required.memberElement('third').typeDefinition()))
+        self.assertTrue(isinstance(instance.first, required.memberElement('first').typeDefinition()))
+        self.assertTrue(isinstance(instance.second, required.memberElement('second').typeDefinition()))
+        self.assertTrue(isinstance(instance.third, required.memberElement('third').typeDefinition()))
 
     def testRequiredTooMany (self):
         xml = '<ns1:required xmlns:ns1="URN:test-mg-all"><third/><first/><second/><third/></ns1:required>'
@@ -52,16 +52,16 @@ class TestMGAll (unittest.TestCase):
         xml = '<ns1:thirdOptional xmlns:ns1="URN:test-mg-all"><first/><second/></ns1:thirdOptional>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = thirdOptional.Factory(_dom_node=dom.documentElement)
-        self.assert_(isinstance(instance.first, thirdOptional._ElementMap['first'].elementBinding().typeDefinition()))
-        self.assert_(isinstance(instance.second, thirdOptional._ElementMap['second'].elementBinding().typeDefinition()))
-        self.assert_(instance.third is None)
+        self.assertTrue(isinstance(instance.first, thirdOptional._ElementMap['first'].elementBinding().typeDefinition()))
+        self.assertTrue(isinstance(instance.second, thirdOptional._ElementMap['second'].elementBinding().typeDefinition()))
+        self.assertTrue(instance.third is None)
 
         xml = '<ns1:thirdOptional xmlns:ns1="URN:test-mg-all"><first/><second/><third/></ns1:thirdOptional>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = thirdOptional.Factory(_dom_node=dom.documentElement)
-        self.assert_(isinstance(instance.first, thirdOptional._ElementMap['first'].elementBinding().typeDefinition()))
-        self.assert_(isinstance(instance.second, thirdOptional._ElementMap['second'].elementBinding().typeDefinition()))
-        self.assert_(isinstance(instance.third, thirdOptional._ElementMap['third'].elementBinding().typeDefinition()))
+        self.assertTrue(isinstance(instance.first, thirdOptional._ElementMap['first'].elementBinding().typeDefinition()))
+        self.assertTrue(isinstance(instance.second, thirdOptional._ElementMap['second'].elementBinding().typeDefinition()))
+        self.assertTrue(isinstance(instance.third, thirdOptional._ElementMap['third'].elementBinding().typeDefinition()))
 
         xml = '<ns1:thirdOptional xmlns:ns1="URN:test-mg-all"><first/><second/><third/><first/></ns1:thirdOptional>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
@@ -71,30 +71,30 @@ class TestMGAll (unittest.TestCase):
         xml = '<ns1:optional xmlns:ns1="URN:test-mg-all"/>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = optional.createFromDOM(dom.documentElement)
-        self.assert_(instance.first is None)
-        self.assert_(instance.second is None)
-        self.assert_(instance.third is None)
+        self.assertTrue(instance.first is None)
+        self.assertTrue(instance.second is None)
+        self.assertTrue(instance.third is None)
 
         xml = '<ns1:optional xmlns:ns1="URN:test-mg-all"><first/><second/><third/></ns1:optional>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = optional.createFromDOM(dom.documentElement)
-        self.assert_(isinstance(instance.first, optional.memberElement('first').typeDefinition()))
-        self.assert_(isinstance(instance.second, optional.memberElement('second').typeDefinition()))
-        self.assert_(isinstance(instance.third, optional.memberElement('third').typeDefinition()))
+        self.assertTrue(isinstance(instance.first, optional.memberElement('first').typeDefinition()))
+        self.assertTrue(isinstance(instance.second, optional.memberElement('second').typeDefinition()))
+        self.assertTrue(isinstance(instance.third, optional.memberElement('third').typeDefinition()))
 
         xml = '<ns1:optional xmlns:ns1="URN:test-mg-all"><first/><third/></ns1:optional>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = optional.createFromDOM(dom.documentElement)
-        self.assert_(isinstance(instance.first, optional.memberElement('first').typeDefinition()))
-        self.assert_(instance.second is None)
-        self.assert_(isinstance(instance.third, optional.memberElement('third').typeDefinition()))
+        self.assertTrue(isinstance(instance.first, optional.memberElement('first').typeDefinition()))
+        self.assertTrue(instance.second is None)
+        self.assertTrue(isinstance(instance.third, optional.memberElement('third').typeDefinition()))
 
         xml = '<ns1:optional xmlns:ns1="URN:test-mg-all"><third/></ns1:optional>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = optional.createFromDOM(dom.documentElement)
-        self.assert_(instance.first is None)
-        self.assert_(instance.second is None)
-        self.assert_(isinstance(instance.third, optional.memberElement('third').typeDefinition()))
+        self.assertTrue(instance.first is None)
+        self.assertTrue(instance.second is None)
+        self.assertTrue(isinstance(instance.third, optional.memberElement('third').typeDefinition()))
 
     def testOptionalTooMany (self):
         xml = '<ns1:optional xmlns:ns1="URN:test-mg-all"><third/><first/><third/></ns1:optional>'

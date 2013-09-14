@@ -95,7 +95,7 @@ class TestTrac_0057 (unittest.TestCase):
         instance = CreateFromDOM(doc)
         pyxb.RequireValidWhenGenerating(False)
         xml = instance.toxml("utf-8", root_only=True)
-        self.assertEquals(xml, self.XMLS)
+        self.assertEqual(xml, self.XMLS)
 
 if __name__ == '__main__':
     unittest.main()

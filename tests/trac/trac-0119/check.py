@@ -21,7 +21,7 @@ class TestTrac0119 (unittest.TestCase):
         self.assertRaises(pyxb.SchemaValidationError, base.CreateFromDocument, xmls)
         # Can resolve it in absent module
         instance = absent.CreateFromDocument(xmls)
-        self.assertEquals(xmls, instance.toxml("utf-8"))
+        self.assertEqual(xmls, instance.toxml("utf-8"))
 
     def testNoDefault (self):
         xmls='''<?xml version="1.0"?>
@@ -35,10 +35,10 @@ class TestTrac0119 (unittest.TestCase):
         self.assertRaises(pyxb.SchemaValidationError, base.CreateFromDocument, xmls)
         # Can resolve it in absent module
         instance = absent.CreateFromDocument(xmls)
-        self.assertEquals('hi', instance.command.payload)
+        self.assertEqual('hi', instance.command.payload)
         # Can resolve in base module if fallback namespace overridden
         instance = base.CreateFromDocument(xmls, default_namespace=absent.Namespace)
-        self.assertEquals('hi', instance.command.payload)
+        self.assertEqual('hi', instance.command.payload)
 
     def testDefault (self):
         xmls='''<?xml version="1.0"?>
@@ -52,10 +52,10 @@ class TestTrac0119 (unittest.TestCase):
         self.assertRaises(pyxb.SchemaValidationError, base.CreateFromDocument, xmls)
         # Can resolve it in absent module
         instance = absent.CreateFromDocument(xmls)
-        self.assertEquals('hi', instance.command.payload)
+        self.assertEqual('hi', instance.command.payload)
         # Can resolve in base module if fallback namespace overridden
         instance = base.CreateFromDocument(xmls, default_namespace=absent.Namespace)
-        self.assertEquals('hi', instance.command.payload)
+        self.assertEqual('hi', instance.command.payload)
 
     def testUndefineNondefault (self):
         xmls='''<?xml version="1.0"?>

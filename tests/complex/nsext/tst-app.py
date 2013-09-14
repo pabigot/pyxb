@@ -16,7 +16,7 @@ class Test (unittest.TestCase):
     def testApp (self):
         x = common4app.extended('hi', 'there')
         a = app.elt(x)
-        self.assertEquals('<app:elt xmlns:app="urn:app" xmlns:common="urn:common"><app:xcommon><common:elt>hi</common:elt><common:extElt>there</common:extElt></app:xcommon></app:elt>', a.toxml("utf-8", root_only=True))
+        self.assertEqual('<app:elt xmlns:app="urn:app" xmlns:common="urn:common"><app:xcommon><common:elt>hi</common:elt><common:extElt>there</common:extElt></app:xcommon></app:elt>', a.toxml("utf-8", root_only=True))
 
 if '__main__' == __name__:
     unittest.main()

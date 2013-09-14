@@ -21,9 +21,9 @@ class _TestIntegerType (object):
 
     def testRange (self):
         self.assertRaises(SimpleTypeValueError, self.THIS_TYPE, self.MIN_IN_RANGE - 1)
-        self.assertEquals(self.MIN_IN_RANGE, self.THIS_TYPE(self.MIN_IN_RANGE))
-        self.assertEquals(0, self.THIS_TYPE(0))
-        self.assertEquals(self.MAX_IN_RANGE, self.THIS_TYPE(self.MAX_IN_RANGE))
+        self.assertEqual(self.MIN_IN_RANGE, self.THIS_TYPE(self.MIN_IN_RANGE))
+        self.assertEqual(0, self.THIS_TYPE(0))
+        self.assertEqual(self.MAX_IN_RANGE, self.THIS_TYPE(self.MAX_IN_RANGE))
         self.assertRaises(SimpleTypeValueError, self.THIS_TYPE, self.MAX_IN_RANGE+1)
 
     PARENT_EXCLUDE = []
@@ -35,13 +35,13 @@ class _TestIntegerType (object):
             p = None
             if not (n in self.PARENT_EXCLUDE):
                 p = self.PARENT_TYPE(n)
-                self.assertEquals(n, p)
+                self.assertEqual(n, p)
             if (self.MIN_IN_RANGE <= n) and (n <= self.MAX_IN_RANGE):
                 bs = self.THIS_TYPE(s)
-                self.assertEquals(n, bs)
-                self.assertEquals(s, bs.xsdLiteral())
+                self.assertEqual(n, bs)
+                self.assertEqual(s, bs.xsdLiteral())
                 bp = self.THIS_TYPE(p)
-                self.assertEquals(n, bp)
+                self.assertEqual(n, bp)
             else:
                 self.assertRaises(SimpleTypeValueError, self.THIS_TYPE, s)
                 self.assertRaises(SimpleTypeValueError, self.THIS_TYPE, p)

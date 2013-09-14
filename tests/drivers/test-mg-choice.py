@@ -23,19 +23,19 @@ import unittest
 
 class TestMGChoice (unittest.TestCase):
     def onlyFirst (self, instance):
-        self.assert_(isinstance(instance.first, choice.typeDefinition()._ElementMap['first'].elementBinding().typeDefinition()))
-        self.assert_(instance.second is None)
-        self.assert_(instance.third is None)
+        self.assertTrue(isinstance(instance.first, choice.typeDefinition()._ElementMap['first'].elementBinding().typeDefinition()))
+        self.assertTrue(instance.second is None)
+        self.assertTrue(instance.third is None)
 
     def onlySecond (self, instance):
-        self.assert_(instance.first is None)
-        self.assert_(isinstance(instance.second, choice.typeDefinition()._ElementMap['second'].elementBinding().typeDefinition()))
-        self.assert_(instance.third is None)
+        self.assertTrue(instance.first is None)
+        self.assertTrue(isinstance(instance.second, choice.typeDefinition()._ElementMap['second'].elementBinding().typeDefinition()))
+        self.assertTrue(instance.third is None)
 
     def onlyThird (self, instance):
-        self.assert_(instance.first is None)
-        self.assert_(instance.second is None)
-        self.assert_(isinstance(instance.third, choice.typeDefinition()._ElementMap['third'].elementBinding().typeDefinition()))
+        self.assertTrue(instance.first is None)
+        self.assertTrue(instance.second is None)
+        self.assertTrue(isinstance(instance.third, choice.typeDefinition()._ElementMap['third'].elementBinding().typeDefinition()))
 
     def testSingleChoice (self):
         xml = '<ns1:choice xmlns:ns1="URN:test-mg-choice"><first/></ns1:choice>'
