@@ -14,13 +14,13 @@ xsd=u'''<?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
         <xs:simpleType name="tEnum">
                 <xs:restriction base="xs:token">
-                        <xs:enumeration value="%s"/> > <!-- u'\xb0' -->
-                        <xs:enumeration value="m%s"/>
-                        <xs:enumeration value="m%s"/>
+                        <xs:enumeration value="°"/> <!-- degree -->
+                        <xs:enumeration value="m²"/> <!-- squared -->
+                        <xs:enumeration value="m³"/> <!-- cubed -->
                 </xs:restriction>
         </xs:simpleType>
 </xs:schema>
-''' % (u'\xb0', u'\xb2', u'\xb3')
+'''
 
 #open('schema.xsd', 'w').write(xsd)
 code = pyxb.binding.generate.GeneratePython(schema_text=xsd)
@@ -39,11 +39,11 @@ class TestTrac_0088 (unittest.TestCase):
         enums = tEnum._CF_enumeration.items()
         self.assertEqual(3, len(enums))
         self.assertEqual(enums[0].tag(), 'emptyString')
-        self.assertEqual(enums[0].value(), u'\xb0')
+        self.assertEqual(enums[0].value(), u'°')
         self.assertEqual(enums[1].tag(), 'm')
-        self.assertEqual(enums[1].value(), u'm\xb2')
+        self.assertEqual(enums[1].value(), u'm²')
         self.assertEqual(enums[2].tag(), 'm_')
-        self.assertEqual(enums[2].value(), u'm\xb3')
+        self.assertEqual(enums[2].value(), u'm³')
 
 if __name__ == '__main__':
     unittest.main()
