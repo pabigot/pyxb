@@ -55,6 +55,37 @@ def BackfillComparisons (cls):
             ))
     return cls
 
+def IteratedCompareMixed (lhs, rhs):
+    """Tuple comparison that permits C{None} as lower than any value,
+    and defines other cross-type comparison.
+
+    @return: -1 if lhs < rhs, 0 if lhs == rhs, 1 if lhs > rhs."""
+    li = iter(lhs)
+    ri = iter(rhs)
+    res = None
+    while True:
+        try:
+            (lv, rv) = (li.next(), ri.next())
+            if lv is None:
+                if rv is None:
+                    continue
+                return -1
+            if rv is None:
+                return 1
+            if lv == rv:
+                continue
+            if lv < rv:
+                return -1
+            return 1
+        except StopIteration:
+            nl = len(lhs)
+            nr = len(rhs)
+            if nl < nr:
+                return -1
+            if nl == nr:
+                return 0
+            return 1
+
 def QuotedEscaped (s):
     """Convert a string into a literal value that can be used in Python source.
 

@@ -658,8 +658,48 @@ class TestGetMatchingFiles (unittest.TestCase):
         files = set(self._stripPath(GetMatchingFiles(self._formPath('d1', os.path.join('d2', 'f2b')), self.__NoExt_re)))
         self.assertEqual(files, set(['d1/f1c', 'd2/f2b']))
 
+class TestIteratedCompareMixed (unittest.TestCase):
+
+    def testBasicSameLen (self):
+        lhs = (1, 2, 3)
+        self.assertEqual(0, IteratedCompareMixed(lhs, (1, 2, 3)))
+        self.assertEqual(-1, IteratedCompareMixed(lhs, (2, 2, 4)))
+        self.assertEqual(1, IteratedCompareMixed(lhs, (0, 2, 2)))
+        self.assertEqual(-1, IteratedCompareMixed(lhs, (1, 2, 4)))
+        self.assertEqual(1, IteratedCompareMixed(lhs, (1, 2, 2)))
+
+    def testMixedSameLen (self):
+        lhs = (1, 'two', 3.2)
+        self.assertEqual(0, IteratedCompareMixed(lhs, (1, 'two', 3.2)))
+        self.assertEqual(-1, IteratedCompareMixed(lhs, (2, 'two', 3.2)))
+        self.assertEqual(-1, IteratedCompareMixed(lhs, (1, 'txo', 3.2)))
+        self.assertEqual(-1, IteratedCompareMixed(lhs, (1, 'two', 3.3)))
+        self.assertEqual(1, IteratedCompareMixed(lhs, (0, 'two', 3.2)))
+        self.assertEqual(1, IteratedCompareMixed(lhs, (1, 'three', 3.2)))
+        self.assertEqual(1, IteratedCompareMixed(lhs, (1, 'two', 3.1)))
+        rhs = lhs
+        self.assertEqual(0, IteratedCompareMixed((1, 'two', 3.2), rhs))
+        self.assertEqual(1, IteratedCompareMixed((2, 'two', 3.2), rhs))
+        self.assertEqual(1, IteratedCompareMixed((1, 'txo', 3.2), rhs))
+        self.assertEqual(1, IteratedCompareMixed((1, 'two', 3.3), rhs))
+        self.assertEqual(-1, IteratedCompareMixed((0, 'two', 3.2), rhs))
+        self.assertEqual(-1, IteratedCompareMixed((1, 'three', 3.2), rhs))
+        self.assertEqual(-1, IteratedCompareMixed((1, 'two', 3.1), rhs))
+
+    def testMixedNoneSameLen (self):
+        lhs = (1, 'two', 3.2)
+        self.assertEqual(0, IteratedCompareMixed(lhs, (1, 'two', 3.2)))
+        self.assertEqual(1, IteratedCompareMixed(lhs, (None, 'two', 3.2)))
+        self.assertEqual(1, IteratedCompareMixed(lhs, (1, None, 3.2)))
+        self.assertEqual(1, IteratedCompareMixed(lhs, (1, 'two', None)))
+        rhs = (1, 'two', 3.2)
+        self.assertEqual(-1, IteratedCompareMixed((None, 'two', 3.2), rhs))
+        self.assertEqual(-1, IteratedCompareMixed((1, None, 3.2), rhs))
+        self.assertEqual(-1, IteratedCompareMixed((1, 'two', None), rhs))
+
+    def testDifferentLen (self):
+        self.assertEqual(-1, IteratedCompareMixed((1, 2, 3), (1, 2, 3, -1)))
+        self.assertEqual(1, IteratedCompareMixed((1, 2, 3, -1), (1, 2, 3)))
 
 if '__main__' == __name__:
     unittest.main()
-
-

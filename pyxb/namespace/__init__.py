@@ -217,13 +217,12 @@ class ExpandedName (object):
     def __eq__ (self, other):
         if other is None:
             return False
-        ot = self.__otherForCompare(other)
-        return self.__uriTuple == self.__otherForCompare(other)
+        return 0 == pyxb.utils.utility.IteratedCompareMixed(self.__uriTuple, self.__otherForCompare(other))
 
     def __lt__ (self, other):
         if other is None:
             return False
-        return self.__uriTuple < self.__otherForCompare(other)
+        return 0 > pyxb.utils.utility.IteratedCompareMixed(self.__uriTuple, self.__otherForCompare(other))
 
     def getAttribute (self, dom_node):
         """Return the value of the attribute identified by this name in the given node.
