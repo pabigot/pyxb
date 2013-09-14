@@ -7,7 +7,6 @@
 from . import basis
 from . import datatypes
 from . import facets
-from . import datatypes_facets
 from . import content
 
 # Do not include the stuff that's required only for code generation

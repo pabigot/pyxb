@@ -828,3 +828,346 @@ FundamentalFacet.Facets = [
 Facet.Facets = []
 Facet.Facets.extend(ConstrainingFacet.Facets)
 Facet.Facets.extend(FundamentalFacet.Facets)
+
+# Facet details from a hacked generator reading the normative schema
+# and only printing the facet-related code.
+datatypes.ENTITIES._CF_pattern = CF_pattern()
+datatypes.ENTITIES._CF_maxLength = CF_maxLength()
+datatypes.ENTITIES._CF_enumeration = CF_enumeration(value_datatype=datatypes.ENTITIES)
+datatypes.ENTITIES._CF_minLength = CF_minLength(value=datatypes.nonNegativeInteger(1L))
+datatypes.ENTITIES._CF_whiteSpace = CF_whiteSpace()
+datatypes.ENTITIES._CF_length = CF_length()
+datatypes.ENTITIES._InitializeFacetMap(datatypes.ENTITIES._CF_pattern,
+   datatypes.ENTITIES._CF_maxLength,
+   datatypes.ENTITIES._CF_enumeration,
+   datatypes.ENTITIES._CF_minLength,
+   datatypes.ENTITIES._CF_whiteSpace,
+   datatypes.ENTITIES._CF_length)
+datatypes.ENTITY._InitializeFacetMap()
+datatypes.ID._InitializeFacetMap()
+datatypes.IDREF._InitializeFacetMap()
+datatypes.IDREFS._CF_pattern = CF_pattern()
+datatypes.IDREFS._CF_maxLength = CF_maxLength()
+datatypes.IDREFS._CF_enumeration = CF_enumeration(value_datatype=datatypes.IDREFS)
+datatypes.IDREFS._CF_minLength = CF_minLength(value=datatypes.nonNegativeInteger(1L))
+datatypes.IDREFS._CF_whiteSpace = CF_whiteSpace()
+datatypes.IDREFS._CF_length = CF_length()
+datatypes.IDREFS._InitializeFacetMap(datatypes.IDREFS._CF_pattern,
+   datatypes.IDREFS._CF_maxLength,
+   datatypes.IDREFS._CF_enumeration,
+   datatypes.IDREFS._CF_minLength,
+   datatypes.IDREFS._CF_whiteSpace,
+   datatypes.IDREFS._CF_length)
+datatypes.NCName._CF_pattern = CF_pattern()
+datatypes.NCName._CF_pattern.addPattern(pattern=u'[\\i-[:]][\\c-[:]]*')
+datatypes.NCName._InitializeFacetMap(datatypes.NCName._CF_pattern)
+datatypes.NMTOKEN._CF_pattern = CF_pattern()
+datatypes.NMTOKEN._CF_pattern.addPattern(pattern=u'\\c+')
+datatypes.NMTOKEN._InitializeFacetMap(datatypes.NMTOKEN._CF_pattern)
+datatypes.NMTOKENS._CF_pattern = CF_pattern()
+datatypes.NMTOKENS._CF_maxLength = CF_maxLength()
+datatypes.NMTOKENS._CF_enumeration = CF_enumeration(value_datatype=datatypes.NMTOKENS)
+datatypes.NMTOKENS._CF_minLength = CF_minLength(value=datatypes.nonNegativeInteger(1L))
+datatypes.NMTOKENS._CF_whiteSpace = CF_whiteSpace()
+datatypes.NMTOKENS._CF_length = CF_length()
+datatypes.NMTOKENS._InitializeFacetMap(datatypes.NMTOKENS._CF_pattern,
+   datatypes.NMTOKENS._CF_maxLength,
+   datatypes.NMTOKENS._CF_enumeration,
+   datatypes.NMTOKENS._CF_minLength,
+   datatypes.NMTOKENS._CF_whiteSpace,
+   datatypes.NMTOKENS._CF_length)
+datatypes.NOTATION._CF_minLength = CF_minLength()
+datatypes.NOTATION._CF_maxLength = CF_maxLength()
+datatypes.NOTATION._CF_enumeration = CF_enumeration(value_datatype=datatypes.NOTATION)
+datatypes.NOTATION._CF_pattern = CF_pattern()
+datatypes.NOTATION._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
+datatypes.NOTATION._CF_length = CF_length()
+datatypes.NOTATION._InitializeFacetMap(datatypes.NOTATION._CF_minLength,
+   datatypes.NOTATION._CF_maxLength,
+   datatypes.NOTATION._CF_enumeration,
+   datatypes.NOTATION._CF_pattern,
+   datatypes.NOTATION._CF_whiteSpace,
+   datatypes.NOTATION._CF_length)
+datatypes.Name._CF_pattern = CF_pattern()
+datatypes.Name._CF_pattern.addPattern(pattern=u'\\i\\c*')
+datatypes.Name._InitializeFacetMap(datatypes.Name._CF_pattern)
+datatypes.QName._CF_minLength = CF_minLength()
+datatypes.QName._CF_maxLength = CF_maxLength()
+datatypes.QName._CF_enumeration = CF_enumeration(value_datatype=datatypes.QName)
+datatypes.QName._CF_pattern = CF_pattern()
+datatypes.QName._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
+datatypes.QName._CF_length = CF_length()
+datatypes.QName._InitializeFacetMap(datatypes.QName._CF_minLength,
+   datatypes.QName._CF_maxLength,
+   datatypes.QName._CF_enumeration,
+   datatypes.QName._CF_pattern,
+   datatypes.QName._CF_whiteSpace,
+   datatypes.QName._CF_length)
+datatypes.anyURI._CF_minLength = CF_minLength()
+datatypes.anyURI._CF_maxLength = CF_maxLength()
+datatypes.anyURI._CF_enumeration = CF_enumeration(value_datatype=datatypes.anyURI)
+datatypes.anyURI._CF_pattern = CF_pattern()
+datatypes.anyURI._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
+datatypes.anyURI._CF_length = CF_length()
+datatypes.anyURI._InitializeFacetMap(datatypes.anyURI._CF_minLength,
+   datatypes.anyURI._CF_maxLength,
+   datatypes.anyURI._CF_enumeration,
+   datatypes.anyURI._CF_pattern,
+   datatypes.anyURI._CF_whiteSpace,
+   datatypes.anyURI._CF_length)
+datatypes.base64Binary._CF_minLength = CF_minLength()
+datatypes.base64Binary._CF_maxLength = CF_maxLength()
+datatypes.base64Binary._CF_enumeration = CF_enumeration(value_datatype=datatypes.base64Binary)
+datatypes.base64Binary._CF_pattern = CF_pattern()
+datatypes.base64Binary._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
+datatypes.base64Binary._CF_length = CF_length()
+datatypes.base64Binary._InitializeFacetMap(datatypes.base64Binary._CF_minLength,
+   datatypes.base64Binary._CF_maxLength,
+   datatypes.base64Binary._CF_enumeration,
+   datatypes.base64Binary._CF_pattern,
+   datatypes.base64Binary._CF_whiteSpace,
+   datatypes.base64Binary._CF_length)
+datatypes.boolean._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
+datatypes.boolean._CF_pattern = CF_pattern()
+datatypes.boolean._InitializeFacetMap(datatypes.boolean._CF_whiteSpace,
+   datatypes.boolean._CF_pattern)
+datatypes.byte._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.byte, value=datatypes.anySimpleType(u'-128'))
+datatypes.byte._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.byte, value=datatypes.anySimpleType(u'127'))
+datatypes.byte._InitializeFacetMap(datatypes.byte._CF_minInclusive,
+   datatypes.byte._CF_maxInclusive)
+datatypes.date._CF_pattern = CF_pattern()
+datatypes.date._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.date)
+datatypes.date._CF_maxExclusive = CF_maxExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.date._CF_minExclusive = CF_minExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.date._CF_enumeration = CF_enumeration(value_datatype=datatypes.date)
+datatypes.date._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
+datatypes.date._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.date)
+datatypes.date._InitializeFacetMap(datatypes.date._CF_pattern,
+   datatypes.date._CF_minInclusive,
+   datatypes.date._CF_maxExclusive,
+   datatypes.date._CF_minExclusive,
+   datatypes.date._CF_enumeration,
+   datatypes.date._CF_whiteSpace,
+   datatypes.date._CF_maxInclusive)
+datatypes.dateTime._CF_pattern = CF_pattern()
+datatypes.dateTime._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.dateTime)
+datatypes.dateTime._CF_maxExclusive = CF_maxExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.dateTime._CF_minExclusive = CF_minExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.dateTime._CF_enumeration = CF_enumeration(value_datatype=datatypes.dateTime)
+datatypes.dateTime._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
+datatypes.dateTime._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.dateTime)
+datatypes.dateTime._InitializeFacetMap(datatypes.dateTime._CF_pattern,
+   datatypes.dateTime._CF_minInclusive,
+   datatypes.dateTime._CF_maxExclusive,
+   datatypes.dateTime._CF_minExclusive,
+   datatypes.dateTime._CF_enumeration,
+   datatypes.dateTime._CF_whiteSpace,
+   datatypes.dateTime._CF_maxInclusive)
+datatypes.decimal._CF_totalDigits = CF_totalDigits()
+datatypes.decimal._CF_pattern = CF_pattern()
+datatypes.decimal._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.decimal)
+datatypes.decimal._CF_maxExclusive = CF_maxExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.decimal._CF_minExclusive = CF_minExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.decimal._CF_enumeration = CF_enumeration(value_datatype=datatypes.decimal)
+datatypes.decimal._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
+datatypes.decimal._CF_fractionDigits = CF_fractionDigits()
+datatypes.decimal._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.decimal)
+datatypes.decimal._InitializeFacetMap(datatypes.decimal._CF_totalDigits,
+   datatypes.decimal._CF_pattern,
+   datatypes.decimal._CF_minInclusive,
+   datatypes.decimal._CF_maxExclusive,
+   datatypes.decimal._CF_minExclusive,
+   datatypes.decimal._CF_enumeration,
+   datatypes.decimal._CF_whiteSpace,
+   datatypes.decimal._CF_fractionDigits,
+   datatypes.decimal._CF_maxInclusive)
+datatypes.double._CF_pattern = CF_pattern()
+datatypes.double._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.double)
+datatypes.double._CF_maxExclusive = CF_maxExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.double._CF_minExclusive = CF_minExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.double._CF_enumeration = CF_enumeration(value_datatype=datatypes.double)
+datatypes.double._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
+datatypes.double._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.double)
+datatypes.double._InitializeFacetMap(datatypes.double._CF_pattern,
+   datatypes.double._CF_minInclusive,
+   datatypes.double._CF_maxExclusive,
+   datatypes.double._CF_minExclusive,
+   datatypes.double._CF_enumeration,
+   datatypes.double._CF_whiteSpace,
+   datatypes.double._CF_maxInclusive)
+datatypes.duration._CF_pattern = CF_pattern()
+datatypes.duration._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.duration)
+datatypes.duration._CF_maxExclusive = CF_maxExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.duration._CF_minExclusive = CF_minExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.duration._CF_enumeration = CF_enumeration(value_datatype=datatypes.duration)
+datatypes.duration._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
+datatypes.duration._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.duration)
+datatypes.duration._InitializeFacetMap(datatypes.duration._CF_pattern,
+   datatypes.duration._CF_minInclusive,
+   datatypes.duration._CF_maxExclusive,
+   datatypes.duration._CF_minExclusive,
+   datatypes.duration._CF_enumeration,
+   datatypes.duration._CF_whiteSpace,
+   datatypes.duration._CF_maxInclusive)
+datatypes.float._CF_pattern = CF_pattern()
+datatypes.float._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.float)
+datatypes.float._CF_maxExclusive = CF_maxExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.float._CF_minExclusive = CF_minExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.float._CF_enumeration = CF_enumeration(value_datatype=datatypes.float)
+datatypes.float._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
+datatypes.float._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.float)
+datatypes.float._InitializeFacetMap(datatypes.float._CF_pattern,
+   datatypes.float._CF_minInclusive,
+   datatypes.float._CF_maxExclusive,
+   datatypes.float._CF_minExclusive,
+   datatypes.float._CF_enumeration,
+   datatypes.float._CF_whiteSpace,
+   datatypes.float._CF_maxInclusive)
+datatypes.gDay._CF_pattern = CF_pattern()
+datatypes.gDay._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.gDay)
+datatypes.gDay._CF_maxExclusive = CF_maxExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.gDay._CF_minExclusive = CF_minExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.gDay._CF_enumeration = CF_enumeration(value_datatype=datatypes.gDay)
+datatypes.gDay._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
+datatypes.gDay._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.gDay)
+datatypes.gDay._InitializeFacetMap(datatypes.gDay._CF_pattern,
+   datatypes.gDay._CF_minInclusive,
+   datatypes.gDay._CF_maxExclusive,
+   datatypes.gDay._CF_minExclusive,
+   datatypes.gDay._CF_enumeration,
+   datatypes.gDay._CF_whiteSpace,
+   datatypes.gDay._CF_maxInclusive)
+datatypes.gMonth._CF_pattern = CF_pattern()
+datatypes.gMonth._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.gMonth)
+datatypes.gMonth._CF_maxExclusive = CF_maxExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.gMonth._CF_minExclusive = CF_minExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.gMonth._CF_enumeration = CF_enumeration(value_datatype=datatypes.gMonth)
+datatypes.gMonth._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
+datatypes.gMonth._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.gMonth)
+datatypes.gMonth._InitializeFacetMap(datatypes.gMonth._CF_pattern,
+   datatypes.gMonth._CF_minInclusive,
+   datatypes.gMonth._CF_maxExclusive,
+   datatypes.gMonth._CF_minExclusive,
+   datatypes.gMonth._CF_enumeration,
+   datatypes.gMonth._CF_whiteSpace,
+   datatypes.gMonth._CF_maxInclusive)
+datatypes.gMonthDay._CF_pattern = CF_pattern()
+datatypes.gMonthDay._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.gMonthDay)
+datatypes.gMonthDay._CF_maxExclusive = CF_maxExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.gMonthDay._CF_minExclusive = CF_minExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.gMonthDay._CF_enumeration = CF_enumeration(value_datatype=datatypes.gMonthDay)
+datatypes.gMonthDay._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
+datatypes.gMonthDay._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.gMonthDay)
+datatypes.gMonthDay._InitializeFacetMap(datatypes.gMonthDay._CF_pattern,
+   datatypes.gMonthDay._CF_minInclusive,
+   datatypes.gMonthDay._CF_maxExclusive,
+   datatypes.gMonthDay._CF_minExclusive,
+   datatypes.gMonthDay._CF_enumeration,
+   datatypes.gMonthDay._CF_whiteSpace,
+   datatypes.gMonthDay._CF_maxInclusive)
+datatypes.gYear._CF_pattern = CF_pattern()
+datatypes.gYear._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.gYear)
+datatypes.gYear._CF_maxExclusive = CF_maxExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.gYear._CF_minExclusive = CF_minExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.gYear._CF_enumeration = CF_enumeration(value_datatype=datatypes.gYear)
+datatypes.gYear._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
+datatypes.gYear._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.gYear)
+datatypes.gYear._InitializeFacetMap(datatypes.gYear._CF_pattern,
+   datatypes.gYear._CF_minInclusive,
+   datatypes.gYear._CF_maxExclusive,
+   datatypes.gYear._CF_minExclusive,
+   datatypes.gYear._CF_enumeration,
+   datatypes.gYear._CF_whiteSpace,
+   datatypes.gYear._CF_maxInclusive)
+datatypes.gYearMonth._CF_pattern = CF_pattern()
+datatypes.gYearMonth._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.gYearMonth)
+datatypes.gYearMonth._CF_maxExclusive = CF_maxExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.gYearMonth._CF_minExclusive = CF_minExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.gYearMonth._CF_enumeration = CF_enumeration(value_datatype=datatypes.gYearMonth)
+datatypes.gYearMonth._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
+datatypes.gYearMonth._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.gYearMonth)
+datatypes.gYearMonth._InitializeFacetMap(datatypes.gYearMonth._CF_pattern,
+   datatypes.gYearMonth._CF_minInclusive,
+   datatypes.gYearMonth._CF_maxExclusive,
+   datatypes.gYearMonth._CF_minExclusive,
+   datatypes.gYearMonth._CF_enumeration,
+   datatypes.gYearMonth._CF_whiteSpace,
+   datatypes.gYearMonth._CF_maxInclusive)
+datatypes.hexBinary._CF_minLength = CF_minLength()
+datatypes.hexBinary._CF_maxLength = CF_maxLength()
+datatypes.hexBinary._CF_enumeration = CF_enumeration(value_datatype=datatypes.hexBinary)
+datatypes.hexBinary._CF_pattern = CF_pattern()
+datatypes.hexBinary._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
+datatypes.hexBinary._CF_length = CF_length()
+datatypes.hexBinary._InitializeFacetMap(datatypes.hexBinary._CF_minLength,
+   datatypes.hexBinary._CF_maxLength,
+   datatypes.hexBinary._CF_enumeration,
+   datatypes.hexBinary._CF_pattern,
+   datatypes.hexBinary._CF_whiteSpace,
+   datatypes.hexBinary._CF_length)
+datatypes.int._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.int, value=datatypes.anySimpleType(u'-2147483648'))
+datatypes.int._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.int, value=datatypes.anySimpleType(u'2147483647'))
+datatypes.int._InitializeFacetMap(datatypes.int._CF_minInclusive,
+   datatypes.int._CF_maxInclusive)
+datatypes.integer._CF_pattern = CF_pattern()
+datatypes.integer._CF_pattern.addPattern(pattern=u'[\\-+]?[0-9]+')
+datatypes.integer._CF_fractionDigits = CF_fractionDigits(value=datatypes.nonNegativeInteger(0L))
+datatypes.integer._InitializeFacetMap(datatypes.integer._CF_pattern,
+   datatypes.integer._CF_fractionDigits)
+datatypes.language._CF_pattern = CF_pattern()
+datatypes.language._CF_pattern.addPattern(pattern=u'[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*')
+datatypes.language._InitializeFacetMap(datatypes.language._CF_pattern)
+datatypes.long._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.long, value=datatypes.anySimpleType(u'-9223372036854775808'))
+datatypes.long._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.long, value=datatypes.anySimpleType(u'9223372036854775807'))
+datatypes.long._InitializeFacetMap(datatypes.long._CF_minInclusive,
+   datatypes.long._CF_maxInclusive)
+datatypes.negativeInteger._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.negativeInteger, value=datatypes.anySimpleType(u'-1'))
+datatypes.negativeInteger._InitializeFacetMap(datatypes.negativeInteger._CF_maxInclusive)
+datatypes.nonNegativeInteger._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.nonNegativeInteger, value=datatypes.anySimpleType(u'0'))
+datatypes.nonNegativeInteger._InitializeFacetMap(datatypes.nonNegativeInteger._CF_minInclusive)
+datatypes.nonPositiveInteger._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.nonPositiveInteger, value=datatypes.anySimpleType(u'0'))
+datatypes.nonPositiveInteger._InitializeFacetMap(datatypes.nonPositiveInteger._CF_maxInclusive)
+datatypes.normalizedString._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.replace)
+datatypes.normalizedString._InitializeFacetMap(datatypes.normalizedString._CF_whiteSpace)
+datatypes.positiveInteger._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.positiveInteger, value=datatypes.anySimpleType(u'1'))
+datatypes.positiveInteger._InitializeFacetMap(datatypes.positiveInteger._CF_minInclusive)
+datatypes.short._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.short, value=datatypes.anySimpleType(u'-32768'))
+datatypes.short._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.short, value=datatypes.anySimpleType(u'32767'))
+datatypes.short._InitializeFacetMap(datatypes.short._CF_minInclusive,
+   datatypes.short._CF_maxInclusive)
+datatypes.string._CF_minLength = CF_minLength()
+datatypes.string._CF_maxLength = CF_maxLength()
+datatypes.string._CF_enumeration = CF_enumeration(value_datatype=datatypes.string)
+datatypes.string._CF_pattern = CF_pattern()
+datatypes.string._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.preserve)
+datatypes.string._CF_length = CF_length()
+datatypes.string._InitializeFacetMap(datatypes.string._CF_minLength,
+   datatypes.string._CF_maxLength,
+   datatypes.string._CF_enumeration,
+   datatypes.string._CF_pattern,
+   datatypes.string._CF_whiteSpace,
+   datatypes.string._CF_length)
+datatypes.time._CF_pattern = CF_pattern()
+datatypes.time._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.time)
+datatypes.time._CF_maxExclusive = CF_maxExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.time._CF_minExclusive = CF_minExclusive(value_datatype=datatypes.anySimpleType)
+datatypes.time._CF_enumeration = CF_enumeration(value_datatype=datatypes.time)
+datatypes.time._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
+datatypes.time._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.time)
+datatypes.time._InitializeFacetMap(datatypes.time._CF_pattern,
+   datatypes.time._CF_minInclusive,
+   datatypes.time._CF_maxExclusive,
+   datatypes.time._CF_minExclusive,
+   datatypes.time._CF_enumeration,
+   datatypes.time._CF_whiteSpace,
+   datatypes.time._CF_maxInclusive)
+datatypes.token._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
+datatypes.token._InitializeFacetMap(datatypes.token._CF_whiteSpace)
+datatypes.unsignedByte._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.unsignedByte, value=datatypes.anySimpleType(u'255'))
+datatypes.unsignedByte._InitializeFacetMap(datatypes.unsignedByte._CF_maxInclusive)
+datatypes.unsignedInt._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.unsignedInt, value=datatypes.anySimpleType(u'4294967295'))
+datatypes.unsignedInt._InitializeFacetMap(datatypes.unsignedInt._CF_maxInclusive)
+datatypes.unsignedLong._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.unsignedLong, value=datatypes.anySimpleType(u'18446744073709551615'))
+datatypes.unsignedLong._InitializeFacetMap(datatypes.unsignedLong._CF_maxInclusive)
+datatypes.unsignedShort._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.unsignedShort, value=datatypes.anySimpleType(u'65535'))
+datatypes.unsignedShort._InitializeFacetMap(datatypes.unsignedShort._CF_maxInclusive)
