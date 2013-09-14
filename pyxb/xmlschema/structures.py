@@ -351,7 +351,11 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         line and column of the component definition within the schema.  The
         purpose is to ensure consistent order of binding components in
         generated code, to simplify maintenance involving the generated
-        sources."""
+        sources.
+
+        To support Python 3 values that are C{None} are replaced with the
+        default value for whatever type belongs in the corresponding
+        position: (uri:str, locbase:str, locline:int, loccol:int) """
         if self.__schemaOrderSortKey is None:
             ns = None
             if isinstance(self, _NamedComponent_mixin):
@@ -360,16 +364,23 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
                     ns = self._namespaceContext().targetNamespace()
             elif isinstance(self, _ParticleTree_mixin):
                 ns = self._namespaceContext().targetNamespace()
-            else:
-                return None
-            # We must have found a namespace.  For now, we don't care if the
-            # namespace is absent; most (all?) components with an absent
-            # namespace are coming from schemas for which we have a location.
-            assert ns is not None
-            key_elts = [ns.uri()]
+            ns_uri = ''
+            if (ns is not None) and (ns.uri() is not None):
+                ns_uri = ns.uri()
+            key_elts = [ns_uri]
             loc = self._location()
-            if loc is not None:
-                key_elts.extend([loc.locationBase, loc.lineNumber, loc.columnNumber])
+            v = ''
+            if (loc is not None) and (loc.locationBase is not None):
+                v = loc.locationBase
+            key_elts.append(v)
+            v = 0
+            if (loc is not None) and (loc.lineNumber is not None):
+                v = loc.lineNumber
+            key_elts.append(v)
+            v = 0
+            if (loc is not None) and (loc.columnNumber is not None):
+                v = loc.columnNumber
+            key_elts.append(v)
             self.__schemaOrderSortKey = tuple(key_elts)
         return self.__schemaOrderSortKey
     __schemaOrderSortKey = None
