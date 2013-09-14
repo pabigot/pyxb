@@ -32,8 +32,13 @@ Note that this transliteration requires installation of:
   libxml2-2.7.8-6.fc16.x86_64
   libxml2-python-2.7.8-6.fc16.x86_64
 
-* the Python bindings for MeCab, which should be available for Linux systems
-  from your vendor: e.g., on Fedora 16, the packages are:
+  For Ubuntu you need:
+
+  sudo apt-get install python-libxml2
+
+* the Python bindings for MeCab and the corresponding UTF-8 encoding of
+  IPADIC, which should be available for Linux systems from your vendor:
+  e.g., on Fedora 16, the packages are:
 
   mecab-jumandic-5.1.20070304-5.fc15.x86_64
   mecab-jumandic-EUCJP-5.1.20070304-5.fc15.x86_64
@@ -41,6 +46,10 @@ Note that this transliteration requires installation of:
   mecab-0.98-1.fc15.x86_64
   python-mecab-0.98-2.fc15.x86_64
   mecab-ipadic-EUCJP-2.7.0.20070801-4.fc15.1.x86_64
+
+  For Ubuntu you need:
+
+  sudo apt-get install python-mecab mecab-ipadic-utf8
 
 * The Python port of the Ruby/RomKan utility, available through
   http://lilyx.net/python-romkan/
