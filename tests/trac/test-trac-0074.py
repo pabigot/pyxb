@@ -8,7 +8,7 @@ import pyxb.binding.datatypes as xs
 import pyxb.binding.basis
 import pyxb.utils.domutils
 import xml.dom.minidom
-import StringIO
+import io
 
 import os.path
 xsd='''<?xml version="1.0" encoding="UTF-8"?>
@@ -31,8 +31,9 @@ import unittest
 class TestTrac_0074 (unittest.TestCase):
     def test (self):
         t0p = Namespace.createExpandedName('t0p')
-        xmls = '<ns:t0p xmlns:ns="urn:trac-0074">content</ns:t0p>'
-        dom = xml.dom.minidom.parseString(xmls)
+        xmlt = u'<ns:t0p xmlns:ns="urn:trac-0074">content</ns:t0p>'
+        xmld = xmlt.encode('utf-8')
+        dom = xml.dom.minidom.parseString(xmld)
         try:
             dom_instance = CreateFromDOM(dom.documentElement)
             self.fail('DOM creation succeeded')
@@ -40,7 +41,7 @@ class TestTrac_0074 (unittest.TestCase):
             self.assertEqual(dom.documentElement, e.node)
             self.assertEqual(t0p, e.node_name)
 
-        saxdom = pyxb.utils.saxdom.parseString(xmls)
+        saxdom = pyxb.utils.saxdom.parseString(xmlt)
         try:
             saxdom_instance = CreateFromDOM(saxdom)
             self.fail('SAXDOM creation succeeded')
@@ -50,7 +51,7 @@ class TestTrac_0074 (unittest.TestCase):
 
         saxer = pyxb.binding.saxer.make_parser()
         handler = saxer.getContentHandler()
-        saxer.parse(StringIO.StringIO(xmls))
+        saxer.parse(io.StringIO(xmlt))
         try:
             sax_instance = handler.rootObject()
             self.fail('SAXER creation succeeded')

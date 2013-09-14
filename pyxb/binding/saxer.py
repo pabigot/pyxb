@@ -238,14 +238,15 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
     """A SAX handler class which generates a binding instance for a document
     through a streaming parser.
 
-    An example of using this to parse the document held in the string C{xmls} is::
+    An example of using this to parse the document held in the (unicode) text
+    value C{xmlt} is::
 
       import pyxb.binding.saxer
-      import StringIO
+      import io
 
       saxer = pyxb.binding.saxer.make_parser()
       handler = saxer.getContentHandler()
-      saxer.parse(StringIO.StringIO(xml))
+      saxer.parse(io.StringIO(xmlt))
       instance = handler.rootObject()
 
     """

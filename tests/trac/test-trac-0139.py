@@ -14,7 +14,7 @@ import tempfile
 import xml.sax
 
 import os.path
-xsd=u'''<?xml version="1.0" encoding="utf-8"?>
+xsd='''<?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
         <xs:element name="text" type="xs:string"/>
 </xs:schema>
@@ -34,9 +34,9 @@ import unittest
 
 class TestTrac_0139 (unittest.TestCase):
     ascii_enc = sys.getdefaultencoding()
-    ascii = u'something'
+    asciit = u'something'
     nihongo_enc = 'iso-2022-jp'
-    nihongo = u'基盤地図情報ダウンロードデータ（GML版）'
+    nihongot = u'基盤地図情報ダウンロードデータ（GML版）'
 
     def buildDocument (self, text, encoding):
         map = { 'text' : text }
@@ -49,18 +49,14 @@ class TestTrac_0139 (unittest.TestCase):
     # NOTE: Init-lower version does not exist before Python 2.7, so
     # make this non-standard and invoke it in init
     def SetUpClass (self):
-        self.nihongo_xml = self.buildDocument(self.nihongo, self.nihongo_enc)
+        self.nihongo_xmlt = self.buildDocument(self.nihongot, self.nihongo_enc)
         (fd, self.path_nihongo) = tempfile.mkstemp()
-        bytes = self.nihongo_xml
-        if self.nihongo_enc is not None:
-            bytes = bytes.encode(self.nihongo_enc)
-        os.fdopen(fd, 'w').write(bytes)
-        self.ascii_xml = self.buildDocument(self.ascii, self.ascii_enc)
+        self.nihongo_xmld = self.nihongo_xmlt.encode(self.nihongo_enc)
+        os.fdopen(fd, 'wb').write(self.nihongo_xmld)
+        self.ascii_xmlt = self.buildDocument(self.asciit, self.ascii_enc)
         (fd, self.path_ascii) = tempfile.mkstemp()
-        bytes = self.ascii_xml
-        if self.ascii_enc is not None:
-            bytes = bytes.encode(self.ascii_enc)
-        os.fdopen(fd, 'w').write(bytes)
+        self.ascii_xmld = self.ascii_xmlt.encode(self.ascii_enc)
+        os.fdopen(fd, 'wb').write(self.ascii_xmld)
 
         # Ensure test failures are not due to absence of libxml2,
         # which PyXB can't control.
@@ -107,68 +103,73 @@ class TestTrac_0139 (unittest.TestCase):
             parser = pyxb.utils.saxutils.make_parser()
             self.assertTrue(isinstance(parser, drv_libxml2.LibXml2Reader))
 
-    def testASCII_expat_str (self):
-        xmls = self.ascii_xml
-        instance = CreateFromDocument(xmls)
-        self.assertEqual(self.ascii, instance)
+    def testASCII_expat_text (self):
+        instance = CreateFromDocument(self.ascii_xmlt)
+        self.assertEqual(self.asciit, instance)
+
+    def testASCII_expat_data (self):
+        instance = CreateFromDocument(self.ascii_xmld)
+        self.assertEqual(self.asciit, instance)
 
     def testASCII_libxml2_str (self):
         if not self.have_libxml2:
             _log.warning('%s: testASCII_libxml2_str bypassed since libxml2 not present', __file__)
             return
         self.useLibXML2Parser()
-        xmls = self.ascii_xml
-        # ERROR: This should be fine, see trac/147
-        if sys.version_info[:2] == (2, 7):
-            self.assertRaises(xml.sax.SAXParseException, CreateFromDocument, xmls)
-        else:
-            instance = CreateFromDocument(xmls)
-            self.assertEqual(self.ascii, instance)
+        instance = CreateFromDocument(self.ascii_xmld)
+        self.assertEqual(self.asciit, instance)
 
     def testASCII_expat_file (self):
-        xmls = open(self.path_ascii).read()
-        instance = CreateFromDocument(xmls)
-        self.assertEqual(self.ascii, instance)
+        xmld = open(self.path_ascii, 'rb').read()
+        instance = CreateFromDocument(xmld)
+        self.assertEqual(self.asciit, instance)
 
     def testASCII_libxml2_file (self):
         if not self.have_libxml2:
             _log.warning('%s: testASCII_libxml2_file bypassed since libxml2 not present', __file__)
             return
         self.useLibXML2Parser()
-        xmls = open(self.path_ascii).read()
-        instance = CreateFromDocument(xmls)
-        self.assertEqual(self.ascii, instance)
+        xmld = open(self.path_ascii, 'rb').read()
+        instance = CreateFromDocument(xmld)
+        self.assertEqual(self.asciit, instance)
 
-    def testNihongo_expat_str (self):
-        xmls = self.nihongo_xml
-        self.assertRaises(UnicodeEncodeError, CreateFromDocument, xmls)
+    def testNihongo_expat_text (self):
+        self.assertRaises(xml.sax.SAXParseException, CreateFromDocument, self.nihongo_xmlt)
+
+    def testNihongo_expat_data (self):
+        self.assertRaises(xml.sax.SAXParseException, CreateFromDocument, self.nihongo_xmld)
 
     def testNihongo_expat_file (self):
-        xmls = open(self.path_nihongo).read()
-        self.assertRaises(xml.sax.SAXParseException, CreateFromDocument, xmls)
+        xmld = open(self.path_nihongo, 'rb').read()
+        self.assertRaises(xml.sax.SAXParseException, CreateFromDocument, xmld)
 
     def testNihongo_libxml2_str (self):
         if not self.have_libxml2:
             _log.warning('%s: testNihongo_libxml2_str bypassed since libxml2 not present', __file__)
             return
-        xmls = self.nihongo_xml
+        self.assertRaises(xml.sax.SAXParseException, CreateFromDocument, self.nihongo_xmlt)
         # ERROR: This should be fine, see trac/147
-        #instance = CreateFromDocument(xmls)
-        #self.assertEqual(self.nihongo, instance)
-        self.assertRaises(UnicodeEncodeError, CreateFromDocument, xmls)
+        #instance = CreateFromDocument(self.nihongo_xmld)
+        #self.assertEqual(self.nihongot, instance)
+        self.assertRaises(xml.sax.SAXParseException, CreateFromDocument, self.nihongo_xmld)
 
     def testNihongo_libxml2_file (self):
         if not self.have_libxml2:
             _log.warning('%s: testNihongo_libxml2_file bypassed since libxml2 not present', __file__)
             return
         self.useLibXML2Parser()
-        xmls = open(self.path_nihongo).read()
-        instance = CreateFromDocument(xmls)
-        self.assertEqual(self.nihongo, instance)
+        xmld = open(self.path_nihongo, 'rb').read()
+        instance = CreateFromDocument(xmld)
+        self.assertEqual(self.nihongot, instance)
 
-    def testASCII_stringio (self):
+    def testASCII_textio (self):
         f = open(self.path_ascii).read()
-        sio = StringIO.StringIO(self.ascii_xml).read()
+        sio = io.StringIO(self.ascii_xmlt).read()
+        self.assertEqual(f, sio)
+
+    def testASCII_dataio (self):
+        f = open(self.path_ascii, 'rb').read()
+        sio = io.BytesIO(self.ascii_xmld).read()
         self.assertEqual(f, sio)
 
 if __name__ == '__main__':

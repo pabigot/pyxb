@@ -7,7 +7,7 @@ import pyxb
 import pyxb.binding.generate
 import pyxb.utils.domutils
 import pyxb.binding.saxer
-import StringIO
+import io
 
 from xml.dom import Node
 
@@ -24,64 +24,70 @@ import unittest
 
 class TestSubstGroup (unittest.TestCase):
     def testISO8601 (self):
-        xml = '<when><ISO8601>2009-06-15T17:50:00Z</ISO8601></when>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = u'<when><ISO8601>2009-06-15T17:50:00Z</ISO8601></when>'
+        xmld = xmlt.encode('utf-8')
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = CreateFromDOM(dom.documentElement)
         self.assertEqual(instance.sgTime._element(), ISO8601)
-        self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xml)
+        self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xmld)
 
         saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace)
         handler = saxer.getContentHandler()
-        saxer.parse(StringIO.StringIO(xml))
+        saxer.parse(io.StringIO(xmlt))
         instance = handler.rootObject()
         self.assertEqual(instance.sgTime._element(), ISO8601)
-        self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xml)
+        self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xmld)
 
     def testPairTime (self):
-        xml = '<when><pairTime><seconds>34.0</seconds><fractionalSeconds>0.21</fractionalSeconds></pairTime></when>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = u'<when><pairTime><seconds>34.0</seconds><fractionalSeconds>0.21</fractionalSeconds></pairTime></when>'
+        xmld = xmlt.encode('utf-8')
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = CreateFromDOM(dom.documentElement)
         self.assertEqual(instance.sgTime._element(), pairTime)
         self.assertEqual(instance.sgTime.seconds, 34)
-        self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xml)
+        self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xmld)
 
         saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace)
         handler = saxer.getContentHandler()
-        saxer.parse(StringIO.StringIO(xml))
+        saxer.parse(io.StringIO(xmlt))
         instance = handler.rootObject()
         self.assertEqual(instance.sgTime._element(), pairTime)
         self.assertEqual(instance.sgTime.seconds, 34)
-        self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xml)
+        self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xmld)
 
 
     def testSGTime (self):
-        xml = '<when><sgTime>2009-06-15T17:50:00Z</sgTime></when>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = u'<when><sgTime>2009-06-15T17:50:00Z</sgTime></when>'
+        xmld = xmlt.encode('utf-8')
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         self.assertRaises(pyxb.AbstractElementError, CreateFromDOM, dom.documentElement)
 
         saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace)
         handler = saxer.getContentHandler()
-        self.assertRaises(pyxb.AbstractElementError, saxer.parse, StringIO.StringIO(xml))
+        self.assertRaises(pyxb.AbstractElementError, saxer.parse, io.StringIO(xmlt))
 
-        xml = '<sgTime>2009-06-15T17:50:00Z</sgTime>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = u'<sgTime>2009-06-15T17:50:00Z</sgTime>'
+        xmld = xmlt.encode('utf-8')
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         self.assertRaises(pyxb.AbstractElementError, CreateFromDOM, dom.documentElement)
-        self.assertRaises(pyxb.AbstractElementError, saxer.parse, StringIO.StringIO(xml))
+        self.assertRaises(pyxb.AbstractElementError, saxer.parse, io.StringIO(xmlt))
 
-        xml = '<ISO8601>2009-06-15T17:50:00Z</ISO8601>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = u'<ISO8601>2009-06-15T17:50:00Z</ISO8601>'
+        xmld = xmlt.encode('utf-8')
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = CreateFromDOM(dom.documentElement)
         self.assertEqual(instance._element(), ISO8601)
-        saxer.parse(StringIO.StringIO(xml))
+        saxer.parse(io.StringIO(xmlt))
         instance = handler.rootObject()
         self.assertEqual(instance._element(), ISO8601)
 
     def testGenAbstract (self):
-        xml = '<when><pairTime><seconds>34.0</seconds><fractionalSeconds>0.21</fractionalSeconds></pairTime></when>'
+        xmlt = u'<when><pairTime><seconds>34.0</seconds><fractionalSeconds>0.21</fractionalSeconds></pairTime></when>'
+        xmld = xmlt.encode('utf-8')
         instance = when(pairTime(34.0, 0.21))
         self.assertEqual(instance.sgTime._element(), pairTime)
         self.assertEqual(instance.sgTime.seconds, 34)
-        self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xml)
+        self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xmld)
         # Loss of element association kills DOM generation
         instance.sgTime._setElement(None)
         self.assertRaises(pyxb.AbstractElementError, instance.toDOM)

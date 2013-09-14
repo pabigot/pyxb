@@ -509,13 +509,13 @@ class TestUniqueIdentifier (unittest.TestCase):
 
     def testPickling (self):
         import pickle
-        import StringIO
+        import io
 
         u1 = UniqueIdentifier()
-        outstr = StringIO.StringIO()
-        pickler = pickle.Pickler(outstr, -1)
+        outdata = io.BytesIO()
+        pickler = pickle.Pickler(outdata, -1)
         pickler.dump(u1)
-        instr = StringIO.StringIO(outstr.getvalue())
+        instr = io.BytesIO(outdata.getvalue())
         unpickler = pickle.Unpickler(instr)
         u2 = unpickler.load()
         self.assertEqual(u1.uid(), u2.uid())

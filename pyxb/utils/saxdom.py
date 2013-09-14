@@ -29,7 +29,7 @@ converting it back into document format.
 from __future__ import print_function
 import xml.dom
 import pyxb.utils.saxutils
-import StringIO
+import io
 import pyxb.namespace
 import logging
 
@@ -116,13 +116,14 @@ def parse (stream, **kw):
     saxer.parse(stream)
     return handler.document()
 
-def parseString (text, **kw):
+def parseString (xml_text, **kw):
     """Parse a string holding an XML document and return the corresponding DOM
     tree."""
     # XML parser doesn't really like unicode strings
-    if isinstance(text, unicode):
-        text = text.encode(pyxb._InputEncoding)
-    return parse(StringIO.StringIO(text), **kw)
+    xmld = xml_text
+    if isinstance(xmld, unicode):
+        xmld = xmld.encode(pyxb._InputEncoding)
+    return parse(io.BytesIO(xmld), **kw)
 
 class Node (xml.dom.Node, pyxb.utils.utility.Locatable_mixin):
     """Base for the minimal DOM interface required by PyXB."""

@@ -37,7 +37,7 @@ class TestInScopeNames (unittest.TestCase):
         return xmlns_map
 
     def test_6_2_2 (self):
-        xmls = '''<?xml version="1.0"?>
+        xmld = '''<?xml version="1.0"?>
 <!-- initially, the default namespace is "books" -->
 <book xmlns='urn:loc.gov:books'
       xmlns:isbn='urn:ISBN:0-395-36341-6'>
@@ -49,10 +49,10 @@ class TestInScopeNames (unittest.TestCase):
       </p>
       <p>another graf without namespace change</p>
     </notes>
-</book>'''
+</book>'''.encode('utf-8')
         saxer = make_parser(element_state_constructor=TestState, location_base='test_6_2_2', fallback_namespace=BogusNamespace)
         handler = saxer.getContentHandler()
-        saxer.parse(StringIO.StringIO(xmls))
+        saxer.parse(io.BytesIO(xmld))
 
         # First is root context; second is the book element
         book = TestState.StateSequence[1]
@@ -84,7 +84,7 @@ class TestInScopeNames (unittest.TestCase):
         self.assertEqual('urn:ISBN:0-395-36341-6', xmlns_map['isbn'].uri())
 
     def test_6_2_3 (self):
-        xmls = '''<?xml version='1.0'?>
+        xmld = '''<?xml version='1.0'?>
 <Beers>
   <table xmlns='http://www.w3.org/1999/xhtml'>
    <th><td>Name</td><td>Origin</td><td>Description</td></th>
@@ -99,11 +99,11 @@ class TestInScopeNames (unittest.TestCase):
         </td>
       </tr>
     </table>
-  </Beers>'''
+  </Beers>'''.encode('utf-8')
 
         saxer = make_parser(element_state_constructor=TestState, location_base='test_6_2_3', fallback_namespace=BogusNamespace)
         handler = saxer.getContentHandler()
-        saxer.parse(StringIO.StringIO(xmls))
+        saxer.parse(io.BytesIO(xmld))
 
         Beers = TestState.StateSequence[1]
         xmlns_map = self.stripUndeclaredNamespaces(Beers.namespaceContext().inScopeNamespaces())

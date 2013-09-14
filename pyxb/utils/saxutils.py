@@ -26,7 +26,7 @@ from __future__ import print_function
 import xml.sax
 import xml.sax.handler
 import pyxb.namespace
-import StringIO
+import io
 import logging
 
 _log = logging.getLogger(__name__)
@@ -437,7 +437,7 @@ class _EntityResolver (object):
     """Dummy used to prevent the SAX parser from crashing when it sees
     processing instructions that we don't care about."""
     def resolveEntity (self, public_id, system_id):
-        return StringIO.StringIO('')
+        return io.StringIO(u'')
 
 _CreateParserModules = []
 def SetCreateParserModules (create_parser_modules):
@@ -519,41 +519,41 @@ if '__main__' == __name__:
     xml_file = 'examples/tmsxtvd/tmsdatadirect_sample.xml'
     if 1 < len(sys.argv):
         xml_file = sys.argv[1]
-    xmls = open(xml_file).read()
+    xmld = open(xml_file, 'rb').read()
 
     dt1 = time.time()
     dt2 = time.time()
-    dom = xml.dom.minidom.parseString(xmls)
+    dom = xml.dom.minidom.parseString(xmld)
     dt3 = time.time()
 
     snt1 = time.time()
     saxer = make_parser(content_handler=_NoopSAXHandler())
     snt2 = time.time()
-    saxer.parse(StringIO.StringIO(xmls))
+    saxer.parse(io.BytesIO(xmld))
     snt3 = time.time()
 
     sbt1 = time.time()
     saxer = make_parser(content_handler=BaseSAXHandler())
     sbt2 = time.time()
-    saxer.parse(StringIO.StringIO(xmls))
+    saxer.parse(io.BytesIO(xmld))
     sbt3 = time.time()
 
     pdt1 = time.time()
     sdomer = make_parser(content_handler_constructor=saxdom._DOMSAXHandler)
     h = sdomer.getContentHandler()
     pdt2 = time.time()
-    sdomer.parse(StringIO.StringIO(xmls))
+    sdomer.parse(io.BytesIO(xmld))
     pdt3 = time.time()
 
     lst1 = time.time()
-    tree = lxml.etree.fromstring(xmls)
+    tree = lxml.etree.fromstring(xmld)
     lst2 = time.time()
     lsh = Handler()
     lxml.sax.saxify(tree, lsh)
     lst3 = time.time()
 
     ldt1 = time.time()
-    tree = lxml.etree.fromstring(xmls)
+    tree = lxml.etree.fromstring(xmld)
     ldt2 = time.time()
     ldh = xml.dom.pulldom.SAX2DOM()
     lxml.sax.saxify(tree, ldh)
