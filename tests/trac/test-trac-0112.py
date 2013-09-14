@@ -37,7 +37,7 @@ targetNamespace="urn:trac0112" version="1.0">
 </xs:schema>
 '''
 
-xmls = '''<?xml version="1.0" ?><Element xmlns="urn:trac0112"><Inner><C>true</C></Inner></Element>'''
+xmls = '''<?xml version="1.0" encoding="utf-8"?><Element xmlns="urn:trac0112"><Inner><C>true</C></Inner></Element>'''
 
 
 code = pyxb.binding.generate.GeneratePython(schema_text=xsd)
@@ -59,7 +59,7 @@ class TestTrac0112 (unittest.TestCase):
 
     def testExample (self):
         instance = CreateFromDocument(xmls)
-        self.assertEqual(xmls, instance.toxml())
+        self.assertEqual(xmls, instance.toxml('utf-8'))
 
 if __name__ == '__main__':
     unittest.main()

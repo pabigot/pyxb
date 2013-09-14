@@ -60,7 +60,7 @@ class TestTrac0155 (unittest.TestCase):
     def tearDown (self):
         pyxb.utils.domutils.BindingDOMSupport.SetDefaultNamespace(None)
 
-    Expected = """<?xml version="1.0" ?><OpaqueData xmlns="http://schema.omg.org/spec/CTS2/1.0/Core" xmlns:ns1="http://www.w3.org/1999/xhtml"><v><ns1:ul><ns1:li>entry1</ns1:li><ns1:li>entry2</ns1:li></ns1:ul></v></OpaqueData>"""
+    Expected = """<?xml version="1.0" encoding="utf-8"?><OpaqueData xmlns="http://schema.omg.org/spec/CTS2/1.0/Core" xmlns:ns1="http://www.w3.org/1999/xhtml"><v><ns1:ul><ns1:li>entry1</ns1:li><ns1:li>entry2</ns1:li></ns1:ul></v></OpaqueData>""".encode('utf-8')
 
     def test (self):
         txml = CreateFromDocument(self.testxml)
@@ -68,7 +68,7 @@ class TestTrac0155 (unittest.TestCase):
         #print dom.toprettyxml()
         #print txml.toxml()
         #print self.Expected
-        self.assertEqual(txml.toxml(), self.Expected)
+        self.assertEqual(txml.toxml('utf-8'), self.Expected)
 
 
 if __name__ == '__main__':
