@@ -21,7 +21,7 @@ from pyxb.exceptions_ import *
 
 from pyxb.utils import domutils
 
-def ToDOM (instance, tag=None, dom_support=None):
+def ToDOM (instance, dom_support=None):
     return instance.toDOM(dom_support).documentElement
 
 import unittest
@@ -30,20 +30,21 @@ class TestProperties (unittest.TestCase):
 
     street_content = '''95 Main St.
 Anytown, AS  12345-6789'''
-    street_xml = '<street>%s</street>' % (street_content,)
-    street_dom = pyxb.utils.domutils.StringToDOM(street_xml).documentElement
+    street_xmlt = u'<street>%s</street>' % (street_content,)
+    street_xmld = street_xmlt.encode('utf-8')
+    street_dom = pyxb.utils.domutils.StringToDOM(street_xmlt).documentElement
 
-    address1_xml = '<name>Customer</name><street>95 Main St</street>'
-    address2_xml = '<name>Sugar Mama</name><street>24 E. Dearling Ave.</street>'
+    address1_xmlt = u'<name>Customer</name><street>95 Main St</street>'
+    address2_xmlt = u'<name>Sugar Mama</name><street>24 E. Dearling Ave.</street>'
 
     def testPythonElementSimpleContent (self):
         elt = USAddress._ElementMap['street'].elementBinding()(self.street_content)
         self.assertEqual(self.street_content, elt)
-        self.assertEqual(ToDOM(elt).toxml("utf-8"), self.street_xml)
+        self.assertEqual(ToDOM(elt).toxml("utf-8"), self.street_xmld)
 
     def testDOMElementSimpleContent (self):
         elt = USAddress._ElementMap['street'].elementBinding().createFromDOM(self.street_dom)
-        self.assertEqual(ToDOM(elt).toxml("utf-8"), self.street_xml)
+        self.assertEqual(ToDOM(elt).toxml("utf-8"), self.street_xmld)
 
     def testPythonElementComplexContent_Element (self):
         addr = USAddress(name='Customer', street='95 Main St')
@@ -52,31 +53,31 @@ Anytown, AS  12345-6789'''
         self.assertEqual('95 Main St', addr.street)
         addr.street = '43 West Oak'
         self.assertEqual('43 West Oak', addr.street)
-        #self.assertEqual('<s>%s</s>' % (self.address1_xml,), ToDOM(addr, tag='s').toxml("utf-8"))
 
     def testDOM_CTD_element (self):
         # NB: USAddress is a CTD, not an element.
-        xml = '<shipTo>%s</shipTo>' % (self.address1_xml,)
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = u'<shipTo>%s</shipTo>' % (self.address1_xmlt,)
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         addr2 = USAddress.Factory(_dom_node=dom.documentElement)
-        #self.assertEqual(xml, ToDOM(addr2, tag='shipTo').toxml("utf-8"))
 
     def testPurchaseOrder (self):
         po = purchaseOrder(shipTo=USAddress(name='Customer', street='95 Main St'),
                            billTo=USAddress(name='Sugar Mama', street='24 E. Dearling Ave'),
                            comment='Thanks!')
-        xml = ToDOM(po).toxml("utf-8")
-        xml1 = '<ns1:purchaseOrder xmlns:ns1="http://www.example.com/altPO1"><shipTo><name>Customer</name><street>95 Main St</street></shipTo><billTo><name>Sugar Mama</name><street>24 E. Dearling Ave</street></billTo><ns1:comment>Thanks!</ns1:comment></ns1:purchaseOrder>'
-        self.assertEqual(xml, xml1)
+        xmld = ToDOM(po).toxml("utf-8")
+        xml1t = '<ns1:purchaseOrder xmlns:ns1="http://www.example.com/altPO1"><shipTo><name>Customer</name><street>95 Main St</street></shipTo><billTo><name>Sugar Mama</name><street>24 E. Dearling Ave</street></billTo><ns1:comment>Thanks!</ns1:comment></ns1:purchaseOrder>'
+        xml1d = xml1t.encode('utf-8')
+        self.assertEqual(xmld, xml1d)
 
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml1t)
         po2 = purchaseOrder.createFromDOM(dom.documentElement)
-        self.assertEqual(xml1, ToDOM(po2).toxml("utf-8"))
+        self.assertEqual(ToDOM(po2).toxml("utf-8"), xml1d)
 
-        xml2 = '<purchaseOrder xmlns="http://www.example.com/altPO1"><shipTo><name>Customer</name><street>95 Main St</street></shipTo><billTo><name>Sugar Mama</name><street>24 E. Dearling Ave</street></billTo><comment>Thanks!</comment></purchaseOrder>'
+        xml2t = '<purchaseOrder xmlns="http://www.example.com/altPO1"><shipTo><name>Customer</name><street>95 Main St</street></shipTo><billTo><name>Sugar Mama</name><street>24 E. Dearling Ave</street></billTo><comment>Thanks!</comment></purchaseOrder>'
+        xml2d = xml2t.encode('utf-8')
         bds = pyxb.utils.domutils.BindingDOMSupport()
         bds.setDefaultNamespace(Namespace)
-        self.assertEqual(xml2, ToDOM(po2, dom_support=bds).toxml("utf-8"))
+        self.assertEqual(ToDOM(po2, dom_support=bds).toxml("utf-8"), xml2d)
 
 if __name__ == '__main__':
     unittest.main()

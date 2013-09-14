@@ -47,17 +47,19 @@ class TestTrac0181 (unittest.TestCase):
         i = self.getInstance()
         vc = i._validationConfig
         vc._setContentInfluencesGeneration(vc.NEVER)
-        xmls = i.toxml('utf-8', root_only=True)
         # Uses declaration order for sub-automata (alphabetic)
-        self.assertEqual('<eAny><a>1</a><b>4</b><c>3</c><d>2</d></eAny>', xmls)
+        xmls = '<eAny><a>1</a><b>4</b><c>3</c><d>2</d></eAny>'
+        xmld = xmls.encode('utf-8')
+        self.assertEqual(i.toxml('utf-8', root_only=True), xmld)
 
     def testALWAYS (self):
         i = self.getInstance()
         vc = i._validationConfig
         vc._setContentInfluencesGeneration(vc.ALWAYS)
-        xmls = i.toxml('utf-8', root_only=True)
         # Uses assignment order for sub-automata (numeric)
-        self.assertEqual('<eAny><a>1</a><d>2</d><c>3</c><b>4</b></eAny>', xmls)
+        xmls = '<eAny><a>1</a><d>2</d><c>3</c><b>4</b></eAny>'
+        xmld = xmls.encode('utf-8')
+        self.assertEqual(i.toxml('utf-8', root_only=True), xmld)
 
 if __name__ == '__main__':
     unittest.main()

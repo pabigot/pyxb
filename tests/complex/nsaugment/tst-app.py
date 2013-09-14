@@ -21,7 +21,9 @@ class Test (unittest.TestCase):
 
     def testApp (self):
         instance = app.elt(base='hi', app='there')
-        self.assertEqual('<app:elt xmlns:app="urn:app" xmlns:common="urn:common"><common:base><common:bstr>hi</common:bstr></common:base><common:app><common:astr>there</common:astr></common:app></app:elt>', instance.toxml('utf-8', root_only=True))
+        xmlt = u'<app:elt xmlns:app="urn:app" xmlns:common="urn:common"><common:base><common:bstr>hi</common:bstr></common:base><common:app><common:astr>there</common:astr></common:app></app:elt>'
+        xmld = xmlt.encode('utf-8')
+        self.assertEqual(instance.toxml('utf-8', root_only=True), xmld)
 
 if '__main__' == __name__:
     unittest.main()

@@ -29,12 +29,13 @@ import unittest
 
 class TestTrac_0058 (unittest.TestCase):
     def testRoundTrip (self):
-        xml = '<iopt xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"></iopt>'
-        instance = CreateFromDocument(xml)
+        xmlt = u'<iopt xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"></iopt>'
+        xmld = xmlt.encode('utf-8')
+        instance = CreateFromDocument(xmlt)
         self.assertTrue(instance._isNil())
         self.assertEqual(0, instance)
         self.assertEqual('', instance.xsdLiteral())
-        self.assertEqual(xml, instance.toxml("utf-8", root_only=True))
+        self.assertEqual(instance.toxml("utf-8", root_only=True), xmld)
 
 if __name__ == '__main__':
     unittest.main()

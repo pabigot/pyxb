@@ -78,7 +78,9 @@ class TestTrac_0071 (unittest.TestCase):
         self.assertEqual(1, len(field.value_))
         self.assertTrue(isinstance(field.value_[0], value_type))
         field.validateBinding()
-        self.assertEqual('<field><name>title</name><value lang="ENG">foo</value></field>', field.toxml("utf-8", root_only=True))
+        xmlt = u'<field><name>title</name><value lang="ENG">foo</value></field>'
+        xmld = xmlt.encode('utf-8')
+        self.assertEqual(field.toxml("utf-8", root_only=True), xmld)
 
     def testFieldElementAppend (self):
         newdoc = MetadataDocument()
@@ -91,9 +93,12 @@ class TestTrac_0071 (unittest.TestCase):
         self.assertTrue(isinstance(field.value_[0], value_type))
         field.validateBinding()
         self.assertTrue(isinstance(field.value_[0], value_type))
-        self.assertEqual('<field><name>title</name><value lang="ENG">foo</value></field>', field.toxml("utf-8", root_only=True))
+        xmlt = u'<field><name>title</name><value lang="ENG">foo</value></field>'
+        xmld = xmlt.encode('utf-8')
+        self.assertEqual(field.toxml("utf-8", root_only=True), xmld)
 
-    MetaExpected = '<ns1:MetadataDocument xmlns:ns1="urn:trac-0071"><template>anewtemplate</template><timespan end="+INF" start="-INF"><field><name>title</name><value lang="ENG">foo</value></field></timespan></ns1:MetadataDocument>'
+    MetaExpectedt = '<ns1:MetadataDocument xmlns:ns1="urn:trac-0071"><template>anewtemplate</template><timespan end="+INF" start="-INF"><field><name>title</name><value lang="ENG">foo</value></field></timespan></ns1:MetadataDocument>'
+    MetaExpectedd = MetaExpectedt.encode('utf-8')
 
     def testMetaConstructor (self):
         newdoc = MetadataDocument()
@@ -110,7 +115,7 @@ class TestTrac_0071 (unittest.TestCase):
         newdoc.validateBinding()
         timespan = newdoc.timespan[0]
         self.assertTrue(isinstance(timespan, timespan_type))
-        self.assertEqual(self.MetaExpected, newdoc.toxml("utf-8", root_only=True))
+        self.assertEqual(self.MetaExpectedd, newdoc.toxml("utf-8", root_only=True))
         newdoc.timespan[:] = []
 
     def testMetaBadFieldName (self):
@@ -157,7 +162,7 @@ class TestTrac_0071 (unittest.TestCase):
         timespan = newdoc.timespan[0]
         self.assertTrue(isinstance(timespan, timespan_type))
         newdoc.validateBinding()
-        self.assertEqual(self.MetaExpected, newdoc.toxml("utf-8", root_only=True))
+        self.assertEqual(self.MetaExpectedd, newdoc.toxml("utf-8", root_only=True))
 
 if __name__ == '__main__':
     unittest.main()

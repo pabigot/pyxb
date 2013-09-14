@@ -87,7 +87,9 @@ class TestTrac_0069 (unittest.TestCase):
         self.assertTrue(isinstance(fv2, value_type))
         self.assertEqual('fv2', fv2.value())
         newdoc.validateBinding()
-        self.assertEqual('<ns1:MetadataDocument xmlns:ns1="urn:trac-0069"><template>anewtemplate</template><timespan end="+INF" start="-INF"><field><name>name</name><value>fv0</value><value>fv1</value><value>fv2</value></field></timespan></ns1:MetadataDocument>',  newdoc.toxml("utf-8", root_only=True))
+        xmlt = u'<ns1:MetadataDocument xmlns:ns1="urn:trac-0069"><template>anewtemplate</template><timespan end="+INF" start="-INF"><field><name>name</name><value>fv0</value><value>fv1</value><value>fv2</value></field></timespan></ns1:MetadataDocument>'
+        xmld = xmlt.encode('utf-8')
+        self.assertEqual(newdoc.toxml("utf-8", root_only=True), xmld)
 
 if __name__ == '__main__':
     unittest.main()

@@ -25,11 +25,17 @@ class TestCollision (unittest.TestCase):
 
     def testBasic (self):
         instance = color(color_.red, color_=color_.green)
-        self.assertEqual('<color color="green"><color>red</color></color>', instance.toxml("utf-8", root_only=True))
+        xmlt = u'<color color="green"><color>red</color></color>'
+        xmld = xmlt.encode('utf-8')
+        self.assertEqual(instance.toxml("utf-8", root_only=True), xmld)
         instance.color = color_.blue
-        self.assertEqual('<color color="green"><color>blue</color></color>', instance.toxml("utf-8", root_only=True))
+        xmlt = u'<color color="green"><color>blue</color></color>'
+        xmld = xmlt.encode('utf-8')
+        self.assertEqual(instance.toxml("utf-8", root_only=True), xmld)
         instance.color_ = color_.red
-        self.assertEqual('<color color="red"><color>blue</color></color>', instance.toxml("utf-8", root_only=True))
+        xmlt = u'<color color="red"><color>blue</color></color>'
+        xmld = xmlt.encode('utf-8')
+        self.assertEqual(instance.toxml("utf-8", root_only=True), xmld)
 
 if __name__ == '__main__':
     unittest.main()

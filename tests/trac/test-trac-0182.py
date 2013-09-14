@@ -37,8 +37,9 @@ class TestTrac0182 (unittest.TestCase):
         ib = eTwo(2)
         content = [ ia, ib ]
         i = elt(*content)
-        xmls = i.toxml('utf-8', root_only=True)
-        self.assertEqual(xmls, '<elt><eOne>1</eOne><eTwo>2</eTwo></elt>')
+        xmls = '<elt><eOne>1</eOne><eTwo>2</eTwo></elt>'
+        xmld = xmls.encode('utf-8')
+        self.assertEqual(i.toxml('utf-8', root_only=True), xmld)
         self.assertEqual(i.eOne, ia)
         self.assertEqual(1, len(i.wildcardElements()))
         self.assertEqual(ib, i.wildcardElements()[0])

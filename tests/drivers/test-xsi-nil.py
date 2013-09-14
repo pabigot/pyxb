@@ -46,7 +46,6 @@ class TestXSIType (unittest.TestCase):
         self.assertEqual(instance, 'content')
         self.assertFalse(instance._isNil())
 
-
     def testXFull (self):
         xmlt = u'<xfull xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">content</xfull>'
         doc = pyxb.utils.domutils.StringToDOM(xmlt)
@@ -70,7 +69,6 @@ class TestXSIType (unittest.TestCase):
         instance = handler.rootObject()
         self.assertEqual(instance, 'content')
         self.assertFalse(instance._isNil())
-
 
     def testOptionalNilFalse (self):
         xmlt = u'<optional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="false">content</optional>'

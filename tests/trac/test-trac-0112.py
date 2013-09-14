@@ -37,7 +37,8 @@ targetNamespace="urn:trac0112" version="1.0">
 </xs:schema>
 '''
 
-xmls = '''<?xml version="1.0" encoding="utf-8"?><Element xmlns="urn:trac0112"><Inner><C>true</C></Inner></Element>'''
+xmlt = u'''<?xml version="1.0" encoding="utf-8"?><Element xmlns="urn:trac0112"><Inner><C>true</C></Inner></Element>'''
+xmld = xmlt.encode('utf-8')
 
 
 code = pyxb.binding.generate.GeneratePython(schema_text=xsd)
@@ -58,8 +59,8 @@ class TestTrac0112 (unittest.TestCase):
         pyxb.utils.domutils.BindingDOMSupport.SetDefaultNamespace(None)
 
     def testExample (self):
-        instance = CreateFromDocument(xmls)
-        self.assertEqual(xmls, instance.toxml('utf-8'))
+        instance = CreateFromDocument(xmlt)
+        self.assertEqual(instance.toxml('utf-8'), xmld)
 
 if __name__ == '__main__':
     unittest.main()

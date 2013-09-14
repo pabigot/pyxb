@@ -43,7 +43,9 @@ class TestTrac0114 (unittest.TestCase):
         self.assertEqual(aext.namespaceURI, noi.Namespace.uri())
         xyz = aext.firstChild
         self.assertEqual(xyz.namespaceURI, 'urn:schema:b')
-        self.assertEqual(a.toxml("utf-8"), '<ns1:a xmlns:ns1="urn:schema:a" xmlns:ns2="urn:schema:b" xmlns:ns3="urn:schema:c"><ns1:Extensions><ns2:xyz ns3:tag="value">abc</ns2:xyz></ns1:Extensions></ns1:a>')
+        xmlt = u'<ns1:a xmlns:ns1="urn:schema:a" xmlns:ns2="urn:schema:b" xmlns:ns3="urn:schema:c"><ns1:Extensions><ns2:xyz ns3:tag="value">abc</ns2:xyz></ns1:Extensions></ns1:a>'
+        xmld = xmlt.encode('utf-8')
+        self.assertEqual(a.toxml("utf-8"), xmld)
 
 if __name__ == '__main__':
     unittest.main()

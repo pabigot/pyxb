@@ -24,96 +24,97 @@ import unittest
 
 class TestMGAll (unittest.TestCase):
     def testRequired (self):
-        xml = '<ns1:required xmlns:ns1="URN:test-mg-all"/>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = '<ns1:required xmlns:ns1="URN:test-mg-all"/>'
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         self.assertRaises(IncompleteElementContentError, required.createFromDOM, dom.documentElement)
 
-        xml = '<ns1:required xmlns:ns1="URN:test-mg-all"><first/><second/><third/></ns1:required>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = '<ns1:required xmlns:ns1="URN:test-mg-all"><first/><second/><third/></ns1:required>'
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = required.createFromDOM(dom.documentElement)
         self.assertTrue(isinstance(instance.first, required.memberElement('first').typeDefinition()))
         self.assertTrue(isinstance(instance.second, required.memberElement('second').typeDefinition()))
         self.assertTrue(isinstance(instance.third, required.memberElement('third').typeDefinition()))
 
     def testRequiredMisordered (self):
-        xml = '<ns1:required xmlns:ns1="URN:test-mg-all"><third/><first/><second/></ns1:required>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = '<ns1:required xmlns:ns1="URN:test-mg-all"><third/><first/><second/></ns1:required>'
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = required.createFromDOM(dom.documentElement)
         self.assertTrue(isinstance(instance.first, required.memberElement('first').typeDefinition()))
         self.assertTrue(isinstance(instance.second, required.memberElement('second').typeDefinition()))
         self.assertTrue(isinstance(instance.third, required.memberElement('third').typeDefinition()))
 
     def testRequiredTooMany (self):
-        xml = '<ns1:required xmlns:ns1="URN:test-mg-all"><third/><first/><second/><third/></ns1:required>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = '<ns1:required xmlns:ns1="URN:test-mg-all"><third/><first/><second/><third/></ns1:required>'
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         self.assertRaises(UnrecognizedContentError, required.createFromDOM, dom.documentElement)
 
     def testThirdOptional (self):
-        xml = '<ns1:thirdOptional xmlns:ns1="URN:test-mg-all"><first/><second/></ns1:thirdOptional>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = '<ns1:thirdOptional xmlns:ns1="URN:test-mg-all"><first/><second/></ns1:thirdOptional>'
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = thirdOptional.Factory(_dom_node=dom.documentElement)
         self.assertTrue(isinstance(instance.first, thirdOptional._ElementMap['first'].elementBinding().typeDefinition()))
         self.assertTrue(isinstance(instance.second, thirdOptional._ElementMap['second'].elementBinding().typeDefinition()))
         self.assertTrue(instance.third is None)
 
-        xml = '<ns1:thirdOptional xmlns:ns1="URN:test-mg-all"><first/><second/><third/></ns1:thirdOptional>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = '<ns1:thirdOptional xmlns:ns1="URN:test-mg-all"><first/><second/><third/></ns1:thirdOptional>'
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = thirdOptional.Factory(_dom_node=dom.documentElement)
         self.assertTrue(isinstance(instance.first, thirdOptional._ElementMap['first'].elementBinding().typeDefinition()))
         self.assertTrue(isinstance(instance.second, thirdOptional._ElementMap['second'].elementBinding().typeDefinition()))
         self.assertTrue(isinstance(instance.third, thirdOptional._ElementMap['third'].elementBinding().typeDefinition()))
 
-        xml = '<ns1:thirdOptional xmlns:ns1="URN:test-mg-all"><first/><second/><third/><first/></ns1:thirdOptional>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = '<ns1:thirdOptional xmlns:ns1="URN:test-mg-all"><first/><second/><third/><first/></ns1:thirdOptional>'
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         self.assertRaises(UnrecognizedContentError, thirdOptional.Factory, _dom_node=dom.documentElement)
 
     def testOptional (self):
-        xml = '<ns1:optional xmlns:ns1="URN:test-mg-all"/>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = '<ns1:optional xmlns:ns1="URN:test-mg-all"/>'
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = optional.createFromDOM(dom.documentElement)
         self.assertTrue(instance.first is None)
         self.assertTrue(instance.second is None)
         self.assertTrue(instance.third is None)
 
-        xml = '<ns1:optional xmlns:ns1="URN:test-mg-all"><first/><second/><third/></ns1:optional>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = '<ns1:optional xmlns:ns1="URN:test-mg-all"><first/><second/><third/></ns1:optional>'
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = optional.createFromDOM(dom.documentElement)
         self.assertTrue(isinstance(instance.first, optional.memberElement('first').typeDefinition()))
         self.assertTrue(isinstance(instance.second, optional.memberElement('second').typeDefinition()))
         self.assertTrue(isinstance(instance.third, optional.memberElement('third').typeDefinition()))
 
-        xml = '<ns1:optional xmlns:ns1="URN:test-mg-all"><first/><third/></ns1:optional>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = '<ns1:optional xmlns:ns1="URN:test-mg-all"><first/><third/></ns1:optional>'
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = optional.createFromDOM(dom.documentElement)
         self.assertTrue(isinstance(instance.first, optional.memberElement('first').typeDefinition()))
         self.assertTrue(instance.second is None)
         self.assertTrue(isinstance(instance.third, optional.memberElement('third').typeDefinition()))
 
-        xml = '<ns1:optional xmlns:ns1="URN:test-mg-all"><third/></ns1:optional>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = '<ns1:optional xmlns:ns1="URN:test-mg-all"><third/></ns1:optional>'
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = optional.createFromDOM(dom.documentElement)
         self.assertTrue(instance.first is None)
         self.assertTrue(instance.second is None)
         self.assertTrue(isinstance(instance.third, optional.memberElement('third').typeDefinition()))
 
     def testOptionalTooMany (self):
-        xml = '<ns1:optional xmlns:ns1="URN:test-mg-all"><third/><first/><third/></ns1:optional>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = '<ns1:optional xmlns:ns1="URN:test-mg-all"><third/><first/><third/></ns1:optional>'
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         self.assertRaises(UnrecognizedContentError, optional.createFromDOM, dom.documentElement)
 
-    def stripMembers (self, xml, body):
+    def stripMembers (self, xmlt, body):
         for b in body:
-            xml = xml.replace('<%s/>' % (b,), 'X')
-        return xml
+            xmlt = xmlt.replace('<%s/>' % (b,), 'X')
+        return xmlt
 
     def testMany (self):
         for body in [ "abcdefgh", "fghbcd", "bfgcahd" ]:
-            xml = '<ns1:many xmlns:ns1="URN:test-mg-all">%s</ns1:many>' % (''.join([ '<%s/>' % (_x,) for _x in body ]),)
-            dom = pyxb.utils.domutils.StringToDOM(xml)
+            xmlt = '<ns1:many xmlns:ns1="URN:test-mg-all">%s</ns1:many>' % (''.join([ '<%s/>' % (_x,) for _x in body ]),)
+            dom = pyxb.utils.domutils.StringToDOM(xmlt)
             instance = many.createFromDOM(dom.documentElement)
             instance.validateBinding()
-            xml2 = ToDOM(instance).toxml("utf-8")
-            rev = self.stripMembers(xml2, body)
+            xml2d = ToDOM(instance).toxml("utf-8")
+            xml2t = xml2d.decode('utf-8')
+            rev = self.stripMembers(xml2t, body)
             self.assertEqual('<ns1:many xmlns:ns1="URN:test-mg-all">%s</ns1:many>' % (''.join(len(body)*['X']),), rev)
         many_a = many.memberElement('a')
         many_c = many.memberElement('c')

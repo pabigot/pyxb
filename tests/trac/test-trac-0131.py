@@ -13,6 +13,7 @@ import pyxb.binding.datatypes as xs
 import pyxb.binding.basis
 import pyxb.utils.domutils
 import xml.sax
+import pyxb.utils.types_ as types_
 import io
 
 import os.path
@@ -41,12 +42,10 @@ import unittest
 
 class TestTrac0131 (unittest.TestCase):
     # Unicode string, UTF-8 encoding (per declaration at script top)
-    stru = u'Sign of Leser-Tr\xc3\xa9lat'
-    # Which is not the same as this; see below
-    #stru = unicode('Sign of Leser-Tr\xc3\xa9lat', 'utf-8')
-    strd = stru.encode('utf-8')
-    base_xmlt = '<bar><e>' + stru + '</e></bar>'
-    declared_xmlt = '<?xml version="1.0" encoding="UTF-8"?>' + base_xmlt
+    strt = u'Sign of Leser-Trélat'
+    strd = strt.encode('utf-8')
+    base_xmlt = u'<bar><e>' + strt + u'</e></bar>'
+    declared_xmlt = u'<?xml version="1.0" encoding="UTF-8"?>' + base_xmlt
 
     ExpectedUnicodeErrors = ( UnicodeEncodeError, xml.sax.SAXParseException )
 
@@ -57,65 +56,66 @@ class TestTrac0131 (unittest.TestCase):
         pyxb._SetXMLStyle(self.__xmlStyle)
 
     def testRepresentation (self):
-        self.assertEqual(self.strd, 'Sign of Leser-Tr\xc3\x83\xc2\xa9lat')
+        self.assertEqual(self.strd, 'Sign of Leser-Tr\xc3\xa9lat') #!python3!
+#python3:        self.assertEqual(self.strd, b'Sign of Leser-Tr\xc3\xa9lat')
 
     def testBasicParse (self):
         xmlt = self.base_xmlt
         xmld = xmlt.encode('utf-8')
-        self.assertTrue(isinstance(xmlt, unicode))
-        self.assertTrue(isinstance(xmld, str))
+        self.assertTrue(isinstance(xmlt, types_.TextType))
+        self.assertTrue(isinstance(xmld, types_.DataType))
         pyxb._SetXMLStyle(pyxb.XMLStyle_saxer)
         instance = CreateFromDocument(xmlt)
-        self.assertEqual(instance.e, self.stru)
+        self.assertEqual(instance.e, self.strt)
         instance = CreateFromDocument(xmld)
-        self.assertEqual(instance.e, self.stru)
+        self.assertEqual(instance.e, self.strt)
         pyxb._SetXMLStyle(pyxb.XMLStyle_minidom)
         instance = CreateFromDocument(xmlt)
-        self.assertEqual(instance.e, self.stru)
+        self.assertEqual(instance.e, self.strt)
         instance = CreateFromDocument(xmld)
-        self.assertEqual(instance.e, self.stru)
+        self.assertEqual(instance.e, self.strt)
         # saxdom can handle Unicode representation
         pyxb._SetXMLStyle(pyxb.XMLStyle_saxdom)
         instance = CreateFromDocument(xmlt)
-        self.assertEqual(instance.e, self.stru)
+        self.assertEqual(instance.e, self.strt)
         instance = CreateFromDocument(xmld)
-        self.assertEqual(instance.e, self.stru)
+        self.assertEqual(instance.e, self.strt)
 
     def testDeclaredParse (self):
         xmlt = self.declared_xmlt
         xmld = xmlt.encode('utf-8')
-        self.assertTrue(isinstance(xmlt, unicode))
-        self.assertTrue(isinstance(xmld, str))
+        self.assertTrue(isinstance(xmlt, types_.TextType))
+        self.assertTrue(isinstance(xmld, types_.DataType))
         pyxb._SetXMLStyle(pyxb.XMLStyle_saxer)
         instance = CreateFromDocument(xmlt)
-        self.assertEqual(instance.e, self.stru)
+        self.assertEqual(instance.e, self.strt)
         instance = CreateFromDocument(xmld)
-        self.assertEqual(instance.e, self.stru)
+        self.assertEqual(instance.e, self.strt)
         pyxb._SetXMLStyle(pyxb.XMLStyle_minidom)
         instance = CreateFromDocument(xmlt)
-        self.assertEqual(instance.e, self.stru)
+        self.assertEqual(instance.e, self.strt)
         instance = CreateFromDocument(xmld)
-        self.assertEqual(instance.e, self.stru)
+        self.assertEqual(instance.e, self.strt)
         # saxdom can handle Unicode representation
         pyxb._SetXMLStyle(pyxb.XMLStyle_saxdom)
         instance = CreateFromDocument(xmlt)
-        self.assertEqual(instance.e, self.stru)
+        self.assertEqual(instance.e, self.strt)
         instance = CreateFromDocument(xmld)
-        self.assertEqual(instance.e, self.stru)
+        self.assertEqual(instance.e, self.strt)
 
     def testElementEncode (self):
         instance = bar()
-        instance.e = self.stru
-        self.assertEqual(instance.e, self.stru)
+        instance.e = self.strt
+        self.assertEqual(instance.e, self.strt)
 
     def testAttributeEncode (self):
         instance = bar()
-        instance.a = self.stru
-        self.assertEqual(instance.a, self.stru)
+        instance.a = self.strt
+        self.assertEqual(instance.a, self.strt)
 
     def testuEncode (self):
-        instance = foo(self.stru)
-        self.assertEqual(instance, self.stru)
+        instance = foo(self.strt)
+        self.assertEqual(instance, self.strt)
 
 if __name__ == '__main__':
     unittest.main()

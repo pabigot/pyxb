@@ -16,15 +16,15 @@ class TestTrac0119 (unittest.TestCase):
     def testRoundTrip (self):
         c = absent.doit('hi')
         m = base.Message(c)
-        xmls = m.toxml("utf-8")
+        xmld = m.toxml("utf-8")
         # Cannot resolve absent namespace in base module
-        self.assertRaises(pyxb.SchemaValidationError, base.CreateFromDocument, xmls)
+        self.assertRaises(pyxb.SchemaValidationError, base.CreateFromDocument, xmld)
         # Can resolve it in absent module
-        instance = absent.CreateFromDocument(xmls)
-        self.assertEqual(xmls, instance.toxml("utf-8"))
+        instance = absent.CreateFromDocument(xmld)
+        self.assertEqual(xmld, instance.toxml("utf-8"))
 
     def testNoDefault (self):
-        xmls='''<?xml version="1.0"?>
+        xmlt='''<?xml version="1.0"?>
 <base:Message xmlns:base="urn:trac0119" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <command xsi:type="doit">
     <payload>hi</payload>
@@ -32,16 +32,16 @@ class TestTrac0119 (unittest.TestCase):
 </base:Message>
 '''
         # Cannot resolve absent namespace in base module
-        self.assertRaises(pyxb.SchemaValidationError, base.CreateFromDocument, xmls)
+        self.assertRaises(pyxb.SchemaValidationError, base.CreateFromDocument, xmlt)
         # Can resolve it in absent module
-        instance = absent.CreateFromDocument(xmls)
+        instance = absent.CreateFromDocument(xmlt)
         self.assertEqual('hi', instance.command.payload)
         # Can resolve in base module if fallback namespace overridden
-        instance = base.CreateFromDocument(xmls, default_namespace=absent.Namespace)
+        instance = base.CreateFromDocument(xmlt, default_namespace=absent.Namespace)
         self.assertEqual('hi', instance.command.payload)
 
     def testDefault (self):
-        xmls='''<?xml version="1.0"?>
+        xmlt='''<?xml version="1.0"?>
 <Message xmlns="urn:trac0119" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <command xmlns="" xsi:type="doit"> <!-- undefine the default namespace -->
     <payload>hi</payload>
@@ -49,16 +49,16 @@ class TestTrac0119 (unittest.TestCase):
 </Message>
 '''
         # Cannot resolve absent namespace in base module
-        self.assertRaises(pyxb.SchemaValidationError, base.CreateFromDocument, xmls)
+        self.assertRaises(pyxb.SchemaValidationError, base.CreateFromDocument, xmlt)
         # Can resolve it in absent module
-        instance = absent.CreateFromDocument(xmls)
+        instance = absent.CreateFromDocument(xmlt)
         self.assertEqual('hi', instance.command.payload)
         # Can resolve in base module if fallback namespace overridden
-        instance = base.CreateFromDocument(xmls, default_namespace=absent.Namespace)
+        instance = base.CreateFromDocument(xmlt, default_namespace=absent.Namespace)
         self.assertEqual('hi', instance.command.payload)
 
     def testUndefineNondefault (self):
-        xmls='''<?xml version="1.0"?>
+        xmlt='''<?xml version="1.0"?>
 <base:Message xmlns:base="urn:trac0119" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <command xsi:type="doit" xmlns:base=""> <!-- undefine the base namespace -->
     <payload>hi</payload>
@@ -67,9 +67,9 @@ class TestTrac0119 (unittest.TestCase):
 '''
         # Cannot undefine a prefix in SAX.
         import xml.sax
-        self.assertRaises(xml.sax.SAXParseException, base.CreateFromDocument, xmls)
-        self.assertRaises(xml.sax.SAXParseException, absent.CreateFromDocument, xmls)
-        self.assertRaises(xml.sax.SAXParseException, base.CreateFromDocument, xmls, default_namespace=absent.Namespace)
+        self.assertRaises(xml.sax.SAXParseException, base.CreateFromDocument, xmlt)
+        self.assertRaises(xml.sax.SAXParseException, absent.CreateFromDocument, xmlt)
+        self.assertRaises(xml.sax.SAXParseException, base.CreateFromDocument, xmlt, default_namespace=absent.Namespace)
 
 if __name__ == '__main__':
     unittest.main()

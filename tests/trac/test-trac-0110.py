@@ -40,14 +40,15 @@ class TestTrac0110 (unittest.TestCase):
         pyxb.RequireValidWhenParsing(True)
 
     def testWithValidation (self):
-        expect = '<tSingle><li>1 2 3</li></tSingle>'
+        expectt = '<tSingle><li>1 2 3</li></tSingle>'
+        expectd = expectt.encode('utf-8')
         s = tSingle()
         pyxb.RequireValidWhenGenerating(True)
         s.li = intList([1,2,3])
-        self.assertEqual(s.toxml("utf-8", root_only=True), expect)
+        self.assertEqual(s.toxml("utf-8", root_only=True), expectd)
         pyxb.RequireValidWhenGenerating(False)
         s.li = intList([1,2,3])
-        self.assertEqual(s.toxml("utf-8", root_only=True), expect)
+        self.assertEqual(s.toxml("utf-8", root_only=True), expectd)
 
 if __name__ == '__main__':
     unittest.main()

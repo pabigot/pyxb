@@ -42,7 +42,9 @@ class TestPyXBCDATA (unittest.TestCase):
         self.assertEqual(instance, 'text')
         instance = var('>text<')
         self.assertEqual(instance, '>text<')
-        self.assertEqual(instance.toxml('utf-8', root_only=True), u'<var>&gt;text&lt;</var>')
+        xmlt = u'<var>&gt;text&lt;</var>'
+        xmld = xmlt.encode('utf-8')
+        self.assertEqual(instance.toxml('utf-8', root_only=True), xmld)
 
 if __name__ == '__main__':
     unittest.main()

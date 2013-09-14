@@ -44,9 +44,10 @@ from pyxb.exceptions_ import *
 import unittest
 
 class TestTrac_0057 (unittest.TestCase):
-    XMLS = '<ns1:ObsProject almatype="APDM::ObsProject" revision="1.74" schemaVersion="8" xmlns:ns1="URN:test-trac-0057"><ns1:timeOfCreation>2009-05-08 21:23:45</ns1:timeOfCreation></ns1:ObsProject>'
+    XMLs = '<ns1:ObsProject almatype="APDM::ObsProject" revision="1.74" schemaVersion="8" xmlns:ns1="URN:test-trac-0057"><ns1:timeOfCreation>2009-05-08 21:23:45</ns1:timeOfCreation></ns1:ObsProject>'
+    XMLd = XMLs.encode('utf-8')
 
-    def exec_toxml (self, v):
+    def exec_toxmld (self, v):
         return v.toxml("utf-8")
 
     def tearDown (self):
@@ -56,12 +57,12 @@ class TestTrac_0057 (unittest.TestCase):
     def testDefault (self):
         self.assertTrue(pyxb._GenerationRequiresValid)
         self.assertTrue(pyxb._ParsingRequiresValid)
-        self.assertRaises(pyxb.UnrecognizedContentError, CreateFromDocument, self.XMLS)
-        doc = pyxb.utils.domutils.StringToDOM(self.XMLS)
+        self.assertRaises(pyxb.UnrecognizedContentError, CreateFromDocument, self.XMLs)
+        doc = pyxb.utils.domutils.StringToDOM(self.XMLs)
         self.assertRaises(pyxb.UnrecognizedContentError, CreateFromDOM, doc)
         if sys.version_info[:2] >= (2, 7):
             with self.assertRaises(UnrecognizedContentError) as cm:
-                CreateFromDocument(self.XMLS)
+                CreateFromDocument(self.XMLs)
             # Verify the exception tells us what was being processed
             self.assertTrue(isinstance(cm.exception.instance, ObsProject.typeDefinition()))
             # Verify the exception tells us what was rejected
@@ -75,8 +76,8 @@ class TestTrac_0057 (unittest.TestCase):
 
     def testDisable (self):
         pyxb.RequireValidWhenParsing(False)
-        instance = CreateFromDocument(self.XMLS)
-        self.assertRaises(pyxb.IncompleteElementContentError, self.exec_toxml, instance)
+        instance = CreateFromDocument(self.XMLs)
+        self.assertRaises(pyxb.IncompleteElementContentError, self.exec_toxmld, instance)
         if sys.version_info[:2] >= (2, 7):
             with self.assertRaises(IncompleteElementContentError) as cm:
                 instance.toxml('utf-8', root_only=True)
@@ -91,11 +92,11 @@ class TestTrac_0057 (unittest.TestCase):
             time_of_creation_ed = ObsProject.typeDefinition()._UseForTag(Namespace.createExpandedName('timeOfCreation'))
             self.assertEqual(instance.timeOfCreation, cm.exception.symbol_set[time_of_creation_ed][0])
 
-        doc = pyxb.utils.domutils.StringToDOM(self.XMLS)
+        doc = pyxb.utils.domutils.StringToDOM(self.XMLs)
         instance = CreateFromDOM(doc)
         pyxb.RequireValidWhenGenerating(False)
-        xml = instance.toxml("utf-8", root_only=True)
-        self.assertEqual(xml, self.XMLS)
+        xmld = instance.toxml("utf-8", root_only=True)
+        self.assertEqual(xmld, self.XMLd)
 
 if __name__ == '__main__':
     unittest.main()

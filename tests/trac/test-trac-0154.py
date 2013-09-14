@@ -49,9 +49,10 @@ class Test_simple (unittest.TestCase):
 
     def test (self):
         txml = CreateFromDocument(self.testxml)
-        self.assertEqual(txml.toxml(), """<?xml version="1.0" ?><OpaqueData><v>test</v></OpaqueData>""")
-        self.assertEqual(txml.toxml('utf-8'), """<?xml version="1.0" encoding="utf-8"?><OpaqueData><v>test</v></OpaqueData>""")
-
+        xmld = '<?xml version="1.0" ?><OpaqueData><v>test</v></OpaqueData>'
+        self.assertEqual(txml.toxml(), xmld)
+        xmld = '<?xml version="1.0" encoding="utf-8"?><OpaqueData><v>test</v></OpaqueData>'.encode('utf-8')
+        self.assertEqual(txml.toxml('utf-8'), xmld)
 
 if __name__ == '__main__':
     unittest.main()

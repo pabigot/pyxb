@@ -47,7 +47,8 @@ class TestTrac_200908041708 (unittest.TestCase):
         instance = aggregate(li=[])
         instance.li.append(1)
         self.assertTrue(instance.validateBinding())
-        self.assertEqual('<aggregate><li>1</li></aggregate>', instance.toxml("utf-8", root_only=True))
+        xmld = '<aggregate><li>1</li></aggregate>'.encode('utf-8')
+        self.assertEqual(instance.toxml("utf-8", root_only=True), xmld)
 
 if __name__ == '__main__':
     unittest.main()

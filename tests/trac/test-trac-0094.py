@@ -40,17 +40,18 @@ pyxb.utils.domutils.BindingDOMSupport.DeclareNamespace(pyxb.namespace.XMLSchema,
 
 class TestTrac_0094 (unittest.TestCase):
     body = 'something'
-    xmls = '''<anything xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">%s</anything>''' % (body,)
+    xmlt = u'''<anything xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">%s</anything>''' % (body,)
+    xmld = xmlt.encode('utf-8')
 
     def testFromXML (self):
-        instance = CreateFromDocument(self.xmls)
+        instance = CreateFromDocument(self.xmlt)
         self.assertTrue(isinstance(instance, xs.string))
         self.assertEqual(instance, self.body)
         self.assertEqual(instance._element(), anything)
 
     def testToXML (self):
         instance = xs.string(self.body, _element=anything)
-        self.assertEqual(instance.toxml("utf-8", root_only=True), self.xmls)
+        self.assertEqual(instance.toxml("utf-8", root_only=True), self.xmld)
 
     def testContainerCtor (self):
         i = xs.string(self.body, _element=anything)

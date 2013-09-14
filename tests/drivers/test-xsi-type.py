@@ -27,36 +27,36 @@ import unittest
 
 class TestXSIType (unittest.TestCase):
     def testFailsNoType (self):
-        xml = '<elt/>'
-        doc = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = u'<elt/>'
+        doc = pyxb.utils.domutils.StringToDOM(xmlt)
         self.assertRaises(pyxb.AbstractInstantiationError, CreateFromDOM, doc.documentElement)
 
     def testDirect (self):
-        xml = '<notAlt attrOne="low"><first>content</first></notAlt>'
-        doc = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = u'<notAlt attrOne="low"><first>content</first></notAlt>'
+        doc = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = CreateFromDOM(doc.documentElement)
         self.assertEqual('content', instance.first)
         self.assertEqual('low', instance.attrOne)
 
     def testSubstitutions (self):
-        xml = '<elt attrOne="low" xsi:type="alt1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><first>content</first></elt>'
-        doc = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = u'<elt attrOne="low" xsi:type="alt1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><first>content</first></elt>'
+        doc = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = CreateFromDOM(doc.documentElement)
         self.assertEqual('content', instance.first)
         self.assertEqual('low', instance.attrOne)
-        xml = '<elt attrTwo="hi" xsi:type="alt2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><second/></elt>'
-        doc = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = u'<elt attrTwo="hi" xsi:type="alt2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><second/></elt>'
+        doc = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = CreateFromDOM(doc.documentElement)
         self.assertTrue(instance.second is not None)
         self.assertEqual('hi', instance.attrTwo)
 
     def testMultilevel (self):
-        xml = '<concreteBase><basement>dirt floor</basement></concreteBase>'
-        doc = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = u'<concreteBase><basement>dirt floor</basement></concreteBase>'
+        doc = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = CreateFromDOM(doc.documentElement)
         self.assertEqual('dirt floor', instance.basement)
-        xml = '<oneFloor xsi:type="restaurant" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><basement>concrete</basement><lobby>tiled</lobby><room>eats</room></oneFloor>'
-        doc = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = u'<oneFloor xsi:type="restaurant" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><basement>concrete</basement><lobby>tiled</lobby><room>eats</room></oneFloor>'
+        doc = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = CreateFromDOM(doc.documentElement)
         self.assertEqual(concreteBase_.basement, instance.__class__.basement)
         self.assertEqual(oneFloor_.lobby, instance.__class__.lobby)
@@ -70,12 +70,13 @@ class TestXSIType (unittest.TestCase):
                'room' : 'eats' }
         ctd = restaurant_(**kw)
         dom = ctd.toDOM().documentElement
-        xml = '<restaurant><basement>concrete</basement><lobby>tiled</lobby><room>eats</room></restaurant>'
-        self.assertEqual(xml, dom.toxml("utf-8"))
+        xmlt = u'<restaurant><basement>concrete</basement><lobby>tiled</lobby><room>eats</room></restaurant>'
+        xmld = xmlt.encode('utf-8')
+        self.assertEqual(dom.toxml("utf-8"), xmld)
 
         rest = restaurant(**kw)
         dom = rest.toDOM().documentElement
-        self.assertEqual(xml, dom.toxml("utf-8"))
+        self.assertEqual(dom.toxml("utf-8"), xmld)
 
         self.assertRaises(pyxb.AbstractInstantiationError, originalOneFloor, **kw)
 
@@ -86,13 +87,13 @@ class TestXSIType (unittest.TestCase):
         self.assertEqual('messy', instance.oneFloor[0].room)
         self.assertEqual('concrete', instance.oneFloor[1].basement)
         self.assertEqual('tidy', instance.oneFloor[1].room)
-        xml = instance.toxml("utf-8")
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmld = instance.toxml("utf-8")
+        dom = pyxb.utils.domutils.StringToDOM(xmld)
         instance2 = CreateFromDOM(dom.documentElement)
-        r2 = instance2.toxml("utf-8")
-        r3 = instance2.toxml("utf-8")
-        self.assertEqual(r2, r3)
-        self.assertEqual(xml, r2)
+        r2d = instance2.toxml("utf-8")
+        r3d = instance2.toxml("utf-8")
+        self.assertEqual(r2d, r3d)
+        self.assertEqual(xmld, r2d)
 
 if __name__ == '__main__':
     unittest.main()

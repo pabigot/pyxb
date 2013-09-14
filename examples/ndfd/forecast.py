@@ -20,12 +20,12 @@ uri = 'http://www.weather.gov/forecasts/xml/sample_products/browser_interface/nd
 print(uri)
 
 # Retrieve the data
-xmls = urllib2.urlopen(uri).read()
-open('forecast.xml', 'w').write(xmls)
-#print xmls
+xmld = urllib2.urlopen(uri).read()
+open('forecast.xml', 'wb').write(xmld)
+#print xmld
 
 # Convert it to  DWML object
-r = DWML.CreateFromDocument(xmls)
+r = DWML.CreateFromDocument(xmld)
 
 product = r.head.product
 print('%s %s' % (product.title, product.category))

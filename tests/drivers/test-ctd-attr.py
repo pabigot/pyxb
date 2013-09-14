@@ -45,10 +45,11 @@ class TestCTD (unittest.TestCase):
         # interesting stuff.  I suppose that ought to be a
         # configuration option.
         self.assertEqual('test', simple('test').value())
-        xml = '<tca:simple xmlns:tca="URN:testCTD">test</tca:simple>'
-        instance = CreateFromDocument(xml)
+        xmlt = u'<tca:simple xmlns:tca="URN:testCTD">test</tca:simple>'
+        xmld = xmlt.encode('utf-8')
+        instance = CreateFromDocument(xmlt)
         self.assertEqual('test', instance.value())
-        self.assertEqual(xml, ToDOM(instance).toxml("utf-8"))
+        self.assertEqual(ToDOM(instance).toxml("utf-8"), xmld)
 
     def testString (self):
         self.assertEqual('test', pyxb.binding.datatypes.string('test'))
@@ -93,7 +94,9 @@ class TestCTD (unittest.TestCase):
         self.assertEqual(5432, instance.port)
         self.assertRaises(pyxb.MissingAttributeError, ToDOM, instance)
         instance.capitalized = False
-        self.assertEqual('<tca:emptyWithAttr capitalized="false" xmlns:tca="URN:testCTD"/>', ToDOM(instance).toxml("utf-8"))
+        xmlt = u'<tca:emptyWithAttr capitalized="false" xmlns:tca="URN:testCTD"/>'
+        xmld = xmlt.encode('utf-8')
+        self.assertEqual(ToDOM(instance).toxml("utf-8"), xmld)
 
         # Test reference attribute
         self.assertEqual('top default', instance.tlAttr)
@@ -103,7 +106,9 @@ class TestCTD (unittest.TestCase):
         self.assertEqual('irish', instance2.language)
         instance2.language = 'french'
         instance2.capitalized = False
-        self.assertEqual('<tca:emptyWithAttr capitalized="false" language="french" xmlns:tca="URN:testCTD"/>', ToDOM(instance2).toxml("utf-8"))
+        xmlt = u'<tca:emptyWithAttr capitalized="false" language="french" xmlns:tca="URN:testCTD"/>'
+        xmld = xmlt.encode('utf-8')
+        self.assertEqual(ToDOM(instance2).toxml("utf-8"), xmld)
         self.assertNotEqual(instance.language, instance2.language)
 
         # Verify the use.  Note reference through CTD not element.
@@ -124,21 +129,22 @@ class TestCTD (unittest.TestCase):
         self.assertEqual(restrictedEWA_._AttributeMap['capitalized'], emptyWithAttr_._AttributeMap['capitalized'])
 
     def testEmptyWithAttrGroups (self):
-        xml = '<tca:emptyWithAttrGroups bMember1="xxx" xmlns:tca="URN:testCTD"/>'
-        instance = CreateFromDocument(xml)
+        xmlt = u'<tca:emptyWithAttrGroups bMember1="xxx" xmlns:tca="URN:testCTD"/>'
+        xmld = xmlt.encode('utf-8')
+        instance = CreateFromDocument(xmlt)
         self.assertEqual('gM1', instance.groupMember1)
         self.assertEqual('gM2', instance.groupMember2)
         self.assertEqual('xxx', instance.bMember1)
         self.assertEqual('lA1', instance.localAttr1)
         # Note that defaulted attributes are not generated in the DOM.
-        self.assertEqual(xml, ToDOM(instance).toxml("utf-8"))
+        self.assertEqual(ToDOM(instance).toxml("utf-8"), xmld)
 
         # Test reference attribute with changed default
         self.assertEqual('refDefault', instance.tlAttr)
 
     def testUnrecognizedAttribute (self):
-        xml = '<emptyWithAttr capitalized="false" garbage="what is this" xmlns="URN:testCTD"/>'
-        doc = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = u'<emptyWithAttr capitalized="false" garbage="what is this" xmlns="URN:testCTD"/>'
+        doc = pyxb.utils.domutils.StringToDOM(xmlt)
         self.assertRaises(UnrecognizedAttributeError, emptyWithAttr.createFromDOM, doc.documentElement)
 
 if __name__ == '__main__':

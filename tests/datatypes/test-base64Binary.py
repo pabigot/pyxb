@@ -22,18 +22,21 @@ class Test_base64Binary (unittest.TestCase):
     def testVectors (self):
         """RFC4648 section 10."""
         for (plaintext, ciphertext) in self.RFC4648_S10:
-            self.assertEqual(xsd.base64Binary(plaintext).xsdLiteral(), ciphertext)
-            self.assertEqual(xsd.base64Binary(ciphertext, _from_xml=True), plaintext)
+            plaintexd = plaintext.encode('utf-8')
+            ciphertexd = ciphertext.encode('utf-8')
+            self.assertEqual(xsd.base64Binary(plaintexd).xsdLiteral(), ciphertext)
+            self.assertEqual(xsd.base64Binary(ciphertext, _from_xml=True), plaintexd)
         for (hextext, ciphertext) in self.RFC4648_S9:
-            plaintext = binascii.unhexlify(hextext)
-            self.assertEqual(xsd.base64Binary(plaintext).xsdLiteral(), ciphertext)
-            self.assertEqual(xsd.base64Binary(ciphertext, _from_xml=True), plaintext)
+            hextexd = hextext.encode('utf-8')
+            plaintexd = binascii.unhexlify(hextexd)
+            self.assertEqual(xsd.base64Binary(plaintexd).xsdLiteral(), ciphertext)
+            self.assertEqual(xsd.base64Binary(ciphertext, _from_xml=True), plaintexd)
 
     def testInvalid (self):
         self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, u'Z', _from_xml=True)
         self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, u'Zg', _from_xml=True)
         self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, u'Zg=', _from_xml=True)
-        self.assertEqual(u'f', xsd.base64Binary(u'Zg==', _from_xml=True))
+        self.assertEqual(u'f'.encode('utf-8'), xsd.base64Binary(u'Zg==', _from_xml=True))
         self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, u'ZZZ=', _from_xml=True)
         self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, u'ZZ==', _from_xml=True)
         self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, u'ZE==', _from_xml=True)

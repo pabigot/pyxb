@@ -80,25 +80,29 @@ class TestExternal (unittest.TestCase):
         # Element constructor with out-of-range content is error
         self.assertRaises(SimpleTypeValueError, english, 'five')
 
-        xml = '<ns1:english xmlns:ns1="URN:test-external">one</ns1:english>'
-        instance = st.CreateFromDocument(xml)
+        xmlt = u'<ns1:english xmlns:ns1="URN:test-external">one</ns1:english>'
+        xmld = xmlt.encode('utf-8')
+        instance = st.CreateFromDocument(xmlt)
         self.assertEqual('one', instance)
-        self.assertEqual(xml, ToDOM(instance).toxml("utf-8"))
+        self.assertEqual(ToDOM(instance).toxml("utf-8"), xmld)
 
     def testWords (self):
-        xml = '<ns1:word xmlns:ns1="URN:test-external"><from>one</from><to>un</to></ns1:word>'
-        instance = CreateFromDocument(xml)
+        xmlt = u'<ns1:word xmlns:ns1="URN:test-external"><from>one</from><to>un</to></ns1:word>'
+        xmld = xmlt.encode('utf-8')
+        instance = CreateFromDocument(xmld)
         self.assertEqual('one', instance.from_)
         self.assertEqual('un', instance.to)
-        self.assertEqual(xml, ToDOM(instance).toxml("utf-8"))
+        self.assertEqual(ToDOM(instance).toxml("utf-8"), xmld)
 
     def testBadWords (self):
-        xml = '<ns1:word xmlns:ns1="URN:test-external"><from>five</from><to>pump</to></ns1:word>'
-        self.assertRaises(SimpleTypeValueError, CreateFromDocument, xml)
+        xmlt = u'<ns1:word xmlns:ns1="URN:test-external"><from>five</from><to>pump</to></ns1:word>'
+        xmld = xmlt.encode('utf-8')
+        self.assertRaises(SimpleTypeValueError, CreateFromDocument, xmlt)
+        self.assertRaises(SimpleTypeValueError, CreateFromDocument, xmld)
 
     def testComplexShared (self):
-        xml = '<ns1:lwords language="english" newlanguage="welsh" xmlns:ns1="URN:test-external">un</ns1:lwords>'
-        instance = CreateFromDocument(xml)
+        xmlt = u'<ns1:lwords language="english" newlanguage="welsh" xmlns:ns1="URN:test-external">un</ns1:lwords>'
+        instance = CreateFromDocument(xmlt)
         self.assertEqual(instance._element(), lwords)
         self.assertTrue(isinstance(instance.value(), st.welsh))
         self.assertEqual('english', instance.language)
@@ -113,19 +117,19 @@ class TestExternal (unittest.TestCase):
         self.assertEqual(st.extendedName._ElementMap['surname'], restExtName._ElementMap['surname'])
         self.assertEqual(st.extendedName._ElementMap['generation'], restExtName._ElementMap['generation'])
 
-        xml = '<personName><surname>Smith</surname></personName>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = u'<personName><surname>Smith</surname></personName>'
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = st.personName.Factory(_dom_node=dom.documentElement)
-        xml = '<personName><surname>Smith</surname><generation>Jr.</generation></personName>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = u'<personName><surname>Smith</surname><generation>Jr.</generation></personName>'
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         self.__basis_log.setLevel(logging.ERROR)
         self.assertRaises(UnrecognizedContentError, st.personName.Factory, _dom_node=dom.documentElement)
         self.__basis_log.level = self.__basis_loglevel
-        xml = xml.replace('personName', 'extendedName')
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = xmlt.replace('personName', 'extendedName')
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = st.extendedName.Factory(_dom_node=dom.documentElement)
-        xml = xml.replace('extendedName', 'restExtName')
-        dom = pyxb.utils.domutils.StringToDOM(xml)
+        xmlt = xmlt.replace('extendedName', 'restExtName')
+        dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = restExtName.Factory(_dom_node=dom.documentElement)
 
     def testUnionExtension (self):
