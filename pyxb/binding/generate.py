@@ -548,13 +548,7 @@ class %{std} (pyxb.binding.basis.STD_union):
 
     outf.write(templates.replaceInText(template, **template_map))
 
-    generate_facets = False
-    if generate_facets:
-        # If generating datatype_facets, throw away the class garbage
-        if std.isBuiltin():
-            GenerateFacets(std, generator, **kw)
-    else:
-        GenerateFacets(std, generator, **kw)
+    GenerateFacets(std, generator, **kw)
 
     if std.name() is not None:
         outf.write(templates.replaceInText("%{namespaceReference}.addCategoryObject('typeBinding', %{localName}, %{std})\n",
