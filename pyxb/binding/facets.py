@@ -382,7 +382,8 @@ class _PatternElement (utility.PrivateTransient_mixin):
             pattern = value
         assert isinstance(pattern, types.StringTypes)
         self.pattern = pattern
-        self.annotation = annotation
+        if isinstance(annotation, types.StringTypes):
+            self.annotation = annotation
         self.__pythonExpression = pyxb.utils.xmlre.XMLToPython(pattern)
         super(_PatternElement, self).__init__()
 

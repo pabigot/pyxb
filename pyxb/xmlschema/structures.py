@@ -2220,6 +2220,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
     __ctscClause2STD = None
     __ctscRestrictionNode = None
+    __PrivateTransient.update(['ctscRestrictionNode' ])
     __effectiveMixed = None
     __effectiveContent = None
     __pendingDerivationMethod = None
