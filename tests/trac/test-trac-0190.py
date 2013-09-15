@@ -52,7 +52,7 @@ class TestTrac_0190 (unittest.TestCase):
         self.assertEqual(e.type, tUC)
         self.assertEqual(e.value, u'\xf6')
         self.assertTrue(isinstance(e.facet, pyxb.binding.facets.CF_pattern))
-        self.assertRaises(UnicodeEncodeError, str, e.details())
+        self.assertRaises(UnicodeEncodeError, str, e.details())  #!python3!
         self.assertEqual(e.details(), u'Type tUC pattern constraint violated by value \xf6')
 
 if __name__ == '__main__':
