@@ -371,7 +371,10 @@ class TestOpenOrCreate_New (unittest.TestCase, _TestOpenOrCreate_mixin):
     def testNew (self):
         filename = self.fileName()
         of = OpenOrCreate(filename)
-        of.write('hello')
+        text = 'hello'
+        texd = text.encode('utf-8')
+        of.write(texd)
+        of.close()
 
 class TestOpenOrCreate_Local (unittest.TestCase, _TestOpenOrCreate_mixin):
     setUp = _TestOpenOrCreate_mixin.setUp
@@ -386,7 +389,10 @@ class TestOpenOrCreate_Local (unittest.TestCase, _TestOpenOrCreate_mixin):
             of = OpenOrCreate(localname)
         finally:
             os.chdir(cwd)
-        of.write('hello')
+        text = 'hello'
+        texd = text.encode('utf-8')
+        of.write(texd)
+        of.close()
 
 class TestOpenOrCreate_ExistingTagMatch (unittest.TestCase, _TestOpenOrCreate_mixin):
     setUp = _TestOpenOrCreate_mixin.setUp
@@ -396,13 +402,20 @@ class TestOpenOrCreate_ExistingTagMatch (unittest.TestCase, _TestOpenOrCreate_mi
         filename = self.fileName()
         tag = 'MyTagXX'
         text = 'This file has the tag %s in it' % (tag,)
-        open(filename, 'w').write(text)
-        self.assertEqual(text, open(filename).read())
+        texd = text.encode('utf-8')
+        fd = open(filename, 'wb')
+        fd.write(texd)
+        fd.close()
+        fd = open(filename, 'rb')
+        self.assertEqual(texd, fd.read())
+        fd.close()
         of = OpenOrCreate(filename, tag=tag)
         text = 'New version with tag %s' % (tag,)
-        of.write(text)
+        texd = text.encode('utf-8')
+        of.write(texd)
         of.close()
-        self.assertEqual(text, open(filename).read())
+        fd = open(filename, 'rb')
+        self.assertEqual(texd, fd.read())
 
 class TestOpenOrCreate_ExistingTagMismatch (unittest.TestCase, _TestOpenOrCreate_mixin):
     setUp = _TestOpenOrCreate_mixin.setUp
@@ -412,12 +425,22 @@ class TestOpenOrCreate_ExistingTagMismatch (unittest.TestCase, _TestOpenOrCreate
         filename = self.fileName()
         tag = 'MyTagXX'
         text = 'This file has the tag NotMyTag in it'
-        open(filename, 'w').write(text)
+        texd = text.encode('utf-8')
+        fd = open(filename, 'wb')
+        fd.write(texd)
+        fd.close()
         # Verify that opening for append will be positioned after the text.
         if 'win32' != sys.platform:
-            self.assertTrue(0 < open(filename, 'a').tell())
-        self.assertEqual(text, open(filename).read())
-        self.assertRaises(OSError, OpenOrCreate, filename, tag=tag)
+            fd = open(filename, 'a')
+            self.assertTrue(0 < fd.tell())
+            fd.close()
+        fd = open(filename, 'rb')
+        self.assertEqual(texd, fd.read())
+        fd.close()
+        with self.assertRaises(OSError) as cm:
+            OpenOrCreate(filename, tag=tag)
+        e = cm.exception
+        self.assertEqual(e.errno, errno.EEXIST)
 
 class TestHashForText (unittest.TestCase):
 
