@@ -3,7 +3,8 @@
 # Find all non-generated files that are python sources and need
 # modification to support Python3.
 list_python_sources () {
-  git grep -l '^#!/usr/bin/env python'
+  git grep -l '^#!/usr/bin/env python' \
+  | sed -e '/\.py$/d'
   git ls-tree -r --name-only HEAD \
   | sed -n \
     -e '/\.py$/p'
@@ -20,7 +21,7 @@ git commit -F 23o -a
 # Edit sources for changes not handled by 2to3
 list_python_sources \
   | xargs sed -i -r \
- -e '\%^#!/usr/bin/env%s/python/python3/' \
+ -e '\%^#!/usr/bin/env%s/python$/python3/' \
  -e '/#!python3>!/,/#!python3<!/d' \
  -e '/#!python3!/d' \
  -e 's@^#python3:@@' \
