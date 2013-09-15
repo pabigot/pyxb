@@ -49,8 +49,10 @@ class PyXBException (Exception):
         self._kw = kw
         super(PyXBException, self).__init__(*args)
 
+    #!python3>!
     def _str_from_unicode (self):
         return unicode(self).encode(pyxb._OutputEncoding)
+    #!python3<!
 
 class PyXBVersionError (PyXBException):
     """Raised on import of a binding generated with a different version of PYXB"""

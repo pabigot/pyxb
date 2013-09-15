@@ -19,15 +19,21 @@ sed -i -e '1i\
 git commit -F 23o -a
 
 # Edit sources for changes not handled by 2to3
-list_python_sources \
-  | xargs sed -i -r \
- -e '\%^#!/usr/bin/env%s/python$/python3/' \
- -e '/#!python3>!/,/#!python3<!/d' \
- -e '/#!python3!/d' \
- -e 's@^#python3:@@' \
- -e 's@pyxb.utils.str@pyxb.utils.unicode@g' \
- -e '/#python3:int:long/s@\bint\b@long@g' \
- -e 's@^import StringIO@import io@' \
- -e 's@StringIO.StringIO@io.StringIO@g' \
-  > edit 2>&1
+( list_python_sources \
+    | xargs sed -i -r \
+        -e '\%^#!/usr/bin/env%s/python$/python3/' \
+        -e '/#!python3>!/,/#!python3<!/d' \
+        -e '/#!python3!/d' \
+        -e 's@^#python3:@@' \
+        -e 's@pyxb.utils.str@pyxb.utils.unicode@g' \
+        -e '/#python3:int:long/s@\bint\b@long@g' \
+        -e 's@^import StringIO@import io@' \
+        -e 's@StringIO.StringIO@io.StringIO@g' \
+        ;
+  sed -i -r \
+    -e '/_str_from_unicode/d' \
+    -e 's/\b__unicode__\b/__str__/g' \
+    -e '${/^$/d;}' \
+    pyxb/exceptions_.py
+) > edit 2>&1
 git commit -a -m '2to3: automated edits'
