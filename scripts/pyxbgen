@@ -43,7 +43,7 @@ group.add_option('-W', '--wsdl-location', metavar='FILE_or_URL',
 '''Generate bindings for the C{types} element of the WSDL at this
 location.''')
 parser.add_option_group(group)
-                             
+
 (options, args) = parser.parse_args()
 
 if options.wsdl_location is not None:
@@ -87,4 +87,3 @@ except Exception as e:
 # LocalVariables:
 # mode:python
 # End:
-
