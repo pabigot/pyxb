@@ -94,7 +94,12 @@ class TestTrac_0139 (unittest.TestCase):
         pyxb.utils.saxutils.SetCreateParserModules(None)
 
     def testParserTypes (self):
-        self.assertEqual('ascii', sys.getdefaultencoding())
+        import sys
+        if sys.version_info < (3, 0):
+            default_enc = 'ascii'
+        else:
+            default_enc = 'utf-8'
+        self.assertEqual(default_enc, sys.getdefaultencoding())
         parser = pyxb.utils.saxutils.make_parser()
         self.assertTrue(isinstance(parser, xml.sax.expatreader.ExpatParser))
         if self.have_libxml2:
