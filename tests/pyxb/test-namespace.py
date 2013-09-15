@@ -18,7 +18,6 @@ class TestExpandedName (unittest.TestCase):
         en2 = ExpandedName(xsd, 'string')
         en3 = ExpandedName(xsd, 'notString')
         self.assertEqual(en1, en2)
-        self.assertEqual(0, cmp(en1, en2))
         self.assertEqual(en1, ( en1.namespace(), en1.localName() ))
         self.assertTrue(en1 == en2)
         self.assertFalse(en1 == en3)
@@ -27,6 +26,42 @@ class TestExpandedName (unittest.TestCase):
         self.assertFalse(an1 == en3.localName())
         self.assertTrue(an1 != en3.localName())
         self.assertFalse(an1 != an1.localName())
+
+    def testRichComparisons (self):
+        s1 = 'alpha'
+        s2 = 'beta'
+        an1 = ExpandedName(None, s1)
+        en1 = ExpandedName(xsd, s1)
+        an2 = ExpandedName(None, s2)
+        en2 = ExpandedName(xsd, s2)
+        # an1 ? an2
+        self.assertFalse(an1 == an2)
+        self.assertTrue(an1 != an2)
+        self.assertTrue(an1 <= an2)
+        self.assertTrue(an1 < an2)
+        self.assertFalse(an1 >= an2)
+        self.assertFalse(an1 > an2)
+        # an1 ? en1
+        self.assertFalse(an1 == en1)
+        self.assertTrue(an1 != en1)
+        self.assertTrue(an1 <= en1)
+        self.assertTrue(an1 < en1)
+        self.assertFalse(an1 >= en1)
+        self.assertFalse(an1 > en1)
+        # s1 ? an1
+        self.assertTrue(s1 == an1)
+        self.assertFalse(s1 != an1)
+        self.assertTrue(s1 <= an1)
+        self.assertFalse(s1 < an1)
+        self.assertTrue(s1 >= an1)
+        self.assertFalse(s1 > an1)
+        # an1 ? a1
+        self.assertTrue(an1 == s1)
+        self.assertFalse(an1 != s1)
+        self.assertTrue(an1 <= s1)
+        self.assertFalse(an1 < s1)
+        self.assertTrue(an1 >= s1)
+        self.assertFalse(an1 > s1)
 
     class FakeDOM:
         namespaceURI = None
