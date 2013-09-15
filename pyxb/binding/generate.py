@@ -1619,6 +1619,10 @@ class NamespaceModule (_ModuleNaming_mixin):
         return kw
 
     def _finalizeModuleContents_vx (self, template_map):
+        if sys.version_info < (3, 0):
+            template_map['_TextType'] = 'unicode'
+        else:
+            template_map['_TextType'] = 'str'
         self.bindingIO().prolog().append(self.bindingIO().expand('''
 import pyxb
 import pyxb.binding
@@ -1670,7 +1674,7 @@ def CreateFromDocument (xml_text, default_namespace=None, location_base=None):
     saxer = pyxb.binding.saxer.make_parser(fallback_namespace=default_namespace, location_base=location_base)
     handler = saxer.getContentHandler()
     xmld = xml_text
-    if isinstance(xmld, unicode):
+    if isinstance(xmld, %{_TextType}):
         xmld = xmld.encode(pyxb._InputEncoding)
     saxer.parse(io.BytesIO(xmld))
     instance = handler.rootObject()
