@@ -308,8 +308,7 @@ class NamespaceArchive (object):
     __namespaces = None
 
     def __createPickler (self, output):
-        # @todo: support StringIO instances?
-        if not isinstance(output, file):
+        if isinstance(output, basestring):
             output = open(output, 'wb')
         pickler = pickle.Pickler(output, -1)
 
