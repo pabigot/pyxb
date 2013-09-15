@@ -769,7 +769,7 @@ class hexBinary (basis.simpleTypeDefinition, pyxb.utils.types_.DataType):
                 xmld = xmlt.encode('utf-8')
                 arg0 = binascii.unhexlify(xmld)
                 args = (arg0,) + args[1:]
-            except TypeError:
+            except (TypeError, binascii.Error):
                 raise SimpleTypeValueError(cls, args[0])
         return args
 
@@ -816,7 +816,7 @@ class base64Binary (basis.simpleTypeDefinition, pyxb.utils.types_.DataType):
                 xmld = xmlt.encode('utf-8')
                 arg0 = base64.standard_b64decode(xmld)
                 args = (arg0,) + args[1:]
-            except TypeError:
+            except (TypeError, binascii.Error):
                 raise SimpleTypeValueError(cls, xmlt)
             # This is what it costs to try to be a validating processor.
             if cls.__Lexical_re.match(xmlt) is None:
