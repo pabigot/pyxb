@@ -278,13 +278,38 @@ def ResolveSiblingNamespaces (sibling_namespaces):
         ns.configureCategories([archive.NamespaceArchive._AnonymousCategory()])
         ns.validateComponentModel()
 
-    def cmp_for_deps (ns1, ns2):
-        """Sort namespaces so dependencies get resolved first"""
-        if ns2 not in dependency_map.get(ns1, set()):
-            return -1
-        if ns1 not in dependency_map.get(ns2, set()):
-            return 1
-        return 0
+    def __keyForCompare (dependency_map):
+        """Sort namespaces so dependencies get resolved first.
+
+        Uses the trick underlying functools.cmp_to_key(), but optimized for
+        this special case.  The dependency map is incorporated into the class
+        definition by scope.
+        """
+        class K (object):
+            def __init__ (self, ns, *args):
+                self.__ns = ns
+
+            # self compares less than other if self.ns is in the dependency set
+            # of other.ns but not vice-versa.
+            def __lt__ (self, other):
+                return ((self.__ns in dependency_map.get(other.__ns, set())) \
+                            and not (other.__ns in dependency_map.get(self.__ns, set())))
+
+            # self compares equal to other if their namespaces are either
+            # mutually dependent or independent.
+            def __eq__ (self, other):
+                return (self.__ns in dependency_map.get(other.__ns, set())) == (other.__ns in dependency_map.get(self.__ns, set()))
+
+            # All other order metrics are derived.
+            def __ne__ (self, other):
+                return not self.__eq__(other)
+            def __le__ (self, other):
+                return self.__lt__(other) or self.__eq__(other)
+            def __gt__ (self, other):
+                return other.__lt__(self.__ns)
+            def __ge__ (self, other):
+                return other.__lt__(self.__ns) or self.__eq__(other)
+        return K
 
     need_resolved_set = set(sibling_namespaces)
     dependency_map = {}
@@ -292,7 +317,7 @@ def ResolveSiblingNamespaces (sibling_namespaces):
     while need_resolved_set:
         need_resolved_list = list(need_resolved_set)
         if dependency_map:
-            need_resolved_list.sort(cmp_for_deps)
+            need_resolved_list.sort(key=__keyForCompare(dependency_map))
         need_resolved_set = set()
         dependency_map = {}
         for ns in need_resolved_list:
