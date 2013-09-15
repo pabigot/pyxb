@@ -45,12 +45,12 @@ pyxbgen \
 pyxbgen \
   --location-prefix-rewrite=http://schemas.opengis.net/=${SCHEMA_DIR}/ \
   --schema-location=${SCHEMA_DIR}/gml/3.2.1/gml.xsd --module=gml_3_2 \
-  --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gco/gco.xsd --module=iso19139.20070417.gco \
-  --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gmd/gmd.xsd --module=iso19139.20070417.gmd \
-  --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gmx/gmx.xsd --module=iso19139.20070417.gmx \
-  --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gsr/gsr.xsd --module=iso19139.20070417.gsr \
-  --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gss/gss.xsd --module=iso19139.20070417.gss \
-  --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gts/gts.xsd --module=iso19139.20070417.gts \
+  --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gco/gco.xsd --module=iso19139.v20070417.gco \
+  --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gmd/gmd.xsd --module=iso19139.v20070417.gmd \
+  --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gmx/gmx.xsd --module=iso19139.v20070417.gmx \
+  --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gsr/gsr.xsd --module=iso19139.v20070417.gsr \
+  --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gss/gss.xsd --module=iso19139.v20070417.gss \
+  --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gts/gts.xsd --module=iso19139.v20070417.gts \
   --module-prefix=${MODULE_PREFIX} \
   --write-for-customization \
   --archive-to-file=${ARCHIVE_DIR}/gml_3_2.wxs \
