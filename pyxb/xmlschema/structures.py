@@ -4807,7 +4807,7 @@ class Schema (_SchemaComponent_mixin):
         kw['location_base'] = kw['schema_location'] = schema_location
         assert isinstance(schema_location, basestring), 'Unexpected value %s type %s for schema_location' % (schema_location, type(schema_location))
         uri_content_archive_directory = kw.get('uri_content_archive_directory')
-        return cls.CreateFromDocument(pyxb.utils.utility.TextFromURI(schema_location, archive_directory=uri_content_archive_directory), **kw)
+        return cls.CreateFromDocument(pyxb.utils.utility.DataFromURI(schema_location, archive_directory=uri_content_archive_directory), **kw)
 
     @classmethod
     def CreateFromStream (cls, stream, **kw):

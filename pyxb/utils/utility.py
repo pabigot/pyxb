@@ -709,8 +709,8 @@ def NormalizeLocation (uri, parent_uri=None, prefix_map=None):
     return abs_uri
 
 
-def TextFromURI (uri, archive_directory=None):
-    """Retrieve the contents of the uri as a text string.
+def DataFromURI (uri, archive_directory=None):
+    """Retrieve the contents of the uri as raw data.
 
     If the uri does not include a scheme (e.g., C{http:}), it is
     assumed to be a file path on the local system."""
@@ -736,7 +736,7 @@ def TextFromURI (uri, archive_directory=None):
     if stream is None:
         # No go as URI; give file a chance
         try:
-            stream = open(uri)
+            stream = open(uri, 'rb')
             exc = None
         except Exception as e:
             if exc is None:
@@ -751,7 +751,7 @@ def TextFromURI (uri, archive_directory=None):
             archive_directory = None
     except:
         pass
-    xmls = stream.read()
+    xmld = stream.read()
     if archive_directory:
         base_name = os.path.basename(os.path.normpath(urlparse.urlparse(uri)[2]))
         counter = 1
@@ -760,13 +760,13 @@ def TextFromURI (uri, archive_directory=None):
             dest_file = os.path.join(archive_directory, '%s.%d' % (base_name, counter))
             counter += 1
         try:
-            OpenOrCreate(dest_file).write(xmls)
+            OpenOrCreate(dest_file).write(xmld)
         except OSError as e:
             _log.warning('Unable to save %s in %s: %s', uri, dest_file, e)
-    return xmls
+    return xmld
 
 def OpenOrCreate (file_name, tag=None, preserve_contents=False):
-    """Return a file object used to write the given file.
+    """Return a file object used to write binary data into the given file.
 
     Use the C{tag} keyword to preserve the contents of existing files
     that are not supposed to be overwritten.
@@ -778,10 +778,10 @@ def OpenOrCreate (file_name, tag=None, preserve_contents=False):
     The returned file pointer is positioned at the end of the file.
 
     @keyword tag: If not C{None} and the file already exists, absence
-    of the given value in the first 4096 bytes of the file causes an
-    C{IOError} to be raised with C{errno} set to C{EEXIST}.  I.e.,
-    only files with this value in the first 4KB will be returned for
-    writing.
+    of the given value in the first 4096 bytes of the file (decoded as
+    UTF-8) causes an C{IOError} to be raised with C{errno} set to
+    C{EEXIST}.  I.e., only files with this value in the first 4KB will
+    be returned for writing.
 
     @keyword preserve_contents: This value controls whether existing
     contents of the file will be erased (C{False}, default) or left in
@@ -796,8 +796,10 @@ def OpenOrCreate (file_name, tag=None, preserve_contents=False):
                 raise
     fp = open(file_name, 'ab+')
     if (tag is not None) and (0 < os.fstat(fp.fileno()).st_size):
-        text = fp.read(4096)
-        if 0 > text.find(tag):
+        fp.seek(0) # os.SEEK_SET
+        blockd = fp.read(4096)
+        blockt = blockd.decode('utf-8')
+        if 0 > blockt.find(tag):
             raise OSError(errno.EEXIST, os.strerror(errno.EEXIST))
     if not preserve_contents:
         fp.seek(0) # os.SEEK_SET

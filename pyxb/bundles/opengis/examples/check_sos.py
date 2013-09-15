@@ -10,10 +10,10 @@ import pyxb.bundles.opengis.tml
 
 for f in sys.argv[1:]:
     print '------------------ %s' % (f,)
-    xmls = pyxb.utils.utility.TextFromURI(f)
+    xmld = pyxb.utils.utility.DataFromURI(f)
     try:
-        instance = sos.CreateFromDocument(xmls)
-        #print xmls
+        instance = sos.CreateFromDocument(xmld)
+        #print xmld
         print instance.toxml("utf-8")
     except Exception as e:
         print '%s failed: %s' % (f, e)
