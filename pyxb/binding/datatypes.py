@@ -44,7 +44,7 @@ instance of either SimpleTypeDefinition or ComplexTypeDefinition.
 """
 
 from pyxb.exceptions_ import *
-import types
+import pyxb.utils.types_
 import pyxb.namespace
 import pyxb.utils.unicode
 from . import basis
@@ -91,7 +91,7 @@ _PrimitiveDatatypes.append(string)
 
 # It is illegal to subclass the bool type in Python, so we subclass
 # int instead.
-class boolean (basis.simpleTypeDefinition, types.IntType):
+class boolean (basis.simpleTypeDefinition, pyxb.utils.types_.IntType):
     """XMLSchema datatype U{boolean<http://www.w3.org/TR/xmlschema-2/#boolean>}."""
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('boolean')
@@ -123,7 +123,7 @@ class boolean (basis.simpleTypeDefinition, types.IntType):
 
 _PrimitiveDatatypes.append(boolean)
 
-class decimal (basis.simpleTypeDefinition, types.FloatType):
+class decimal (basis.simpleTypeDefinition, pyxb.utils.types_.FloatType):
     """XMLSchema datatype U{decimal<http://www.w3.org/TR/xmlschema-2/#decimal>}.
 
     @todo: The Python base type for this is wrong. Consider
@@ -139,7 +139,7 @@ class decimal (basis.simpleTypeDefinition, types.FloatType):
 
 _PrimitiveDatatypes.append(decimal)
 
-class float (basis.simpleTypeDefinition, types.FloatType):
+class float (basis.simpleTypeDefinition, pyxb.utils.types_.FloatType):
     """XMLSchema datatype U{float<http://www.w3.org/TR/xmlschema-2/#float>}."""
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('float')
@@ -150,7 +150,7 @@ class float (basis.simpleTypeDefinition, types.FloatType):
 
 _PrimitiveDatatypes.append(float)
 
-class double (basis.simpleTypeDefinition, types.FloatType):
+class double (basis.simpleTypeDefinition, pyxb.utils.types_.FloatType):
     """XMLSchema datatype U{double<http://www.w3.org/TR/xmlschema-2/#double>}."""
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('double')
@@ -218,8 +218,8 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
 
             fractional_seconds = 0.0
             if match_map.get('fracsec') is not None:
-                fractional_seconds = types.FloatType('0%s' % (match_map['fracsec'],))
-                usec = types.IntType(1000000 * fractional_seconds)
+                fractional_seconds = pyxb.utils.types_.FloatType('0%s' % (match_map['fracsec'],))
+                usec = pyxb.utils.types_.IntType(1000000 * fractional_seconds)
                 if negative_duration:
                     kw['microseconds'] = - usec
                 else:
@@ -233,7 +233,7 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
                 v = match_map.get(fn, 0)
                 if v is None:
                     v = 0
-                data[fn] = types.IntType(v)
+                data[fn] = pyxb.utils.types_.IntType(v)
                 if fn in cls.__PythonFields:
                     if negative_duration:
                         kw[fn] = - data[fn]
@@ -256,7 +256,7 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
                     data['seconds'] = 24 * 60 * 60.0 - data['seconds']
             data['minutes'] = 0
             data['hours'] = 0
-        elif isinstance(text, types.IntType) and (1 < len(args)):
+        elif isinstance(text, pyxb.utils.types_.IntType) and (1 < len(args)):
             # Apply the arguments as in the underlying Python constructor
             data = dict(zip(cls.__PythonFields[:len(args)], args))
             negative_duration = False
@@ -265,7 +265,7 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
         if not have_kw_update:
             rem_time = data.pop('seconds', 0)
             if (0 != (rem_time % 1)):
-                data['microseconds'] = data.pop('microseconds', 0) + types.IntType(1000000 * (rem_time % 1))
+                data['microseconds'] = data.pop('microseconds', 0) + pyxb.utils.types_.IntType(1000000 * (rem_time % 1))
                 rem_time = rem_time // 1
             data['seconds'] = rem_time % 60
             rem_time = data.pop('minutes', 0) + (rem_time // 60)
@@ -365,11 +365,11 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
         kw = { }
         for (k, v) in match_map.iteritems():
             if (k in cls.__LexicalIntegerFields) and (v is not None):
-                kw[k] = types.IntType(v)
+                kw[k] = pyxb.utils.types_.IntType(v)
         if '-' == match_map.get('negYear'):
             kw['year'] = - kw['year']
         if match_map.get('fracsec') is not None:
-            kw['microsecond'] = types.IntType(round(1000000 * types.FloatType('0%s' % (match_map['fracsec'],))))
+            kw['microsecond'] = pyxb.utils.types_.IntType(round(1000000 * pyxb.utils.types_.FloatType('0%s' % (match_map['fracsec'],))))
         else:
             # Discard any bogosity passed in by the caller
             kw.pop('microsecond', None)
@@ -467,11 +467,11 @@ class dateTime (_PyXBDateTime_base, datetime.datetime):
             ctor_kw = { 'year': 1900, 'month': 1, 'day': 1 }
         elif 1 == len(args):
             value = args[0]
-            if isinstance(value, types.StringTypes):
+            if isinstance(value, pyxb.utils.types_.StringTypes):
                 ctor_kw.update(cls._LexicalToKeywords(value))
             elif isinstance(value, datetime.datetime):
                 cls._SetKeysFromPython(value, ctor_kw, cls.__CtorFields)
-            elif isinstance(value, (types.IntType, types.LongType)):
+            elif isinstance(value, (pyxb.utils.types_.IntType, pyxb.utils.types_.LongType)):
                 raise TypeError('function takes at least 3 arguments (%d given)' % (len(args),))
             else:
                 raise SimpleTypeValueError(cls, value)
@@ -541,11 +541,11 @@ class time (_PyXBDateTime_base, datetime.time):
         ctor_kw = { }
         if 1 <= len(args):
             value = args[0]
-            if isinstance(value, types.StringTypes):
+            if isinstance(value, pyxb.utils.types_.StringTypes):
                 ctor_kw.update(cls._LexicalToKeywords(value))
             elif isinstance(value, (datetime.time, datetime.datetime)):
                 cls._SetKeysFromPython(value, ctor_kw, cls.__CtorFields)
-            elif isinstance(value, (types.IntType, types.LongType)):
+            elif isinstance(value, (pyxb.utils.types_.IntType, pyxb.utils.types_.LongType)):
                 for fi in range(len(cls.__CtorFields)):
                     fn = cls.__CtorFields[fi]
                     if fi < len(args):
@@ -580,7 +580,7 @@ class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.datetime):
             pass
         elif 1 <= len(args):
             value = args[0]
-            if isinstance(value, types.StringTypes):
+            if isinstance(value, pyxb.utils.types_.StringTypes):
                 if 1 != len(args):
                     raise TypeError('construction from string requires exactly 1 argument')
                 ctor_kw.update(cls._LexicalToKeywords(value))
@@ -756,7 +756,7 @@ class gMonth (_PyXBDateOnly_base):
     _ValidFields = ( 'month', )
 _PrimitiveDatatypes.append(gMonth)
 
-class hexBinary (basis.simpleTypeDefinition, types.StringType):
+class hexBinary (basis.simpleTypeDefinition, pyxb.utils.types_.DataType):
     """XMLSchema datatype U{hexBinary<http://www.w3.org/TR/xmlschema-2/#hexBinary>}."""
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('hexBinary')
@@ -764,15 +764,22 @@ class hexBinary (basis.simpleTypeDefinition, types.StringType):
     @classmethod
     def _ConvertArguments_vx (cls, args, kw):
         if kw.get('_from_xml', False):
+            xmlt = args[0]
             try:
-                args = (binascii.unhexlify(args[0]),) + args[1:]
+                xmld = xmlt.encode('utf-8')
+                arg0 = binascii.unhexlify(xmld)
+                args = (arg0,) + args[1:]
             except TypeError:
                 raise SimpleTypeValueError(cls, args[0])
         return args
 
     @classmethod
     def XsdLiteral (cls, value):
-        return binascii.hexlify(value).upper()
+        if isinstance(value, pyxb.utils.types_.TextType):
+            value = value.encode('utf-8')
+        rvd = binascii.hexlify(value)
+        rvt = rvd.decode('utf-8')
+        return rvt.upper()
 
     @classmethod
     def XsdValueLength (cls, value):
@@ -780,7 +787,7 @@ class hexBinary (basis.simpleTypeDefinition, types.StringType):
 
 _PrimitiveDatatypes.append(hexBinary)
 
-class base64Binary (basis.simpleTypeDefinition, types.StringType):
+class base64Binary (basis.simpleTypeDefinition, pyxb.utils.types_.DataType):
     """XMLSchema datatype U{base64Binary<http://www.w3.org/TR/xmlschema-2/#base64Binary>}.
 
     See also U{RFC2045<http://tools.ietf.org/html/rfc2045>} and U{RFC4648<http://tools.ietf.org/html/rfc4648>}.
@@ -804,19 +811,25 @@ class base64Binary (basis.simpleTypeDefinition, types.StringType):
     @classmethod
     def _ConvertArguments_vx (cls, args, kw):
         if kw.get('_from_xml', False):
-            xmls = args[0]
+            xmlt = args[0]
             try:
-                args = (base64.standard_b64decode(xmls),) + args[1:]
+                xmld = xmlt.encode('utf-8')
+                arg0 = base64.standard_b64decode(xmld)
+                args = (arg0,) + args[1:]
             except TypeError:
-                raise SimpleTypeValueError(cls, xmls)
+                raise SimpleTypeValueError(cls, xmlt)
             # This is what it costs to try to be a validating processor.
-            if cls.__Lexical_re.match(xmls) is None:
-                raise SimpleTypeValueError(cls, xmls)
+            if cls.__Lexical_re.match(xmlt) is None:
+                raise SimpleTypeValueError(cls, xmlt)
         return args
 
     @classmethod
     def XsdLiteral (cls, value):
-        return base64.standard_b64encode(value)
+        if isinstance(value, pyxb.utils.types_.TextType):
+            value = value.encode('utf-8')
+        rvd = base64.standard_b64encode(value)
+        rvt = rvd.decode('utf-8')
+        return rvt
 
     @classmethod
     def XsdValueLength (cls, value):
@@ -876,7 +889,7 @@ class QName (basis.simpleTypeDefinition, unicode):
 
     @classmethod
     def _XsdConstraintsPreCheck_vb (cls, value):
-        if not isinstance(value, types.StringTypes):
+        if not isinstance(value, pyxb.utils.types_.StringTypes):
             raise SimpleTypeValueError(cls, value)
         if 0 <= value.find(':'):
             (prefix, local) = value.split(':', 1)
@@ -963,7 +976,7 @@ class normalizedString (string):
 
     @classmethod
     def _XsdConstraintsPreCheck_vb (cls, value):
-        if not isinstance(value, types.StringTypes):
+        if not isinstance(value, pyxb.utils.types_.StringTypes):
             raise SimpleTypeValueError(cls, value)
         if not cls._ValidateString_va(value):
             raise SimpleTypeValueError(cls, value)
@@ -1069,7 +1082,7 @@ class ENTITIES (basis.STD_list):
     _ItemType = ENTITY
 _ListDatatypes.append(ENTITIES)
 
-class integer (basis.simpleTypeDefinition, types.LongType):
+class integer (basis.simpleTypeDefinition, pyxb.utils.types_.LongType):
     """XMLSchema datatype U{integer<http://www.w3.org/TR/xmlschema-2/#integer>}."""
     _XsdBaseType = decimal
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('integer')
@@ -1095,7 +1108,7 @@ class long (integer):
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('long')
 _DerivedDatatypes.append(long)
 
-class int (basis.simpleTypeDefinition, types.IntType):
+class int (basis.simpleTypeDefinition, pyxb.utils.types_.IntType):
     """XMLSchema datatype U{int<http://www.w3.org/TR/xmlschema-2/#int>}."""
     _XsdBaseType = long
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('int')

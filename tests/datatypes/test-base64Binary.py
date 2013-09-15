@@ -9,16 +9,16 @@ import pyxb
 import pyxb.binding.datatypes as xsd
 
 class Test_base64Binary (unittest.TestCase):
-    RFC4648_S9 = ( ('14fb9c03d97e', 'FPucA9l+'),
-                   ('14fb9c03d9', 'FPucA9k='),
-                   ('14fb9c03', 'FPucAw==') )
-    RFC4648_S10 = ( ('', ''),
-                    ('f', 'Zg=='),
-                    ('fo', 'Zm8='),
-                    ('foo', 'Zm9v'),
-                    ('foob', 'Zm9vYg=='),
-                    ('fooba', 'Zm9vYmE='),
-                    ('foobar', 'Zm9vYmFy') )
+    RFC4648_S9 = ( (u'14fb9c03d97e', u'FPucA9l+'),
+                   (u'14fb9c03d9', u'FPucA9k='),
+                   (u'14fb9c03', u'FPucAw==') )
+    RFC4648_S10 = ( (u'', u''),
+                    (u'f', u'Zg=='),
+                    (u'fo', u'Zm8='),
+                    (u'foo', u'Zm9v'),
+                    (u'foob', u'Zm9vYg=='),
+                    (u'fooba', u'Zm9vYmE='),
+                    (u'foobar', u'Zm9vYmFy') )
     def testVectors (self):
         """RFC4648 section 10."""
         for (plaintext, ciphertext) in self.RFC4648_S10:
@@ -30,13 +30,13 @@ class Test_base64Binary (unittest.TestCase):
             self.assertEqual(xsd.base64Binary(ciphertext, _from_xml=True), plaintext)
 
     def testInvalid (self):
-        self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, 'Z', _from_xml=True)
-        self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, 'Zg', _from_xml=True)
-        self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, 'Zg=', _from_xml=True)
-        self.assertEqual('f', xsd.base64Binary('Zg==', _from_xml=True))
-        self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, 'ZZZ=', _from_xml=True)
-        self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, 'ZZ==', _from_xml=True)
-        self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, 'ZE==', _from_xml=True)
+        self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, u'Z', _from_xml=True)
+        self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, u'Zg', _from_xml=True)
+        self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, u'Zg=', _from_xml=True)
+        self.assertEqual(u'f', xsd.base64Binary(u'Zg==', _from_xml=True))
+        self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, u'ZZZ=', _from_xml=True)
+        self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, u'ZZ==', _from_xml=True)
+        self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, u'ZE==', _from_xml=True)
 
 if __name__ == '__main__':
     unittest.main()
