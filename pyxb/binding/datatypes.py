@@ -1106,11 +1106,11 @@ _DerivedDatatypes.append(negativeInteger)
 class long (integer):
     """XMLSchema datatype U{long<http://www.w3.org/TR/xmlschema-2/#long>}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('long')
-_DerivedDatatypes.append(long)
+_DerivedDatatypes.append(long)  #python3:int:long
 
 class int (basis.simpleTypeDefinition, pyxb.utils.types_.IntType):
     """XMLSchema datatype U{int<http://www.w3.org/TR/xmlschema-2/#int>}."""
-    _XsdBaseType = long
+    _XsdBaseType = long         #python3:int:long
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('int')
 
     @classmethod

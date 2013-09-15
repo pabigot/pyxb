@@ -1356,9 +1356,10 @@ class STD_list (simpleTypeDefinition, types.ListType):
         else:
             super(STD_list, self).__setitem__(key, self._ValidatedItem(value))
 
-    # python3: required for python2 since deriving from built-in type
+    #!python3>! required for python2 since deriving from built-in type
     def __setslice__ (self, start, end, values):
         super(STD_list, self).__setslice__(start, end, self.__convertMany(values))
+    #!python3<!
 
     def __contains__ (self, item):
         return super(STD_list, self).__contains__(self._ValidatedItem(item))
