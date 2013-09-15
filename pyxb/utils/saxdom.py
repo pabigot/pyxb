@@ -29,6 +29,7 @@ converting it back into document format.
 from __future__ import print_function
 import xml.dom
 import pyxb.utils.saxutils
+import pyxb.utils.types_
 import io
 import pyxb.namespace
 import logging
@@ -102,7 +103,7 @@ def parse (stream, **kw):
     Keywords not described here are passed to L{pyxb.utils.saxutils.make_parser}.
 
     @param stream: An object presenting the standard file C{read} interface
-    from which the document can be read.
+    from which the document can be read.  The content should be data, not text.
 
     @keyword content_handler_constructor: Input is overridden to assign this a
     value of L{_DOMSAXHandler}.
@@ -118,10 +119,12 @@ def parse (stream, **kw):
 
 def parseString (xml_text, **kw):
     """Parse a string holding an XML document and return the corresponding DOM
-    tree."""
-    # XML parser doesn't really like unicode strings
+    tree.
+
+    @param xml_text: the XML content to be parsed, in a text representation."""
+    # SAX parser operates on data, not text.
     xmld = xml_text
-    if isinstance(xmld, unicode):
+    if isinstance(xmld, pyxb.utils.types_.TextType):
         xmld = xmld.encode(pyxb._InputEncoding)
     return parse(io.BytesIO(xmld), **kw)
 

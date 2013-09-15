@@ -523,7 +523,7 @@ if '__main__' == __name__:
 
     dt1 = time.time()
     dt2 = time.time()
-    dom = xml.dom.minidom.parseString(xmld)
+    dom = xml.dom.minidom.parse(io.BytesIO(xmld))
     dt3 = time.time()
 
     snt1 = time.time()

@@ -67,14 +67,14 @@ class TestTrac_0075 (unittest.TestCase):
         # Hide the warnings that tInner could not be converted to binding
         self.__basis_log.setLevel(logging.ERROR)
         tag = Namespace.createExpandedName('tInner')
-        xmls = '<top><tInner>content</tInner></top>'
+        xmlt = '<top><tInner>content</tInner></top>'
         try:
-            instance = CreateFromDocument(xmls)
+            instance = CreateFromDocument(xmlt)
             self.fail("Succeeded in creating from document with bad inner element")
         except UnrecognizedContentError as e:
             pass
 
-        dom = xml.dom.minidom.parseString(xmls)
+        dom = xml.dom.minidom.parseString(xmlt)
         try:
             instance = CreateFromDOM(dom)
             self.fail("Succeeded in creating from document with bad inner element")

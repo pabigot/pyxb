@@ -20,6 +20,7 @@ import pyxb.namespace
 import pyxb.namespace.resolution
 import pyxb.utils.saxutils
 import pyxb.utils.saxdom
+import pyxb.utils.types_
 import xml.dom
 import logging
 
@@ -49,16 +50,22 @@ def SetDOMImplementation (dom_implementation):
 # Unfortunately, the DOMImplementation interface doesn't provide a parser.  So
 # abstract this in case somebody wants to substitute a different one.  Haven't
 # decided how to express that yet.
-def StringToDOM (text, **kw):
+def StringToDOM (xml_text, **kw):
     """Convert string to a DOM instance.
 
     @see: L{pyxb._SetXMLStyle}."""
+
+    xmlt = xml_text
     if pyxb.XMLStyle_minidom == pyxb._XMLStyle:
         parser = pyxb.utils.saxutils.make_parser()
-        if isinstance(text, unicode):
-            text = text.encode(pyxb._InputEncoding)
-        return xml.dom.minidom.parseString(text, parser)
-    return pyxb.utils.saxdom.parseString(text, **kw)
+        # minidom.parseString operates on text.  In Python 2, this means don't
+        # feed it unicode.  In Python 3 this means don't feed it bytes.
+        if isinstance(xmlt, unicode):                #!python3!
+            xmlt = xmlt.encode(pyxb._InputEncoding)  #!python3!
+#python3:        if isinstance(xmlt, pyxb.utils.types_.DataType):
+#python3:            xmlt = xmlt.decode(pyxb._InputEncoding)
+        return xml.dom.minidom.parseString(xmlt, parser)
+    return pyxb.utils.saxdom.parseString(xml_text, **kw)
 
 def NodeAttribute (node, attribute_ncname, attribute_ns=None):
     """Namespace-aware search for an optional attribute in a node.

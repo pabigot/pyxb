@@ -32,8 +32,7 @@ class TestTrac_0074 (unittest.TestCase):
     def test (self):
         t0p = Namespace.createExpandedName('t0p')
         xmlt = u'<ns:t0p xmlns:ns="urn:trac-0074">content</ns:t0p>'
-        xmld = xmlt.encode('utf-8')
-        dom = xml.dom.minidom.parseString(xmld)
+        dom = xml.dom.minidom.parseString(xmlt)
         try:
             dom_instance = CreateFromDOM(dom.documentElement)
             self.fail('DOM creation succeeded')

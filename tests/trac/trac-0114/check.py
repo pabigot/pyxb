@@ -7,6 +7,7 @@ _log = logging.getLogger(__name__)
 import noi
 import unittest
 import pyxb
+import io
 import xml.dom.minidom
 
 def first_element_child (n):
@@ -17,7 +18,7 @@ def first_element_child (n):
 
 class TestTrac0114 (unittest.TestCase):
 
-    xmlString = open('namespace_other_issue.xml').read()
+    xmlData = open('namespace_other_issue.xml', 'rb').read()
 
     def validateDOM (self, instance):
         self.assertEqual
@@ -26,7 +27,7 @@ class TestTrac0114 (unittest.TestCase):
         print('xyz NS: %s / %s' % (xyz.namespaceURI, xyz.tagName))
 
     def testMiniDOM (self):
-        dom = xml.dom.minidom.parseString(self.xmlString)
+        dom = xml.dom.minidom.parse(io.BytesIO(self.xmlData))
         a = dom.documentElement
         self.assertEqual(a.namespaceURI, noi.Namespace.uri())
         aext = first_element_child(a)
@@ -35,7 +36,7 @@ class TestTrac0114 (unittest.TestCase):
         self.assertEqual(xyz.namespaceURI, 'urn:schema:b')
 
     def testPyXB (self):
-        instance = noi.CreateFromDocument(self.xmlString)
+        instance = noi.CreateFromDocument(self.xmlData)
         dom = instance.toDOM()
         a = dom.documentElement
         self.assertEqual(a.namespaceURI, noi.Namespace.uri())

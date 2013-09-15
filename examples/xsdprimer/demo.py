@@ -3,10 +3,11 @@ import pyxb
 import ipo
 import xml.dom.minidom
 import time
+import io
 
-xml_text = open('ipo.xml').read()
+xmld = open('ipo.xml', 'rb').read()
 
-order = ipo.CreateFromDOM(xml.dom.minidom.parseString(xml_text).documentElement)
+order = ipo.CreateFromDOM(xml.dom.minidom.parse(io.BytesIO(xmld)).documentElement)
 
 print('%s is sending %s %d thing(s):' % (order.billTo().name(), order.shipTo().name(), len(order.items().item())))
 for item in order.items().item():

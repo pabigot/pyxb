@@ -10,8 +10,7 @@ import pyxb.namespace
 #DWML.Namespace.validateSchema()
 #print 'Validated DWML: types %s' % ("\n".join(DWML.Namespace.typeDefinitions().iterkeys()),)
 
-xmls = open('NDFDgen.xml').read()
-dom = xml.dom.minidom.parseString(xmls)
+dom = xml.dom.minidom.parse(open('NDFDgen.xml', 'rb'))
 body_dom = dom.documentElement.firstChild.nextSibling.firstChild.nextSibling
 print(body_dom)
 
@@ -22,7 +21,7 @@ import ndfd
 import pyxb.bundles.wssplat.wsdl11 as wsdl
 
 uri_src = open('ndfdXML.wsdl')
-doc = xml.dom.minidom.parseString(uri_src.read())
+doc = xml.dom.minidom.parse(uri_src)
 spec = wsdl.definitions.createFromDOM(doc.documentElement, process_schema=True)
 
 binding = spec.binding[0]

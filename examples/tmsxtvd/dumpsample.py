@@ -4,6 +4,7 @@ import pyxb.utils.domutils as domutils
 import xml.dom.minidom
 import pyxb.utils.saxdom
 import pyxb.binding.saxer
+import io
 import time
 #import cProfile
 
@@ -30,9 +31,9 @@ xml_file = 'tmsdatadirect_sample.xml'
 
 print('Generating binding from %s with minidom' % (xml_file,))
 mt1 = time.time()
-xmls = open(xml_file).read()
+xmld = open(xml_file, 'rb').read()
 mt2 = time.time()
-dom = xml.dom.minidom.parseString(xmls)
+dom = xml.dom.minidom.parse(io.BytesIO(xmld))
 mt3 = time.time()
 #cProfile.run('tmstvd.CreateFromDOM(dom.documentElement)', 'dom.prf')
 dom_instance = tmstvd.CreateFromDOM(dom.documentElement)
@@ -41,7 +42,7 @@ mt4 = time.time()
 
 print('Generating binding from %s with SAXDOM' % (xml_file,))
 dt1 = time.time()
-dom = pyxb.utils.saxdom.parseString(xmls, location_base=xml_file)
+dom = pyxb.utils.saxdom.parse(io.BytesIO(xmld), location_base=xml_file)
 dt2 = time.time()
 #cProfile.run('tmstvd.CreateFromDOM(dom.documentElement)', 'saxdom.prf')
 saxdom_instance = tmstvd.CreateFromDOM(dom.documentElement)
@@ -53,7 +54,7 @@ st1 = time.time()
 saxer = pyxb.binding.saxer.make_parser(location_base=xml_file)
 handler = saxer.getContentHandler()
 st2 = time.time()
-saxer.parse(open(xml_file))
+saxer.parse(io.BytesIO(xmld))
 #cProfile.run('saxer.parse(open(xml_file))', 'sax.prf')
 st3 = time.time()
 sax_instance = handler.rootObject()
