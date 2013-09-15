@@ -1151,19 +1151,21 @@ class BindingIO (object):
         self.__prolog = []
         self.__postscript = []
         self.__templateMap = kw.copy()
+        encoding = kw.get('encoding', pyxb._OutputEncoding)
         self.__templateMap.update({ 'date' : str(datetime.datetime.now()),
                                     'filePath' : self.__bindingFilePath,
-                                    'coding' : pyxb._OutputEncoding,
+                                    'coding' : encoding,
                                     'binding_module' : binding_module,
                                     'binding_tag' : binding_module.bindingTag(),
                                     'pyxbVersion' : pyxb.__version__ })
         self.__stringIO = io.StringIO()
         if self.__bindingFile:
-            self.__bindingFile.write(self.expand('''# %{filePath}
+            prefacet = self.expand('''# %{filePath}
 # -*- coding: %{coding} -*-
 # PyXB bindings for %{binding_tag}
 # Generated %{date} by PyXB version %{pyxbVersion}
-%{binding_preface}''', binding_preface=binding_module.bindingPreface()))
+%{binding_preface}''', binding_preface=binding_module.bindingPreface())
+            self.__bindingFile.write(prefacet.encode(encoding))
             self.__bindingFile.flush()
 
     def bindingFile (self):
