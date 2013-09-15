@@ -13,7 +13,7 @@ class TestTrac0132 (unittest.TestCase):
     def testDecode (self):
         e = pyxb.PyXBException(self.message)
         if sys.version_info[:2] > (2, 4):
-            self.assertEqual(self.message, e.message)
+            self.assertEqual(self.message, e.args[0])
 
 if __name__ == '__main__':
     unittest.main()
