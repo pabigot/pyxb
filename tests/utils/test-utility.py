@@ -358,7 +358,7 @@ class _TestOpenOrCreate_mixin (object):
         try:
             os.unlink(self.__fileName)
         except OSError as e:
-            if errno.EEXIST != e:
+            if errno.ENOENT != e:
                 raise
 
     def tearDown (self):
