@@ -392,6 +392,21 @@ _InputEncoding = 'utf-8'
 
 Material being written to an XML parser is treated as input."""
 
+def NonElementContent (instance):
+    """Return an iterator producing the non-element content of the provided instance.
+
+    The catenated text of the non-element content of an instance can
+    be obtained with::
+
+       text = u''.join(pyxb.NonElementContent(instance))
+
+    @param instance: An instance of L{pyxb.binding.basis.complexTypeDefinition}.
+
+    @return: an iterator producing text values
+    """
+    import pyxb.binding.basis
+    return pyxb.binding.basis.NonElementContent.ContentIterator(instance.orderedContent())
+
 ## Local Variables:
 ## fill-column:78
 ## End:

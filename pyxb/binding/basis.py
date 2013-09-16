@@ -1840,6 +1840,34 @@ class _Content (object):
     __value = None
     value = property(__getValue)
 
+    @classmethod
+    def ContentIterator (cls, input):
+        """Return an iterator that filters and maps a sequence of L{_Content}
+        instances.
+
+        The returned iterator will filter out sequence members that are not
+        instances of the class from which the iterator was created.  Further,
+        only the L{value} field of the sequence member is returned.
+
+        Thus the catenated text of the non-element content of an instance can
+        be obtained with::
+
+           text = u''.join(NonElementContent.ContentIterator(instance.orderedContent()))
+
+        See also L{pyxb.NonElementContent}
+        """
+        class _Iterator:
+            def __init__ (self, input):
+                self.__input = iter(input)
+            def __iter__ (self):
+                return self
+            def next (self):
+                while True:
+                    content = self.__input.next()
+                    if isinstance(content, cls):
+                        return content.value
+        return _Iterator(input)
+
     def __init__ (self, value):
         self.__value = value
 
