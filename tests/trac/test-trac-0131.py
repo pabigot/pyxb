@@ -47,8 +47,6 @@ class TestTrac0131 (unittest.TestCase):
     base_xmlt = u'<bar><e>' + strt + u'</e></bar>'
     declared_xmlt = u'<?xml version="1.0" encoding="UTF-8"?>' + base_xmlt
 
-    ExpectedUnicodeErrors = ( UnicodeEncodeError, xml.sax.SAXParseException )
-
     def setUp (self):
         self.__xmlStyle = pyxb._XMLStyle
 
