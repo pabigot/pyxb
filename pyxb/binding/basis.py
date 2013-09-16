@@ -2548,7 +2548,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         elif self._CT_EMPTY == self._ContentTypeTag:
             pass
         elif self._CT_SIMPLE == self._ContentTypeTag:
-            assert self.value() is not None, '%s has no value' % (self,)
+            if self.__content is None:
+                raise pyxb.SimpleContentAbsentError(self, self._location())
             dom_support.appendTextChild(self.value().xsdLiteral(), element)
         else:
             if pyxb.GlobalValidationConfig.forDocument:
