@@ -41,14 +41,14 @@ class TestTrac0189 (unittest.TestCase):
         ib = eTwo(2)
         content = [ ia, ib ]
         i = elt(ia)
-        self.assertRaises(MixedContentError, elt, ia, ib)
+        self.assertRaises(UnrecognizedContentError, elt, ia, ib)
 
     def testParse (self):
         xmls = '<elt><eOne>1</eOne></elt>'
         i = CreateFromDocument(xmls)
         self.assertEqual(i.eOne, 1)
         xmls = '<elt><eOne>1</eOne><eTwo>2</eTwo></elt>'
-        self.assertRaises(MixedContentError, CreateFromDocument, xmls)
+        self.assertRaises(UnrecognizedContentError, CreateFromDocument, xmls)
         pyxb.RequireValidWhenParsing(False)
         with self.assertRaises(pyxb.StructuralBadDocumentError) as cm:
             i = CreateFromDocument(xmls)

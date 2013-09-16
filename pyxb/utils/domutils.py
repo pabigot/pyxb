@@ -225,7 +225,7 @@ def ExtractTextContent (node):
         elif xml.dom.Node.COMMENT_NODE == cn.nodeType:
             pass
         else:
-            raise pyxb.BadDocumentError('Non-text node %s found in content' % (cn,))
+            raise pyxb.NonElementValidationError(cn)
     if 0 == len(text):
         return None
     return ''.join(text)

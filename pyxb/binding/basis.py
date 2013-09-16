@@ -2452,11 +2452,28 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             if 1 <= num_cand:
                 # Resolution was successful (possibly non-deterministic)
                 return self
-        # If what we have is element or just complex content, we can't accept
-        # it, either because the type doesn't accept element content or
-        # because it does and what we got didn't match the content model.
-        if (element_binding is not None) or isinstance(value, (xml.dom.Node, complexTypeDefinition, pyxb.BIND)):
-            raise pyxb.UnrecognizedContentError(self, self.__automatonConfiguration, value, location)
+        # We couldn't place this thing.  If it's element content, it has
+        # to be placed.  Is it element content?
+        #
+        # If it's bound to an element, it's element content.
+        #
+        # Complex type instance?  Element content.
+        #
+        # Uninterpretable DOM nodes or binding wrappers?  Element content.
+        #
+        # Simple type definition?  Well, if the thing we're trying to fill
+        # accepts mixed content or has simple content, technically we
+        # could convert the value to text and use it.  So that's not
+        # element content.
+        if ((element_binding is not None)
+            or isinstance(value, (xml.dom.Node, complexTypeDefinition, pyxb.BIND))
+            or (isinstance(value, simpleTypeDefinition) and not (self._IsSimpleTypeContent() or self._IsMixed()))):
+            # Element content.  If it has an automaton we can provide more
+            # information.  If it doesn't, it must consume text and we should
+            # use a different exception.
+            if self.__automatonConfiguration:
+                raise pyxb.UnrecognizedContentError(self, self.__automatonConfiguration, value, location)
+            raise pyxb.NonElementValidationError(value, location)
 
         # We have something that doesn't seem to be an element.  Are we
         # expecting simple content?

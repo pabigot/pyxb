@@ -214,11 +214,9 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
         if self.__delayedConstructor is not None:
             args = []
             for info in self.content():
-                assert not info.maybe_element
-                assert info.element_decl is None
-                assert isinstance(info.item, basestring)
+                if info.maybe_element or (info.element_decl is not None):
+                    raise pyxb.NonElementValidationError(info.item, info.location)
                 args.append(info.item)
-            assert 1 >= len(args), 'Unexpected STD content %s' % (args,)
             self.__constructElement(self.__delayedConstructor, self.__attributes, args)
         else:
             for info in self.content():

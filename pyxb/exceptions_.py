@@ -188,6 +188,51 @@ class ValidationError (PyXBException):
         @return: a string description of validation failure"""
         return unicode(self)
 
+class NonElementValidationError (ValidationError):
+    """Raised when an element (or a value bound to an element) appears
+    in context that does not permit an element."""
+
+    element = None
+    """The content that is not permitted.  This may be an element, or
+    a DOM representation that would have been made into an element had
+    matters progressed further."""
+
+    def __init__ (self, element, location=None):
+        """@param element: the value for the L{element} attribute.
+        @param location: the value for the L{location} attribute.
+        """
+        self.element = element
+        if (location is None) and isinstance(element, pyxb.utils.utility.Locatable_mixin):
+            location = element._location()
+        self.location = location
+        super(NonElementValidationError, self).__init__(element, location)
+
+    def __unicode__ (self):
+        import pyxb.binding.basis
+        import xml.dom
+        value = ''
+        boundto = ''
+        location = ''
+        if isinstance(self.element, pyxb.binding.basis._TypeBinding_mixin):
+            eb = self.element._element()
+            boundto = ''
+            if eb is not None:
+                boundto = ' bound to %s' % (eb.name(),)
+            if isinstance(self.element, pyxb.binding.basis.simpleTypeDefinition):
+                value = self.element.xsdLiteral()
+            elif self.element._IsSimpleTypeContent():
+                value = unicode(self.element.value())
+            else:
+                value = 'Complex value'
+        elif isinstance(self.element, xml.dom.Node):
+            value = 'DOM node %s' % (self.element.nodeName,)
+        else:
+            value = '%s type %s' % (unicode(self.element), type(self.element))
+        if self.location is not None:
+            location = ' at %s' % (self.location,)
+        return u'%s%s not permitted%s' % (value, boundto, location)
+    __str__ = PyXBException._str_from_unicode
+
 class ElementValidationError (ValidationError):
     """Raised when a validation requirement for an element is not satisfied."""
     pass
