@@ -160,7 +160,7 @@ Locating and loading (or inhibiting load of) namespace archives.
     Long Option                         Argument   Alt   Description
    ==================================  =========  ====  ==================================================
    ``--archive-path``                  *PATH*           :ref:`A colon-separated list of paths from which...<pyxbgen--archive-path>`
-   ``--import-augmentable-namespace``  *URI*            :ref:`Mark that the specified namespace may be...<pyxbgen--import-augmentable-namespace>`
+   ``--import-augmentable-namespace``  *URI*            :ref:`Mark that the specified namespace may be imported...<pyxbgen--import-augmentable-namespace>`
    ``--no-load-namespace``             *URI*            :ref:`Mark that the specified namespace should not be...<pyxbgen--no-load-namespace>`
    ==================================  =========  ====  ==================================================
 
@@ -178,14 +178,14 @@ directories is examined to see whether it is a namespace archive.
 
 ``--import-augmentable-namespace``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Mark that the specified namespace may be importAugmentableed by new
-bindings. Normally namespaces that are available from archives are
-considered to be complete, and schema locations in import directives are
-ignored.  Use this to indicate that the bindings being generated import
-new bindings. Note that attempts to import schema that contributed to
-the archive will only be detected if the archive was generated from the
-same schemaLocation URI; if the archive was generated from a different
-source component definitions might conflict.
+Mark that the specified namespace may be imported by new bindings.
+Normally namespaces that are available from archives are considered to
+be complete, and schema locations in import directives are ignored.  Use
+this to indicate that the bindings being generated import new bindings.
+Note that attempts to import schema that contributed to the archive will
+only be detected if the archive was generated from the same
+schemaLocation URI; if the archive was generated from a different source
+component definitions might conflict.
 
 .. _pyxbgen--no-load-namespace:
 
