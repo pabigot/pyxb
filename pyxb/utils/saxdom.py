@@ -141,22 +141,30 @@ class Node (xml.dom.Node, pyxb.utils.utility.Locatable_mixin):
         self.__namespaceContext = kw['namespace_context']
         self.__value = kw.get('value')
         self.__attributes = kw.get('attributes')
-        expanded_name = kw.get('expanded_name')
-        if expanded_name is not None:
-            self.__name = expanded_name.uriTuple()
-            self.__namespaceURI = expanded_name.namespaceURI()
-            self.__localName = expanded_name.localName()
+        en = kw.get('expanded_name')
+        if en is not None:
+            self.__expandedName = en
+            ns = en.namespace()
+            if (ns is not None) and not (ns.prefix() is None):
+                assert not ns.isAbsentNamespace()
+                self.__prefix = ns.prefix()
+            if (ns is not None):
+                self.__namespaceURI = ns.uri()
+            self.__localName = en.localName()
+            if self.__prefix:
+                self.__tagName = '%s:%s' % (self.__prefix, self.__localName)
+            else:
+                self.__tagName = self.__localName
         self.__namespaceContext.setNodeContext(self)
 
     location = property(lambda _s: _s._location())
 
-    __name = None
-    @property
-    def name (self):
-        return self.__name
-    @property
-    def expanded_name (self):
-        return pyxb.namespace.ExpandedName(self.__namespaceURI, self.__localName)
+    __expandedName = None
+    _expandedName = property(lambda _s: _s.__expandedName)
+    __prefix = ''
+    prefix = property(lambda _s: _s.__prefix)
+    __tagName = ''
+    tagName = property(lambda _s: _s.__tagName)
     __namespaceURI = None
     namespaceURI = property(lambda _s: _s.__namespaceURI)
     __localName = None
@@ -196,7 +204,7 @@ class Node (xml.dom.Node, pyxb.utils.utility.Locatable_mixin):
         return self.getAttributeNodeNS(ns_uri, local_name) is not None
 
     def getAttributeNodeNS (self, ns_uri, local_name):
-        return self.__attributes._getAttr( (ns_uri, local_name) )
+        return self.__attributes._getAttr(pyxb.namespace.ExpandedName(ns_uri, local_name))
 
     def getAttributeNS (self, ns_uri, local_name):
         rv = self.getAttributeNodeNS(ns_uri, local_name)
@@ -215,31 +223,36 @@ class Attr (Node):
     """Add the nodeName and nodeValue interface."""
     def __init__ (self, **kw):
         super(Attr, self).__init__(node_type=xml.dom.Node.ATTRIBUTE_NODE, **kw)
-    nodeName = Node.name
+    name = Node.tagName
+    nodeName = Node.tagName
     nodeValue = Node.value
 
-class NamedNodeMap (dict):
+class NamedNodeMap (object):
     """Implement that portion of NamedNodeMap required to satisfy PyXB's
     needs."""
     __members = None
+    __memberMap = None
 
     def __init__ (self):
         super(NamedNodeMap, self).__init__()
         self.__members = []
+        self.__memberMap = {}
 
     length = property(lambda _s: len(_s.__members))
     def item (self, index):
         return self.__members[index]
 
     def _addItem (self, attr):
-        self[attr.name] = attr.value
         assert pyxb.namespace.resolution.NamespaceContext.GetNodeContext(attr) is not None
         self.__members.append(attr)
+        en = attr._expandedName
+        if en is not None:
+            self.__memberMap[en] = attr
 
     def _getAttr (self, name):
-        for attr in self.__members:
-            if attr.name == name:
-                return attr
+        rv = self.__memberMap.get(name)
+        if rv is not None:
+            return rv
         return None
 
 class Element (Node):

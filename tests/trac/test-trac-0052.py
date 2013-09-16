@@ -50,8 +50,11 @@ class TestTrac_0052 (unittest.TestCase):
         wc2 = instance.wildcardElements()[1]
         self.assertTrue(isinstance(wc2, xml.dom.Node))
         self.assertEqual(xml.dom.Node.ELEMENT_NODE, wc2.nodeType)
-        self.assertEqual('3', wc2.attributes.get(pyxb.namespace.ExpandedName('wca').uriTuple()))
-
+        self.assertEqual(1, wc2.attributes.length)
+        av = wc2.attributes.item(0)
+        self.assertEqual('wca', av.localName)
+        self.assertTrue(av.prefix in ('', None))
+        self.assertEqual('3', av.value)
 
 if __name__ == '__main__':
     unittest.main()
