@@ -2429,10 +2429,16 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     value = element_binding._createFromDOM(node, expanded_name, _fallback_namespace=fallback_namespace)
                 else:
                     # If we don't have an element binding, we might still be
-                    # able to convert this if it has an xsi:type attribute.
-                    try:
+                    # able to convert this if it has an xsi:type attribute
+                    # that names a valid type.
+                    xsi_type = XSI.type.getAttribute(node)
+                    try_create = False
+                    if xsi_type is not None:
+                        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
+                        (try_create, type_class) = XSI._InterpretTypeAttribute(xsi_type, ns_ctx, fallback_namespace, None)
+                    if try_create:
                         value = element.CreateDOMBinding(node, None, _fallback_namespace=fallback_namespace)
-                    except:
+                    else:
                         _log.warning('Unable to convert DOM node %s at %s to binding', expanded_name, getattr(node, 'location', '[UNAVAILABLE]'))
         if (not maybe_element) and isinstance(value, basestring) and (self._ContentTypeTag in (self._CT_EMPTY, self._CT_ELEMENT_ONLY)):
             if (0 == len(value.strip())) and not self._isNil():
