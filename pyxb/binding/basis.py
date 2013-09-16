@@ -456,12 +456,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
             if attr_en.namespace() in ( pyxb.namespace.XMLNamespaces, XSI ):
                 continue
 
-            value = attr.value
-            au = cls._AttributeMap.get(attr_en)
-            if au is None:
-                if cls._AttributeWildcard is None:
-                    raise pyxb.UnrecognizedAttributeError(cls, attr_en)
-            attribute_settings[attr_en] = value
+            attribute_settings[attr_en] = attr.value
         return attribute_settings
 
     def _setAttributesFromKeywordsAndDOM (self, kw, dom_node):

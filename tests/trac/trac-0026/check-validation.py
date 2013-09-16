@@ -474,11 +474,13 @@ class TestUnrecognizedAttributeError (unittest.TestCase):
             instance = trac26.CreateFromDOM(dom)
         e = cm.exception
         # The code path for this is creating a map from attribute tags
-        # to values in isolation of the specific instance.  No
-        # instance, no location.
+        # to values in isolation of the specific instance.  A
+        # partially-constructed instance is available, but the
+        # location is not available.
         self.assertEqual(e.type, trac26.tAttributes)
         self.assertEqual(e.tag, 'aBad')
-        self.assertTrue(e.instance is None)
+        self.assertTrue(e.instance is not None)
+        self.assertTrue(isinstance(e.instance, e.type))
         self.assertTrue(e.location is None)
 
     def testDocument (self):
