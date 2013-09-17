@@ -1245,6 +1245,9 @@ class STD_union (simpleTypeDefinition):
             raise pyxb.SimpleUnionValueError(cls, value)
         return value
 
+    def __new__ (self, *args, **kw):
+        raise pyxb.LogicError('%s: cannot construct instances of union' % (self.__class__.__name__,))
+
     def __init__ (self, *args, **kw):
         raise pyxb.LogicError('%s: cannot construct instances of union' % (self.__class__.__name__,))
 
