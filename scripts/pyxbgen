@@ -46,15 +46,6 @@ parser.add_option_group(group)
 
 (options, args) = parser.parse_args()
 
-if options.wsdl_location is not None:
-    import pyxb.bundles.wssplat.wsdl11 as wsdl
-    wsdl.ImportRelatedNamespaces()
-    for wsdl_uri in options.wsdl_location:
-        wsdl_uri = pyxb.utils.utility.NormalizeLocation(wsdl_uri)
-        print 'Retrieving WSDL from %s' % (wsdl_uri,)
-        xmld = pyxb.utils.utility.DataFromURI(wsdl_uri)
-        spec = wsdl.definitions.createFromDOM(pyxb.utils.domutils.StringToDOM(xmld), process_schema=True, wsdl_location=wsdl_uri, generation_uid=generator.generationUID())
-        generator.addSchema(spec.schema())
 generator.applyOptionValues(options, args)
 
 generator.resolveExternalSchema()
