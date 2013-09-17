@@ -6,10 +6,10 @@ if __name__ == '__main__':
 _log = logging.getLogger(__name__)
 import unittest
 
-import qq
-import qu
-import uq
-import uu
+import qq0196 as qq
+import qu0196 as qu
+import uq0196 as uq
+import uu0196 as uu
 import mix
 from pyxb.utils.domutils import BindingDOMSupport
 

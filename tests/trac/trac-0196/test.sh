@@ -18,6 +18,7 @@ expand () {
 
 rm -f *.wxs *.pyc
 for ea in qq qu uq uu ; do
+  eax="${ea}0196"
   e=$(echo ${ea} | cut -c1)
   a=$(echo ${ea} | cut -c2)
   E=$(expand "$e")
@@ -27,9 +28,9 @@ for ea in qq qu uq uu ; do
         -e "s/@ea@/${ea}/g" \
         -e "s/@a@/${a}/g" -e "s/@A@/${A}/g" \
         -e "s/@e@/${e}/g" -e "s/@E@/${E}/g" \
-    > ${ea}.xsd
-  rm -f ${ea}.py
-  pyxbgen --archive-to-file=${ea}.wxs -m ${ea} -u ${ea}.xsd || fail generating ${ea}
+    > ${eax}.xsd
+  rm -f ${eax}.py
+  pyxbgen --archive-to-file=${eax}.wxs -m ${eax} -u ${eax}.xsd || fail generating ${ea}
 done
 pyxbgen --archive-path .:+ -m mix -u mix.xsd || fail generating mix
 
