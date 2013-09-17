@@ -104,8 +104,9 @@ Anytown, AS  12345-6789'''
             pyxb.RequireValidWhenGenerating(False)
             self.assertFalse(pyxb.RequireValidWhenGenerating())
             xmlt = u'<ns1:purchaseOrder xmlns:ns1="http://www.example.com/PO1"><shipTo><street>General Delivery</street><name>Robert Smith</name></shipTo></ns1:purchaseOrder>'
-            xmld = xmlt.encode('utf-8')
-            self.assertEqual(po.toxml("utf-8", root_only=True), xmld)
+            xmlta = u'<ns1:purchaseOrder xmlns:ns1="http://www.example.com/PO1"><shipTo><name>Robert Smith</name><street>General Delivery</street></shipTo></ns1:purchaseOrder>'
+            xmlds = [ _xmlt.encode('utf-8') for _xmlt in (xmlt, xmlta) ]
+            self.assertTrue(po.toxml("utf-8", root_only=True) in xmlds)
         finally:
             pyxb.RequireValidWhenGenerating(True)
         self.assertRaises(pyxb.UnrecognizedContentError, CreateFromDocument, xmlt)
