@@ -23,12 +23,9 @@ class TestFacets (unittest.TestCase):
         xml = '<quantity xmlns="URN:test-facets">35</quantity>'
         instance = CreateFromDOM(pyxb.utils.domutils.StringToDOM(xml).documentElement)
         self.assertEqual(35, instance)
-        for (k,v) in globals().iteritems():
-            if k.startswith('_STD_ANON'):
-                break
-        self.assertEqual(v.typeDefinition(), type(instance))
-        self.assertRaises(Exception, v, -52)
-        self.assertRaises(Exception, v, 100)
+        self.assertTrue(isinstance(instance, quantity.typeDefinition()))
+        self.assertRaises(Exception, quantity, -52)
+        self.assertRaises(Exception, quantity, 100)
 
 if __name__ == '__main__':
     unittest.main()
