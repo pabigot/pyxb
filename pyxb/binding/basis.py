@@ -508,7 +508,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
             element_name = element_binding.name()
             need_xsi_type = need_xsi_type or element_binding.typeDefinition()._RequireXSIType(type(self))
         if element_name is None:
-            element_name = self._ExpandedName
+            raise pyxb.UnboundElementError(self)
         element = bds.createChildElement(element_name, parent)
         if need_xsi_type:
             val_type_qname = self._ExpandedName.localName()

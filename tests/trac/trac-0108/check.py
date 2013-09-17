@@ -8,5 +8,5 @@ _log = logging.getLogger(__name__)
 import TestPatternRestriction as t
 
 xml=u"\U00010314"
-p = t.TestPatternRestriction(xml)
+p = t.test(xml)
 print(p.toxml("utf-8"))

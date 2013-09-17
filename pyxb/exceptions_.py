@@ -58,6 +58,26 @@ class PyXBVersionError (PyXBException):
     """Raised on import of a binding generated with a different version of PYXB"""
     pass
 
+class DOMGenerationError (PyXBException):
+    """A non-validation error encountered converting bindings to DOM."""
+    pass
+
+class UnboundElementError (DOMGenerationError):
+    """An instance converting to DOM had no bound element."""
+
+    instance = None
+    """The binding instance.  This is missing an element binding (via
+    L{pyxb.binding.basis._TypeBinding_mixin._element}) and no
+    C{element_name} was passed."""
+
+    def __init__ (self, instance):
+        super(UnboundElementError, self).__init__(instance)
+        self.instance = instance
+
+    def __unicode__ (self):
+        return u'Instance of type %s has no bound element for start tag' % (self.instance._diagnosticName(),)
+    __str__ = PyXBException._str_from_unicode
+
 class SchemaValidationError (PyXBException):
     """Raised when the XML hierarchy does not appear to be valid for an XML schema."""
     pass

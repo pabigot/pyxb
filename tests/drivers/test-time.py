@@ -22,7 +22,7 @@ def make_tTime (*args, **kw):
     for cls in [ tXMTime, tISO8601 ]:
         try:
             v = cls(*args, **kw)
-            v.toxml("utf-8")
+            v.validateBinding()
             return v
         except Exception as e:
             pass

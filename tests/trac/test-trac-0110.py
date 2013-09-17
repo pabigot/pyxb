@@ -21,8 +21,10 @@ xsd='''<?xml version="1.0" encoding="UTF-8"?>
       <xs:element name="li" type="intList" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
+  <xs:element name="Single" type="tSingle"/>
 
 </xs:schema>'''
+
 
 code = pyxb.binding.generate.GeneratePython(schema_text=xsd)
 #open('code.py', 'w').write(code)
@@ -40,9 +42,9 @@ class TestTrac0110 (unittest.TestCase):
         pyxb.RequireValidWhenParsing(True)
 
     def testWithValidation (self):
-        expectt = '<tSingle><li>1 2 3</li></tSingle>'
+        expectt = '<Single><li>1 2 3</li></Single>'
         expectd = expectt.encode('utf-8')
-        s = tSingle()
+        s = Single()
         pyxb.RequireValidWhenGenerating(True)
         s.li = intList([1,2,3])
         self.assertEqual(s.toxml("utf-8", root_only=True), expectd)

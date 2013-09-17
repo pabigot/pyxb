@@ -69,7 +69,7 @@ class TestXSIType (unittest.TestCase):
                'lobby' : 'tiled',
                'room' : 'eats' }
         ctd = restaurant_(**kw)
-        dom = ctd.toDOM().documentElement
+        dom = ctd.toDOM(element_name='restaurant').documentElement
         xmlt = u'<restaurant><basement>concrete</basement><lobby>tiled</lobby><room>eats</room></restaurant>'
         xmld = xmlt.encode('utf-8')
         self.assertEqual(dom.toxml("utf-8"), xmld)

@@ -1,3 +1,3 @@
 import pyxb.bundles.opengis.gml as gml
 dv = gml.DegreesType(32, direction='N')
-print dv.toxml("utf-8")
+print dv.toDOM(element_name='degrees').toxml("utf-8")
