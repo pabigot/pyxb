@@ -29,7 +29,6 @@ import pyxb
 import pyxb.binding
 import pyxb.utils.utility
 import pyxb.utils.domutils
-import sys
 
 # Unique identifier for bindings created at the same time
 _GenerationUID = pyxb.namespace.builtin.BuiltInObjectUID

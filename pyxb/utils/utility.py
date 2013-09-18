@@ -62,7 +62,6 @@ def IteratedCompareMixed (lhs, rhs):
     @return: -1 if lhs < rhs, 0 if lhs == rhs, 1 if lhs > rhs."""
     li = iter(lhs)
     ri = iter(rhs)
-    res = None
     while True:
         try:
             (lv, rv) = (li.next(), ri.next())

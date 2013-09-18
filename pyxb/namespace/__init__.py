@@ -901,7 +901,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
                     _log.info('Load %s from %s', mr, mr.archive())
                     try:
                         mr.archive().readNamespaces()
-                    except pyxb.NamespaceArchiveError as e:
+                    except pyxb.NamespaceArchiveError:
                         _log.exception("Failure reading namespaces in archive")
                 else:
                     _log.info('Ignoring private module %s in validation', mr)
