@@ -250,7 +250,7 @@ class AttributeUse (pyxb.cscRoot):
             if self.__required:
                 raise pyxb.MissingAttributeError(type(ctd_instance), self.__name, ctd_instance)
 
-    def set (self, ctd_instance, new_value):
+    def set (self, ctd_instance, new_value, from_xml=False):
         """Set the value of the attribute.
 
         This validates the value against the data type, creating a new instance if necessary.
@@ -261,9 +261,12 @@ class AttributeUse (pyxb.cscRoot):
         @param new_value: The value for the attribute
         @type new_value: Any value that is permitted as the input parameter to
         the C{Factory} method of the attribute's datatype.
+        @param from_xml: Value C{True} iff the new_value is known to be in
+        lexical space and must by converted by the type factory.  If C{False}
+        (default) the value is only converted if it is not already an instance
+        of the attribute's underlying type.
         """
         provided = True
-        from_xml = False
         assert not isinstance(new_value, xml.dom.Node)
         if new_value is None:
             if self.__required:
@@ -271,7 +274,7 @@ class AttributeUse (pyxb.cscRoot):
             provided = False
         if self.__prohibited:
             raise pyxb.ProhibitedAttributeError(type(ctd_instance), self.__name, ctd_instance)
-        if (new_value is not None) and (not isinstance(new_value, self.__dataType)):
+        if (new_value is not None) and (from_xml or not isinstance(new_value, self.__dataType)):
             new_value = self.__dataType.Factory(new_value, _from_xml=from_xml)
         if self.__fixed and (new_value != self.__defaultValue):
             raise pyxb.AttributeChangeError(type(ctd_instance), self.__name, ctd_instance)

@@ -480,8 +480,8 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
             iv = kw.pop(fu.id(), None)
             if iv is not None:
                 attribute_settings[fu.name()] = iv
-        for (attr_en, value) in attribute_settings.iteritems():
-            self._setAttribute(attr_en, value)
+        for (attr_en, value_lex) in attribute_settings.iteritems():
+            self._setAttribute(attr_en, value_lex)
 
     def toDOM (self, bds=None, parent=None, element_name=None):
         """Convert this instance to a DOM node.
@@ -1141,11 +1141,11 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
     def _isValidValue (self):
         self._IsValidValue(self)
 
-    def _setAttribute (self, attr_en, value):
+    def _setAttribute (self, attr_en, value_lex):
         # Simple types have no attributes, but the parsing infrastructure
         # might invoke this to delegate responsibility for notifying the user
         # of the failure.
-        raise pyxb.AttributeOnSimpleTypeError(self, attr_en, value)
+        raise pyxb.AttributeOnSimpleTypeError(self, attr_en, value_lex)
 
     @classmethod
     def _description (cls, name_only=False, user_documentation=True):
@@ -2196,14 +2196,14 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         self._validateAttributes()
         return True
 
-    def _setAttribute (self, attr_en, value):
+    def _setAttribute (self, attr_en, value_lex):
         au = self._AttributeMap.get(attr_en)
         if au is None:
             if self._AttributeWildcard is None:
                 raise pyxb.UnrecognizedAttributeError(type(self), attr_en, self)
-            self.__wildcardAttributeMap[attr_en] = value
+            self.__wildcardAttributeMap[attr_en] = value_lex
         else:
-            au.set(self, value)
+            au.set(self, value_lex, from_xml=True)
         return au
 
     def xsdConstraintsOK (self, location=None):
