@@ -3,7 +3,7 @@
 from __future__ import print_function
 
 # The current version of the system.  Format is #.#.#[-DEV].
-version = '1.2.3'
+version = '1.2.4-DEV'
 
 import distutils.sysconfig
 
