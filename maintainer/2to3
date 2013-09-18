@@ -21,6 +21,7 @@ git commit -F 23o -a
 (
   # Edit sources for changes not handled by 2to3
   list_python_sources \
+    | sed -e '/2to3$/d' \
     | xargs sed -i -r \
         -e '\%^#!/usr/bin/env%s/python$/python3/' \
         -e '/#!python3>!/,/#!python3<!/d' \
@@ -41,6 +42,7 @@ git commit -F 23o -a
     git grep -lw python maintainer
     git ls-tree -r --name-only HEAD \
     | sed -n \
+      -e '/2to3$/d' \
       -e '/\.sh$/p'
   ) | xargs sed -i -r -e 's/\bpython\b/python3/g'
 
