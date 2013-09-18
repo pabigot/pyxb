@@ -26,8 +26,8 @@ relaxed policy is:
   fixes and most enhancements causing an increment in the third integer
 
 As examples, :ticket:`correcting the content model for weak determinism <112>`
-resulted in PyXB 1.2.0, and :ticket:`support of Python 3 <150>` will result in
-PyXB 1.3.0.
+resulted in PyXB 1.2.0, and :ticket:`support of Python 3 <150>` will be part of
+PyXB 1.3.0 along with :ticket:`support for XML Schema 1.1 <217>`.
 
 
 1.2.x
@@ -41,8 +41,19 @@ support for validating exception attributes.
 
 .. _pyxb-1.2.3:
 
-1.2.3 (?? ??? 2013)
+1.2.3 (18 Sep 2013)
 -------------------
+
+This is primarily a bug-fix and clean-up release.  One new feature is that
+starting with this release a Python 3 compatible version of PyXB will be
+available in the git repository.  For this version, it may be obtained by::
+
+  git clone -b python3/pyxb-1.2.3 git://git.code.sf.net/p/pyxb/code pyxb3-1.2.3
+
+The Python 3 code in this branch is created by automatic conversion of the
+Python 2 code using the maintainer/2to3 script.  While not officially
+supported until PyXB 1.3.0, Python 3 appears to work correctly with this
+version.
 
 Behavioral changes:
 
@@ -58,6 +69,11 @@ Behavioral changes:
   be ignored if content for the namespace can be located in any archive or
   builtin.
 
+- Generating DOM (or XML) expressions of bindings that were created by type
+  constructors and not associated with elements now cause an exception to be
+  raised rather than mis-using the type name as though it were a valid element
+  tag.
+
 Code cleanup:
 
 - Trailing whitespace throughout the source has been removed to decrease git
@@ -68,9 +84,12 @@ Code cleanup:
 The following reported `defects/enhancements
 <http://sourceforge.net/apps/trac/pyxb/>`_ have been addressed:
 
+- Fix DOM style handling of xsi:type attribute.  :ticket:`166`
 - Fix problems with nillable simple types.  :ticket:`200`
 - Fix problems inserting into plural element attributes.  :ticket:`201`
 - Correct namespace-qualified attributes.  :ticket:`202`
+- Eliminate automatic derivation of XML element tag from binding type when
+  converting an element-free instance to DOM.  :ticket:`203`
 - Eliminate default to fixed value for elements.  :ticket:`204`
 - Re-word exception when element content was incompatible with fixed value.
   :ticket:`205`
@@ -82,6 +101,17 @@ The following reported `defects/enhancements
   respect to in-scope namespace declarations.  :ticket:`208`
 - Rework how to specify that imported namespaces should be processed to extend
   the content model.  :ticket:`209`
+- Removed redundant code in pyxbgen relevant to
+  :ref:`pyxbgen--wsdl-location`.  :ticket:`210`
+- Refine diagnostics when an element with simple type appears in a context
+  that expects non-element content.  :ticket:`211`
+- Add :api:`pyxb.NonElementContent` to simplify access to non-element content
+  in a mixed-content instance.  :ticket:`212`
+- Convert assert failures to diagnostic exceptions when generating DOM
+  expressions of complex types with simple content where the content is
+  missing. :ticket:`213`
+- Ensure attribute values are converted from lexical space to value space when
+  assigned from an XML representation.  :ticket:`216`
 
 .. _pyxb-1.2.2:
 
