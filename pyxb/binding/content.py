@@ -878,14 +878,18 @@ class _PluralBinding (collections.MutableSequence):
         return hash(self.__list__)
 
     def __eq__ (self, other):
+        if other is None:
+            return False
         if isinstance(other, _PluralBinding):
             return self.__list.__eq__(other.__list)
         return self.__list.__eq__(other)
 
-    def __le__ (self, other):
+    def __lt__ (self, other):
+        if other is None:
+            return False
         if isinstance(other, _PluralBinding):
-            return self.__list.__le__(other.__list)
-        return self.__list.__le__(other)
+            return self.__list.__lt__(other.__list)
+        return self.__list.__lt__(other)
 
 class ElementDeclaration (object):
     """Aggregate the information relevant to an element of a complex type.
