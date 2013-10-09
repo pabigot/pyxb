@@ -70,12 +70,22 @@ class TestTrac_0094 (unittest.TestCase):
         implicit_xml = instance.toxml("utf-8")
         self.assertEqual(explicit_xml, implicit_xml)
         instance.anything = xs.int(43)
+        self.assertTrue(isinstance(instance.anything, xs.int))
         int_xml = instance.toxml("utf-8")
         instance.anything = self.body
-        # You can do that, but you won't be able to convert it to xml
-        self.assertRaises(AttributeError, instance.toxml)
+        self.assertTrue(isinstance(instance.anything, xs.anyType))
+        oc = instance.anything.orderedContent()
+        self.assertEqual(1, len(oc))
+        self.assertTrue(isinstance(oc[0], pyxb.binding.basis.NonElementContent))
+        self.assertEqual(instance.toxml('utf-8', root_only=True),
+                         '<container><anything>something</anything></container>')
         instance.anything = 43
-        self.assertRaises(AttributeError, instance.toxml)
+        self.assertTrue(isinstance(instance.anything, xs.anyType))
+        oc = instance.anything.orderedContent()
+        self.assertEqual(1, len(oc))
+        self.assertTrue(isinstance(oc[0], pyxb.binding.basis.NonElementContent))
+        self.assertEqual(instance.toxml('utf-8', root_only=True),
+                         '<container><anything>43</anything></container>')
 
 if __name__ == '__main__':
     unittest.main()

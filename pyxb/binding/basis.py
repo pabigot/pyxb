@@ -2509,8 +2509,17 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         return self
 
     def _appendWildcardElement (self, value):
-        self._addContent(ElementContent(value, None))
-        self.__wildcardElements.append(value)
+        if (isinstance(value, xml.dom.Node)
+            or (isinstance(value, _TypeBinding_mixin) and (value._element is not None))):
+            # Something that we can interpret as an element
+            self._addContent(ElementContent(value, None))
+            self.__wildcardElements.append(value)
+        elif self._IsMixed():
+            # Not an element, but allowed as mixed content
+            self._addContent(NonElementContent(value))
+        else:
+            # Not an element and no mixed content allowed: error
+            raise pyxb.MixedContentError(self, value)
 
     def extend (self, value_list, _fallback_namespace=None, _from_xml=False, _location=None):
         """Invoke L{append} for each value in the list, in turn."""
