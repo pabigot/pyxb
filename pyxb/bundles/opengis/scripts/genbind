@@ -91,6 +91,8 @@ ${SCHEMA_DIR}/citygml/transportation/1.0/transportation.xsd citygml.transportati
 ${SCHEMA_DIR}/citygml/vegetation/1.0/vegetation.xsd citygml.vegetation
 ${SCHEMA_DIR}/citygml/waterbody/1.0/waterBody.xsd citygml.waterBody
 ${SCHEMA_DIR}/waterml/2.0/waterml2.xsd waterml
+${SCHEMA_DIR}/oseo/1.0/oseo.xsd oseo_1_0
+${SCHEMA_DIR}/wps/1.0.0/wpsAll.xsd wps_1_0_0
 EOText
 ) | generateBindings \
       --location-prefix-rewrite=http://schemas.opengis.net/=${SCHEMA_DIR}/
