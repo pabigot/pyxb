@@ -31,7 +31,8 @@ xsd='''<?xml version="1.0" encoding="UTF-8"?>
       <xs:enumeration value="8"/>
     </xs:restriction>
   </xs:simpleType>
-
+  <xs:element name="eng" type="english"/>
+  <xs:element name="pow" type="po2"/>
 </xs:schema>'''
 
 code = pyxb.binding.generate.GeneratePython(schema_text=xsd)
@@ -49,6 +50,16 @@ class TestTrac0221 (unittest.TestCase):
         self.assertEqual(english.one, english._valueForUnicode(u'one'))
         self.assertEqual(None, english._valueForUnicode(u'no such element'))
         self.assertEqual(english.bd, english._valueForUnicode(u'b@d'))
+
+    def testProcessing (self):
+        v = CreateFromDocument('<eng>one</eng>')
+        self.assertEqual(english.one, v)
+        v = CreateFromDocument('<pow>8</pow>')
+        self.assertEqual(po2._elementForValue(8).value(), v)
+        self.assertEqual(v, po2._valueForUnicode(u'8'))
+
+    def testLegacy (self):
+        self.assertEqual(english.one, english._CF_enumeration.elementForValue(u'one').value())
 
     def testElementForValue (self):
         e1 = english._elementForValue(u'one')
