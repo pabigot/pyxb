@@ -1831,6 +1831,20 @@ class enumeration_mixin (pyxb.cscRoot):
         """Generate the associated L{pyxb.binding.facet._EnumerationElement} instances."""
         return cls._CF_enumeration.iteritems()
 
+    @classmethod
+    def _elementForValue (cls, value):
+        """Return the L{_EnumerationElement} instance that has the given value.
+
+        @raise KeyError: the value is not valid for the enumeration."""
+        return cls._CF_enumeration.elementForValue(value)
+
+    @classmethod
+    def _valueForUnicode (cls, ustr):
+        """Return the enumeration value corresponding to the given unicode string.
+
+        If ustr is not a valid option for this enumeration, return None."""
+        return cls._CF_enumeration.valueForUnicode(ustr)
+
 class _Content (object):
     """Base for any wrapper added to L{complexTypeDefinition.orderedContent}."""
 
