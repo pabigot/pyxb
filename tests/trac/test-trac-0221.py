@@ -58,6 +58,19 @@ class TestTrac0221 (unittest.TestCase):
         self.assertEqual(po2._elementForValue(8).value(), v)
         self.assertEqual(v, po2._valueForUnicode(u'8'))
 
+    def testDirect (self):
+        v = po2(8)
+        self.assertEqual(po2._elementForValue(8).value(), v)
+        self.assertTrue(isinstance(v, po2))
+        v = po2(u'8')
+        self.assertEqual(po2._elementForValue(8).value(), v)
+        self.assertTrue(isinstance(v, po2))
+        self.assertRaises(SimpleFacetValueError, po2, 9)
+
+        v = english(u'b@d')
+        self.assertEqual(english.bd, v)
+        self.assertRaises(SimpleFacetValueError, eng, u'bd')
+
     def testLegacy (self):
         self.assertEqual(english.one, english._CF_enumeration.elementForValue(u'one').value())
 
