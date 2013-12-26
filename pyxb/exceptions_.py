@@ -577,17 +577,21 @@ class IncrementalElementContentError (ContentValidationError):
         self.location = location
         super(IncrementalElementContentError, self).__init__(instance, automaton_configuration, value, location)
 
+    def _valueDescription (self):
+        import xml.dom
+        if isinstance(self.value, pyxb.binding.basis._TypeBinding_mixin):
+            return self.value._diagnosticName()
+        if isinstance(self.value, xml.dom.Node):
+            return self.value.nodeName
+        return unicode(self.value)
+
 class UnrecognizedContentError (IncrementalElementContentError):
     """Element or element-like content could not be validly associated with an sub-element in the content model.
 
     This exception occurs when content is added to an element during incremental validation."""
 
     def __unicode__ (self):
-        value = self.value
-        try:
-            value = unicode(self.value._element().name())
-        except:
-            pass
+        value = self._valueDescription()
         acceptable = self.automaton_configuration.acceptableContent()
         if 0 == acceptable:
             expect = 'no more content'
@@ -620,9 +624,9 @@ class UnrecognizedContentError (IncrementalElementContentError):
             rv.append('The containing element %s is defined at %s.' % (i._element().name(), i._element().xsdLocation()))
         rv.append('The containing element type %s is defined at %s' % (self.instance._Name(), unicode(self.instance._XSDLocation)))
         if self.location is not None:
-            rv.append('The unrecognized content %s begins at %s' % (self.value._diagnosticName(), self.location))
+            rv.append('The unrecognized content %s begins at %s' % (self._valueDescription(), self.location))
         else:
-            rv.append('The unrecognized content is %s' % (self.value._diagnosticName(),))
+            rv.append('The unrecognized content is %s' % (self._valueDescription(),))
         rv.append('The %s automaton %s in an accepting state.' % (self.instance._Name(), self.automaton_configuration.isAccepting() and "is" or "is not"))
         if isinstance(self.instance, pyxb.binding.basis.complexTypeDefinition) and self.instance._IsMixed():
             rv.append('Character information content would be permitted.')

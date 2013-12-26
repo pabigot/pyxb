@@ -40,6 +40,7 @@ import pyxb.binding.datatypes as xs
 import trac26
 import unittest
 import sys
+import xml.dom
 
 # By default skip the "tests" which actually emit the exception
 # backtrace.  Sometimes though it's good to see those, since they're
@@ -631,6 +632,7 @@ The <class 'trac26.CTD_ANON_3'> automaton is in an accepting state.
 The following element and wildcard content would be accepted:
 \tAn element eInt per trac26.xsd[83:8]
 \tA wildcard per trac26.xsd[84:8]'''
+    Bad2_xmlt = u'<eInts><something>1</something></eInts>'
 
     def testSchemaSupport (self):
         instance = trac26.eInts()
@@ -664,11 +666,29 @@ The following element and wildcard content would be accepted:
         self.assertEqual(1, e.location.lineNumber)
         self.assertEqual(7, e.location.columnNumber)
         self.assertTrue(isinstance(e.value, trac26.tCTwSC))
+        self.assertEqual(e._valueDescription(), 'eCTwSC')
         acceptable = e.automaton_configuration.acceptableContent()
         self.assertEqual(1, len(acceptable))
         self.assertNotEqual(acceptable[0].elementBinding(), trac26.eInt)
         self.assertEqual(acceptable[0].typeDefinition(), trac26.eInt.typeDefinition())
         self.assertEqual(str(e), 'Invalid content eCTwSC at <unknown>[1:7] (expect eInt)')
+
+    def testDocument2 (self):
+        instance = None
+        with self.assertRaises(pyxb.UnrecognizedContentError) as cm:
+            instance = trac26.CreateFromDocument(self.Bad2_xmlt)
+        e = cm.exception
+        self.assertFalse(e.location is None)
+        self.assertEqual(1, e.location.lineNumber)
+        self.assertEqual(7, e.location.columnNumber)
+        self.assertTrue(isinstance(e.value, xml.dom.Node))
+        self.assertFalse(isinstance(e.value, pyxb.binding.basis._TypeBinding_mixin))
+        self.assertEqual(e._valueDescription(), 'something')
+        acceptable = e.automaton_configuration.acceptableContent()
+        self.assertEqual(1, len(acceptable))
+        self.assertNotEqual(acceptable[0].elementBinding(), trac26.eInt)
+        self.assertEqual(acceptable[0].typeDefinition(), trac26.eInt.typeDefinition())
+        self.assertEqual(str(e), 'Invalid content something at <unknown>[1:7] (expect eInt)')
 
     def testDisplay (self):
         if DisplayException:
