@@ -78,6 +78,16 @@ Using the schema in the :ref:`namespace-aware address schema
 
 .. literalinclude:: ../examples/manual/demo4a.py
 
+.. note::
+
+   It is necessary to provide an ``element_name`` parameter to ``to_xml``
+   because in this case ``USAddress`` is the name of a complex type, not an
+   top-level schema element.  PyXB cannot generate XML for an instance unless
+   it knows the name to use for the root element.  In most situations PyXB can
+   figure out what element the instance belongs to, as when the instance is
+   created through an element binding instead of a type binding and when it is
+   assigned into another instance, both of which are seen in `demo4c`_.
+
 This produces:
 
 .. literalinclude:: ../examples/manual/demo4a.out
@@ -104,6 +114,8 @@ object creation call:
 
 This has the same effect, and is much more compact, but it does require that
 the order match the content model.
+
+.. _demo4c:
 
 Attributes are set using keyword parameters:
 

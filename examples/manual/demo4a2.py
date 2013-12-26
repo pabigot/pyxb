@@ -8,4 +8,4 @@ addr.city = 'Anytown'
 addr.zip = 12341
 addr.name = 'Robert Smith'
 
-print(addr.toxml("utf-8"))
+print(addr.toxml("utf-8", element_name='USAddress'))
