@@ -38,5 +38,10 @@ class TestTrac0203 (unittest.TestCase):
         self.assertEqual(e.instance, unbound)
         self.assertEqual('Instance of type XsdWithHyphens has no bound element for start tag', str(e))
 
+    def testOverride (self):
+        unbound = XsdWithHyphens('name')
+        xmls = unbound.toxml('utf-8', root_only=True, element_name='root')
+        self.assertEqual(u'<root><username>name</username></root>', xmls)
+
 if __name__ == '__main__':
     unittest.main()
