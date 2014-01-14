@@ -27,8 +27,10 @@ import logging
 _log = logging.getLogger(__name__)
 
 # The DOM implementation to be used for all processing.  Default is whatever
-# your Python install uses.  If it's minidom, it should work.
-__DOMImplementation = xml.dom.getDOMImplementation()
+# your Python install uses, as long as it supports Core 2.0 (for
+# createDocument) and XML 2.0 (for NS-aware attribute manipulation).  The
+# built-in minidom works fine.
+__DOMImplementation = xml.dom.getDOMImplementation(None, (('core', '2.0'), ('xml', '2.0')))
 
 def GetDOMImplementation ():
     """Return the DOMImplementation object used for pyxb operations.
