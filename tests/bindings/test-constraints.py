@@ -139,19 +139,41 @@ class testEnumeration (unittest.TestCase):
             self.assertEqual(cm.exception.facet, Cardinals._CF_enumeration)
 
 class testDigits (unittest.TestCase):
+    # FixedPoint is 5.2 (-999.99 through 999.99 for fractional)
+    def assertAlmostEqual (self, v1, v2, *args, **kw):
+        if (isinstance(v1, datatypes.decimal)
+            or isinstance(v2, datatypes.decimal)):
+            if not isinstance(v1, datatypes.decimal):
+                v1 = datatypes.decimal(str(v1))
+            if not isinstance(v2, datatypes.decimal):
+                v2 = datatypes.decimal(str(v2))
+        return super(testDigits, self).assertAlmostEqual(v1, v2, *args, **kw)
+
     def testTotalDigits (self):
+        self.assertRaises(SimpleFacetValueError, FixedPoint, '0.001')
+        self.assertAlmostEqual(0.01, FixedPoint('0.01'))
+        self.assertAlmostEqual(0.12, FixedPoint('0.12'))
+        self.assertRaises(SimpleFacetValueError, FixedPoint, '12.345')
+        self.assertAlmostEqual(123.45, FixedPoint('123.45'))
         self.assertAlmostEqual(1, FixedPoint('1'))
         self.assertAlmostEqual(12, FixedPoint('12'))
         self.assertAlmostEqual(123, FixedPoint('123'))
         self.assertAlmostEqual(1234, FixedPoint('1234'))
         self.assertAlmostEqual(12345, FixedPoint('12345'))
+        self.assertRaises(SimpleFacetValueError, FixedPoint, '123000')
         self.assertRaises(SimpleFacetValueError, FixedPoint, '123456')
         self.assertRaises(SimpleFacetValueError, FixedPoint, '1234567')
+        self.assertRaises(SimpleFacetValueError, FixedPoint, '-0.001')
+        self.assertAlmostEqual(-0.01, FixedPoint('-0.01'))
+        self.assertAlmostEqual(-0.12, FixedPoint('-0.12'))
+        self.assertRaises(SimpleFacetValueError, FixedPoint, '-12.345')
+        self.assertAlmostEqual(-123.45, FixedPoint('-123.45'))
         self.assertAlmostEqual(-1, FixedPoint('-1'))
         self.assertAlmostEqual(-12, FixedPoint('-12'))
         self.assertAlmostEqual(-123, FixedPoint('-123'))
         self.assertAlmostEqual(-1234, FixedPoint('-1234'))
         self.assertAlmostEqual(-12345, FixedPoint('-12345'))
+        self.assertRaises(SimpleFacetValueError, FixedPoint, '-123000')
         self.assertRaises(SimpleFacetValueError, FixedPoint, '-123456')
         self.assertRaises(SimpleFacetValueError, FixedPoint, '-1234567')
 

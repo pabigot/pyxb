@@ -30,6 +30,7 @@ from . import basis
 from pyxb.utils import utility
 import re
 import logging
+import decimal
 
 _log = logging.getLogger(__name__)
 
@@ -699,6 +700,11 @@ class CF_totalDigits (ConstrainingFacet, _Fixed_mixin):
     def _validateConstraint_vx (self, value):
         if self.value() is None:
             return True
+        if isinstance(value, datatypes.decimal):
+            (sign, digits, exponent) = value.normalize().as_tuple()
+            if len(digits) > self.value():
+                return False
+            return (0 <= -exponent) and (-exponent <= self.value())
         n = 0
         scale = 1
         match = False
@@ -726,6 +732,9 @@ class CF_fractionDigits (ConstrainingFacet, _Fixed_mixin):
     def _validateConstraint_vx (self, value):
         if self.value() is None:
             return True
+        if isinstance(value, datatypes.decimal):
+            (sign, digits, exponent) = value.normalize().as_tuple()
+            return (0 <= -exponent) and (-exponent <= self.value())
         n = 0
         scale = 1
         while n <= self.value():
