@@ -173,6 +173,14 @@ class testDigits (unittest.TestCase):
         self.assertAlmostEqual(-12.34, FixedPoint('-12.34'))
         self.assertRaises(SimpleFacetValueError, FixedPoint, '-12.345')
 
+    def testLexical (self):
+        self.assertEqual('1.0', FixedPoint('1').xsdLiteral())
+        self.assertEqual('0.1', FixedPoint('0.1').xsdLiteral())
+        self.assertEqual('1.0', FixedPoint('1.0000').xsdLiteral())
+        self.assertEqual('0.1', FixedPoint('0000.10000').xsdLiteral())
+        self.assertEqual('1.0', FixedPoint('+1').xsdLiteral())
+        self.assertEqual('-1.0', FixedPoint('-1').xsdLiteral())
+
 class testWhitespace (unittest.TestCase):
     __Preserve = facets.CF_whiteSpace(value=facets._WhiteSpace_enum.preserve)
     def testPreserve (self):
