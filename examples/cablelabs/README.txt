@@ -1,3 +1,7 @@
+Updated 2014-02-05: The schema referenced by this example are no longer
+available at the original URI.  If they are available elsewhere it's not
+obvious.
+
 This example was generated in response to a thread in the PyXB Help forum.
 
 The thread may be viewed at:
