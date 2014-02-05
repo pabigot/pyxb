@@ -50,21 +50,27 @@ class TestTrac0189 (unittest.TestCase):
         xmls = '<elt><eOne>1</eOne><eTwo>2</eTwo></elt>'
         self.assertRaises(UnrecognizedContentError, CreateFromDocument, xmls)
         pyxb.RequireValidWhenParsing(False)
-        with self.assertRaises(pyxb.StructuralBadDocumentError) as cm:
-            i = CreateFromDocument(xmls)
-        e = cm.exception
+        if sys.version_info[:2] < (2, 7):
+            self.assertRaises(pyxb.StructuralBadDocumentError, CreateFromDocument, xmls)
+        else:
+            with self.assertRaises(pyxb.StructuralBadDocumentError) as cm:
+                i = CreateFromDocument(xmls)
+            e = cm.exception
 
     def testAppend (self):
         i = elt(1)
         self.assertEqual(i.eOne, 1)
         ed = i._ElementMap.get('eOne')
-        with self.assertRaises(pyxb.NonPluralAppendError) as cm:
-            ed.append(i, 2)
-        e = cm.exception
-        self.assertEqual(e.instance, i)
-        self.assertEqual(e.element_declaration, ed)
-        self.assertEqual(e.value, 2)
-        self.assertEqual(e.details(), 'Instance of tElt cannot append to element eOne')
+        if sys.version_info[:2] < (2, 7):
+            self.assertRaises(pyxb.NonPluralAppendError, ed.append, i, 2)
+        else:
+            with self.assertRaises(pyxb.NonPluralAppendError) as cm:
+                ed.append(i, 2)
+            e = cm.exception
+            self.assertEqual(e.instance, i)
+            self.assertEqual(e.element_declaration, ed)
+            self.assertEqual(e.value, 2)
+            self.assertEqual(e.details(), 'Instance of tElt cannot append to element eOne')
 
 if __name__ == '__main__':
     unittest.main()

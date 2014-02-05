@@ -437,10 +437,13 @@ class TestOpenOrCreate_ExistingTagMismatch (unittest.TestCase, _TestOpenOrCreate
         fd = open(filename, 'rb')
         self.assertEqual(texd, fd.read())
         fd.close()
-        with self.assertRaises(OSError) as cm:
-            OpenOrCreate(filename, tag=tag)
-        e = cm.exception
-        self.assertEqual(e.errno, errno.EEXIST)
+        if sys.version_info[:2] < (2, 7):
+            self.assertRaises(OSError, OpenOrCreate, filename, tag=tag)
+        else:
+            with self.assertRaises(OSError) as cm:
+                OpenOrCreate(filename, tag=tag)
+            e = cm.exception
+            self.assertEqual(e.errno, errno.EEXIST)
 
 class TestHashForText (unittest.TestCase):
 

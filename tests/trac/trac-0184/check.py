@@ -19,8 +19,7 @@ class ExternalTrac0184 (unittest.TestCase):
         e1i = s1.e1i(4)
         e1s = s1.e1s('ext0')
         e0extend0 = s0.e0extend0()
-        with self.assertRaises(pyxb.IncompleteElementContentError) as cm:
-            e0extend0.toxml('utf-8')
+        self.assertRaises(pyxb.IncompleteElementContentError, e0extend0.toxml, 'utf-8')
         e0extend0.e0i = e0i
         xmlt = u'<s0:e0extend0 xmlns:s0="urn:s0add"><s0:e0i>32</s0:e0i></s0:e0extend0>'
         xmld = xmlt.encode('utf-8')
@@ -39,8 +38,7 @@ class ExternalTrac0184 (unittest.TestCase):
         e1i = s1.e1i(4)
         e1s = s1.e1s('ext1')
         e0extend1 = s0.e0extend1()
-        with self.assertRaises(pyxb.IncompleteElementContentError) as cm:
-            e0extend1.toxml('utf-8')
+        self.assertRaises(pyxb.IncompleteElementContentError, e0extend1.toxml, 'utf-8')
         e0extend1.e0i = e0i
         xmlt = u'<s0:e0extend1 xmlns:s0="urn:s0add"><s0:e0i>32</s0:e0i></s0:e0extend1>'
         xmld = xmlt.encode('utf-8')

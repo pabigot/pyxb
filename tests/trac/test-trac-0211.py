@@ -59,10 +59,13 @@ class TestTrac0211 (unittest.TestCase):
 
         # Disallow creation from XML
         xmlt = u'<Int><ival>4</ival></Int>'
-        with self.assertRaises(pyxb.NonElementValidationError) as cm:
-            instance = CreateFromDocument(xmlt)
-        e = cm.exception
-        self.assertTrue(isinstance(e.element, (ival.typeDefinition(), Node)))
+        if sys.version_info[:2] < (2, 7):
+            self.assertRaises(pyxb.NonElementValidationError, CreateFromDocument, xmlt)
+        else:
+            with self.assertRaises(pyxb.NonElementValidationError) as cm:
+                instance = CreateFromDocument(xmlt)
+            e = cm.exception
+            self.assertTrue(isinstance(e.element, (ival.typeDefinition(), Node)))
 
         # Allow creation from unbound simple value
         instance = Int(usv4)
@@ -78,10 +81,13 @@ class TestTrac0211 (unittest.TestCase):
     def testInvalidSimple (self):
         # Disallow creation from XML
         xmlt = u'<ival><ival>4</ival></ival>'
-        with self.assertRaises(pyxb.NonElementValidationError) as cm:
-            instance = CreateFromDocument(xmlt)
-        e = cm.exception
-        self.assertTrue(isinstance(e.element, (ival.typeDefinition(), Node)))
+        if sys.version_info[:2] < (2, 7):
+            self.assertRaises(pyxb.NonElementValidationError, CreateFromDocument, xmlt)
+        else:
+            with self.assertRaises(pyxb.NonElementValidationError) as cm:
+                instance = CreateFromDocument(xmlt)
+            e = cm.exception
+            self.assertTrue(isinstance(e.element, (ival.typeDefinition(), Node)))
 
         # Create a bound instance with value 4
         bv4 = ival(4)

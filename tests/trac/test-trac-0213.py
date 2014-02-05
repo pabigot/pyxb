@@ -47,10 +47,13 @@ class TestTrac0213 (unittest.TestCase):
         self.assertEqual(ni.value(), 32)
         self.assertEqual(ni.units, "m")
         ni.reset()
-        with self.assertRaises(SimpleContentAbsentError) as cm:
-            ni.validateBinding()
-        e = cm.exception
-        self.assertEqual(e.instance, ni)
+        if sys.version_info[:2] < (2, 7):
+            self.assertRaises(SimpleContentAbsentError, ni.validateBinding)
+        else:
+            with self.assertRaises(SimpleContentAbsentError) as cm:
+                ni.validateBinding()
+            e = cm.exception
+            self.assertEqual(e.instance, ni)
 
 if __name__ == '__main__':
     unittest.main()

@@ -32,11 +32,14 @@ import unittest
 class TestTrac0203 (unittest.TestCase):
     def testBasic (self):
         unbound = XsdWithHyphens('name')
-        with self.assertRaises(pyxb.UnboundElementError) as cm:
-            unbound.toxml('utf-8', root_only=True)
-        e = cm.exception
-        self.assertEqual(e.instance, unbound)
-        self.assertEqual('Instance of type XsdWithHyphens has no bound element for start tag', str(e))
+        if sys.version_info[:2] < (2, 7):
+            self.assertRaises(pyxb.UnboundElementError, unbound.toxml, 'utf-8', root_only=True)
+        else:
+            with self.assertRaises(pyxb.UnboundElementError) as cm:
+                unbound.toxml('utf-8', root_only=True)
+            e = cm.exception
+            self.assertEqual(e.instance, unbound)
+            self.assertEqual('Instance of type XsdWithHyphens has no bound element for start tag', str(e))
 
     def testOverride (self):
         unbound = XsdWithHyphens('name')

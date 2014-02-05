@@ -34,6 +34,12 @@ import unittest
 import sys
 
 class TestTrac0204 (unittest.TestCase):
+    if sys.version_info[:2] < (2, 7):
+        def assertIsNone (self, v):
+            self.assertEqual(None, v)
+        def assertIsNotNone (self, v):
+            self.assertNotEqual(None, v)
+
     def testCtor (self):
         instance = yesNoChoice()
         self.assertIsNone(instance.Yes)

@@ -46,6 +46,12 @@ from pyxb.exceptions_ import *
 import unittest
 
 class TestTrac0221 (unittest.TestCase):
+    if sys.version_info[:2] < (2, 7):
+        def assertIsNone (self, v):
+            self.assertEqual(None, v)
+        def assertIsNotNone (self, v):
+            self.assertNotEqual(None, v)
+
     def testValueForUnicode (self):
         self.assertEqual(english.one, english._valueForUnicode(u'one'))
         self.assertEqual(None, english._valueForUnicode(u'no such element'))
