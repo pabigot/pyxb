@@ -127,6 +127,10 @@ _PrimitiveDatatypes.append(boolean)
 class decimal (basis.simpleTypeDefinition, python_decimal.Decimal):
     """XMLSchema datatype U{decimal<http://www.w3.org/TR/xmlschema-2/#decimal>}.
 
+    This class uses Python's L{decimal.Decimal} class to support (by
+    default) 28 significant digits.  Only normal and zero values are
+    valid; this means C{NaN} and C{Infinity} may be created during
+    calculations, but cannot be expressed in XML documents.
     """
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('decimal')
@@ -134,9 +138,20 @@ class decimal (basis.simpleTypeDefinition, python_decimal.Decimal):
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
         # Pre Python 2.7 can't construct from float values
-        if (1 == len(args)) and isinstance(args[0], pyxb.utils.types_.FloatType):
-            args = (str(args[0]),)
-        return super(decimal, cls).__new__(cls, *args, **kw)
+        if (1 <= len(args)) and isinstance(args[0], pyxb.utils.types_.FloatType):
+            args = (str(args[0]),) + args[1:]
+        try:
+            rv = super(decimal, cls).__new__(cls, *args, **kw)
+        except python_decimal.DecimalException:
+            raise SimpleTypeValueError(cls, *args)
+        cls._CheckValidValue(rv)
+        return rv
+
+    @classmethod
+    def _CheckValidValue (cls, value):
+        if not (value.is_normal() or value.is_zero()):
+            raise SimpleTypeValueError(cls, value)
+        return super(decimal, cls)._CheckValidValue(value)
 
     @classmethod
     def XsdLiteral (cls, value):

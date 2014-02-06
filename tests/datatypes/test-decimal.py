@@ -7,8 +7,13 @@ import sys
 import unittest
 import pyxb.binding.datatypes as xsd
 from decimal import Decimal
+import decimal
+from pyxb.exceptions_ import *
 
 class Test_decimal (unittest.TestCase):
+    def tearDown (self):
+        decimal.setcontext(decimal.BasicContext)
+
     def assertAlmostEqual (self, v1, v2, *args, **kw):
         if (isinstance(v1, Decimal)
             or isinstance(v2, Decimal)):
@@ -36,6 +41,7 @@ class Test_decimal (unittest.TestCase):
         self.assertEqual(0, Decimal((0, (), 0)))
         self.assertEqual(0, Decimal((0, (), 5)))
         self.assertEqual(0, Decimal((1, (), 5)))
+        self.assertEqual(0, Decimal())
 
     def testLiteral (self):
         self.assertEqual('12.0', xsd.decimal.XsdLiteral(Decimal((0, (1, 2), 0))))
@@ -55,6 +61,29 @@ class Test_decimal (unittest.TestCase):
         if sys.version_info[:2] >= (2, 7):
             self.assertNotEqual(Decimal('1.2'), Decimal(1.2))
         self.assertAlmostEqual(1.2, xsd.decimal(1.2))
+
+    def testValidation (self):
+        one = xsd.decimal('1')
+        zero = xsd.decimal('0')
+        self.assertTrue(one.validateBinding())
+        self.assertTrue(zero.validateBinding())
+        self.assertEqual('1.0', one.xsdLiteral())
+
+    def testInvalidConstruction (self):
+        self.assertRaises(SimpleTypeValueError, xsd.decimal, 'bogus')
+
+        nan = Decimal('NaN')
+        self.assertTrue(nan.is_nan())
+        self.assertEqual('NaN', str(nan))
+        self.assertRaises(SimpleTypeValueError, xsd.decimal, nan)
+        self.assertRaises(SimpleTypeValueError, xsd.decimal, 'NaN')
+
+        inf = Decimal('Infinity')
+        self.assertTrue(inf.is_infinite())
+        self.assertEqual('Infinity', str(inf))
+        self.assertRaises(SimpleTypeValueError, xsd.decimal, inf)
+        self.assertRaises(SimpleTypeValueError, xsd.decimal, 'Infinity')
+
 
 if __name__ == '__main__':
     unittest.main()
