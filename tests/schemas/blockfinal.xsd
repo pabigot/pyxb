@@ -5,5 +5,5 @@
 		<xs:restriction base="xs:string"/>
 	</xs:simpleType>
 	<xs:complexType name="ct1" block="restriction" final="extension"/>
-	<xs:element name="elt" final="extension substitution restriction" block="substitution restriction extension"></xs:element>
+	<xs:element name="elt" final="extension restriction" block="substitution restriction extension"></xs:element>
 </xs:schema>
