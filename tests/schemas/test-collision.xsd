@@ -9,7 +9,7 @@
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:element name="color">
-		<xs:complexType name="colorWheel">
+		<xs:complexType>
 			<xs:sequence>
 				<xs:element name="color" type="color"/>
 			</xs:sequence>
