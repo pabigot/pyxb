@@ -704,7 +704,9 @@ class CF_totalDigits (ConstrainingFacet, _Fixed_mixin):
             (sign, digits, exponent) = value.normalize().as_tuple()
             if len(digits) > self.value():
                 return False
-            return (0 <= -exponent) and (-exponent <= self.value())
+            if 0 > exponent:
+                return -exponent <= self.value()
+            return (exponent + len(digits)) <= self.value()
         n = 0
         scale = 1
         match = False
@@ -734,7 +736,7 @@ class CF_fractionDigits (ConstrainingFacet, _Fixed_mixin):
             return True
         if isinstance(value, datatypes.decimal):
             (sign, digits, exponent) = value.normalize().as_tuple()
-            return (0 <= -exponent) and (-exponent <= self.value())
+            return (0 <= exponent) or (-exponent <= self.value())
         n = 0
         scale = 1
         while n <= self.value():

@@ -78,6 +78,43 @@ class TestTrac_0091 (unittest.TestCase):
         sv = e15p5('1234.56789')
         self.assertEqual(sv, dv)
         self.assertTrue(sv.validateBinding())
+        self.assertTrue(e15p5('1000000.0').validateBinding())
+
+    def testRanges (self):
+        from decimal import Decimal
+        o14o = [1] + ([0] * 12) + [1]
+        self.assertEqual(14, len(o14o))
+        o15o = [1] + ([0] * 13) + [1]
+        self.assertEqual(15, len(o15o))
+        o16o = [1] + ([0] * 14) + [1]
+        self.assertEqual(16, len(o16o))
+
+        self.assertTrue(e15p5(Decimal((0, o14o, 0))).validateBinding())
+        self.assertTrue(e15p5(Decimal((0, o15o, 0))).validateBinding())
+
+        # Negative exponents do not reduce total digit count
+        with self.assertRaises(pyxb.SimpleFacetValueError) as cm:
+            e15p5(Decimal((0, o16o, 0)))
+        self.assertEqual(cm.exception.facet, f15p5._CF_totalDigits)
+        with self.assertRaises(pyxb.SimpleFacetValueError) as cm:
+            e15p5(Decimal((0, o16o, -1)))
+        self.assertEqual(cm.exception.facet, f15p5._CF_totalDigits)
+
+        # Positive exponents add to total digit count
+        self.assertTrue(e15p5(Decimal((0, o14o, 1))).validateBinding())
+        with self.assertRaises(pyxb.SimpleFacetValueError) as cm:
+            e15p5(Decimal((0, o15o, 1)))
+        self.assertEqual(cm.exception.facet, f15p5._CF_totalDigits)
+        with self.assertRaises(pyxb.SimpleFacetValueError) as cm:
+            e15p5(Decimal((0, o14o, 2)))
+        self.assertEqual(cm.exception.facet, f15p5._CF_totalDigits)
+
+        # Negative exponents affect fractionDigits only
+        self.assertTrue(e15p5(Decimal((0, o15o, -1))).validateBinding())
+        self.assertTrue(e15p5(Decimal((0, o15o, -5))).validateBinding())
+        with self.assertRaises(pyxb.SimpleFacetValueError) as cm:
+            e15p5(Decimal((0, o15o, -6)))
+        self.assertEqual(cm.exception.facet, f15p5._CF_fractionDigits)
 
 if __name__ == '__main__':
     unittest.main()
