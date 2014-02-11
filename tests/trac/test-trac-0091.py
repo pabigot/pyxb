@@ -73,7 +73,8 @@ class TestTrac_0091 (unittest.TestCase):
         self.assertEqual(fv, dv)
         # In Python 2.7 decimal.Decimal will create from the float,
         # which will already be in a form that won't validate
-        self.assertRaises(SimpleFacetValueError, e15p5, Decimal(1234.56789))
+        if sys.version_info[:2] >= (2, 7):
+            self.assertRaises(SimpleFacetValueError, e15p5, Decimal(1234.56789))
         sv = e15p5('1234.56789')
         self.assertEqual(sv, dv)
         self.assertTrue(sv.validateBinding())
