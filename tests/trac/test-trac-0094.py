@@ -77,15 +77,17 @@ class TestTrac_0094 (unittest.TestCase):
         oc = instance.anything.orderedContent()
         self.assertEqual(1, len(oc))
         self.assertTrue(isinstance(oc[0], pyxb.binding.basis.NonElementContent))
-        self.assertEqual(instance.toxml('utf-8', root_only=True),
-                         '<container><anything>something</anything></container>')
+        xmlt = u'<container><anything>something</anything></container>'
+        xmld = xmlt.encode('utf-8')
+        self.assertEqual(xmld, instance.toxml('utf-8', root_only=True))
         instance.anything = 43
         self.assertTrue(isinstance(instance.anything, xs.anyType))
         oc = instance.anything.orderedContent()
         self.assertEqual(1, len(oc))
         self.assertTrue(isinstance(oc[0], pyxb.binding.basis.NonElementContent))
-        self.assertEqual(instance.toxml('utf-8', root_only=True),
-                         '<container><anything>43</anything></container>')
+        xmlt = u'<container><anything>43</anything></container>'
+        xmld = xmlt.encode('utf-8')
+        self.assertEqual(xmld, instance.toxml('utf-8', root_only=True))
 
 if __name__ == '__main__':
     unittest.main()

@@ -43,8 +43,9 @@ class TestTrac0203 (unittest.TestCase):
 
     def testOverride (self):
         unbound = XsdWithHyphens('name')
-        xmls = unbound.toxml('utf-8', root_only=True, element_name='root')
-        self.assertEqual(u'<root><username>name</username></root>', xmls)
+        xmlt = u'<root><username>name</username></root>'
+        xmld = xmlt.encode('utf-8')
+        self.assertEqual(xmld, unbound.toxml('utf-8', root_only=True, element_name='root'))
 
 if __name__ == '__main__':
     unittest.main()

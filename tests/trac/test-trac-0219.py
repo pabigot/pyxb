@@ -42,8 +42,9 @@ class TestTrac0219 (unittest.TestCase):
         i = anything()
         i.append(text('eltcontent'))
         i.validateBinding()
-        self.assertEqual(i.toxml('utf-8', root_only=True),
-                         '<anything><text>eltcontent</text></anything>')
+        xmlt = u'<anything><text>eltcontent</text></anything>'
+        xmld = xmlt.encode('utf-8')
+        self.assertEqual(xmld, i.toxml('utf-8', root_only=True))
 
     def testMixedOnly (self):
         xmlt = u'<anything>mixed</anything>'
@@ -55,9 +56,9 @@ class TestTrac0219 (unittest.TestCase):
         i = anything()
         i.append('mixed')
         i.validateBinding()
-        self.assertEqual(i.toxml('utf-8', root_only=True),
-                         '<anything>mixed</anything>')
-
+        xmlt = u'<anything>mixed</anything>'
+        xmld = xmlt.encode('utf-8')
+        self.assertEqual(xmld, i.toxml('utf-8', root_only=True))
 
 if __name__ == '__main__':
     unittest.main()
