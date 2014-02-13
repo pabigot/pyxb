@@ -147,6 +147,9 @@ class decimal (basis.simpleTypeDefinition, python_decimal.Decimal):
         cls._CheckValidValue(rv)
         return rv
 
+    def __repr__ (self):
+        return 'pyxb.binding.datatypes.decimal(%s)' % (repr(str(self)),)
+
     @classmethod
     def _CheckValidValue (cls, value):
         if not (value.is_normal() or value.is_zero()):
