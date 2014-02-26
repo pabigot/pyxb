@@ -23,14 +23,14 @@ value spaces.
 
 """
 
-import pyxb
+import logging
 import types
+import re
+import decimal
+import pyxb
 from . import datatypes
 from . import basis
 from pyxb.utils import utility
-import re
-import logging
-import decimal
 
 _log = logging.getLogger(__name__)
 

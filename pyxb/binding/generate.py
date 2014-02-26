@@ -17,23 +17,19 @@
 whole thing is going to be refactored once customized generation makes
 it to the top of the task queue."""
 
-import pyxb
-import pyxb.xmlschema as xs
-import io
-import datetime
-import errno
-
-from pyxb.utils import utility
-from pyxb.utils import templates
-from pyxb.binding import basis
-from pyxb.binding import datatypes
-from pyxb.binding import facets
-
 import types
 import sys
 import os.path
 import logging
 import logging.config
+import io
+import datetime
+import errno
+
+import pyxb
+import pyxb.xmlschema as xs
+from pyxb.utils import utility, templates
+from pyxb.binding import basis, datatypes, facets
 
 _log = logging.getLogger(__name__)
 

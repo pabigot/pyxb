@@ -1,11 +1,11 @@
 from __future__ import print_function
+import sys
+import urllib2
 import GeoCoder
 from pyxb import BIND
-import sys
-import pyxb.utils.domutils as domutils
+from pyxb.utils import domutils
 import pyxb.bundles.wssplat.soap11 as soapenv
 import pyxb.bundles.wssplat.soapenc as soapenc
-import urllib2
 
 address = '1600 Pennsylvania Ave., Washington, DC'
 if 1 < len(sys.argv):
@@ -58,4 +58,4 @@ for item in items:
 %s %s''' % (item.number, item.prefix, item.street, item.type, item.suffix,
             item.city, item.state, item.zip,
             item.lat, item.long))
-    
+

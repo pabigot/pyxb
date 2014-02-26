@@ -1,11 +1,10 @@
 from __future__ import print_function
-import tmstvd
-import pyxb.utils.domutils as domutils
+import io
+import time
 import xml.dom.minidom
 import pyxb.utils.saxdom
 import pyxb.binding.saxer
-import io
-import time
+import tmstvd
 #import cProfile
 
 # Extend the anonymous class used by the xtvd element to add a method

@@ -27,12 +27,12 @@ converting it back into document format.
 """
 
 from __future__ import print_function
+import logging
+import io
 import xml.dom
 import pyxb.utils.saxutils
 import pyxb.utils.types_
-import io
 import pyxb.namespace
-import logging
 
 _log = logging.getLogger(__name__)
 

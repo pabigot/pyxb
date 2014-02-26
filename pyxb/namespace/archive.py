@@ -16,11 +16,11 @@
 """Classes and global objects related to archiving U{XML
 Namespaces<http://www.w3.org/TR/2006/REC-xml-names-20060816/index.html>}."""
 
-import pyxb
+import logging
 import os
 import os.path
+import pyxb
 import pyxb.utils.utility
-import logging
 
 _log = logging.getLogger(__name__)
 

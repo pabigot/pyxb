@@ -25,14 +25,14 @@ instance.
 L{Wildcard} holds content-related information used in the content model.
 """
 
+import logging
+import xml.dom
+
 import pyxb
 import pyxb.namespace
 import pyxb.utils.fac
 from pyxb.binding import basis
 import pyxb.utils.utility
-
-import xml.dom
-import logging
 
 _log = logging.getLogger(__name__)
 

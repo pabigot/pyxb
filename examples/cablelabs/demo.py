@@ -1,10 +1,7 @@
 from __future__ import print_function
-import pyxb.utils.domutils
 import xml.dom.minidom
-import cablelabs.core as core
-import cablelabs.offer as offer
-import cablelabs.title as title
-import cablelabs.vod30 as vod30
+import pyxb.utils.domutils
+from cablelabs import core, offer, title, vod30
 import custom
 
 pyxb.utils.domutils.BindingDOMSupport.DeclareNamespace(core.Namespace, 'core')

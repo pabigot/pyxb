@@ -34,9 +34,9 @@ U{http://www.xmlschemareference.com/examples/Ch14/regexpDemo.xsd},
 with a sample document at U{
 http://www.xmlschemareference.com/examples/Ch14/regexpDemo.xml}"""
 
-import pyxb.utils.unicode
 import re
 import logging
+import pyxb.utils.unicode
 
 _log = logging.getLogger(__name__)
 

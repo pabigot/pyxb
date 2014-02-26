@@ -43,16 +43,16 @@ instance of either SimpleTypeDefinition or ComplexTypeDefinition.
 
 """
 
+import logging
+import re
+import binascii
+import base64
+import decimal as python_decimal
 from pyxb.exceptions_ import *
 import pyxb.utils.types_
 import pyxb.namespace
 import pyxb.utils.unicode
 from . import basis
-import re
-import binascii
-import base64
-import logging
-import decimal as python_decimal
 
 _log = logging.getLogger(__name__)
 

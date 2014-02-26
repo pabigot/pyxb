@@ -1,14 +1,12 @@
 from __future__ import print_function
-import DWML
-import datetime
-import pyxb
-import pyxb.utils.domutils as domutils
-import pyxb.binding.datatypes as xsd
-import pyxb.xmlschema.structures as structures
 import urllib2
 import time
 import sys
-
+import DWML
+import datetime
+import pyxb
+from pyxb.utils import domutils
+import pyxb.binding.datatypes as xsd
 import pyxb.bundles.wssplat.soap11 as soapenv
 
 today = xsd.dateTime.today()
@@ -24,7 +22,7 @@ if 2 < len(sys.argv):
     lon = float(sys.argv[2])
 
 # Import the schema bindings that were extracted from the WSDL in a
-# separate, previous step.  
+# separate, previous step.
 import ndfd
 
 # Read in the WSDL spec for the service.  Note that we have to process
@@ -94,7 +92,7 @@ soap_message = '''<?xml version="1.0" encoding="ISO-8859-1"?>
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
   <SOAP-ENV:Body>''' + dom.documentElement.toxml("utf-8") + '''</SOAP-ENV:Body>
 </SOAP-ENV:Envelope>'''
-  
+
 #soap_message = open('NDFDgen.xml').read()
 #soap_message = open('test.xml').read()
 # Save the request message so it can be examined later

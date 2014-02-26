@@ -17,13 +17,12 @@
 inherit, and that describe the content models of those schema."""
 
 import logging
-import pyxb
-import xml.dom
-import pyxb.utils.domutils as domutils
-import pyxb.utils.utility as utility
 import types
-import pyxb.namespace
 import collections
+import xml.dom
+import pyxb
+from pyxb.utils import domutils, utility
+import pyxb.namespace
 from pyxb.namespace.builtin import XMLSchema_instance as XSI
 
 _log = logging.getLogger(__name__)

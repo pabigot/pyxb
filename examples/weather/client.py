@@ -1,9 +1,9 @@
 from __future__ import print_function
-import weather
-import time
 import sys
-import pyxb.bundles.wssplat.soap11 as soapenv
+import time
 import urllib2
+import pyxb.bundles.wssplat.soap11 as soapenv
+import weather
 
 zip = 55113
 if 1 < len(sys.argv):
@@ -37,5 +37,5 @@ if fc_return.Success:
         low = fc.Temperatures.MorningLow
         high = fc.Temperatures.DaytimeHigh
         print('  %s: %s, from %s to %s' % (when, outlook, low, high))
-        
-    
+
+

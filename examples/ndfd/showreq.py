@@ -1,7 +1,7 @@
 from __future__ import print_function
-import pyxb.utils.domutils
 import xml.dom
 import xml.dom.minidom
+import pyxb.utils.domutils
 import pyxb.namespace
 
 # Structure

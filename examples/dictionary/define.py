@@ -1,8 +1,8 @@
 from __future__ import print_function
 import dict
 import urllib2
-import pyxb.utils.domutils as domutils
 import sys
+from pyxb.utils import domutils
 
 word = 'xml'
 if 1 < len(sys.argv):

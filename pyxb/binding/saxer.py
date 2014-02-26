@@ -16,6 +16,7 @@
 """This module contains support for generating bindings from an XML stream
 using a SAX parser."""
 
+import logging
 import xml.dom
 import pyxb.namespace
 import pyxb.utils.saxutils
@@ -23,7 +24,6 @@ import pyxb.utils.saxdom
 import pyxb.utils.utility
 from pyxb.binding import basis
 from pyxb.namespace.builtin import XMLSchema_instance as XSI
-import logging
 
 _log = logging.getLogger(__name__)
 

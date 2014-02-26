@@ -25,9 +25,9 @@ element in the stream.  These classes are extended for specific parsing needs
 from __future__ import print_function
 import xml.sax
 import xml.sax.handler
-import pyxb.namespace
 import io
 import logging
+import pyxb.namespace
 
 _log = logging.getLogger(__name__)
 

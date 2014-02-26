@@ -15,14 +15,15 @@
 
 """Functions that support activities related to the Document Object Model."""
 
+import logging
+import xml.dom
+
 import pyxb
 import pyxb.namespace
 import pyxb.namespace.resolution
 import pyxb.utils.saxutils
 import pyxb.utils.saxdom
 import pyxb.utils.types_
-import xml.dom
-import logging
 
 _log = logging.getLogger(__name__)
 

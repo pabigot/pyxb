@@ -15,9 +15,9 @@
 
 """Utility functions related to U{XML Namespaces<http://www.w3.org/TR/2006/REC-xml-names-20060816/index.html>}."""
 
+import logging
 import pyxb
 import pyxb.namespace
-import logging
 
 _log = logging.getLogger(__name__)
 
