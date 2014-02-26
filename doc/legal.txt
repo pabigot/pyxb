@@ -6,8 +6,12 @@ License and Disclaimers
 License
 ^^^^^^^
 
-PyXB is made available under the `Apache License v 2.0
-<http://www.apache.org/licenses/LICENSE-2.0>`_.
+PyXB as a whole is made available under the `Apache License v 2.0
+<http://www.apache.org/licenses/LICENSE-2.0>`_.  For full details see
+the LICENSE file in the distribution.
+
+PyXB uses the `six <https://pypi.python.org/pypi/six>` module for Python
+2/3 Compatible Source support.
 
 About the Demonstration Web Services
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
