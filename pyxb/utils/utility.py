@@ -23,6 +23,7 @@ import urlparse
 import time
 import datetime
 import logging
+import pyxb.utils.six as six
 
 _log = logging.getLogger(__name__)
 
@@ -1205,7 +1206,7 @@ class Location (object):
 
     def __init__ (self, location_base=None, line_number=None, column_number=None):
         if isinstance(location_base, str):
-            location_base = intern(location_base)
+            location_base = six.intern(location_base)
         self.__locationBase = location_base
         self.__lineNumber = line_number
         self.__columnNumber = column_number
