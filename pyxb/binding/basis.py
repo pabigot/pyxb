@@ -501,7 +501,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         if bds is None:
             bds = domutils.BindingDOMSupport()
         need_xsi_type = bds.requireXSIType()
-        if isinstance(element_name, (str, unicode)):
+        if isinstance(element_name, basestring):
             element_name = pyxb.namespace.ExpandedName(bds.defaultNamespace(), element_name)
         if (element_name is None) and (self._element() is not None):
             element_binding = self._element()

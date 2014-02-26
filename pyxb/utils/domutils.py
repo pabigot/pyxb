@@ -572,7 +572,7 @@ class BindingDOMSupport (object):
             parent = self.document().documentElement
         if parent is None:
             parent = self.__document
-        if isinstance(expanded_name, (str, unicode)):
+        if isinstance(expanded_name, basestring):
             expanded_name = pyxb.namespace.ExpandedName(None, expanded_name)
         if not isinstance(expanded_name, pyxb.namespace.ExpandedName):
             raise pyxb.LogicError('Invalid type %s for expanded name' % (type(expanded_name),))

@@ -154,10 +154,10 @@ class ExpandedName (object):
         if 2 < len(args):
             raise pyxb.LogicError('Too many arguments to ExpandedName constructor')
         if 2 == len(args):
-            # Namespace(str, unicode, Namespace) and local name (str, unicode)
+            # Namespace(str, unicode, Namespace) and local name basestring
             ( ns, ln ) = args
         else:
-            # Local name (str, unicode) or ExpandedName or Node
+            # Local name basestring or ExpandedName or Node
             assert 1 == len(args)
             ln = args[0]
             ns = None
@@ -178,7 +178,7 @@ class ExpandedName (object):
         if (ns is None) and (fallback_namespace is not None):
             if fallback_namespace.isAbsentNamespace():
                 ns = fallback_namespace
-        if isinstance(ns, (str, unicode)):
+        if isinstance(ns, basestring):
             ns = NamespaceForURI(ns, create_if_missing=True)
         if isinstance(ns, ExpandedName):
             ns = ns.namespace()
@@ -206,7 +206,7 @@ class ExpandedName (object):
         return tuple.__hash__(self.__expandedName)
 
     def __otherForCompare (self, other):
-        if isinstance(other, (str, unicode)):
+        if isinstance(other, basestring):
             other = ( None, other )
         if not isinstance(other, tuple):
             other = other.__uriTuple
@@ -982,7 +982,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         create the initial context."""
         if nsval is None:
             return self
-        if isinstance(nsval, (str, unicode)):
+        if isinstance(nsval, basestring):
             nsval = globals().get(nsval)
         if isinstance(nsval, Namespace):
             return nsval

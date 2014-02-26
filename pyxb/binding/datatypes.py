@@ -251,7 +251,7 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
         if kw.get('_nil'):
             data = dict(zip(cls.__PythonFields, len(cls.__PythonFields) * [0,]))
             negative_duration = False
-        elif isinstance(text, (str, unicode)):
+        elif isinstance(text, basestring):
             match = cls.__Lexical_re.match(text)
             if match is None:
                 raise SimpleTypeValueError(cls, text)

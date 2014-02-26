@@ -1096,7 +1096,7 @@ class ElementDeclaration (object):
                     val_type_qname = '%s:%s' % (tns_prefix, val_type_qname)
                 dom_support.addAttribute(element, pyxb.namespace.XMLSchema_instance.createExpandedName('type'), val_type_qname)
             value._toDOM_csc(dom_support, element)
-        elif isinstance(value, (str, unicode)):
+        elif isinstance(value, basestring):
             element = dom_support.createChildElement(self.name(), parent)
             element.appendChild(dom_support.document().createTextNode(value))
         else:

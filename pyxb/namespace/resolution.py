@@ -603,7 +603,7 @@ class NamespaceContext (object):
         @raise pyxb.SchemaValidationError: The prefix is not in scope
         @raise pyxb.SchemaValidationError: No prefix is given and the default namespace is absent
         """
-        assert isinstance(name, (str, unicode))
+        assert isinstance(name, basestring)
         if 0 <= name.find(':'):
             (prefix, local_name) = name.split(':', 1)
             assert self.inScopeNamespaces() is not None
