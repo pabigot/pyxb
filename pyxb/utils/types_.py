@@ -27,6 +27,7 @@ underlying Python type.
 # This module has to be types_ else the following import tries to
 # read this module.  Hurrah for eliminating relative imports!
 import types
+import pyxb.utils.six as six
 
 IntType = types.IntType
 """The type underlying C{int}."""
@@ -46,10 +47,8 @@ BooleanType = types.BooleanType
 ListType = types.ListType
 """The type underlying C{list}"""
 
-TextType = types.UnicodeType    #!python3!
-#python3:TextType = str
+TextType = six.text_type
 """The type used to represent text in either Python 2 (C{unicode}) or Python 3 (C{str})."""
 
-DataType = types.StringType     #!python3!
-#python3:DataType = bytes
+DataType = six.binary_type
 """The type used to represent data (8-bit) in either Python 2 (C{str}) or Python 3 (C{bytes})."""

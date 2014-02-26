@@ -21,7 +21,7 @@ import types
 import collections
 import xml.dom
 import pyxb
-from pyxb.utils import domutils, utility
+from pyxb.utils import domutils, utility, six
 import pyxb.namespace
 from pyxb.namespace.builtin import XMLSchema_instance as XSI
 
@@ -216,7 +216,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
             # Types that descend from string will, when constructed from an
             # element with empty content, appear to have no constructor value,
             # while in fact an empty string should have been passed.
-            if issubclass(type(self), basestring):
+            if issubclass(type(self), six.string_types):
                 self.__constructedWithValue = True
     def _constructedWithValue (self):
         return self.__constructedWithValue
@@ -500,7 +500,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         if bds is None:
             bds = domutils.BindingDOMSupport()
         need_xsi_type = bds.requireXSIType()
-        if isinstance(element_name, basestring):
+        if isinstance(element_name, six.string_types):
             element_name = pyxb.namespace.ExpandedName(bds.defaultNamespace(), element_name)
         if (element_name is None) and (self._element() is not None):
             element_binding = self._element()
@@ -1361,10 +1361,9 @@ class STD_list (simpleTypeDefinition, types.ListType):
         else:
             super(STD_list, self).__setitem__(key, self._ValidatedItem(value))
 
-    #!python3>! required for python2 since deriving from built-in type
-    def __setslice__ (self, start, end, values):
-        super(STD_list, self).__setslice__(start, end, self.__convertMany(values))
-    #!python3<!
+    if six.PY2:
+        def __setslice__ (self, start, end, values):
+            super(STD_list, self).__setslice__(start, end, self.__convertMany(values))
 
     def __contains__ (self, item):
         return super(STD_list, self).__contains__(self._ValidatedItem(item))
@@ -2464,7 +2463,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                         value = element.CreateDOMBinding(node, None, _fallback_namespace=fallback_namespace)
                     else:
                         _log.warning('Unable to convert DOM node %s at %s to binding', expanded_name, getattr(node, 'location', '[UNAVAILABLE]'))
-        if (not maybe_element) and isinstance(value, basestring) and (self._ContentTypeTag in (self._CT_EMPTY, self._CT_ELEMENT_ONLY)):
+        if (not maybe_element) and isinstance(value, six.string_types) and (self._ContentTypeTag in (self._CT_EMPTY, self._CT_ELEMENT_ONLY)):
             if (0 == len(value.strip())) and not self._isNil():
                 return self
         if maybe_element and (self.__automatonConfiguration is not None):

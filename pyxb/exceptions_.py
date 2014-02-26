@@ -21,6 +21,7 @@ reference it below.
 """
 
 import pyxb
+import pyxb.utils.six as six
 
 class PyXBException (Exception):
     """Base class for exceptions that indicate a problem that the user should fix."""
@@ -49,10 +50,9 @@ class PyXBException (Exception):
         self._kw = kw
         super(PyXBException, self).__init__(*args)
 
-    #!python3>!
-    def _str_from_unicode (self):
-        return unicode(self).encode(pyxb._OutputEncoding)
-    #!python3<!
+    if six.PY2:
+        def _str_from_unicode (self):
+            return unicode(self).encode(pyxb._OutputEncoding)
 
 class PyXBVersionError (PyXBException):
     """Raised on import of a binding generated with a different version of PYXB"""

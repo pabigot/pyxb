@@ -24,6 +24,7 @@ import pyxb.namespace.resolution
 import pyxb.utils.saxutils
 import pyxb.utils.saxdom
 import pyxb.utils.types_
+from pyxb.utils import six
 
 _log = logging.getLogger(__name__)
 
@@ -61,12 +62,12 @@ def StringToDOM (xml_text, **kw):
     xmlt = xml_text
     if pyxb.XMLStyle_minidom == pyxb._XMLStyle:
         parser = pyxb.utils.saxutils.make_parser()
-        # minidom.parseString operates on text.  In Python 2, this means don't
+        # minidom.parseString is broken.  In Python 2, this means don't
         # feed it unicode.  In Python 3 this means don't feed it bytes.
-        if isinstance(xmlt, unicode):                #!python3!
-            xmlt = xmlt.encode(pyxb._InputEncoding)  #!python3!
-#python3:        if isinstance(xmlt, pyxb.utils.types_.DataType):
-#python3:            xmlt = xmlt.decode(pyxb._InputEncoding)
+        if (six.PY2 and not isinstance(xmlt, six.binary_type)):
+            xmlt = xmlt.encode(pyxb._InputEncoding)
+        elif (six.PY3 and isinstance(xmlt, six.binary_type)):
+            xmlt = xmlt.decode(pyxb._InputEncoding)
         return xml.dom.minidom.parseString(xmlt, parser)
     return pyxb.utils.saxdom.parseString(xml_text, **kw)
 

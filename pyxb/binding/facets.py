@@ -30,7 +30,7 @@ import decimal
 import pyxb
 from . import datatypes
 from . import basis
-from pyxb.utils import utility
+from pyxb.utils import utility, six
 
 _log = logging.getLogger(__name__)
 
@@ -432,7 +432,9 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
         # restrictions applied yet, return True.
         if 0 == len(self.__patternElements):
             return True
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
+            # Ignore pattern constraint when value space and lexical
+            # space differ.
             return True
         for pe in self.__patternElements:
             if pe.matches(value):

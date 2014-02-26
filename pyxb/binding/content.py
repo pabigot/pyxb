@@ -33,6 +33,7 @@ import pyxb.namespace
 import pyxb.utils.fac
 from pyxb.binding import basis
 import pyxb.utils.utility
+import pyxb.utils.six as six
 
 _log = logging.getLogger(__name__)
 
@@ -1096,7 +1097,7 @@ class ElementDeclaration (object):
                     val_type_qname = '%s:%s' % (tns_prefix, val_type_qname)
                 dom_support.addAttribute(element, pyxb.namespace.XMLSchema_instance.createExpandedName('type'), val_type_qname)
             value._toDOM_csc(dom_support, element)
-        elif isinstance(value, basestring):
+        elif isinstance(value, six.string_types):
             element = dom_support.createChildElement(self.name(), parent)
             element.appendChild(dom_support.document().createTextNode(value))
         else:
@@ -1180,7 +1181,7 @@ class Wildcard (object):
     def __normalizeNamespace (self, nsv):
         if nsv is None:
             return None
-        if isinstance(nsv, basestring):
+        if isinstance(nsv, six.string_types):
             nsv = pyxb.namespace.NamespaceForURI(nsv, create_if_missing=True)
         assert isinstance(nsv, pyxb.namespace.Namespace), 'unexpected non-namespace %s' % (nsv,)
         return nsv

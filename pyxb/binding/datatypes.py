@@ -52,6 +52,7 @@ from pyxb.exceptions_ import *
 import pyxb.utils.types_
 import pyxb.namespace
 import pyxb.utils.unicode
+import pyxb.utils.six as six
 from . import basis
 
 _log = logging.getLogger(__name__)
@@ -251,7 +252,7 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
         if kw.get('_nil'):
             data = dict(zip(cls.__PythonFields, len(cls.__PythonFields) * [0,]))
             negative_duration = False
-        elif isinstance(text, basestring):
+        elif isinstance(text, six.string_types):
             match = cls.__Lexical_re.match(text)
             if match is None:
                 raise SimpleTypeValueError(cls, text)
@@ -1152,11 +1153,11 @@ _DerivedDatatypes.append(negativeInteger)
 class long (integer):
     """XMLSchema datatype U{long<http://www.w3.org/TR/xmlschema-2/#long>}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('long')
-_DerivedDatatypes.append(long)  #python3:int:long
+_DerivedDatatypes.append(long)
 
 class int (basis.simpleTypeDefinition, pyxb.utils.types_.IntType):
     """XMLSchema datatype U{int<http://www.w3.org/TR/xmlschema-2/#int>}."""
-    _XsdBaseType = long         #python3:int:long
+    _XsdBaseType = long
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('int')
 
     @classmethod
