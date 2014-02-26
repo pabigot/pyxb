@@ -1,19 +1,14 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+import sys
 
 # The current version of the system.  Format is #.#.#[-DEV].
 version = '1.2.4-DEV'
 
-import distutils.sysconfig
-
-py_ver = distutils.sysconfig.get_python_version()
-#python3:# Require Python 2.0 or higher
-#python3:if (py_ver < '3.0'):
-#python3:    raise ValueError('PyXB requires Python version 3.x (you have %s)' % (py_ver,))
-# Require Python 2.6 or higher, but not 3.x  #!python3!
-if (py_ver < '2.6') or (py_ver >= '3.0'):    #!python3!
-    raise ValueError('PyXB requires Python version 2.x where x >= 6 (you have %s)' % (py_ver,)) #!python3!
+# Require Python 2.6 or higher
+if sys.version_info[:2] < (2, 6):
+    raise ValueError('PyXB requires Python version 2.6 or later (you have %s)' % (sys.version,))
 
 import os
 import stat
