@@ -1152,13 +1152,14 @@ class BindingIO (object):
                                     'coding' : encoding,
                                     'binding_module' : binding_module,
                                     'binding_tag' : binding_module.bindingTag(),
-                                    'pyxbVersion' : pyxb.__version__ })
+                                    'pyxbVersion' : pyxb.__version__,
+                                    'pythonVersion' : '.'.join(map(str, sys.version_info))})
         self.__stringIO = io.StringIO()
         if self.__bindingFile:
             prefacet = self.expand('''# %{filePath}
 # -*- coding: %{coding} -*-
 # PyXB bindings for %{binding_tag}
-# Generated %{date} by PyXB version %{pyxbVersion}
+# Generated %{date} by PyXB version %{pyxbVersion} using Python %{pythonVersion}
 %{binding_preface}''', binding_preface=binding_module.bindingPreface())
             self.__bindingFile.write(prefacet.encode(encoding))
             self.__bindingFile.flush()
