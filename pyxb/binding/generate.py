@@ -17,7 +17,6 @@
 whole thing is going to be refactored once customized generation makes
 it to the top of the task queue."""
 
-import types
 import sys
 import os.path
 import logging
@@ -191,11 +190,11 @@ class ReferenceEnumerationMember (ReferenceLiteral):
 
 def pythonLiteral (value, **kw):
     # For dictionaries, apply translation to all values (not keys)
-    if isinstance(value, types.DictionaryType):
+    if isinstance(value, six.dictionary_type):
         return ', '.join([ '%s=%s' % (k, pythonLiteral(v, **kw)) for (k, v) in six.iteritems(value) ])
 
     # For lists, apply translation to all members
-    if isinstance(value, types.ListType):
+    if isinstance(value, six.list_type):
         return [ pythonLiteral(_v, **kw) for _v in value ]
 
     # ExpandedName is a tuple, but not here
@@ -203,7 +202,7 @@ def pythonLiteral (value, **kw):
         return pythonLiteral(ReferenceExpandedName(expanded_name=value, **kw))
 
     # For other collection types, do what you do for list
-    if isinstance(value, (types.TupleType, set)):
+    if isinstance(value, (six.tuple_type, set)):
         return type(value)(pythonLiteral(list(value), **kw))
 
     # Value is a binding value for which there should be an
@@ -227,7 +226,7 @@ def pythonLiteral (value, **kw):
             return PrefixModule(value)
 
     # String instances go out as their representation
-    if isinstance(value, types.StringTypes):
+    if isinstance(value, six.string_types):
         return utility.QuotedEscaped(value,)
 
     if isinstance(value, facets.Facet):
@@ -258,7 +257,7 @@ def pythonLiteral (value, **kw):
         return repr(value.uri())
 
     # Standard Python types
-    if isinstance(value, (types.NoneType, types.BooleanType, types.FloatType, types.IntType, types.LongType)):
+    if isinstance(value, (six.none_type, six.boolean_type, six.float_type, six.integer_types)):
         return repr(value)
 
     raise Exception('Unexpected literal type %s' % (type(value),))

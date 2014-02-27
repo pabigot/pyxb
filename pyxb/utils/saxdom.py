@@ -31,7 +31,7 @@ import logging
 import io
 import xml.dom
 import pyxb.utils.saxutils
-import pyxb.utils.types_
+from pyxb.utils import six
 import pyxb.namespace
 
 _log = logging.getLogger(__name__)
@@ -124,7 +124,7 @@ def parseString (xml_text, **kw):
     @param xml_text: the XML content to be parsed, in a text representation."""
     # SAX parser operates on data, not text.
     xmld = xml_text
-    if isinstance(xmld, pyxb.utils.types_.TextType):
+    if isinstance(xmld, six.text_type):
         xmld = xmld.encode(pyxb._InputEncoding)
     return parse(io.BytesIO(xmld), **kw)
 

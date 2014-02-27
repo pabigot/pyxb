@@ -24,7 +24,6 @@ value spaces.
 """
 
 import logging
-import types
 import re
 import decimal
 import pyxb
@@ -381,9 +380,9 @@ class _PatternElement (utility.PrivateTransient_mixin):
         if pattern is None:
             assert value is not None
             pattern = value
-        assert isinstance(pattern, types.StringTypes)
+        assert isinstance(pattern, six.string_types)
         self.pattern = pattern
-        if isinstance(annotation, types.StringTypes):
+        if isinstance(annotation, six.string_types):
             self.annotation = annotation
         self.__pythonExpression = pyxb.utils.xmlre.XMLToPython(pattern)
         super(_PatternElement, self).__init__()

@@ -23,7 +23,6 @@ import pyxb.namespace
 import pyxb.namespace.resolution
 import pyxb.utils.saxutils
 import pyxb.utils.saxdom
-import pyxb.utils.types_
 from pyxb.utils import six
 from pyxb.utils.six.moves import xrange
 

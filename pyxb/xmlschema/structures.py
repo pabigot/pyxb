@@ -32,7 +32,6 @@ basic fields, though all these must support namespaces.
 
 """
 
-import types
 import re
 import logging
 from xml.dom import Node
@@ -3667,7 +3666,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
     # including those constraints inherited parent types.
     __facets = None
     def facets (self):
-        assert (self.__facets is None) or (type(self.__facets) == types.DictType)
+        assert (self.__facets is None) or isinstance(self.__facets, six.dictionary_type)
         return self.__facets
 
     # The facets.FundamentalFacet instances that describe this type
@@ -4181,7 +4180,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         if 0 < len(facet_map):
             assert self.__baseTypeDefinition == self.SimpleUrTypeDefinition()
             self.__facets = facet_map
-            assert type(self.__facets) == types.DictType
+            assert isinstance(self.__facets, six.dictionary_type)
         if 0 < len(fundamental_facets):
             self.__fundamentalFacets = frozenset(fundamental_facets)
         return self
@@ -4229,14 +4228,14 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             if pstd != datatypes.anySimpleType:
                 base_facets.update(pstd._FacetMap())
         elif self.__baseTypeDefinition.facets():
-            assert type(self.__baseTypeDefinition.facets()) == types.DictType
+            assert isinstance(self.__baseTypeDefinition.facets(), six.dictionary_type)
             base_facets.update(self.__baseTypeDefinition.facets())
         base_facets.update(self.facets())
 
         self.__facets = self.__localFacets
         for fc in six.iterkeys(base_facets):
             self.__facets.setdefault(fc, base_facets[fc])
-        assert type(self.__facets) == types.DictType
+        assert isinstance(self.__facets, six.dictionary_type)
 
     def _createRestriction (self, owner, body):
         """Create a new simple type with this as its base.

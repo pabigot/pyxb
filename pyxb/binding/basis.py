@@ -17,7 +17,6 @@
 inherit, and that describe the content models of those schema."""
 
 import logging
-import types
 import collections
 import xml.dom
 import pyxb
@@ -839,7 +838,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
                 args = (domutils.ExtractTextContent(dom_node),) + args
                 kw['_apply_whitespace_facet'] = True
         apply_whitespace_facet = kw.pop('_apply_whitespace_facet', from_xml)
-        if (0 < len(args)) and isinstance(args[0], types.StringTypes) and apply_whitespace_facet:
+        if (0 < len(args)) and isinstance(args[0], six.string_types) and apply_whitespace_facet:
             cf_whitespace = getattr(cls, '_CF_whiteSpace', None)
             if cf_whitespace is not None:
                 norm_str = six.text_type(cf_whitespace.normalizeString(args[0]))
@@ -1273,7 +1272,7 @@ class STD_union (simpleTypeDefinition):
         return cls._ValidatedMember(value).xsdLiteral()
 
 
-class STD_list (simpleTypeDefinition, types.ListType):
+class STD_list (simpleTypeDefinition, six.list_type):
     """Base class for collection datatypes.
 
     This class descends from the Python list type, and incorporates
@@ -1320,7 +1319,7 @@ class STD_list (simpleTypeDefinition, types.ListType):
         # resulting list of tokens.
         if 0 < len(args):
             arg1 = args[0]
-            if isinstance(arg1, types.StringTypes):
+            if isinstance(arg1, six.string_types):
                 args = (arg1.split(),) + args[1:]
                 arg1 = args[0]
             if isinstance(arg1, collections.Iterable):
@@ -2553,7 +2552,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _addContent (self, wrapped_value):
         # This assert is inadequate in the case of plural/non-plural elements with an STD_list base type.
         # Trust that validation elsewhere was done correctly.
-        #assert self._IsMixed() or (not self._performValidation()) or isinstance(child, _TypeBinding_mixin) or isinstance(child, types.StringTypes), 'Unrecognized child %s type %s' % (child, type(child))
+        #assert self._IsMixed() or (not self._performValidation()) or isinstance(child, _TypeBinding_mixin) or isinstance(child, six.string_types), 'Unrecognized child %s type %s' % (child, type(child))
         assert not (self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE))
         assert isinstance(wrapped_value, _Content)
         self.__content.append(wrapped_value)

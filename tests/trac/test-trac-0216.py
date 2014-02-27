@@ -36,7 +36,6 @@ rv = compile(code, 'test', 'exec')
 eval(rv)
 
 from pyxb.exceptions_ import *
-import pyxb.utils.types_
 
 import unittest
 
@@ -46,12 +45,12 @@ class TestTrac0216 (unittest.TestCase):
         xmlt = six.u('<elt>30313233</elt>')
         xmld = xmlt.encode('utf-8')
         instance = CreateFromDocument(xmlt)
-        self.assertEqual(pyxb.utils.types_.DataType(b'0123'), instance.value())
+        self.assertEqual(b'0123', instance.value())
         xmlt = six.u('<elt Color="33323130">30313233</elt>')
         xmld = xmlt.encode('utf-8')
         instance = CreateFromDocument(xmlt)
-        self.assertEqual(pyxb.utils.types_.DataType(b'0123'), instance.value())
-        self.assertEqual(pyxb.utils.types_.DataType(b'3210'), instance.Color)
+        self.assertEqual(b'0123', instance.value())
+        self.assertEqual(b'3210', instance.Color)
 
 if __name__ == '__main__':
     unittest.main()

@@ -14,7 +14,6 @@ import pyxb.binding.datatypes as xs
 import pyxb.binding.basis
 import pyxb.utils.domutils
 import xml.sax
-import pyxb.utils.types_ as types_
 import io
 
 import os.path
@@ -60,8 +59,8 @@ class TestTrac0131 (unittest.TestCase):
     def testBasicParse (self):
         xmlt = self.base_xmlt
         xmld = xmlt.encode('utf-8')
-        self.assertTrue(isinstance(xmlt, types_.TextType))
-        self.assertTrue(isinstance(xmld, types_.DataType))
+        self.assertTrue(isinstance(xmlt, six.text_type))
+        self.assertTrue(isinstance(xmld, six.binary_type))
         pyxb._SetXMLStyle(pyxb.XMLStyle_saxer)
         instance = CreateFromDocument(xmlt)
         self.assertEqual(instance.e, self.strt)
@@ -82,8 +81,8 @@ class TestTrac0131 (unittest.TestCase):
     def testDeclaredParse (self):
         xmlt = self.declared_xmlt
         xmld = xmlt.encode('utf-8')
-        self.assertTrue(isinstance(xmlt, types_.TextType))
-        self.assertTrue(isinstance(xmld, types_.DataType))
+        self.assertTrue(isinstance(xmlt, six.text_type))
+        self.assertTrue(isinstance(xmld, six.binary_type))
         pyxb._SetXMLStyle(pyxb.XMLStyle_saxer)
         instance = CreateFromDocument(xmlt)
         self.assertEqual(instance.e, self.strt)
