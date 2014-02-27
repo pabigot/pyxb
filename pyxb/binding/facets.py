@@ -715,7 +715,7 @@ class CF_totalDigits (ConstrainingFacet, _Fixed_mixin):
         match = False
         v = None
         while (n <= self.value()) and (not match):
-            v = long(value * scale)
+            v = six.long_type(value * scale)
             match = ((value * scale) == v)
             if self.value() == n:
                 break
@@ -743,7 +743,7 @@ class CF_fractionDigits (ConstrainingFacet, _Fixed_mixin):
         n = 0
         scale = 1
         while n <= self.value():
-            if ((value * scale) == long(value * scale)):
+            if ((value * scale) == six.long_type(value * scale)):
                 return True
             n += 1
             scale *= 10
@@ -849,7 +849,7 @@ Facet.Facets.extend(FundamentalFacet.Facets)
 datatypes.ENTITIES._CF_pattern = CF_pattern()
 datatypes.ENTITIES._CF_maxLength = CF_maxLength()
 datatypes.ENTITIES._CF_enumeration = CF_enumeration(value_datatype=datatypes.ENTITIES)
-datatypes.ENTITIES._CF_minLength = CF_minLength(value=datatypes.nonNegativeInteger(1L))
+datatypes.ENTITIES._CF_minLength = CF_minLength(value=datatypes.nonNegativeInteger(1))
 datatypes.ENTITIES._CF_whiteSpace = CF_whiteSpace()
 datatypes.ENTITIES._CF_length = CF_length()
 datatypes.ENTITIES._InitializeFacetMap(datatypes.ENTITIES._CF_pattern,
@@ -864,7 +864,7 @@ datatypes.IDREF._InitializeFacetMap()
 datatypes.IDREFS._CF_pattern = CF_pattern()
 datatypes.IDREFS._CF_maxLength = CF_maxLength()
 datatypes.IDREFS._CF_enumeration = CF_enumeration(value_datatype=datatypes.IDREFS)
-datatypes.IDREFS._CF_minLength = CF_minLength(value=datatypes.nonNegativeInteger(1L))
+datatypes.IDREFS._CF_minLength = CF_minLength(value=datatypes.nonNegativeInteger(1))
 datatypes.IDREFS._CF_whiteSpace = CF_whiteSpace()
 datatypes.IDREFS._CF_length = CF_length()
 datatypes.IDREFS._InitializeFacetMap(datatypes.IDREFS._CF_pattern,
@@ -882,7 +882,7 @@ datatypes.NMTOKEN._InitializeFacetMap(datatypes.NMTOKEN._CF_pattern)
 datatypes.NMTOKENS._CF_pattern = CF_pattern()
 datatypes.NMTOKENS._CF_maxLength = CF_maxLength()
 datatypes.NMTOKENS._CF_enumeration = CF_enumeration(value_datatype=datatypes.NMTOKENS)
-datatypes.NMTOKENS._CF_minLength = CF_minLength(value=datatypes.nonNegativeInteger(1L))
+datatypes.NMTOKENS._CF_minLength = CF_minLength(value=datatypes.nonNegativeInteger(1))
 datatypes.NMTOKENS._CF_whiteSpace = CF_whiteSpace()
 datatypes.NMTOKENS._CF_length = CF_length()
 datatypes.NMTOKENS._InitializeFacetMap(datatypes.NMTOKENS._CF_pattern,
@@ -1126,7 +1126,7 @@ datatypes.int._InitializeFacetMap(datatypes.int._CF_minInclusive,
    datatypes.int._CF_maxInclusive)
 datatypes.integer._CF_pattern = CF_pattern()
 datatypes.integer._CF_pattern.addPattern(pattern=six.u('[\\-+]?[0-9]+'))
-datatypes.integer._CF_fractionDigits = CF_fractionDigits(value=datatypes.nonNegativeInteger(0L))
+datatypes.integer._CF_fractionDigits = CF_fractionDigits(value=datatypes.nonNegativeInteger(0))
 datatypes.integer._InitializeFacetMap(datatypes.integer._CF_pattern,
    datatypes.integer._CF_fractionDigits)
 datatypes.language._CF_pattern = CF_pattern()

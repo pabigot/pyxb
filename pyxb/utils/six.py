@@ -38,6 +38,7 @@ if PY3:
     class_types = type,
     text_type = str
     binary_type = bytes
+    long_type = int
 
     MAXSIZE = sys.maxsize
 else:
@@ -46,6 +47,7 @@ else:
     class_types = (type, types.ClassType)
     text_type = unicode
     binary_type = str
+    long_type = long
 
     if sys.platform.startswith("java"):
         # Jython always uses 32 bits.

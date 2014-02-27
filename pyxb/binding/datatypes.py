@@ -519,7 +519,7 @@ class dateTime (_PyXBDateTime_base, datetime.datetime):
                 ctor_kw.update(cls._LexicalToKeywords(value))
             elif isinstance(value, datetime.datetime):
                 cls._SetKeysFromPython(value, ctor_kw, cls.__CtorFields)
-            elif isinstance(value, (pyxb.utils.types_.IntType, pyxb.utils.types_.LongType)):
+            elif isinstance(value, six.integer_types):
                 raise TypeError('function takes at least 3 arguments (%d given)' % (len(args),))
             else:
                 raise SimpleTypeValueError(cls, value)
@@ -593,7 +593,7 @@ class time (_PyXBDateTime_base, datetime.time):
                 ctor_kw.update(cls._LexicalToKeywords(value))
             elif isinstance(value, (datetime.time, datetime.datetime)):
                 cls._SetKeysFromPython(value, ctor_kw, cls.__CtorFields)
-            elif isinstance(value, (pyxb.utils.types_.IntType, pyxb.utils.types_.LongType)):
+            elif isinstance(value, six.integer_types):
                 for fi in range(len(cls.__CtorFields)):
                     fn = cls.__CtorFields[fi]
                     if fi < len(args):
@@ -1130,7 +1130,7 @@ class ENTITIES (basis.STD_list):
     _ItemType = ENTITY
 _ListDatatypes.append(ENTITIES)
 
-class integer (basis.simpleTypeDefinition, pyxb.utils.types_.LongType):
+class integer (basis.simpleTypeDefinition, six.long_type):
     """XMLSchema datatype U{integer<http://www.w3.org/TR/xmlschema-2/#integer>}."""
     _XsdBaseType = decimal
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('integer')
@@ -1226,7 +1226,7 @@ def _BuildAutomaton ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0L, max=None, metadata=pyxb.utils.utility.Location('http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType', 1, 1))
+    cc_0 = fac.CounterCondition(min=0, max=None, metadata=pyxb.utils.utility.Location('http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType', 1, 1))
     counters.add(cc_0)
     states = set()
     final_update = set()

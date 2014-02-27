@@ -849,7 +849,7 @@ def _NewUUIDString ():
     """
     if __HaveUUID:
         return uuid.uuid1().urn
-    return '%s:%08.8x' % (time.strftime('%Y%m%d%H%M%S'), random.randint(0, 0xFFFFFFFFL))
+    return '%s:%08.8x' % (time.strftime('%Y%m%d%H%M%S'), random.randint(0, 0xFFFFFFFF))
 
 class UniqueIdentifier (object):
     """Records a unique identifier, generally associated with a

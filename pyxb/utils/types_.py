@@ -32,7 +32,7 @@ import pyxb.utils.six as six
 IntType = types.IntType
 """The type underlying C{int}."""
 
-LongType = types.LongType
+LongType = six.long_type
 """The type underlying C{long} (for Python 2).  Same as L{IntType} in Python 3."""
 
 FloatType = types.FloatType

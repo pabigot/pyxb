@@ -3010,9 +3010,9 @@ class Particle (_ParticleTree_mixin, _SchemaComponent_mixin, pyxb.namespace.reso
         if term is not None:
             self.__term = term
 
-        assert isinstance(min_occurs, (types.IntType, types.LongType))
+        assert isinstance(min_occurs, six.integer_types)
         self.__minOccurs = min_occurs
-        assert (max_occurs is None) or isinstance(max_occurs, (types.IntType, types.LongType))
+        assert (max_occurs is None) or isinstance(max_occurs, six.integer_types)
         self.__maxOccurs = max_occurs
         if self.__maxOccurs is not None:
             if self.__minOccurs > self.__maxOccurs:

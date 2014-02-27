@@ -373,7 +373,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
 
         # See if we have a numeric type that needs to be cast across the
         # numeric hierarchy.  int to long is the *only* conversion we accept.
-        if isinstance(value, int) and issubclass(cls, long):
+        if isinstance(value, int) and issubclass(cls, six.long_type):
             return cls(value)
 
         # Same, but for boolean, which Python won't let us subclass
