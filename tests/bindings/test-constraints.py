@@ -215,7 +215,7 @@ class testWhitespace (unittest.TestCase):
         cases = [ "test", "  test", "  test", "\ttest", "\ttest\n\rtoo\n" ]
         for c in cases:
             self.assertEqual(c, datatypes.string(c))
-            self.assertEqual(c, datatypes.string(unicode(c)))
+            self.assertEqual(c, datatypes.string(six.text_type(c)))
 
     __Replace = facets.CF_whiteSpace(value=facets._WhiteSpace_enum.replace)
     def testReplace (self):

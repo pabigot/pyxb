@@ -145,7 +145,7 @@ class TestTrac0211 (unittest.TestCase):
         oc = instance.orderedContent()
         self.assertEqual(3, len(oc))
         oc0 = oc[0].value
-        self.assertTrue(isinstance(oc0, unicode))
+        self.assertTrue(isinstance(oc0, six.text_type))
         self.assertEqual(six.u('4'), oc0)
 
     def testBasicSimples (self):

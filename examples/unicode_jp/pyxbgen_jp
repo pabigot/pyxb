@@ -7,6 +7,7 @@ import pyxb.xmlschema
 import pyxb.binding.generate
 import pyxb.utils.utility
 import pyxb.utils.domutils
+import pyxb.utils.six as six
 import pyxb.utils.saxutils
 import os.path
 import sys
@@ -23,7 +24,7 @@ pyxb.utils.saxutils.SetCreateParserModules(['drv_libxml2'])
 
 _AllAsciiMatch_re = re.compile(r'^[ -~]+$')
 def ConvertJPIdentifier (identifier):
-    identifier = unicode(identifier)
+    identifier = six.text_type(identifier)
     if _AllAsciiMatch_re.match(identifier):
         return identifier
     identifier = _tagger2.parse(_tagger1.parse(identifier.encode('utf-8')))

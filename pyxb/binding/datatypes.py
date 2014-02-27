@@ -64,7 +64,7 @@ _ListDatatypes = []
 # We use unicode as the Python type for anything that isn't a normal
 # primitive type.  Presumably, only enumeration and pattern facets
 # will be applied.
-class anySimpleType (basis.simpleTypeDefinition, unicode):
+class anySimpleType (basis.simpleTypeDefinition, six.text_type):
     """XMLSchema datatype U{anySimpleType<http://www.w3.org/TR/xmlschema-2/#dt-anySimpleType>}."""
     _XsdBaseType = None
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('anySimpleType')
@@ -75,7 +75,7 @@ class anySimpleType (basis.simpleTypeDefinition, unicode):
 # anySimpleType is not treated as a primitive, because its variety
 # must be absent (not atomic).
 
-class string (basis.simpleTypeDefinition, unicode):
+class string (basis.simpleTypeDefinition, six.text_type):
     """XMLSchema datatype U{string<http://www.w3.org/TR/xmlschema-2/#string>}."""
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('string')
@@ -884,7 +884,7 @@ class base64Binary (basis.simpleTypeDefinition, pyxb.utils.types_.DataType):
 
 _PrimitiveDatatypes.append(base64Binary)
 
-class anyURI (basis.simpleTypeDefinition, unicode):
+class anyURI (basis.simpleTypeDefinition, six.text_type):
     """XMLSchema datatype U{anyURI<http://www.w3.org/TR/xmlschema-2/#anyURI>}."""
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('anyURI')
@@ -895,11 +895,11 @@ class anyURI (basis.simpleTypeDefinition, unicode):
 
     @classmethod
     def XsdLiteral (cls, value):
-        return unicode(value)
+        return six.text_type(value)
 
 _PrimitiveDatatypes.append(anyURI)
 
-class QName (basis.simpleTypeDefinition, unicode):
+class QName (basis.simpleTypeDefinition, six.text_type):
     """XMLSchema datatype U{QName<http://www.w3.org/TR/xmlschema-2/#QName>}."""
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('QName')
@@ -928,11 +928,11 @@ class QName (basis.simpleTypeDefinition, unicode):
         if self.find(':'):
             (self.__prefix, self.__localName) = self.split(':', 1)
         else:
-            self.__localName = unicode(self)
+            self.__localName = six.text_type(self)
 
     @classmethod
     def XsdLiteral (cls, value):
-        return unicode(value)
+        return six.text_type(value)
 
     @classmethod
     def _XsdConstraintsPreCheck_vb (cls, value):

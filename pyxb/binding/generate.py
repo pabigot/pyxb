@@ -482,7 +482,7 @@ def GenerateSTD (std, generator):
         template_map['superclasses'] = ', '.join(parent_classes)
     template_map['expanded_name'] = binding_module.literal(std.expandedName(), **kw)
     if std.expandedName() is not None:
-        template_map['qname'] = unicode(std.expandedName())
+        template_map['qname'] = six.text_type(std.expandedName())
     else:
         template_map['qname'] = '[anonymous]'
     template_map['namespaceReference'] = binding_module.literal(std.bindingNamespace(), **kw)
@@ -552,7 +552,7 @@ class %{std} (pyxb.binding.basis.STD_union):
 
 def elementDeclarationMap (ed, binding_module, **kw):
     template_map = { }
-    template_map['qname'] = unicode(ed.expandedName())
+    template_map['qname'] = six.text_type(ed.expandedName())
     template_map['decl_location'] = repr(ed._location())
     template_map['namespaceReference'] = binding_module.literal(ed.bindingNamespace(), **kw)
     if (ed.SCOPE_global == ed.scope()):
@@ -564,7 +564,7 @@ def elementDeclarationMap (ed, binding_module, **kw):
     else:
         template_map['scope'] = binding_module.literal(ed.scope(), **kw)
     if ed.annotation() is not None:
-        template_map['documentation'] = binding_module.literal(unicode(ed.annotation()))
+        template_map['documentation'] = binding_module.literal(six.text_type(ed.annotation()))
     if ed.abstract():
         template_map['abstract'] = binding_module.literal(ed.abstract(), **kw)
     if ed.nillable():
@@ -856,7 +856,7 @@ def GenerateCTD (ctd, generator, **kw):
     template_map['namespaceReference'] = binding_module.literal(ctd.bindingNamespace(), **kw)
     template_map['expanded_name'] = binding_module.literal(ctd.expandedName(), **kw)
     if ctd.expandedName() is not None:
-        template_map['qname'] = unicode(ctd.expandedName())
+        template_map['qname'] = six.text_type(ctd.expandedName())
     else:
         template_map['qname'] = '[anonymous]'
     template_map['xsd_location'] = repr(ctd._location())
@@ -951,12 +951,12 @@ class %{ctd} (%{superclass}):
                     ef_map['aux_init'] = ', ' + ', '.join(aux_init)
                 ef_map['element_binding'] = utility.PrepareIdentifier('%s_elt' % (ef_map['id'],), class_unique, class_keywords, private=True)
                 if ed.annotation() is not None:
-                    ef_map['documentation'] = binding_module.literal(unicode(ed.annotation()))
+                    ef_map['documentation'] = binding_module.literal(six.text_type(ed.annotation()))
                 else:
                     ef_map['documentation'] = binding_module.literal(None)
             if ed.scope() != ctd:
                 definitions.append(templates.replaceInText('''
-    # Element %{id} (%{qname}) inherited from %{decl_type_en}''', decl_type_en=unicode(ed.scope().expandedName()), **ef_map))
+    # Element %{id} (%{qname}) inherited from %{decl_type_en}''', decl_type_en=six.text_type(ed.scope().expandedName()), **ef_map))
                 continue
 
             binding_module.importForDeclaration(ed)
@@ -999,7 +999,7 @@ class %{ctd} (%{superclass}):
         au_map = ad._templateMap()
         if ad.scope() != ctd:
             definitions.append(templates.replaceInText('''
-    # Attribute %{id} inherited from %{decl_type_en}''', decl_type_en=unicode(ad.scope().expandedName()), **au_map))
+    # Attribute %{id} inherited from %{decl_type_en}''', decl_type_en=six.text_type(ad.scope().expandedName()), **au_map))
             continue
         assert isinstance(au_map, dict)
         aur = au
@@ -1030,7 +1030,7 @@ class %{ctd} (%{superclass}):
             aux_init.insert(0, '')
             au_map['aux_init'] = ', '.join(aux_init)
         if ad.annotation() is not None:
-            au_map['documentation'] = binding_module.literal(unicode(ad.annotation()))
+            au_map['documentation'] = binding_module.literal(six.text_type(ad.annotation()))
         else:
             au_map['documentation'] = binding_module.literal(None)
 
@@ -1124,9 +1124,9 @@ def _SetNameWithAccessors (component, container, is_plural, binding_module, nsm,
     assert component._scope() == container
     assert component.nameInBinding() is None, 'Use %s but binding name %s for %s' % (use_map['use'], component.nameInBinding(), component.expandedName())
     component.setNameInBinding(use_map['use'])
-    key_name = six.u('%s_%s_%s') % (unicode(nsm.namespace()), container.nameInBinding(), component.expandedName())
+    key_name = six.u('%s_%s_%s') % (six.text_type(nsm.namespace()), container.nameInBinding(), component.expandedName())
     use_map['key'] = utility.PrepareIdentifier(key_name, class_unique, private=True)
-    use_map['qname'] = unicode(component.expandedName())
+    use_map['qname'] = six.text_type(component.expandedName())
     if isinstance(component, xs.structures.ElementDeclaration) and is_plural:
         use_map['appender'] = utility.PrepareIdentifier('add' + unique_name[0].upper() + unique_name[1:], class_unique)
     return use_map
@@ -1587,7 +1587,7 @@ class NamespaceModule (_ModuleNaming_mixin):
     def _moduleUID_vx (self):
         if self.namespace().isAbsentNamespace():
             return 'Absent'
-        return unicode(self.namespace())
+        return six.text_type(self.namespace())
 
     def namespaceGroupMulti (self):
         return 1 < len(self.__namespaceGroup)
@@ -1617,7 +1617,7 @@ class NamespaceModule (_ModuleNaming_mixin):
         return kw
 
     def _finalizeModuleContents_vx (self, template_map):
-        if sys.version_info < (3, 0):
+        if six.PY2:
             template_map['_TextType'] = 'unicode'
         else:
             template_map['_TextType'] = 'str'
@@ -1772,7 +1772,7 @@ _GenerationUID = %{generation_uid_expr}
             if ns.isAbsentNamespace():
                 nss.append('Absent')
             else:
-                nss.append(unicode(ns))
+                nss.append(six.text_type(ns))
         nss.sort()
         return six.u(';').join(nss)
 
@@ -1793,7 +1793,7 @@ def GeneratePython (schema_location=None,
         generator.addSchema(schema_text)
     modules = generator.bindingModules()
 
-    assert 1 == len(modules), '%s produced %d modules: %s' % (namespace, len(modules), six.u(' ').join([ unicode(_m) for _m in modules]))
+    assert 1 == len(modules), '%s produced %d modules: %s' % (namespace, len(modules), six.u(' ').join([ six.text_type(_m) for _m in modules]))
     return modules.pop().moduleContents()
 
 import optparse

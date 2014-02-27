@@ -284,9 +284,9 @@ class AttributeUse (pyxb.cscRoot):
 
     def _description (self, name_only=False, user_documentation=True):
         if name_only:
-            return unicode(self.__name)
+            return six.text_type(self.__name)
         assert issubclass(self.__dataType, basis._TypeBinding_mixin)
-        desc = [ unicode(self.__id), ': ', unicode(self.__name), ' (', self.__dataType._description(name_only=True, user_documentation=False), '), ' ]
+        desc = [ six.text_type(self.__id), ': ', six.text_type(self.__name), ' (', self.__dataType._description(name_only=True, user_documentation=False), '), ' ]
         if self.__required:
             desc.append('required')
         elif self.__prohibited:
@@ -1105,8 +1105,8 @@ class ElementDeclaration (object):
 
     def _description (self, name_only=False, user_documentation=True):
         if name_only:
-            return unicode(self.__name)
-        desc = [ unicode(self.__id), ': ']
+            return six.text_type(self.__name)
+        desc = [ six.text_type(self.__id), ': ']
         if self.isPlural():
             desc.append('MULTIPLE ')
         desc.append(self.elementBinding()._description(user_documentation=user_documentation))

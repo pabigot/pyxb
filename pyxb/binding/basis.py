@@ -363,8 +363,8 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
             return value
         value_type = type(value)
         # All string-based PyXB binding types use unicode, not str
-        if str == value_type:
-            value_type = unicode
+        if six.PY2 and str == value_type:
+            value_type = six.text_type
 
         # See if we got passed a Python value which needs to be "downcasted"
         # to the _TypeBinding_mixin version.
@@ -382,7 +382,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
 
         # See if we have convert_string_values on, and have a string type that
         # somebody understands.
-        if convert_string_values and (unicode == value_type):
+        if convert_string_values and value_type == six.text_type:
             return cls(value)
 
         # Maybe this is a union?
@@ -595,8 +595,8 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         is the expanded name if the type has one, or the Python type name if
         it does not."""
         if cls._ExpandedName is not None:
-            return unicode(cls._ExpandedName)
-        return unicode(cls)
+            return six.text_type(cls._ExpandedName)
+        return six.text_type(cls)
 
     def _diagnosticName (self):
         """The best name available for this instance in diagnostics.
@@ -605,7 +605,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         otherwise it is the best name for the type of the instance per L{_Name}."""
         if self.__element is None:
             return self._Name()
-        return unicode(self.__element.name())
+        return six.text_type(self.__element.name())
 
 class _DynamicCreate_mixin (pyxb.cscRoot):
     """Helper to allow overriding the implementation class.
@@ -842,7 +842,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         if (0 < len(args)) and isinstance(args[0], types.StringTypes) and apply_whitespace_facet:
             cf_whitespace = getattr(cls, '_CF_whiteSpace', None)
             if cf_whitespace is not None:
-                norm_str = unicode(cf_whitespace.normalizeString(args[0]))
+                norm_str = six.text_type(cf_whitespace.normalizeString(args[0]))
                 args = (norm_str,) + args[1:]
         kw['_from_xml'] = from_xml
         return cls._ConvertArguments_vx(args, kw)
@@ -1800,7 +1800,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         return 'Element %s' % (self.name(),)
 
     def _description (self, name_only=False, user_documentation=True):
-        name = unicode(self.name())
+        name = six.text_type(self.name())
         if name_only:
             return name
         desc = [ name, ' (', self.typeDefinition()._description(name_only=True), ')' ]
@@ -1944,7 +1944,7 @@ class NonElementContent (_Content):
     The value will be unicode text, and should be appended as character
     data."""
     def __init__ (self, value):
-        super(NonElementContent, self).__init__(unicode(value))
+        super(NonElementContent, self).__init__(six.text_type(value))
 
 class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """Base for any Python class that serves as the binding for an

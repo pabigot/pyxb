@@ -2918,7 +2918,7 @@ class ModelGroup (_ParticleTree_mixin, _SchemaComponent_mixin, _Annotated_mixin)
             comp = 'CHOICE'
         elif self.C_SEQUENCE == self.compositor():
             comp = 'SEQUENCE'
-        return '%s:(%s)' % (comp, six.u(',').join( [ unicode(_p) for _p in self.particles() ] ) )
+        return '%s:(%s)' % (comp, six.u(',').join( [ six.text_type(_p) for _p in self.particles() ] ) )
 
 class Particle (_ParticleTree_mixin, _SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mixin):
     """An XMLSchema U{Particle<http://www.w3.org/TR/xmlschema-1/#cParticle>} component."""
@@ -3567,9 +3567,9 @@ class Annotation (_SchemaComponent_mixin):
         user_information = kw.pop('user_information', None)
         super(Annotation, self).__init__(**kw)
         if (user_information is not None) and (not isinstance(user_information, list)):
-            user_information = [ unicode(user_information) ]
+            user_information = [ six.text_type(user_information) ]
         if (application_information is not None) and (not isinstance(application_information, list)):
-            application_information = [ unicode(application_information) ]
+            application_information = [ six.text_type(application_information) ]
         self.__userInformation = user_information
         self.__applicationInformation = application_information
 
@@ -3833,7 +3833,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         elif self.VARIETY_list == self.variety():
             elts.append('list of %s' % (self.itemTypeDefinition().name(),))
         elif self.VARIETY_union == self.variety():
-            elts.append('union of %s' % (six.u(' ').join([unicode(_mtd.name()) for _mtd in self.memberTypeDefinitions()],)))
+            elts.append('union of %s' % (six.u(' ').join([six.text_type(_mtd.name()) for _mtd in self.memberTypeDefinitions()],)))
         else:
             # Gets here if the type has not been resolved.
             elts.append('?')
@@ -3842,11 +3842,11 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             felts = []
             for (k, v) in self.__facets.iteritems():
                 if v is not None:
-                    felts.append(unicode(v))
+                    felts.append(six.text_type(v))
             elts.append(six.u('\n  %s') % (','.join(felts),))
         if self.__fundamentalFacets:
             elts.append("\n  ")
-            elts.append(six.u(',').join( [unicode(_f) for _f in self.__fundamentalFacets ]))
+            elts.append(six.u(',').join( [six.text_type(_f) for _f in self.__fundamentalFacets ]))
         return 'STD[%s]' % (''.join(elts),)
 
     def _updateFromOther_csc (self, other):
@@ -4205,7 +4205,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                     for ai in range(0, cn.attributes.length):
                         attr = cn.attributes.item(ai)
                         # Convert name from unicode to string
-                        kw[unicode(attr.localName)] = attr.value
+                        kw[six.text_type(attr.localName)] = attr.value
                     try:
                         fi.setFromKeywords(**kw)
                     except pyxb.PyXBException as e:

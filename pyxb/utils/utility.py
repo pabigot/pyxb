@@ -108,7 +108,7 @@ def _DefaultXMLIdentifierToPython (identifier):
     @return: C{unicode(identifier)}
     """
 
-    return unicode(identifier)
+    return six.text_type(identifier)
 
 def _SetXMLIdentifierToPython (xml_identifier_to_python):
     """Configure a callable L{MakeIdentifier} uses to pre-process an XM Lidentifier.
@@ -827,7 +827,7 @@ def HashForText (text):
 
     @return: A C{str}, generally a sequence of hexadecimal "digit"s.
     """
-    if isinstance(text, unicode):
+    if isinstance(text, six.text_type):
         text = text.encode('utf-8')
     return __Hasher(text).hexdigest()
 
