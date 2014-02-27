@@ -1,5 +1,6 @@
 # Coding declaration for unicode strings
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 import logging
 if __name__ == '__main__':
     logging.basicConfig()
@@ -42,10 +43,10 @@ import unittest
 
 class TestTrac0131 (unittest.TestCase):
     # Unicode string, UTF-8 encoding (per declaration at script top)
-    strt = u'Sign of Leser-Trélat'
+    strt = 'Sign of Leser-Trélat'
     strd = strt.encode('utf-8')
-    base_xmlt = u'<bar><e>' + strt + u'</e></bar>'
-    declared_xmlt = u'<?xml version="1.0" encoding="UTF-8"?>' + base_xmlt
+    base_xmlt = '<bar><e>' + strt + '</e></bar>'
+    declared_xmlt = '<?xml version="1.0" encoding="UTF-8"?>' + base_xmlt
 
     def setUp (self):
         self.__xmlStyle = pyxb._XMLStyle
@@ -54,8 +55,7 @@ class TestTrac0131 (unittest.TestCase):
         pyxb._SetXMLStyle(self.__xmlStyle)
 
     def testRepresentation (self):
-        self.assertEqual(self.strd, 'Sign of Leser-Tr\xc3\xa9lat') #!python3!
-#python3:        self.assertEqual(self.strd, b'Sign of Leser-Tr\xc3\xa9lat')
+        self.assertEqual(self.strd, b'Sign of Leser-Tr\xc3\xa9lat')
 
     def testBasicParse (self):
         xmlt = self.base_xmlt
