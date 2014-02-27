@@ -526,6 +526,7 @@ if PY3:
     StringIO = io.StringIO
     BytesIO = io.BytesIO
     intern = sys.intern
+    file = io.IOBase
 else:
     def b(s):
         return s
@@ -544,6 +545,7 @@ else:
     StringIO = BytesIO = StringIO.StringIO
     import __builtin__
     intern = __builtin__.intern
+    file = __builtin__.file
 _add_doc(b, """Byte literal""")
 _add_doc(u, """Text literal""")
 

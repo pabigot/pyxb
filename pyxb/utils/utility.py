@@ -748,7 +748,7 @@ def DataFromURI (uri, archive_directory=None):
     try:
         # Protect this in case whatever stream is doesn't have an fp
         # attribute.
-        if isinstance(stream, file) or isinstance(stream.fp, file):
+        if isinstance(stream, six.file) or isinstance(stream.fp, six.file):
             archive_directory = None
     except:
         pass
