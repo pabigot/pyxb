@@ -1878,12 +1878,12 @@ class _Content (object):
 
         See also L{pyxb.NonElementContent}
         """
-        class _Iterator:
+        class _Iterator (six.Iterator):
             def __init__ (self, input):
                 self.__input = iter(input)
             def __iter__ (self):
                 return self
-            def next (self):
+            def __next__ (self):
                 while True:
                     content = next(self.__input)
                     if isinstance(content, cls):
