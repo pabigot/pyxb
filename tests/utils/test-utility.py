@@ -20,6 +20,14 @@ class DeconfictSymbolsTtest (unittest.TestCase):
         self.assertEqual(2, len(DST_base._ReservedSymbols))
         self.assertEqual(3, len(DST_sub._ReservedSymbols))
 
+if six.PY3:
+    def qu(s):
+        return '"' + s.replace('"', '\\"') + '"'
+else:
+    def qu(s):
+        s = unicode(s.replace(r'\\', r'\\\\'), "unicode_escape")
+        return six.u('u"') + s.replace('"', '\\"') + '"'
+
 class BasicTest (unittest.TestCase):
 
     cases = ( ( r'"1\x042"', "1\0042" ) # expanded octal
@@ -33,16 +41,16 @@ class BasicTest (unittest.TestCase):
             , ( "\"1'\\n'2\"", '1\'\n\'2' ) # expanded newline to escape sequence (single quotes)
             , ( "\"1\\x22\\n\\x222\"", '1"\n"2' ) # escape double quotes around expanded newline
             , ( "r'1\\'\\n\\'2'", r'1\'\n\'2' )   # preserve escaped quote and newline
-            , ( r'u"1\u00042"', six.u("1\0042") )       # unicode expanded octal
-            , ( r'u"1\u00222&3"', six.u('1"2&3') )      # unicode escape double quotes
-            , ( r'u"one' + "'" + r'two"', six.u("one'two") ) # unicode embedded single quote
+            , ( qu(r'"1\u00042"'), six.u("1\0042") )       # unicode expanded octal
+            , ( qu(r'"1\u00222&3"'), six.u('1"2&3') )      # unicode escape double quotes
+            , ( qu(r'"one' + "'" + r'two"'), six.u("one'two") ) # unicode embedded single quote
             , ( "r'\\i\\c*'", r'\i\c*' )               # backslashes as in patterns
-            , ( u'u"0"', u'\u0030' )                   # expanded unicode works
-            , ( u'u"\\u0022"', u'"' )      # unicode double quotes are escaped
-            , ( u'u"\\u0022"', u'\u0022' ) # single quotes don't change that expanded unicode works
-            , ( u'u"\\u0022"', ur'\u0022' ) # raw has no effect on unicode escapes
-            , ( u"u\"'\"", u"'" )           # unicode single quote works
-            , ( u"u\"\\u00220\\u0022\"", u'"\u0030"' ) # unicode with double quotes works
+            , ( qu('"0"'), six.u('\u0030') )                   # expanded unicode works
+            , ( qu('"\\u0022"'), six.u('"') )      # unicode double quotes are escaped
+            , ( qu('"\\u0022"'), six.u('\u0022') ) # single quotes don't change that expanded unicode works
+            , ( qu('"\\u0022"'), six.u(r'\u0022') ) # raw has no effect on unicode escapes
+            , ( qu('\"'), six.u("'") )           # unicode single quote works
+            , ( qu('\"\\u00220\\u0022\"'), six.u('"\u0030"') ) # unicode with double quotes works
             )
 
 
@@ -81,11 +89,11 @@ class BasicTest (unittest.TestCase):
 
     def testMakeIdentifier (self):
         self.assertEqual('id', MakeIdentifier('id'))
-        self.assertEqual('id', MakeIdentifier(u'id'))
-        self.assertEqual('id_sep', MakeIdentifier(u'id_sep'))
-        self.assertEqual('id_sep', MakeIdentifier(u'id sep'))
-        self.assertEqual('id_sep_too', MakeIdentifier(u'id-sep too'))
-        self.assertEqual('idid', MakeIdentifier(u'id&id'))
+        self.assertEqual('id', MakeIdentifier(six.u('id')))
+        self.assertEqual('id_sep', MakeIdentifier(six.u('id_sep')))
+        self.assertEqual('id_sep', MakeIdentifier(six.u('id sep')))
+        self.assertEqual('id_sep_too', MakeIdentifier(six.u('id-sep too')))
+        self.assertEqual('idid', MakeIdentifier(six.u('id&id')))
         self.assertEqual('id', MakeIdentifier('_id'))
         self.assertEqual('id_', MakeIdentifier('_id_'))
         self.assertEqual('emptyString', MakeIdentifier(''))
