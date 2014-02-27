@@ -1,4 +1,4 @@
-from raw.soapbind12 import *
+from pyxb.bundles.wssplat.raw.soapbind12 import *
 import pyxb.bundles.wssplat.raw.soapbind12 as raw_soapbind12
 from pyxb.bundles.wssplat.wsdl11 import _WSDL_binding_mixin, _WSDL_port_mixin, _WSDL_operation_mixin
 
