@@ -1,6 +1,6 @@
 from __future__ import print_function
 import dict
-import urllib2
+from pyxb.utils.six.moves.urllib.request import urlopen
 import sys
 from pyxb.utils import domutils
 
@@ -10,7 +10,7 @@ if 1 < len(sys.argv):
 
 # Create a REST-style query to retrieve the information about this dictionary.
 uri = 'http://services.aonaware.com/DictService/DictService.asmx/Define?word=%s' % (word,)
-rxml = urllib2.urlopen(uri).read()
+rxml = urlopen(uri).read()
 resp = dict.CreateFromDOM(domutils.StringToDOM(rxml))
 
 print('Definitions of %s:' % (resp.Word,))

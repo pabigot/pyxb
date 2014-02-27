@@ -1,11 +1,11 @@
 from __future__ import print_function
-import urllib2
 import time
 import sys
 import DWML
 import datetime
 import pyxb
 from pyxb.utils import domutils
+from pyxb.utils.six.moves.urllib import request as urllib_request
 import pyxb.binding.datatypes as xsd
 import pyxb.bundles.wssplat.soap11 as soapenv
 
@@ -110,10 +110,10 @@ soap_addr = service.port[0].wildcardElements()[0]
 endpoint = soap_addr.location
 
 # Execute the request
-uri = urllib2.Request(endpoint,
+uri = urllib_request.Request(endpoint,
                       soap_message,
                       { 'SOAPAction' : soap_action, 'Content-Type': 'text/xml' } )
-rxml = urllib2.urlopen(uri).read()
+rxml = urllib_request.urlopen(uri).read()
 #rxml = open('rawresp.xml').read()
 
 # Save the raw SOAP-wrapped response

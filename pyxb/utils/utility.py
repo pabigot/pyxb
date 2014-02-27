@@ -19,7 +19,7 @@ import re
 import os
 import errno
 import pyxb
-import urlparse
+from pyxb.utils.six.moves.urllib import parse as urlparse
 import time
 import datetime
 import logging
@@ -714,8 +714,8 @@ def DataFromURI (uri, archive_directory=None):
 
     If the uri does not include a scheme (e.g., C{http:}), it is
     assumed to be a file path on the local system."""
-    import urllib
-    import urllib2
+
+    from pyxb.utils.six.moves.urllib.request import urlopen
     stream = None
     exc = None
     # Only something that has a colon is a non-file URI.  Some things
@@ -723,10 +723,11 @@ def DataFromURI (uri, archive_directory=None):
     # but allow urllib (which apparently works better on Windows).
     if 0 <= uri.find(':'):
         try:
-            stream = urllib2.urlopen(uri)
+            stream = urlopen(uri)
         except Exception as e:
             exc = e
-        if stream is None:
+        if (stream is None) and six.PY2:
+            import urllib
             try:
                 stream = urllib.urlopen(uri)
                 exc = None

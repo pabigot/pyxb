@@ -61,6 +61,7 @@ import operator
 import functools
 import logging
 from pyxb.utils import six
+from pyxb.utils.six.moves import xrange
 
 log_ = logging.getLogger(__name__)
 

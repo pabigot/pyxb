@@ -1,7 +1,7 @@
 from __future__ import print_function
 import sys
 import time
-import urllib2
+from pyxb.utils.six.moves.urllib import request as urllib_request
 import pyxb.bundles.wssplat.soap11 as soapenv
 import weather
 
@@ -15,10 +15,10 @@ env = soapenv.Envelope(soapenv.Body(weather.GetCityForecastByZIP(ZIP=str(zip))))
 open('request.xml', 'w').write(env.toxml("utf-8"))
 
 # Invoke the service
-uri = urllib2.Request('http://wsf.cdyne.com/WeatherWS/Weather.asmx',
-                      env.toxml("utf-8"),
-                      { 'SOAPAction' : "http://ws.cdyne.com/WeatherWS/GetCityForecastByZIP", 'Content-Type': 'text/xml' } )
-rxml = urllib2.urlopen(uri).read()
+uri = urllib_request.Request('http://wsf.cdyne.com/WeatherWS/Weather.asmx',
+                             env.toxml("utf-8"),
+                             { 'SOAPAction' : "http://ws.cdyne.com/WeatherWS/GetCityForecastByZIP", 'Content-Type': 'text/xml' } )
+rxml = urllib_request.urlopen(uri).read()
 open('response.xml', 'w').write(rxml)
 
 # Convert the response to a SOAP envelope, then extract the actual

@@ -8,6 +8,7 @@ import pyxb.utils.domutils
 import operator
 import functools
 from xml.dom import Node
+from pyxb.utils.six.moves import xrange
 
 import os.path
 xsd='''<?xml version="1.0" encoding="UTF-8"?>

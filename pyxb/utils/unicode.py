@@ -36,6 +36,7 @@ import re
 import logging
 import pyxb.utils.utility
 from pyxb.utils import six
+from pyxb.utils.six.moves import xrange
 
 _log = logging.getLogger(__name__)
 

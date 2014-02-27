@@ -25,6 +25,7 @@ import pyxb.utils.saxutils
 import pyxb.utils.saxdom
 import pyxb.utils.types_
 from pyxb.utils import six
+from pyxb.utils.six.moves import xrange
 
 _log = logging.getLogger(__name__)
 

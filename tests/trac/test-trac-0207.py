@@ -6,7 +6,7 @@ _log = logging.getLogger(__name__)
 import pyxb
 import pyxb.utils.utility
 import pyxb.binding.datatypes as xsd
-import cPickle as pickle
+from pyxb.utils.six.moves import cPickle as pickle
 
 import unittest
 

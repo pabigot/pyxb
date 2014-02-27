@@ -35,7 +35,7 @@ assert 1 == len(st_modules)
 code = st_modules.pop().moduleContents()
 open('st.py', 'w').write(code)
 rv = compile(code, 'shared-types', 'exec')
-exec code in st.__dict__
+six.exec_(code, st.__dict__)
 
 # Set the path by which we expect to reference the module
 stns = pyxb.namespace.NamespaceForURI('URN:shared-types', create_if_missing=True)

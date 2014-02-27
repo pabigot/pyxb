@@ -37,7 +37,7 @@ import re
 import logging
 from xml.dom import Node
 import copy
-import urlparse
+from pyxb.utils.six.moves.urllib import parse as urlparse
 import os.path
 
 import pyxb

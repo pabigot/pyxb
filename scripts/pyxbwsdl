@@ -9,7 +9,7 @@
 from __future__ import print_function
 import sys
 import xml.dom.minidom
-import urllib2
+from pyxb.utils.six.moves.urllib.request import urlopen
 import logging
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 import pyxb.bundles.wssplat.wsdl11 as wsdl
 
 for uri in sys.argv[1:]:
-    uri_src = urllib2.urlopen(uri)
+    uri_src = urlopen(uri)
     doc = xml.dom.minidom.parseString(uri_src.read())
     spec = wsdl.definitions.createFromDOM(doc.documentElement, process_schema=True)
 

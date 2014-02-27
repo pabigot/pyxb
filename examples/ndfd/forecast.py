@@ -3,7 +3,7 @@ import xml.dom.minidom
 import DWML
 import datetime
 import pyxb.binding.datatypes as xsd
-import urllib2
+from pyxb.utils.six.moves.urllib.request import urlopen
 import time
 import collections
 import sys
@@ -20,7 +20,7 @@ uri = 'http://www.weather.gov/forecasts/xml/sample_products/browser_interface/nd
 print(uri)
 
 # Retrieve the data
-xmld = urllib2.urlopen(uri).read()
+xmld = urlopen(uri).read()
 open('forecast.xml', 'wb').write(xmld)
 #print xmld
 
