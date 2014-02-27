@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 import logging
 if __name__ == '__main__':
     logging.basicConfig()
@@ -22,7 +23,7 @@ class TestXMLRE (unittest.TestCase):
         py_pattern = xmlre.XMLToPython(xml_pattern)
         compiled = re.compile(py_pattern)
         mo = compiled.match(value)
-        self.assertTrue(mo is None, 'XML re %r Python %r shoudl not match %r' % (xml_pattern, py_pattern, value))
+        self.assertTrue(mo is None, 'XML re %r Python %r should not match %r' % (xml_pattern, py_pattern, value))
 
     def testRangeErrors (self):
         self.assertTrue(xmlre.MaybeMatchCharacterClass('', 1) is None)
@@ -118,58 +119,58 @@ class TestXMLRE (unittest.TestCase):
         self.assertEqual(unicode.CodePointSet("\t"), charset)
 
     def testMatchPosCharGroup (self):
-        text = u'A]'
+        text = 'A]'
         (charset, has_sub, position) = xmlre._MatchPosCharGroup(text, 0)
         self.assertEqual(position, 1)
         self.assertEqual(charset, unicode.CodePointSet(ord('A')))
-        text = ur'\n]'
+        text = r'\n]'
         (charset, has_sub, position) = xmlre._MatchPosCharGroup(text, 0)
         self.assertEqual(position, 2)
         self.assertEqual(charset, unicode.CodePointSet(10))
-        text = ur'-]'
+        text = r'-]'
         (charset, has_sub, position) = xmlre._MatchPosCharGroup(text, 0)
         self.assertEqual(position, 1)
         self.assertEqual(charset, unicode.CodePointSet(ord('-')))
-        text = u'A-Z]'
+        text = 'A-Z]'
         (charset, has_sub, position) = xmlre._MatchPosCharGroup(text, 0)
         self.assertEqual(position, 3)
         self.assertEqual(charset, unicode.CodePointSet((ord('A'), ord('Z'))))
-        text = ur'\t-\r]'
+        text = r'\t-\r]'
         (charset, has_sub, position) = xmlre._MatchPosCharGroup(text, 0)
         self.assertEqual(position, 5)
         self.assertEqual(charset, unicode.CodePointSet((9, 13)))
-        text = ur'\t-A]'
+        text = r'\t-A]'
         (charset, has_sub, position) = xmlre._MatchPosCharGroup(text, 0)
         self.assertEqual(position, 4)
         self.assertEqual(charset, unicode.CodePointSet((9, ord('A'))))
-        text = ur'Z-\]]'
+        text = r'Z-\]]'
         (charset, has_sub, position) = xmlre._MatchPosCharGroup(text, 0)
         self.assertEqual(position, 4)
         self.assertEqual(charset, unicode.CodePointSet((ord('Z'), ord(']'))))
-        text = u'Z-A]'
+        text = 'Z-A]'
         self.assertRaises(xmlre.RegularExpressionError, xmlre._MatchPosCharGroup, text, 0)
 
     def testMatchCharClassExpr (self):
         self.assertRaises(xmlre.RegularExpressionError, xmlre._MatchCharClassExpr, 'missing open', 0)
         self.assertRaises(xmlre.RegularExpressionError, xmlre._MatchCharClassExpr, '[missing close', 0)
         first_five = unicode.CodePointSet( (ord('A'), ord('E')) )
-        text = ur'[ABCDE]'
+        text = r'[ABCDE]'
         (charset, position) = xmlre._MatchCharClassExpr(text, 0)
         self.assertEqual(position, len(text))
         self.assertEqual(charset, first_five)
-        text = ur'[^ABCDE]'
+        text = r'[^ABCDE]'
         (charset, position) = xmlre._MatchCharClassExpr(text, 0)
         self.assertEqual(position, len(text))
         self.assertEqual(charset.negate(), first_five)
-        text = ur'[A-Z-[GHI]]'
+        text = r'[A-Z-[GHI]]'
         expected = unicode.CodePointSet( (ord('A'), ord('Z')) )
         expected.subtract( (ord('G'), ord('I') ))
         (charset, position) = xmlre._MatchCharClassExpr(text, 0)
         self.assertEqual(position, len(text))
         self.assertEqual(charset, expected)
-        text = ur'[\p{L}-\p{Lo}]'
+        text = r'[\p{L}-\p{Lo}]'
         self.assertRaises(xmlre.RegularExpressionError, xmlre._MatchCharClassExpr, text, 0)
-        text = ur'[\p{L}-[\p{Lo}]]'
+        text = r'[\p{L}-[\p{Lo}]]'
         (charset, position) = xmlre._MatchCharClassExpr(text, 0)
         expected = unicode.CodePointSet(unicode.PropertyMap['L'])
         expected.subtract(unicode.PropertyMap['Lo'])
@@ -177,294 +178,294 @@ class TestXMLRE (unittest.TestCase):
         self.assertEqual(charset, expected)
 
     def testXMLToPython (self):
-        self.assertEqual(r'^123$', xmlre.XMLToPython(u'123'))
+        self.assertEqual(r'^123$', xmlre.XMLToPython('123'))
         # Note that single-char escapes in the expression are
         # converted to character classes.
-        self.assertEqual(r'^Why[ ]not[?]$', xmlre.XMLToPython(ur'Why[ ]not\?'))
+        self.assertEqual(r'^Why[ ]not[?]$', xmlre.XMLToPython(r'Why[ ]not\?'))
 
     def testRegularExpressions (self):
-        text = u'[\i-[:]][\c-[:]]*'
+        text = '[\i-[:]][\c-[:]]*'
         compiled_re = re.compile(xmlre.XMLToPython(text))
-        self.assertTrue(compiled_re.match(u'identifier'))
-        self.assertFalse(compiled_re.match(u'0bad'))
-        self.assertFalse(compiled_re.match(u' spaceBad'))
-        self.assertFalse(compiled_re.match(u'qname:bad'))
-        text = u'\\i\\c*'
+        self.assertTrue(compiled_re.match('identifier'))
+        self.assertFalse(compiled_re.match('0bad'))
+        self.assertFalse(compiled_re.match(' spaceBad'))
+        self.assertFalse(compiled_re.match('qname:bad'))
+        text = '\\i\\c*'
         text_py = xmlre.XMLToPython(text)
         compiled_re = re.compile(text_py)
-        self.assertTrue(compiled_re.match(u'identifier'))
-        self.assertTrue(compiled_re.match(u'_underscore'))
+        self.assertTrue(compiled_re.match('identifier'))
+        self.assertTrue(compiled_re.match('_underscore'))
 
     def testTrivialLiteral(self):
         # Simplest sanity check for assertMatches / assertNoMatch
-        self.assertMatches(u"hello", u"hello")
-        self.assertNoMatch(u"hello", u"hhello")
-        self.assertNoMatch(u"hello", u"helloo")
-        self.assertNoMatch(u"hello", u"goodbye")
+        self.assertMatches("hello", "hello")
+        self.assertNoMatch("hello", "hhello")
+        self.assertNoMatch("hello", "helloo")
+        self.assertNoMatch("hello", "goodbye")
 
     def testConvertingRangesToPythonWithDash(self):
-        # It's really easy to convert this RE into u"foo[&-X]bar", if
+        # It's really easy to convert this RE into "foo[&-X]bar", if
         # sorting characters in ASCII order without special-casing "-"
-        self.assertNoMatch(u"foo[-&X]bar", u"fooWbar")
-        self.assertMatches(u"foo[-&X]bar", u"foo-bar")
-        self.assertMatches(u"foo[-&X]bar", u"foo&bar")
-        self.assertMatches(u"foo[-&X]bar", u"fooXbar")
+        self.assertNoMatch("foo[-&X]bar", "fooWbar")
+        self.assertMatches("foo[-&X]bar", "foo-bar")
+        self.assertMatches("foo[-&X]bar", "foo&bar")
+        self.assertMatches("foo[-&X]bar", "fooXbar")
 
     def testConvertingRangesToPythonWithCaret(self):
-        # It's really easy to convert this RE into u"foo[^z]bar", if
+        # It's really easy to convert this RE into "foo[^z]bar", if
         # sorting characters in ASCII order without special-casing "^"
-        self.assertNoMatch(u"foo[z^]bar", u"fooWbar")
-        self.assertMatches(u"foo[z^]bar", u"foozbar")
-        self.assertMatches(u"foo[z^]bar", u"foo^bar")
+        self.assertNoMatch("foo[z^]bar", "fooWbar")
+        self.assertMatches("foo[z^]bar", "foozbar")
+        self.assertMatches("foo[z^]bar", "foo^bar")
 
     def testConvertingRangesToPythonWithBackslash(self):
-        # It's really easy to convert this RE into u"foo[A\n]bar", if
+        # It's really easy to convert this RE into "foo[A\n]bar", if
         # you forget to special-case r"\"
-        self.assertNoMatch(u"foo[A\\\\n]bar", u"fooWbar")
-        self.assertNoMatch(u"foo[A\\\\n]bar", u"foo\nbar")
-        self.assertMatches(u"foo[A\\\\n]bar", u"fooAbar")
-        self.assertMatches(u"foo[A\\\\n]bar", u"foo\\bar")
-        self.assertMatches(u"foo[A\\\\n]bar", u"foonbar")
+        self.assertNoMatch("foo[A\\\\n]bar", "fooWbar")
+        self.assertNoMatch("foo[A\\\\n]bar", "foo\nbar")
+        self.assertMatches("foo[A\\\\n]bar", "fooAbar")
+        self.assertMatches("foo[A\\\\n]bar", "foo\\bar")
+        self.assertMatches("foo[A\\\\n]bar", "foonbar")
 
     def testCnUnicodeClass(self):
         # The Cn class is basically "everything that is not included in the
         # Unicode character database".  So it requires special handling when
         # you parse the Unicode character database.  It is really easy to
         # miss this and leave the Cn class empty.
-        self.assertNoMatch(u"foo\\p{Cn}bar", u"fooWbar")
-        self.assertMatches(u"foo\\p{Cn}bar", u"foo\ufffebar")
-        self.assertMatches(u"foo\\P{Cn}bar", u"fooWbar")
-        self.assertNoMatch(u"foo\\P{Cn}bar", u"foo\ufffebar")
+        self.assertNoMatch("foo\\p{Cn}bar", "fooWbar")
+        self.assertMatches("foo\\p{Cn}bar", "foo\ufffebar")
+        self.assertMatches("foo\\P{Cn}bar", "fooWbar")
+        self.assertNoMatch("foo\\P{Cn}bar", "foo\ufffebar")
 
     def testCnUnicodeClassInC(self):
         # If the Cn class is wrong (see above), then C will probably be wrong
         # too.
-        self.assertNoMatch(u"foo\\p{C}bar", u"fooWbar")
-        self.assertMatches(u"foo\\p{C}bar", u"foo\ufffebar")
-        self.assertMatches(u"foo\\P{C}bar", u"fooWbar")
-        self.assertNoMatch(u"foo\\P{C}bar", u"foo\ufffebar")
+        self.assertNoMatch("foo\\p{C}bar", "fooWbar")
+        self.assertMatches("foo\\p{C}bar", "foo\ufffebar")
+        self.assertMatches("foo\\P{C}bar", "fooWbar")
+        self.assertNoMatch("foo\\P{C}bar", "foo\ufffebar")
 
     def testMultiCharEscape_s(self):
-        self.assertNoMatch(u"foo\\sbar", u"fooWbar")
-        self.assertMatches(u"foo\\sbar", u"foo bar")
+        self.assertNoMatch("foo\\sbar", "fooWbar")
+        self.assertMatches("foo\\sbar", "foo bar")
 
     def testMultiCharEscape_S(self):
-        self.assertMatches(u"foo\\Sbar", u"fooWbar")
-        self.assertNoMatch(u"foo\\Sbar", u"foo bar")
+        self.assertMatches("foo\\Sbar", "fooWbar")
+        self.assertNoMatch("foo\\Sbar", "foo bar")
 
     def testMultiCharEscape_i(self):
-        self.assertNoMatch(u"foo\\ibar", u"foo bar")
-        self.assertMatches(u"foo\\ibar", u"fooWbar")
-        self.assertMatches(u"foo\\ibar", u"foo:bar")
-        self.assertMatches(u"foo\\ibar", u"foo_bar")
-        self.assertMatches(u"foo\\ibar", u"foo\u0D0Cbar")
-        self.assertNoMatch(u"foo\\ibar", u"foo-bar")
-        self.assertNoMatch(u"foo\\ibar", u"foo.bar")
-        self.assertNoMatch(u"foo\\ibar", u"foo\u203Fbar")
-        self.assertNoMatch(u"foo\\ibar", u"foo\u3005bar")
+        self.assertNoMatch("foo\\ibar", "foo bar")
+        self.assertMatches("foo\\ibar", "fooWbar")
+        self.assertMatches("foo\\ibar", "foo:bar")
+        self.assertMatches("foo\\ibar", "foo_bar")
+        self.assertMatches("foo\\ibar", "foo\u0D0Cbar")
+        self.assertNoMatch("foo\\ibar", "foo-bar")
+        self.assertNoMatch("foo\\ibar", "foo.bar")
+        self.assertNoMatch("foo\\ibar", "foo\u203Fbar")
+        self.assertNoMatch("foo\\ibar", "foo\u3005bar")
 
     def testMultiCharEscape_I(self):
-        self.assertMatches(u"foo\\Ibar", u"foo bar")
-        self.assertNoMatch(u"foo\\Ibar", u"fooWbar")
-        self.assertNoMatch(u"foo\\Ibar", u"foo:bar")
-        self.assertNoMatch(u"foo\\Ibar", u"foo_bar")
-        self.assertNoMatch(u"foo\\Ibar", u"foo\u0D0Cbar")
-        self.assertMatches(u"foo\\Ibar", u"foo-bar")
-        self.assertMatches(u"foo\\Ibar", u"foo.bar")
-        self.assertMatches(u"foo\\Ibar", u"foo\u203Fbar")
-        self.assertMatches(u"foo\\Ibar", u"foo\u3005bar")
+        self.assertMatches("foo\\Ibar", "foo bar")
+        self.assertNoMatch("foo\\Ibar", "fooWbar")
+        self.assertNoMatch("foo\\Ibar", "foo:bar")
+        self.assertNoMatch("foo\\Ibar", "foo_bar")
+        self.assertNoMatch("foo\\Ibar", "foo\u0D0Cbar")
+        self.assertMatches("foo\\Ibar", "foo-bar")
+        self.assertMatches("foo\\Ibar", "foo.bar")
+        self.assertMatches("foo\\Ibar", "foo\u203Fbar")
+        self.assertMatches("foo\\Ibar", "foo\u3005bar")
 
     def testMultiCharEscape_c(self):
-        self.assertNoMatch(u"foo\\cbar", u"foo bar")
-        self.assertMatches(u"foo\\cbar", u"fooWbar")
-        self.assertMatches(u"foo\\cbar", u"foo:bar")
-        self.assertMatches(u"foo\\cbar", u"foo_bar")
-        self.assertMatches(u"foo\\cbar", u"foo\u0D0Cbar")
-        self.assertMatches(u"foo\\cbar", u"foo-bar")
-        self.assertMatches(u"foo\\cbar", u"foo.bar")
-        self.assertNoMatch(u"foo\\cbar", u"foo\u203Fbar")
-        self.assertMatches(u"foo\\cbar", u"foo\u3005bar")
+        self.assertNoMatch("foo\\cbar", "foo bar")
+        self.assertMatches("foo\\cbar", "fooWbar")
+        self.assertMatches("foo\\cbar", "foo:bar")
+        self.assertMatches("foo\\cbar", "foo_bar")
+        self.assertMatches("foo\\cbar", "foo\u0D0Cbar")
+        self.assertMatches("foo\\cbar", "foo-bar")
+        self.assertMatches("foo\\cbar", "foo.bar")
+        self.assertNoMatch("foo\\cbar", "foo\u203Fbar")
+        self.assertMatches("foo\\cbar", "foo\u3005bar")
 
     def testMultiCharEscape_C(self):
-        self.assertMatches(u"foo\\Cbar", u"foo bar")
-        self.assertNoMatch(u"foo\\Cbar", u"fooWbar")
-        self.assertNoMatch(u"foo\\Cbar", u"foo:bar")
-        self.assertNoMatch(u"foo\\Cbar", u"foo_bar")
-        self.assertNoMatch(u"foo\\Cbar", u"foo\u0D0Cbar")
-        self.assertNoMatch(u"foo\\Cbar", u"foo-bar")
-        self.assertNoMatch(u"foo\\Cbar", u"foo.bar")
-        self.assertMatches(u"foo\\Cbar", u"foo\u203Fbar")
-        self.assertNoMatch(u"foo\\Cbar", u"foo\u3005bar")
+        self.assertMatches("foo\\Cbar", "foo bar")
+        self.assertNoMatch("foo\\Cbar", "fooWbar")
+        self.assertNoMatch("foo\\Cbar", "foo:bar")
+        self.assertNoMatch("foo\\Cbar", "foo_bar")
+        self.assertNoMatch("foo\\Cbar", "foo\u0D0Cbar")
+        self.assertNoMatch("foo\\Cbar", "foo-bar")
+        self.assertNoMatch("foo\\Cbar", "foo.bar")
+        self.assertMatches("foo\\Cbar", "foo\u203Fbar")
+        self.assertNoMatch("foo\\Cbar", "foo\u3005bar")
 
     def testMultiCharEscape_d(self):
-        self.assertNoMatch(u"foo\\dbar", u"foo bar")
-        self.assertNoMatch(u"foo\\dbar", u"foozbar")
-        self.assertMatches(u"foo\\dbar", u"foo5bar")
-        self.assertMatches(u"foo\\dbar", u"foo\u0669bar")
+        self.assertNoMatch("foo\\dbar", "foo bar")
+        self.assertNoMatch("foo\\dbar", "foozbar")
+        self.assertMatches("foo\\dbar", "foo5bar")
+        self.assertMatches("foo\\dbar", "foo\u0669bar")
 
     def testMultiCharEscape_D(self):
-        self.assertMatches(u"foo\\Dbar", u"foo bar")
-        self.assertMatches(u"foo\\Dbar", u"foozbar")
-        self.assertNoMatch(u"foo\\Dbar", u"foo5bar")
-        self.assertNoMatch(u"foo\\Dbar", u"foo\u0669bar")
+        self.assertMatches("foo\\Dbar", "foo bar")
+        self.assertMatches("foo\\Dbar", "foozbar")
+        self.assertNoMatch("foo\\Dbar", "foo5bar")
+        self.assertNoMatch("foo\\Dbar", "foo\u0669bar")
 
     def testMultiCharEscape_w(self):
-        self.assertNoMatch(u"foo\\wbar", u"foo bar")
-        self.assertNoMatch(u"foo\\wbar", u"foo&bar")
-        self.assertMatches(u"foo\\wbar", u"fooWbar")
-        self.assertMatches(u"[\\w]*", u"fooWboar")
+        self.assertNoMatch("foo\\wbar", "foo bar")
+        self.assertNoMatch("foo\\wbar", "foo&bar")
+        self.assertMatches("foo\\wbar", "fooWbar")
+        self.assertMatches("[\\w]*", "fooWboar")
 
     def testMultiCharEscape_W(self):
-        self.assertMatches(u"foo\\Wbar", u"foo bar")
-        self.assertMatches(u"foo\\Wbar", u"foo&bar")
-        self.assertNoMatch(u"foo\\Wbar", u"fooWbar")
+        self.assertMatches("foo\\Wbar", "foo bar")
+        self.assertMatches("foo\\Wbar", "foo&bar")
+        self.assertNoMatch("foo\\Wbar", "fooWbar")
 
     def testUnicodeClass(self):
-        self.assertMatches(u"\\p{L}*", u"hello")
-        self.assertNoMatch(u"\\p{L}*", u"hell7")
+        self.assertMatches("\\p{L}*", "hello")
+        self.assertNoMatch("\\p{L}*", "hell7")
 
     def testQuotedOpenBrace(self):
-        self.assertMatches(u"foo\\[bar", u"foo[bar")
-        self.assertNoMatch(u"foo\\[bar", u"foo\\[bar")
-        self.assertNoMatch(u"foo\\[bar", u"foob")
+        self.assertMatches("foo\\[bar", "foo[bar")
+        self.assertNoMatch("foo\\[bar", "foo\\[bar")
+        self.assertNoMatch("foo\\[bar", "foob")
 
     def testQuotedCloseBrace(self):
-        self.assertMatches(u"foo\\]bar", u"foo]bar")
-        self.assertNoMatch(u"foo\\]bar", u"foo\\]bar")
-        self.assertNoMatch(u"foo\\]bar", u"foob")
+        self.assertMatches("foo\\]bar", "foo]bar")
+        self.assertNoMatch("foo\\]bar", "foo\\]bar")
+        self.assertNoMatch("foo\\]bar", "foob")
 
     def testQuotedAndUnquotedCloseBrace(self):
-        self.assertMatches(u"foo[b\\]c]ar", u"foobar")
-        self.assertMatches(u"foo[b\\]c]ar", u"foo]ar")
-        self.assertMatches(u"foo[b\\]c]ar", u"foocar")
-        self.assertNoMatch(u"foo[b\\]c]ar", u"fooar")
+        self.assertMatches("foo[b\\]c]ar", "foobar")
+        self.assertMatches("foo[b\\]c]ar", "foo]ar")
+        self.assertMatches("foo[b\\]c]ar", "foocar")
+        self.assertNoMatch("foo[b\\]c]ar", "fooar")
 
     def testUnquotedAndQuotedCloseBrace(self):
-        self.assertMatches(u"foo[zb]c\\]ar", u"foobc]ar")
-        self.assertMatches(u"foo[zb]c\\]ar", u"foozc]ar")
-        self.assertNoMatch(u"foo[zb]c\\]ar", u"foozar")
+        self.assertMatches("foo[zb]c\\]ar", "foobc]ar")
+        self.assertMatches("foo[zb]c\\]ar", "foozc]ar")
+        self.assertNoMatch("foo[zb]c\\]ar", "foozar")
 
     def testQuotedOpenCloseBraces(self):
-        self.assertMatches(u"foo\\[bar\\]", u"foo[bar]")
-        self.assertNoMatch(u"foo\\[bar\\]", u"foo\\[bar]")
-        self.assertNoMatch(u"foo\\[bar\\]", u"foobar")
+        self.assertMatches("foo\\[bar\\]", "foo[bar]")
+        self.assertNoMatch("foo\\[bar\\]", "foo\\[bar]")
+        self.assertNoMatch("foo\\[bar\\]", "foobar")
 
     def testQuotedAndUnquotedOpenBrace(self):
-        self.assertMatches(u"foo\\[b[az]r", u"foo[bar")
-        self.assertMatches(u"foo\\[b[az]r", u"foo[bzr")
-        self.assertNoMatch(u"foo\\[b[az]r", u"foobr")
+        self.assertMatches("foo\\[b[az]r", "foo[bar")
+        self.assertMatches("foo\\[b[az]r", "foo[bzr")
+        self.assertNoMatch("foo\\[b[az]r", "foobr")
 
     def testUnquotedAndQuotedOpenBrace(self):
-        self.assertMatches(u"foo[b\\[az]r", u"foobr")
-        self.assertMatches(u"foo[b\\[az]r", u"foo[r")
-        self.assertNoMatch(u"foo[b\\[az]r", u"foobar")
+        self.assertMatches("foo[b\\[az]r", "foobr")
+        self.assertMatches("foo[b\\[az]r", "foo[r")
+        self.assertNoMatch("foo[b\\[az]r", "foobar")
 
     def testFoo(self):
-        self.assertMatches(u"foo\\\\[bc\\]a]r", u"foo\\br")
-        self.assertNoMatch(u"foo\\\\[bc\\]a]r", u"foo\\bar")
-        self.assertNoMatch(u"foo\\\\[bc\\]a]r", u"foobar")
+        self.assertMatches("foo\\\\[bc\\]a]r", "foo\\br")
+        self.assertNoMatch("foo\\\\[bc\\]a]r", "foo\\bar")
+        self.assertNoMatch("foo\\\\[bc\\]a]r", "foobar")
 
     def testDashStartRangeWithRange(self):
         # Spec says: The - character is a valid character range only at the
         # beginning or end of a positive character group.
-        self.assertMatches(u"foo[-a-z]bar", u"fooabar")
-        self.assertMatches(u"foo[-a-z]bar", u"foo-bar")
-        self.assertMatches(u"foo[-a-z]bar", u"foonbar")
-        self.assertMatches(u"foo[-a-z]bar", u"foozbar")
-        self.assertNoMatch(u"foo[-a-z]bar", u"fooWbar")
+        self.assertMatches("foo[-a-z]bar", "fooabar")
+        self.assertMatches("foo[-a-z]bar", "foo-bar")
+        self.assertMatches("foo[-a-z]bar", "foonbar")
+        self.assertMatches("foo[-a-z]bar", "foozbar")
+        self.assertNoMatch("foo[-a-z]bar", "fooWbar")
 
     def testDashStartRangeOneLetter(self):
-        self.assertMatches(u"foo[-a]bar", u"fooabar")
-        self.assertMatches(u"foo[-a]bar", u"foo-bar")
-        self.assertNoMatch(u"foo[-a]bar", u"fooWbar")
+        self.assertMatches("foo[-a]bar", "fooabar")
+        self.assertMatches("foo[-a]bar", "foo-bar")
+        self.assertNoMatch("foo[-a]bar", "fooWbar")
 
     def testDashStartRangeSeveralLetters(self):
-        self.assertMatches(u"foo[-abc]bar", u"fooabar")
-        self.assertMatches(u"foo[-abc]bar", u"foobbar")
-        self.assertMatches(u"foo[-abc]bar", u"foocbar")
-        self.assertMatches(u"foo[-abc]bar", u"foo-bar")
-        self.assertNoMatch(u"foo[-abc]bar", u"fooWbar")
+        self.assertMatches("foo[-abc]bar", "fooabar")
+        self.assertMatches("foo[-abc]bar", "foobbar")
+        self.assertMatches("foo[-abc]bar", "foocbar")
+        self.assertMatches("foo[-abc]bar", "foo-bar")
+        self.assertNoMatch("foo[-abc]bar", "fooWbar")
 
     def testDashOnlyRange(self):
-        self.assertMatches(u"foo[-]bar", u"foo-bar")
-        self.assertNoMatch(u"foo[-a-z]bar", u"fooWbar")
+        self.assertMatches("foo[-]bar", "foo-bar")
+        self.assertNoMatch("foo[-a-z]bar", "fooWbar")
 
     def testDashEndRange(self):
-        self.assertMatches(u"foo[a-z-]bar", u"fooabar")
-        self.assertMatches(u"foo[a-z-]bar", u"foo-bar")
-        self.assertMatches(u"foo[a-z-]bar", u"foonbar")
-        self.assertMatches(u"foo[a-z-]bar", u"foozbar")
-        self.assertNoMatch(u"foo[a-z-]bar", u"fooWbar")
+        self.assertMatches("foo[a-z-]bar", "fooabar")
+        self.assertMatches("foo[a-z-]bar", "foo-bar")
+        self.assertMatches("foo[a-z-]bar", "foonbar")
+        self.assertMatches("foo[a-z-]bar", "foozbar")
+        self.assertNoMatch("foo[a-z-]bar", "fooWbar")
 
     def testDashEndRangeOneLetter(self):
-        self.assertMatches(u"foo[a-]bar", u"fooabar")
-        self.assertMatches(u"foo[a-]bar", u"foo-bar")
-        self.assertNoMatch(u"foo[a-]bar", u"fooWbar")
+        self.assertMatches("foo[a-]bar", "fooabar")
+        self.assertMatches("foo[a-]bar", "foo-bar")
+        self.assertNoMatch("foo[a-]bar", "fooWbar")
 
     def testDashEndRangeSeveralLetters(self):
-        self.assertMatches(u"foo[abc-]bar", u"fooabar")
-        self.assertMatches(u"foo[abc-]bar", u"foobbar")
-        self.assertMatches(u"foo[abc-]bar", u"foocbar")
-        self.assertMatches(u"foo[abc-]bar", u"foo-bar")
-        self.assertNoMatch(u"foo[abc-]bar", u"fooWbar")
+        self.assertMatches("foo[abc-]bar", "fooabar")
+        self.assertMatches("foo[abc-]bar", "foobbar")
+        self.assertMatches("foo[abc-]bar", "foocbar")
+        self.assertMatches("foo[abc-]bar", "foo-bar")
+        self.assertNoMatch("foo[abc-]bar", "fooWbar")
 
     def testDashEndRangeWithSub(self):
-        self.assertMatches(u"foo[a-z--[q]]bar", u"fooabar")
-        self.assertMatches(u"foo[a-z--[q]]bar", u"foo-bar")
-        self.assertMatches(u"foo[a-z--[q]]bar", u"foonbar")
-        self.assertMatches(u"foo[a-z--[q]]bar", u"foozbar")
-        self.assertNoMatch(u"foo[a-z--[q]]bar", u"fooWbar")
-        self.assertNoMatch(u"foo[a-z--[q]]bar", u"fooqbar")
+        self.assertMatches("foo[a-z--[q]]bar", "fooabar")
+        self.assertMatches("foo[a-z--[q]]bar", "foo-bar")
+        self.assertMatches("foo[a-z--[q]]bar", "foonbar")
+        self.assertMatches("foo[a-z--[q]]bar", "foozbar")
+        self.assertNoMatch("foo[a-z--[q]]bar", "fooWbar")
+        self.assertNoMatch("foo[a-z--[q]]bar", "fooqbar")
 
     def testDashEndRangeOneLetterWithSub(self):
-        self.assertMatches(u"foo[a--[q]]bar", u"fooabar")
-        self.assertMatches(u"foo[a--[q]]bar", u"foo-bar")
-        self.assertNoMatch(u"foo[a--[q]]bar", u"fooWbar")
+        self.assertMatches("foo[a--[q]]bar", "fooabar")
+        self.assertMatches("foo[a--[q]]bar", "foo-bar")
+        self.assertNoMatch("foo[a--[q]]bar", "fooWbar")
 
-        self.assertMatches(u"foo[a--[a]]bar", u"foo-bar")
-        self.assertNoMatch(u"foo[a--[a]]bar", u"fooabar")
-        self.assertNoMatch(u"foo[a--[a]]bar", u"fooWbar")
+        self.assertMatches("foo[a--[a]]bar", "foo-bar")
+        self.assertNoMatch("foo[a--[a]]bar", "fooabar")
+        self.assertNoMatch("foo[a--[a]]bar", "fooWbar")
 
     def testDashEndRangeSeveralLettersWithSub(self):
-        self.assertMatches(u"foo[abc--[b]]bar", u"fooabar")
-        self.assertMatches(u"foo[abc--[b]]bar", u"foocbar")
-        self.assertMatches(u"foo[abc--[b]]bar", u"foo-bar")
-        self.assertNoMatch(u"foo[abc--[b]]bar", u"foobbar")
-        self.assertNoMatch(u"foo[abc--[b]]bar", u"fooWbar")
+        self.assertMatches("foo[abc--[b]]bar", "fooabar")
+        self.assertMatches("foo[abc--[b]]bar", "foocbar")
+        self.assertMatches("foo[abc--[b]]bar", "foo-bar")
+        self.assertNoMatch("foo[abc--[b]]bar", "foobbar")
+        self.assertNoMatch("foo[abc--[b]]bar", "fooWbar")
 
     def testCaret(self):
-        self.assertMatches(u"foo^bar", u"foo^bar")
-        self.assertNoMatch(u"foo^bar", u"foobar")
-        self.assertNoMatch(u"foo^bar", u"barfoo")
+        self.assertMatches("foo^bar", "foo^bar")
+        self.assertNoMatch("foo^bar", "foobar")
+        self.assertNoMatch("foo^bar", "barfoo")
 
     def testCaretStart(self):
-        self.assertMatches(u"^foobar", u"^foobar")
-        self.assertNoMatch(u"^foobar", u"foobar")
+        self.assertMatches("^foobar", "^foobar")
+        self.assertNoMatch("^foobar", "foobar")
 
     def testDollar(self):
-        self.assertMatches(u"foo$bar", u"foo$bar")
-        self.assertNoMatch(u"foo$bar", u"foobar")
-        self.assertNoMatch(u"foo$bar", u"barfoo")
+        self.assertMatches("foo$bar", "foo$bar")
+        self.assertNoMatch("foo$bar", "foobar")
+        self.assertNoMatch("foo$bar", "barfoo")
 
     def testDollarEnd(self):
-        self.assertMatches(u"foobar$", u"foobar$")
-        self.assertNoMatch(u"foobar$", u"foobar")
+        self.assertMatches("foobar$", "foobar$")
+        self.assertNoMatch("foobar$", "foobar")
 
     def testCaretInRangeSub(self):
-        self.assertMatches(u"foo[a^-[a]]bar", u"foo^bar")
-        self.assertNoMatch(u"foo[a^-[a]]bar", u"fooabar")
-        self.assertNoMatch(u"foo[a^-[a]]bar", u"foobar")
+        self.assertMatches("foo[a^-[a]]bar", "foo^bar")
+        self.assertNoMatch("foo[a^-[a]]bar", "fooabar")
+        self.assertNoMatch("foo[a^-[a]]bar", "foobar")
 
     def testCaretInRange(self):
-        self.assertMatches(u"foo[a^]bar", u"foo^bar")
-        self.assertMatches(u"foo[a^]bar", u"fooabar")
-        self.assertNoMatch(u"foo[a^]bar", u"foobar")
+        self.assertMatches("foo[a^]bar", "foo^bar")
+        self.assertMatches("foo[a^]bar", "fooabar")
+        self.assertNoMatch("foo[a^]bar", "foobar")
 
     def testSingleCharRange(self):
-        self.assertMatches(u"foo[b]ar", u"foobar")
+        self.assertMatches("foo[b]ar", "foobar")
 
     def testQuotedSingleChar(self):
-        self.assertMatches(u"foo\\\\bar", u"foo\\bar")
+        self.assertMatches("foo\\\\bar", "foo\\bar")
 
 if __name__ == '__main__':
     unittest.main()
