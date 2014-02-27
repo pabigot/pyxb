@@ -60,6 +60,7 @@ retained between matches.
 import operator
 import functools
 import logging
+from pyxb.utils import six
 
 log_ = logging.getLogger(__name__)
 
@@ -1894,7 +1895,7 @@ class All (MultiTermNode, LeafNode):
         return Choice(*disjuncts)
 
     def __str__ (self):
-        return u'&(' + ','.join([str(_t) for _t in self.terms]) + ')'
+        return six.u('&(') + six.u(',').join([str(_t) for _t in self.terms]) + ')'
 
 class Symbol (LeafNode):
     """A leaf term that is a symbol.

@@ -35,12 +35,13 @@ and refers to U{Unicode Standard Annex #27: Unicode 3.1
 import re
 import logging
 import pyxb.utils.utility
+from pyxb.utils import six
 
 _log = logging.getLogger(__name__)
 
 SupportsWideUnicode = False
 try:
-    re.compile(u'[\U0001d7ce-\U0001d7ff]')
+    re.compile(six.u('[\U0001d7ce-\U0001d7ff]'))
     SupportsWideUnicode = True
 except:
     pass
@@ -192,24 +193,32 @@ class CodePointSet (object):
     # Escape sequences for characters that must not appear unescaped in
     # Python regular expression patterns.  Maps each bad character to a safe
     # escape sequence.
-    __XMLtoPythonREMap = {
-        u'\x00': u'\\x00',  # From docs for Python's "re" module: Regular
-                            # expression pattern strings may not contain null
-                            # bytes
-        u'^': u'\\^',  # Indicates negation if it happens to occur at the
-                       # start of a character group
-        u'\\': u'\\\\',  # Escape character
-        u'[': u'\\[',  # Actually doesn't need to be escaped inside a Python
-                       # character group, but escaping it is less confusing.
-        u']': u'\\]',  # End of character group
-        u'-': u'\\-',  # Indicates a range of characters
-    }
+    __XMLtoPythonREEscapedCodepoints = (
+        # From docs for Python's "re" module: Regular expression
+        # pattern strings may not contain null bytes
+        0,
+        # Indicates negation if it happens to occur at the start of a
+        # character group
+        ord('^'),
+        # Escape character (backslash)
+        ord('\\'),
+        # Actually doesn't need to be escaped inside a Python
+        # character group, but escaping it is less confusing.
+        ord('['),
+        # End of character group
+        ord(']'),
+        # Indicates a range of characters
+        ord('-')
+    )
 
     # Return the given code point as a unicode character suitable for
     # use in a regular expression
     def __unichr (self, code_point):
-        rv = unichr(code_point)
-        rv = self.__XMLtoPythonREMap.get(rv, rv)
+        rv = six.unichr(code_point)
+        if 0 == code_point:
+            rv = six.u('x00')
+        if code_point in self.__XMLtoPythonREEscapedCodepoints:
+            rv = six.unichr(0x5c) + rv
         return rv
 
     def asPattern (self, with_brackets=True):
@@ -225,15 +234,15 @@ class CodePointSet (object):
         are added to enclose the returned character group."""
         rva = []
         if with_brackets:
-            rva.append(u'[')
+            rva.append(six.u('['))
         for (s, e) in self.asTuples():
             if s == e:
                 rva.append(self.__unichr(s))
             else:
                 rva.extend([self.__unichr(s), '-', self.__unichr(e)])
         if with_brackets:
-            rva.append(u']')
-        return u''.join(rva)
+            rva.append(six.u(']'))
+        return six.u('').join(rva)
 
     def asTuples (self):
         """Return the codepoints as tuples denoting the ranges that are in
@@ -269,7 +278,7 @@ class CodePointSet (object):
         unicode string value.  Otherwise return C{None}."""
         if (2 != len(self.__codepoints)) or (1 < (self.__codepoints[1] - self.__codepoints[0])):
             return None
-        return unichr(self.__codepoints[0])
+        return six.unichr(self.__codepoints[0])
 
 from pyxb.utils.unicode_data import PropertyMap
 from pyxb.utils.unicode_data import BlockMap
@@ -696,14 +705,14 @@ for c in r'\|.-^?*+{}()[]':
 catEsc = { }
 complEsc = { }
 for k, v in PropertyMap.iteritems():
-    catEsc[u'p{%s}' % (k,)] = v
-    catEsc[u'P{%s}' % (k,)] = v.negate()
+    catEsc[six.u('p{%s}') % (k,)] = v
+    catEsc[six.u('P{%s}') % (k,)] = v.negate()
 
 # Production 36 : IsBlock escapes
 IsBlockEsc = { }
 for k, v in BlockMap.iteritems():
-    IsBlockEsc[u'p{Is%s}' % (k,)] = v
-    IsBlockEsc[u'P{Is%s}' % (k,)] = v.negate()
+    IsBlockEsc[six.u('p{Is%s}') % (k,)] = v
+    IsBlockEsc[six.u('P{Is%s}') % (k,)] = v.negate()
 
 # Production 37 : Multi-Character Escapes
 WildcardEsc = CodePointSet(ord('\n'), ord('\r')).negate()

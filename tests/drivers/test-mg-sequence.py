@@ -5,6 +5,7 @@ if __name__ == '__main__':
 _log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.utils.domutils
+import pyxb.utils.six as six
 from xml.dom import Node
 
 import os.path
@@ -42,7 +43,7 @@ class TestMGSeq (unittest.TestCase):
         self.assertRaises(UnrecognizedContentError, wrapper.createFromDOM, dom.documentElement)
 
     def testBasics (self):
-        xmlt = u'<ns1:wrapper xmlns:ns1="URN:test-mg-sequence"><first/><second_opt/><third/><fourth_0_2/></ns1:wrapper>'
+        xmlt = six.u('<ns1:wrapper xmlns:ns1="URN:test-mg-sequence"><first/><second_opt/><third/><fourth_0_2/></ns1:wrapper>')
         xmld = xmlt.encode('utf-8')
         dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = wrapper.createFromDOM(dom.documentElement)
@@ -55,7 +56,7 @@ class TestMGSeq (unittest.TestCase):
         self.assertEqual(ToDOM(instance).toxml("utf-8"), xmld)
 
     def testMultiplesAtEnd (self):
-        xmlt = u'<ns1:wrapper xmlns:ns1="URN:test-mg-sequence"><first/><third/><fourth_0_2/><fourth_0_2/></ns1:wrapper>'
+        xmlt = six.u('<ns1:wrapper xmlns:ns1="URN:test-mg-sequence"><first/><third/><fourth_0_2/><fourth_0_2/></ns1:wrapper>')
         xmld = xmlt.encode('utf-8')
         dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = wrapper.createFromDOM(dom.documentElement)
@@ -68,7 +69,7 @@ class TestMGSeq (unittest.TestCase):
         self.assertEqual(ToDOM(instance).toxml("utf-8"), xmld)
 
     def testMultiplesInMiddle (self):
-        xmlt = u'<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><first/><second_multi/><second_multi/><third/></ns1:altwrapper>'
+        xmlt = six.u('<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><first/><second_multi/><second_multi/><third/></ns1:altwrapper>')
         xmld = xmlt.encode('utf-8')
         dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = altwrapper.createFromDOM(dom.documentElement)
@@ -79,7 +80,7 @@ class TestMGSeq (unittest.TestCase):
         self.assertEqual(ToDOM(instance).toxml("utf-8"), xmld)
 
     def testMultiplesAtStart (self):
-        xmlt = u'<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><first/><first/><third/></ns1:altwrapper>'
+        xmlt = six.u('<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><first/><first/><third/></ns1:altwrapper>')
         xmld = xmlt.encode('utf-8')
         dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = altwrapper.createFromDOM(dom.documentElement)
@@ -92,7 +93,7 @@ class TestMGSeq (unittest.TestCase):
         self.assertEqual(ToDOM(instance).toxml("utf-8"), xmld)
 
     def testMissingInMiddle (self):
-        xmlt = u'<ns1:wrapper xmlns:ns1="URN:test-mg-sequence"><first/><third/></ns1:wrapper>'
+        xmlt = six.u('<ns1:wrapper xmlns:ns1="URN:test-mg-sequence"><first/><third/></ns1:wrapper>')
         xmld = xmlt.encode('utf-8')
         dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = wrapper.createFromDOM(dom.documentElement)
@@ -104,29 +105,29 @@ class TestMGSeq (unittest.TestCase):
         self.assertEqual(ToDOM(instance).toxml("utf-8"), xmld)
 
     def testMissingAtStart (self):
-        xmlt = u'<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><third/></ns1:altwrapper>'
+        xmlt = six.u('<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><third/></ns1:altwrapper>')
         dom = pyxb.utils.domutils.StringToDOM(xmlt)
         self.assertRaises(UnrecognizedContentError, altwrapper.createFromDOM, dom.documentElement)
         instance = altwrapper(third=altsequence._ElementMap['third'].elementBinding()())
         self.assertRaises(pyxb.IncompleteElementContentError, ToDOM, instance)
 
     def testMissingAtEndLeadingContent (self):
-        xmlt = u'<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><first/></ns1:altwrapper>'
+        xmlt = six.u('<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><first/></ns1:altwrapper>')
         dom = pyxb.utils.domutils.StringToDOM(xmlt)
         self.assertRaises(IncompleteElementContentError, altwrapper.createFromDOM, dom.documentElement)
 
     def testMissingAtEndNoContent (self):
-        xmlt = u'<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"></ns1:altwrapper>'
+        xmlt = six.u('<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"></ns1:altwrapper>')
         dom = pyxb.utils.domutils.StringToDOM(xmlt)
         self.assertRaises(IncompleteElementContentError, altwrapper.createFromDOM, dom.documentElement)
 
     def testTooManyAtEnd (self):
-        xmlt = u'<ns1:wrapper xmlns:ns1="URN:test-mg-sequence"><first/><third/><fourth_0_2/><fourth_0_2/><fourth_0_2/></ns1:wrapper>'
+        xmlt = six.u('<ns1:wrapper xmlns:ns1="URN:test-mg-sequence"><first/><third/><fourth_0_2/><fourth_0_2/><fourth_0_2/></ns1:wrapper>')
         dom = pyxb.utils.domutils.StringToDOM(xmlt)
         self.assertRaises(UnrecognizedContentError, wrapper.createFromDOM, dom.documentElement)
 
     def testTooManyAtStart (self):
-        xmlt = u'<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><first/><first/><first/><third/></ns1:altwrapper>'
+        xmlt = six.u('<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><first/><first/><first/><third/></ns1:altwrapper>')
         dom = pyxb.utils.domutils.StringToDOM(xmlt)
         self.assertRaises(UnrecognizedContentError, altwrapper.createFromDOM, dom.documentElement)
         instance = altwrapper(first=[ altsequence._ElementMap['first'].elementBinding()(), altsequence._ElementMap['first'].elementBinding()(), altsequence._ElementMap['first'].elementBinding()() ], third=altsequence._ElementMap['third'].elementBinding()())

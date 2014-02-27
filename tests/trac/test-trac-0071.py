@@ -7,6 +7,7 @@ import pyxb.binding.generate
 import pyxb.binding.datatypes as xs
 import pyxb.binding.basis
 import pyxb.utils.domutils
+import pyxb.utils.six as six
 
 import os.path
 xsd='''<?xml version="1.0" encoding="UTF-8"?>
@@ -78,7 +79,7 @@ class TestTrac_0071 (unittest.TestCase):
         self.assertEqual(1, len(field.value_))
         self.assertTrue(isinstance(field.value_[0], value_type))
         field.validateBinding()
-        xmlt = u'<field><name>title</name><value lang="ENG">foo</value></field>'
+        xmlt = six.u('<field><name>title</name><value lang="ENG">foo</value></field>')
         xmld = xmlt.encode('utf-8')
         self.assertEqual(field.toxml("utf-8", root_only=True), xmld)
 
@@ -93,7 +94,7 @@ class TestTrac_0071 (unittest.TestCase):
         self.assertTrue(isinstance(field.value_[0], value_type))
         field.validateBinding()
         self.assertTrue(isinstance(field.value_[0], value_type))
-        xmlt = u'<field><name>title</name><value lang="ENG">foo</value></field>'
+        xmlt = six.u('<field><name>title</name><value lang="ENG">foo</value></field>')
         xmld = xmlt.encode('utf-8')
         self.assertEqual(field.toxml("utf-8", root_only=True), xmld)
 

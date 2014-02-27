@@ -1110,7 +1110,7 @@ class ElementDeclaration (object):
         if self.isPlural():
             desc.append('MULTIPLE ')
         desc.append(self.elementBinding()._description(user_documentation=user_documentation))
-        return u''.join(desc)
+        return six.u('').join(desc)
 
     def _matches (self, value, element_decl):
         accept = False

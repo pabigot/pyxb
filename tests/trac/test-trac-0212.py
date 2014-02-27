@@ -5,6 +5,7 @@ if __name__ == '__main__':
 _log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.utils.domutils
+import pyxb.utils.six as six
 from xml.dom import Node
 
 import os.path
@@ -32,24 +33,24 @@ import unittest
 class TestTrac0212 (unittest.TestCase):
 
     def testBasicMixed (self):
-        xmlt = u'<Mixed><mString>body</mString></Mixed>'
+        xmlt = six.u('<Mixed><mString>body</mString></Mixed>')
         xmld = xmlt.encode('utf-8')
         instance = CreateFromDocument(xmld)
         self.assertEqual(instance.toxml('utf-8', root_only=True), xmld)
-        xmlt = u'<Mixed>pre<mString>body</mString>post</Mixed>'
+        xmlt = six.u('<Mixed>pre<mString>body</mString>post</Mixed>')
         xmld = xmlt.encode('utf-8')
         instance = CreateFromDocument(xmld)
         self.assertEqual(instance.toxml('utf-8', root_only=True), xmld)
         oc = instance.orderedContent()
         self.assertEqual(3, len(oc))
-        self.assertEqual(u'pre', oc[0].value)
+        self.assertEqual(six.u('pre'), oc[0].value)
         self.assertEqual(instance.mString, oc[1].value)
-        self.assertEqual(u'post', oc[2].value)
+        self.assertEqual(six.u('post'), oc[2].value)
         nec = list(pyxb.NonElementContent(instance))
         self.assertEqual(2, len(nec))
-        self.assertEqual(nec[0], u'pre')
-        self.assertEqual(nec[1], u'post')
-        self.assertEqual(u'prepost', ''.join(pyxb.NonElementContent(instance)))
+        self.assertEqual(nec[0], six.u('pre'))
+        self.assertEqual(nec[1], six.u('post'))
+        self.assertEqual(six.u('prepost'), ''.join(pyxb.NonElementContent(instance)))
 
 if __name__ == '__main__':
     unittest.main()

@@ -182,7 +182,7 @@ class decimal (basis.simpleTypeDefinition, python_decimal.Decimal):
             rchars.extend(map(str, digits))
         else:
             rchars.append('0')
-        return u''.join(rchars)
+        return six.u('').join(rchars)
 
 _PrimitiveDatatypes.append(decimal)
 

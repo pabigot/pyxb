@@ -5,6 +5,7 @@ if __name__ == '__main__':
 _log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.utils.domutils
+import pyxb.utils.six as six
 from xml.dom import Node
 
 import os.path
@@ -37,7 +38,7 @@ targetNamespace="urn:trac0112" version="1.0">
 </xs:schema>
 '''
 
-xmlt = u'''<?xml version="1.0" encoding="utf-8"?><Element xmlns="urn:trac0112"><Inner><C>true</C></Inner></Element>'''
+xmlt = six.u('''<?xml version="1.0" encoding="utf-8"?><Element xmlns="urn:trac0112"><Inner><C>true</C></Inner></Element>''')
 xmld = xmlt.encode('utf-8')
 
 

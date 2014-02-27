@@ -5,6 +5,7 @@ if __name__ == '__main__':
 _log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.utils.domutils
+import pyxb.utils.six as six
 from xml.dom import Node
 import pyxb.binding.datatypes as xs
 
@@ -104,11 +105,11 @@ class TestTrac0039 (unittest.TestCase):
 
     def testDeep (self):
         w = wrapper(BIND(BIND(4, deep=4), BIND('hi')))
-        xmlt = u'<wrapper><holding><optional deep="4">4</optional><required>hi</required></holding></wrapper>'
+        xmlt = six.u('<wrapper><holding><optional deep="4">4</optional><required>hi</required></holding></wrapper>')
         xmld = xmlt.encode('utf-8')
         self.assertEqual(w.toxml("utf-8", root_only=True), xmld)
         w = wrapper(BIND(BIND('hi', deep=2)))
-        xmlt = u'<wrapper><holding><required deep="2">hi</required></holding></wrapper>'
+        xmlt = six.u('<wrapper><holding><required deep="2">hi</required></holding></wrapper>')
         xmld = xmlt.encode('utf-8')
         self.assertEqual(w.toxml("utf-8", root_only=True), xmld)
 

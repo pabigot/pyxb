@@ -29,6 +29,7 @@ import pyxb
 import pyxb.binding
 import pyxb.utils.utility
 import pyxb.utils.domutils
+from pyxb.utils import six
 
 # Unique identifier for bindings created at the same time
 _GenerationUID = pyxb.namespace.builtin.BuiltInObjectUID
@@ -43,8 +44,8 @@ class STD_ANON_space (pyxb.binding.datatypes.NCName, pyxb.binding.basis.enumerat
 
     _ExpandedName = None
 STD_ANON_space._CF_enumeration = pyxb.binding.facets.CF_enumeration(value_datatype=STD_ANON_space, enum_prefix=None)
-STD_ANON_space.default = STD_ANON_space._CF_enumeration.addEnumeration(unicode_value=u'default')
-STD_ANON_space.preserve = STD_ANON_space._CF_enumeration.addEnumeration(unicode_value=u'preserve')
+STD_ANON_space.default = STD_ANON_space._CF_enumeration.addEnumeration(unicode_value=six.u('default'))
+STD_ANON_space.preserve = STD_ANON_space._CF_enumeration.addEnumeration(unicode_value=six.u('preserve'))
 STD_ANON_space._InitializeFacetMap(STD_ANON_space._CF_enumeration)
 
 # Atomic SimpleTypeDefinition
@@ -53,7 +54,7 @@ class STD_ANON_emptyString (pyxb.binding.datatypes.string, pyxb.binding.basis.en
 
     _ExpandedName = None
 STD_ANON_emptyString._CF_enumeration = pyxb.binding.facets.CF_enumeration(value_datatype=STD_ANON_emptyString, enum_prefix=None)
-STD_ANON_emptyString.emptyString = STD_ANON_emptyString._CF_enumeration.addEnumeration(unicode_value=u'')
+STD_ANON_emptyString.emptyString = STD_ANON_emptyString._CF_enumeration.addEnumeration(unicode_value=six.u(''))
 STD_ANON_emptyString._InitializeFacetMap(STD_ANON_emptyString._CF_enumeration)
 
 # Union SimpleTypeDefinition

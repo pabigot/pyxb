@@ -5,6 +5,7 @@ if __name__ == '__main__':
 _log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.utils.domutils
+import pyxb.utils.six as six
 from xml.dom import Node
 
 import os.path
@@ -35,7 +36,7 @@ class TestTrac0213 (unittest.TestCase):
     def testMissingContent (self):
         import copy
 
-        xmlt = u'<Int units="m">32</Int>'
+        xmlt = six.u('<Int units="m">32</Int>')
         xmld = xmlt.encode('utf-8')
         instance = CreateFromDocument(xmlt)
         self.assertEqual(instance.toxml('utf-8', root_only=True), xmld)

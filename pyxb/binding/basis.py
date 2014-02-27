@@ -1812,7 +1812,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             desc.extend([', substitutes for ', self.substitutionGroup()._description(name_only=True) ])
         if user_documentation and (self.documentation() is not None):
             desc.extend(["\n", self.documentation() ])
-        return u''.join(desc)
+        return six.u('').join(desc)
 
 class enumeration_mixin (pyxb.cscRoot):
     """Marker in case we need to know that a PST has an enumeration constraint facet."""
@@ -1875,7 +1875,7 @@ class _Content (object):
         Thus the catenated text of the non-element content of an instance can
         be obtained with::
 
-           text = u''.join(NonElementContent.ContentIterator(instance.orderedContent()))
+           text = six.u('').join(NonElementContent.ContentIterator(instance.orderedContent()))
 
         See also L{pyxb.NonElementContent}
         """

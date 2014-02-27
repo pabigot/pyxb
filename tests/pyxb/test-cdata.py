@@ -8,6 +8,7 @@ import pyxb.binding.generate
 import pyxb.binding.datatypes as xs
 import pyxb.binding.basis
 import pyxb.utils.domutils
+import pyxb.utils.six as six
 
 import os.path
 xsd='''<?xml version="1.0" encoding="UTF-8"?>
@@ -42,7 +43,7 @@ class TestPyXBCDATA (unittest.TestCase):
         self.assertEqual(instance, 'text')
         instance = var('>text<')
         self.assertEqual(instance, '>text<')
-        xmlt = u'<var>&gt;text&lt;</var>'
+        xmlt = six.u('<var>&gt;text&lt;</var>')
         xmld = xmlt.encode('utf-8')
         self.assertEqual(instance.toxml('utf-8', root_only=True), xmld)
 

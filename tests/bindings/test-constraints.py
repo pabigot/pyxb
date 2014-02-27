@@ -10,6 +10,7 @@ import unittest
 import pyxb.binding
 import pyxb.binding.facets as facets
 import pyxb.binding.datatypes as datatypes
+import pyxb.utils.six as six
 import sys
 
 # 4.3.1 length
@@ -51,9 +52,9 @@ Hand._InitializeFacetMap(Hand._CF_length)
 class Cardinals (datatypes.string, facets._Enumeration_mixin):
     pass
 Cardinals._CF_enumeration = facets.CF_enumeration(value_datatype=Cardinals, super_facet=datatypes.string._CF_enumeration, enum_prefix=None)
-Cardinals.one = Cardinals._CF_enumeration.addEnumeration(unicode_value=u'one')
-Cardinals.two = Cardinals._CF_enumeration.addEnumeration(unicode_value=u'two')
-Cardinals.three = Cardinals._CF_enumeration.addEnumeration(unicode_value=u'three')
+Cardinals.one = Cardinals._CF_enumeration.addEnumeration(unicode_value=six.u('one'))
+Cardinals.two = Cardinals._CF_enumeration.addEnumeration(unicode_value=six.u('two'))
+Cardinals.three = Cardinals._CF_enumeration.addEnumeration(unicode_value=six.u('three'))
 Cardinals._InitializeFacetMap(Cardinals._CF_enumeration)
 
 class ExclusiveFloat (datatypes.float):
@@ -128,9 +129,9 @@ class testMinMaxLength (unittest.TestCase):
 class testEnumeration (unittest.TestCase):
     def test (self):
         self.assertEqual(Cardinals.one, Cardinals('one'))
-        self.assertEqual(Cardinals.one, Cardinals(u'one'))
+        self.assertEqual(Cardinals.one, Cardinals(six.u('one')))
         self.assertEqual(Cardinals.three, Cardinals('three'))
-        self.assertEqual(Cardinals.three, Cardinals(u'three'))
+        self.assertEqual(Cardinals.three, Cardinals(six.u('three')))
         self.assertRaises(SimpleFacetValueError, Cardinals, 'One')
         self.assertRaises(SimpleFacetValueError, Cardinals, 'four')
         if sys.version_info[:2] >= (2, 7):
@@ -223,11 +224,11 @@ class testWhitespace (unittest.TestCase):
         self.assertEqual(" test", self.__Replace.normalizeString("\ttest"))
         self.assertEqual(" test  ", self.__Replace.normalizeString("\ttest\n\r"))
         self.assertEqual(" test  too ", self.__Replace.normalizeString("\ttest\n\rtoo\n"))
-        self.assertEqual("test", self.__Replace.normalizeString(u"test"))
-        self.assertEqual("  test", self.__Replace.normalizeString(u"  test"))
-        self.assertEqual(" test", self.__Replace.normalizeString(u"\ttest"))
-        self.assertEqual(" test  ", self.__Replace.normalizeString(u"\ttest\n\r"))
-        self.assertEqual(" test  too ", self.__Replace.normalizeString(u"\ttest\n\rtoo\n"))
+        self.assertEqual("test", self.__Replace.normalizeString(six.u("test")))
+        self.assertEqual("  test", self.__Replace.normalizeString(six.u("  test")))
+        self.assertEqual(" test", self.__Replace.normalizeString(six.u("\ttest")))
+        self.assertEqual(" test  ", self.__Replace.normalizeString(six.u("\ttest\n\r")))
+        self.assertEqual(" test  too ", self.__Replace.normalizeString(six.u("\ttest\n\rtoo\n")))
 
     def testReplaceString (self):
         self.assertEqual("test", ReplaceString("test", _from_xml=True))
@@ -235,11 +236,11 @@ class testWhitespace (unittest.TestCase):
         self.assertEqual(" test", ReplaceString("\ttest", _from_xml=True))
         self.assertEqual(" test  ", ReplaceString("\ttest\n\r", _from_xml=True))
         self.assertEqual(" test  too ", ReplaceString("\ttest\n\rtoo\n", _from_xml=True))
-        self.assertEqual("test", ReplaceString(u"test", _from_xml=True))
-        self.assertEqual("  test", ReplaceString(u"  test", _from_xml=True))
-        self.assertEqual(" test", ReplaceString(u"\ttest", _from_xml=True))
-        self.assertEqual(" test  ", ReplaceString(u"\ttest\n\r", _from_xml=True))
-        self.assertEqual(" test  too ", ReplaceString(u"\ttest\n\rtoo\n", _from_xml=True))
+        self.assertEqual("test", ReplaceString(six.u("test"), _from_xml=True))
+        self.assertEqual("  test", ReplaceString(six.u("  test"), _from_xml=True))
+        self.assertEqual(" test", ReplaceString(six.u("\ttest"), _from_xml=True))
+        self.assertEqual(" test  ", ReplaceString(six.u("\ttest\n\r"), _from_xml=True))
+        self.assertEqual(" test  too ", ReplaceString(six.u("\ttest\n\rtoo\n"), _from_xml=True))
 
     __Collapse = facets.CF_whiteSpace(value=facets._WhiteSpace_enum.collapse)
     def testCollapse (self):
@@ -248,11 +249,11 @@ class testWhitespace (unittest.TestCase):
         self.assertEqual("test", self.__Collapse.normalizeString("\ttest"))
         self.assertEqual("test", self.__Collapse.normalizeString("\ttest\n\r"))
         self.assertEqual("test too", self.__Collapse.normalizeString("\ttest\n\rtoo\n"))
-        self.assertEqual("test", self.__Collapse.normalizeString(u"test"))
-        self.assertEqual("test", self.__Collapse.normalizeString(u"  test"))
-        self.assertEqual("test", self.__Collapse.normalizeString(u"\ttest"))
-        self.assertEqual("test", self.__Collapse.normalizeString(u"\ttest\n\r"))
-        self.assertEqual("test too", self.__Collapse.normalizeString(u"\ttest\n\rtoo\n"))
+        self.assertEqual("test", self.__Collapse.normalizeString(six.u("test")))
+        self.assertEqual("test", self.__Collapse.normalizeString(six.u("  test")))
+        self.assertEqual("test", self.__Collapse.normalizeString(six.u("\ttest")))
+        self.assertEqual("test", self.__Collapse.normalizeString(six.u("\ttest\n\r")))
+        self.assertEqual("test too", self.__Collapse.normalizeString(six.u("\ttest\n\rtoo\n")))
 
     def testCollapseString (self):
         # The way it will work if from DOM content:
@@ -261,11 +262,11 @@ class testWhitespace (unittest.TestCase):
         self.assertEqual("test", CollapseString("\ttest", _from_xml=True))
         self.assertEqual("test", CollapseString("\ttest\n\r", _from_xml=True))
         self.assertEqual("test too", CollapseString("\ttest\n\rtoo\n", _from_xml=True))
-        self.assertEqual("test", CollapseString(u"test", _from_xml=True))
-        self.assertEqual("test", CollapseString(u"  test", _from_xml=True))
-        self.assertEqual("test", CollapseString(u"\ttest", _from_xml=True))
-        self.assertEqual("test", CollapseString(u"\ttest\n\r", _from_xml=True))
-        self.assertEqual("test too", CollapseString(u"\ttest\n\rtoo\n", _from_xml=True))
+        self.assertEqual("test", CollapseString(six.u("test"), _from_xml=True))
+        self.assertEqual("test", CollapseString(six.u("  test"), _from_xml=True))
+        self.assertEqual("test", CollapseString(six.u("\ttest"), _from_xml=True))
+        self.assertEqual("test", CollapseString(six.u("\ttest\n\r"), _from_xml=True))
+        self.assertEqual("test too", CollapseString(six.u("\ttest\n\rtoo\n"), _from_xml=True))
 
     def testApplyWhitespace (self):
         goal = 'one two'

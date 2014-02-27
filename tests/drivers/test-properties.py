@@ -5,6 +5,7 @@ if __name__ == '__main__':
 _log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.utils.domutils
+import pyxb.utils.six as six
 from xml.dom import Node
 
 import pyxb.binding.basis
@@ -30,12 +31,12 @@ class TestProperties (unittest.TestCase):
 
     street_content = '''95 Main St.
 Anytown, AS  12345-6789'''
-    street_xmlt = u'<street>%s</street>' % (street_content,)
+    street_xmlt = six.u('<street>%s</street>') % (street_content,)
     street_xmld = street_xmlt.encode('utf-8')
     street_dom = pyxb.utils.domutils.StringToDOM(street_xmlt).documentElement
 
-    address1_xmlt = u'<name>Customer</name><street>95 Main St</street>'
-    address2_xmlt = u'<name>Sugar Mama</name><street>24 E. Dearling Ave.</street>'
+    address1_xmlt = six.u('<name>Customer</name><street>95 Main St</street>')
+    address2_xmlt = six.u('<name>Sugar Mama</name><street>24 E. Dearling Ave.</street>')
 
     def testPythonElementSimpleContent (self):
         elt = USAddress._ElementMap['street'].elementBinding()(self.street_content)
@@ -56,7 +57,7 @@ Anytown, AS  12345-6789'''
 
     def testDOM_CTD_element (self):
         # NB: USAddress is a CTD, not an element.
-        xmlt = u'<shipTo>%s</shipTo>' % (self.address1_xmlt,)
+        xmlt = six.u('<shipTo>%s</shipTo>') % (self.address1_xmlt,)
         dom = pyxb.utils.domutils.StringToDOM(xmlt)
         addr2 = USAddress.Factory(_dom_node=dom.documentElement)
 

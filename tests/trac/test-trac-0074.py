@@ -7,6 +7,7 @@ import pyxb.binding.generate
 import pyxb.binding.datatypes as xs
 import pyxb.binding.basis
 import pyxb.utils.domutils
+import pyxb.utils.six as six
 import xml.dom.minidom
 import io
 
@@ -31,7 +32,7 @@ import unittest
 class TestTrac_0074 (unittest.TestCase):
     def test (self):
         t0p = Namespace.createExpandedName('t0p')
-        xmlt = u'<ns:t0p xmlns:ns="urn:trac-0074">content</ns:t0p>'
+        xmlt = six.u('<ns:t0p xmlns:ns="urn:trac-0074">content</ns:t0p>')
         dom = xml.dom.minidom.parseString(xmlt)
         try:
             dom_instance = CreateFromDOM(dom.documentElement)

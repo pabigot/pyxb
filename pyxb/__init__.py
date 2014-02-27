@@ -398,7 +398,7 @@ def NonElementContent (instance):
     The catenated text of the non-element content of an instance can
     be obtained with::
 
-       text = u''.join(pyxb.NonElementContent(instance))
+       text = six.u('').join(pyxb.NonElementContent(instance))
 
     @param instance: An instance of L{pyxb.binding.basis.complexTypeDefinition}.
 

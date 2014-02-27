@@ -28,7 +28,7 @@ import errno
 
 import pyxb
 import pyxb.xmlschema as xs
-from pyxb.utils import utility, templates
+from pyxb.utils import utility, templates, six
 from pyxb.binding import basis, datatypes, facets
 
 _log = logging.getLogger(__name__)
@@ -1124,7 +1124,7 @@ def _SetNameWithAccessors (component, container, is_plural, binding_module, nsm,
     assert component._scope() == container
     assert component.nameInBinding() is None, 'Use %s but binding name %s for %s' % (use_map['use'], component.nameInBinding(), component.expandedName())
     component.setNameInBinding(use_map['use'])
-    key_name = u'%s_%s_%s' % (unicode(nsm.namespace()), container.nameInBinding(), component.expandedName())
+    key_name = six.u('%s_%s_%s') % (unicode(nsm.namespace()), container.nameInBinding(), component.expandedName())
     use_map['key'] = utility.PrepareIdentifier(key_name, class_unique, private=True)
     use_map['qname'] = unicode(component.expandedName())
     if isinstance(component, xs.structures.ElementDeclaration) and is_plural:
@@ -1774,7 +1774,7 @@ _GenerationUID = %{generation_uid_expr}
             else:
                 nss.append(unicode(ns))
         nss.sort()
-        return u';'.join(nss)
+        return six.u(';').join(nss)
 
     def __str__ (self):
         return 'NGM:%s' % (self.modulePath(),)
@@ -1793,7 +1793,7 @@ def GeneratePython (schema_location=None,
         generator.addSchema(schema_text)
     modules = generator.bindingModules()
 
-    assert 1 == len(modules), '%s produced %d modules: %s' % (namespace, len(modules), u" ".join([ unicode(_m) for _m in modules]))
+    assert 1 == len(modules), '%s produced %d modules: %s' % (namespace, len(modules), six.u(' ').join([ unicode(_m) for _m in modules]))
     return modules.pop().moduleContents()
 
 import optparse

@@ -5,6 +5,7 @@ if __name__ == '__main__':
 _log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.utils.domutils
+import pyxb.utils.six as six
 from xml.dom import Node
 import pyxb.namespace
 import sys
@@ -80,14 +81,14 @@ class TestExternal (unittest.TestCase):
         # Element constructor with out-of-range content is error
         self.assertRaises(SimpleTypeValueError, english, 'five')
 
-        xmlt = u'<ns1:english xmlns:ns1="URN:test-external">one</ns1:english>'
+        xmlt = six.u('<ns1:english xmlns:ns1="URN:test-external">one</ns1:english>')
         xmld = xmlt.encode('utf-8')
         instance = st.CreateFromDocument(xmlt)
         self.assertEqual('one', instance)
         self.assertEqual(ToDOM(instance).toxml("utf-8"), xmld)
 
     def testWords (self):
-        xmlt = u'<ns1:word xmlns:ns1="URN:test-external"><from>one</from><to>un</to></ns1:word>'
+        xmlt = six.u('<ns1:word xmlns:ns1="URN:test-external"><from>one</from><to>un</to></ns1:word>')
         xmld = xmlt.encode('utf-8')
         instance = CreateFromDocument(xmld)
         self.assertEqual('one', instance.from_)
@@ -95,13 +96,13 @@ class TestExternal (unittest.TestCase):
         self.assertEqual(ToDOM(instance).toxml("utf-8"), xmld)
 
     def testBadWords (self):
-        xmlt = u'<ns1:word xmlns:ns1="URN:test-external"><from>five</from><to>pump</to></ns1:word>'
+        xmlt = six.u('<ns1:word xmlns:ns1="URN:test-external"><from>five</from><to>pump</to></ns1:word>')
         xmld = xmlt.encode('utf-8')
         self.assertRaises(SimpleTypeValueError, CreateFromDocument, xmlt)
         self.assertRaises(SimpleTypeValueError, CreateFromDocument, xmld)
 
     def testComplexShared (self):
-        xmlt = u'<ns1:lwords language="english" newlanguage="welsh" xmlns:ns1="URN:test-external">un</ns1:lwords>'
+        xmlt = six.u('<ns1:lwords language="english" newlanguage="welsh" xmlns:ns1="URN:test-external">un</ns1:lwords>')
         instance = CreateFromDocument(xmlt)
         self.assertEqual(instance._element(), lwords)
         self.assertTrue(isinstance(instance.value(), st.welsh))
@@ -117,10 +118,10 @@ class TestExternal (unittest.TestCase):
         self.assertEqual(st.extendedName._ElementMap['surname'], restExtName._ElementMap['surname'])
         self.assertEqual(st.extendedName._ElementMap['generation'], restExtName._ElementMap['generation'])
 
-        xmlt = u'<personName><surname>Smith</surname></personName>'
+        xmlt = six.u('<personName><surname>Smith</surname></personName>')
         dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = st.personName.Factory(_dom_node=dom.documentElement)
-        xmlt = u'<personName><surname>Smith</surname><generation>Jr.</generation></personName>'
+        xmlt = six.u('<personName><surname>Smith</surname><generation>Jr.</generation></personName>')
         dom = pyxb.utils.domutils.StringToDOM(xmlt)
         self.__basis_log.setLevel(logging.ERROR)
         self.assertRaises(UnrecognizedContentError, st.personName.Factory, _dom_node=dom.documentElement)

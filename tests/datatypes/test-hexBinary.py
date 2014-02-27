@@ -6,6 +6,7 @@ _log = logging.getLogger(__name__)
 from pyxb.exceptions_ import *
 import unittest
 import pyxb.binding.datatypes as xsd
+import pyxb.utils.six as six
 import binascii
 
 class Test_hexBinary (unittest.TestCase):
@@ -17,7 +18,7 @@ class Test_hexBinary (unittest.TestCase):
             self.assertEqual(v, dd)
 
     def testStrings (self):
-        encoded_values = [ u'01', u'00', u'ab', u'Ab', u'AB12' ]
+        encoded_values = [ six.u('01'), six.u('00'), six.u('ab'), six.u('Ab'), six.u('AB12') ]
         for et in encoded_values:
             ed = et.encode('utf-8')
             v = xsd.hexBinary.Factory(ed)
@@ -27,10 +28,10 @@ class Test_hexBinary (unittest.TestCase):
             self.assertEqual(et.upper(), v.xsdLiteral())
 
     def testBadStrings (self):
-        self.assertRaises(SimpleTypeValueError, xsd.hexBinary.Factory, u'0', _from_xml=True)
-        self.assertRaises(SimpleTypeValueError, xsd.hexBinary.Factory, u'012', _from_xml=True)
-        self.assertRaises(SimpleTypeValueError, xsd.hexBinary.Factory, u'01s', _from_xml=True)
-        self.assertRaises(SimpleTypeValueError, xsd.hexBinary.Factory, u'sb', _from_xml=True)
+        self.assertRaises(SimpleTypeValueError, xsd.hexBinary.Factory, six.u('0'), _from_xml=True)
+        self.assertRaises(SimpleTypeValueError, xsd.hexBinary.Factory, six.u('012'), _from_xml=True)
+        self.assertRaises(SimpleTypeValueError, xsd.hexBinary.Factory, six.u('01s'), _from_xml=True)
+        self.assertRaises(SimpleTypeValueError, xsd.hexBinary.Factory, six.u('sb'), _from_xml=True)
 
     def testLiteralization (self):
         self.assertEqual('', xsd.hexBinary(''.encode('utf-8')).xsdLiteral())

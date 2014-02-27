@@ -5,6 +5,7 @@ if __name__ == '__main__':
 _log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.utils.domutils
+import pyxb.utils.six as six
 from xml.dom import Node
 
 import os.path
@@ -30,7 +31,7 @@ class TestEmptyCSTD (unittest.TestCase):
     def testWhitespace (self):
         xmls = '<time xmlns="urn:test">   </time>'
         instance = CreateFromDocument(xmls)
-        self.assertEqual(u'', instance.value())
+        self.assertEqual(six.u(''), instance.value())
     def testEmpty (self):
         xmls = '<time xmlns="urn:test"/>'
         instance = CreateFromDocument(xmls)

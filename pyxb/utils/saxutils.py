@@ -28,6 +28,7 @@ import xml.sax.handler
 import io
 import logging
 import pyxb.namespace
+import pyxb.utils.six as six
 
 _log = logging.getLogger(__name__)
 
@@ -437,7 +438,7 @@ class _EntityResolver (object):
     """Dummy used to prevent the SAX parser from crashing when it sees
     processing instructions that we don't care about."""
     def resolveEntity (self, public_id, system_id):
-        return io.StringIO(u'')
+        return io.StringIO(six.u(''))
 
 _CreateParserModules = []
 def SetCreateParserModules (create_parser_modules):

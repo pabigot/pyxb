@@ -5,6 +5,7 @@ if __name__ == '__main__':
 _log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.utils.domutils
+import pyxb.utils.six as six
 from xml.dom import Node
 
 import os.path
@@ -44,11 +45,11 @@ import unittest
 
 class TestTrac0079 (unittest.TestCase):
     def testDocumentation (self):
-        self.assertEqual(str.documentation(), u'elt str')
-        self.assertEqual(anon.documentation(), u'elt anon')
-        self.assertEqual(cpl.__doc__, u'ctd cpl')
-        self.assertEqual(cpl.text.__doc__, u'elt cpl.text')
-        self.assertEqual(anon.typeDefinition().__doc__, u'elt anon')
+        self.assertEqual(str.documentation(), six.u('elt str'))
+        self.assertEqual(anon.documentation(), six.u('elt anon'))
+        self.assertEqual(cpl.__doc__, six.u('ctd cpl'))
+        self.assertEqual(cpl.text.__doc__, six.u('elt cpl.text'))
+        self.assertEqual(anon.typeDefinition().__doc__, six.u('elt anon'))
 
 if __name__ == '__main__':
     unittest.main()

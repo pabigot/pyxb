@@ -37,6 +37,7 @@ _log = logging.getLogger(__name__)
 
 import pyxb
 import pyxb.binding.datatypes as xs
+import pyxb.utils.six as six
 import trac26
 import unittest
 import sys
@@ -51,10 +52,10 @@ DisplayException = False
 #DisplayException = True
 
 class TestAbstractElementError (unittest.TestCase):
-    Good_xmlt = u'<eCardinals><eConcCardCymru>un</eConcCardCymru><eConcCardEnglish>three</eConcCardEnglish></eCardinals>'
+    Good_xmlt = six.u('<eCardinals><eConcCardCymru>un</eConcCardCymru><eConcCardEnglish>three</eConcCardEnglish></eCardinals>')
     Good_xmld = Good_xmlt.encode('utf-8')
 
-    Bad_xmlt = u'<eCardinals><eConcCardCymru>un</eConcCardCymru><eAbstractCard>three</eAbstractCard></eCardinals>'
+    Bad_xmlt = six.u('<eCardinals><eConcCardCymru>un</eConcCardCymru><eAbstractCard>three</eAbstractCard></eCardinals>')
     Bad_xmld = Bad_xmlt.encode('utf-8')
 
     def testSchemaSupport (self):
@@ -122,10 +123,10 @@ class TestAbstractElementError (unittest.TestCase):
 
 class TestAbstractInstantiationError (unittest.TestCase):
 
-    Good_xmlt = u'<eUseAbstract xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><eAbstract xsi:type="tConcSubCymru"><welsh>un</welsh></eAbstract></eUseAbstract>'
+    Good_xmlt = six.u('<eUseAbstract xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><eAbstract xsi:type="tConcSubCymru"><welsh>un</welsh></eAbstract></eUseAbstract>')
     Good_xmld = Good_xmlt.encode('utf-8')
 
-    Bad_xmlt = u'<eUseAbstract xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><eAbstract><welsh>un</welsh></eAbstract></eUseAbstract>'
+    Bad_xmlt = six.u('<eUseAbstract xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><eAbstract><welsh>un</welsh></eAbstract></eUseAbstract>')
     Bad_xmld = Bad_xmlt.encode('utf-8')
 
     def testSchemaSupport (self):
@@ -168,14 +169,14 @@ class TestAbstractInstantiationError (unittest.TestCase):
 
 class TestSimpleContentAbsentError (unittest.TestCase):
 
-    Good_xmlt = u'<eCTwSC>3</eCTwSC>'
+    Good_xmlt = six.u('<eCTwSC>3</eCTwSC>')
     Good_xmld = Good_xmlt.encode('utf-8')
-    Bad_xmlt = u'<eCTwSC></eCTwSC>'
+    Bad_xmlt = six.u('<eCTwSC></eCTwSC>')
     Bad_xmld = Bad_xmlt.encode('utf-8')
 
-    GoodSeq_xmlt = u'<eCTwSCSequence><eCTwSC>1</eCTwSC><eCTwSC>2</eCTwSC></eCTwSCSequence>'
+    GoodSeq_xmlt = six.u('<eCTwSCSequence><eCTwSC>1</eCTwSC><eCTwSC>2</eCTwSC></eCTwSCSequence>')
     GoodSeq_xmld = GoodSeq_xmlt.encode('utf-8')
-    BadSeq_xmlt = u'<eCTwSCSequence><eCTwSC>1</eCTwSC><eCTwSC></eCTwSC></eCTwSCSequence>'
+    BadSeq_xmlt = six.u('<eCTwSCSequence><eCTwSC>1</eCTwSC><eCTwSC></eCTwSC></eCTwSCSequence>')
     BadSeq_xmld = BadSeq_xmlt.encode('utf-8')
 
     def testSchemaSupport (self):
@@ -260,9 +261,9 @@ class TestSimpleContentAbsentError (unittest.TestCase):
 
 class TestAttributeChangeError (unittest.TestCase):
 
-    Good_xmlt = u'<eAttributes aFixed="5" aReq="2"/>'
+    Good_xmlt = six.u('<eAttributes aFixed="5" aReq="2"/>')
     Good_xmld = Good_xmlt.encode('utf-8')
-    Bad_xmlt = u'<eAttributes aFixed="2" aReq="2"/>'
+    Bad_xmlt = six.u('<eAttributes aFixed="2" aReq="2"/>')
     Bad_xmld = Bad_xmlt.encode('utf-8')
 
     def testSchemaSupport (self):
@@ -313,9 +314,9 @@ class TestAttributeValueError (unittest.TestCase):
     # values are validated when they are assigned.  Consequently such
     # errors show up as SimpleTypeValueErrors.  Test for those instead.
 
-    Good_xmlt = u'<eAttributes aCardCymru="pedwar" aReq="4"/>'
+    Good_xmlt = six.u('<eAttributes aCardCymru="pedwar" aReq="4"/>')
     Good_xmld = Good_xmlt.encode('utf-8')
-    Bad_xmlt = u'<eAttributes aCardCymru="four" aReq="4"/>'
+    Bad_xmlt = six.u('<eAttributes aCardCymru="four" aReq="4"/>')
     Bad_xmld = Bad_xmlt.encode('utf-8')
 
     def testSchemaSupport (self):
@@ -347,9 +348,9 @@ class TestAttributeValueError (unittest.TestCase):
             instance = trac26.CreateFromDocument(self.Bad_xmlt)
 
 class TestMissingAttributeError (unittest.TestCase):
-    Good_xmlt = u'<eAttributes aReq="4"/>'
+    Good_xmlt = six.u('<eAttributes aReq="4"/>')
     Good_xmld = Good_xmlt.encode('utf-8')
-    Bad_xmlt = u'<eAttributes/>'
+    Bad_xmlt = six.u('<eAttributes/>')
     Bad_xmld = Bad_xmlt.encode('utf-8')
 
     def testSchemaSupport (self):
@@ -406,9 +407,9 @@ class TestMissingAttributeError (unittest.TestCase):
             instance = trac26.CreateFromDocument(self.Bad_xmlt)
 
 class TestProhibitedAttributeError (unittest.TestCase):
-    Good_xmlt = u'<eAttributes aProhibited="6" aReq="4"/>'
+    Good_xmlt = six.u('<eAttributes aProhibited="6" aReq="4"/>')
     Good_xmld = Good_xmlt.encode('utf-8')
-    Bad_xmlt = u'<eAttributesProhibited aProhibited="6" aReq="4"/>'
+    Bad_xmlt = six.u('<eAttributesProhibited aProhibited="6" aReq="4"/>')
     Bad_xmld = Bad_xmlt.encode('utf-8')
 
     def testSchemaSupport (self):
@@ -459,9 +460,9 @@ class TestProhibitedAttributeError (unittest.TestCase):
             instance = trac26.CreateFromDocument(self.Bad_xmlt)
 
 class TestUnrecognizedAttributeError (unittest.TestCase):
-    Good_xmlt = u'<eAttributes aReq="4"/>'
+    Good_xmlt = six.u('<eAttributes aReq="4"/>')
     Good_xmld = Good_xmlt.encode('utf-8')
-    Bad_xmlt = u'<eAttributes aReq="4" aBad="1"/>'
+    Bad_xmlt = six.u('<eAttributes aReq="4" aBad="1"/>')
     Bad_xmld = Bad_xmlt.encode('utf-8')
 
     def testSchemaSupport (self):
@@ -509,9 +510,9 @@ class TestUnrecognizedAttributeError (unittest.TestCase):
             trac26.CreateFromDocument(self.Bad_xmlt)
 
 class TestAttributeOnSimpleTypeError (unittest.TestCase):
-    Good_xmlt = u'<eInts><eInt>1</eInt></eInts>'
+    Good_xmlt = six.u('<eInts><eInt>1</eInt></eInts>')
     Good_xmld = Good_xmlt.encode('utf-8')
-    Bad_xmlt = u'<eInts><eInt bits="1">1</eInt></eInts>'
+    Bad_xmlt = six.u('<eInts><eInt bits="1">1</eInt></eInts>')
     Bad_xmld = Bad_xmlt.encode('utf-8')
 
     def testSchemaSupport (self):
@@ -529,7 +530,7 @@ class TestAttributeOnSimpleTypeError (unittest.TestCase):
             instance = trac26.CreateFromDocument(self.Bad_xmlt)
         e = cm.exception
         self.assertEqual(e.tag, 'bits')
-        self.assertEqual(e.value, u'1')
+        self.assertEqual(e.value, six.u('1'))
         self.assertFalse(e.location is None)
         self.assertEqual(1, e.location.lineNumber)
         self.assertEqual(7, e.location.columnNumber)
@@ -578,9 +579,9 @@ class TestExtraSimpleContentError (unittest.TestCase):
             instance.append(2)
 
 class TestMixedContentError (unittest.TestCase):
-    Good_xmlt = u'<eCTwSCSequence><eCTwSC>2</eCTwSC></eCTwSCSequence>'
+    Good_xmlt = six.u('<eCTwSCSequence><eCTwSC>2</eCTwSC></eCTwSCSequence>')
     Good_xmld = Good_xmlt.encode('utf-8')
-    Bad_xmlt = u'<eCTwSCSequence><eCTwSC>2</eCTwSC>noise</eCTwSCSequence>'
+    Bad_xmlt = six.u('<eCTwSCSequence><eCTwSC>2</eCTwSC>noise</eCTwSCSequence>')
     Bad_xmld = Bad_xmlt.encode('utf-8')
 
     def testSchemaSupport (self):
@@ -622,9 +623,9 @@ class TestMixedContentError (unittest.TestCase):
             instance = trac26.CreateFromDocument(self.Bad_xmlt)
 
 class TestUnrecognizedContentError (unittest.TestCase):
-    Good_xmlt = u'<eInts><eInt>1</eInt></eInts>'
+    Good_xmlt = six.u('<eInts><eInt>1</eInt></eInts>')
     Good_xmld = Good_xmlt.encode('utf-8')
-    Bad_xmlt = u'<eInts><eCTwSC>1</eCTwSC></eInts>'
+    Bad_xmlt = six.u('<eInts><eCTwSC>1</eCTwSC></eInts>')
     Bad_details = '''The containing element eIntsPlus is defined at trac26.xsd[80:2].
 The containing element type <class 'trac26.CTD_ANON_3'> is defined at trac26.xsd[81:4]
 The unrecognized content is eCTwSC
@@ -632,7 +633,7 @@ The <class 'trac26.CTD_ANON_3'> automaton is in an accepting state.
 The following element and wildcard content would be accepted:
 \tAn element eInt per trac26.xsd[83:8]
 \tA wildcard per trac26.xsd[84:8]'''
-    Bad2_xmlt = u'<eInts><something>1</something></eInts>'
+    Bad2_xmlt = six.u('<eInts><something>1</something></eInts>')
 
     def testSchemaSupport (self):
         instance = trac26.eInts()
@@ -700,9 +701,9 @@ The following element and wildcard content would be accepted:
             instance = trac26.CreateFromDocument(self.Bad_xmlt)
 
 class TestIncompleteElementContentError (unittest.TestCase):
-    Good_xmlt = u'<eTranslateCard><eConcCardCymru>un</eConcCardCymru><eConcCardEnglish>one</eConcCardEnglish><cardinal>1</cardinal></eTranslateCard>'
+    Good_xmlt = six.u('<eTranslateCard><eConcCardCymru>un</eConcCardCymru><eConcCardEnglish>one</eConcCardEnglish><cardinal>1</cardinal></eTranslateCard>')
     Good_xmld = Good_xmlt.encode('utf-8')
-    Bad_xmlt = u'<eTranslateCard><eConcCardEnglish>one</eConcCardEnglish><cardinal>1</cardinal></eTranslateCard>'
+    Bad_xmlt = six.u('<eTranslateCard><eConcCardEnglish>one</eConcCardEnglish><cardinal>1</cardinal></eTranslateCard>')
     Bad_xmld = Bad_xmlt.encode('utf-8')
     Bad_details = '''The containing element eTranslateCard is defined at trac26.xsd[124:2].
 The containing element type tTranslateCard is defined at trac26.xsd[115:2]
@@ -777,9 +778,9 @@ The following content was not processed by the automaton:
         self.assertEqual(e.details(), self.Bad_details)
 
 class TestContentInNilInstanceError (unittest.TestCase):
-    Good_xmlt = u'<eNilCTwSC xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>'
+    Good_xmlt = six.u('<eNilCTwSC xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>')
     Good_xmld = Good_xmlt.encode('utf-8')
-    Bad_xmlt = u'<eNilCTwSC xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true">4</eNilCTwSC>'
+    Bad_xmlt = six.u('<eNilCTwSC xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true">4</eNilCTwSC>')
     Bad_xmld = Bad_xmlt.encode('utf-8')
 
     def testSchemaSupport (self):
@@ -858,7 +859,7 @@ class TestContentInNilInstanceError (unittest.TestCase):
             instance = trac26.CreateFromDocument(self.Bad_xmlt)
         e = cm.exception
         self.assertFalse(e.location is None)
-        self.assertEqual(e.content, u'4')
+        self.assertEqual(e.content, six.u('4'))
         self.assertEqual(1, e.location.lineNumber)
         self.assertEqual(0, e.location.columnNumber)
         self.assertEqual(str(e), 'eNilCTwSC with {http://www.w3.org/2001/XMLSchema-instance}nil=true cannot have content')
@@ -884,9 +885,9 @@ class TestContentInNilInstanceError (unittest.TestCase):
 class TestSimpleListValueError (unittest.TestCase):
     # Note: Unable to come up with code to test raise in _CheckValidValue;
     # values get validated before that point.
-    Good_xmlt = u'<eListCardCymru>un dau tri pedwar</eListCardCymru>'
+    Good_xmlt = six.u('<eListCardCymru>un dau tri pedwar</eListCardCymru>')
     Good_xmld = Good_xmlt.encode('utf-8')
-    Bad_xmlt = u'<eListCardCymru>un dau tri pedwar pump</eListCardCymru>'
+    Bad_xmlt = six.u('<eListCardCymru>un dau tri pedwar pump</eListCardCymru>')
     Bad_xmld = Bad_xmlt.encode('utf-8')
 
     def testSchemaSupport (self):
@@ -923,16 +924,16 @@ class TestSimpleListValueError (unittest.TestCase):
         self.assertEqual(0, e.location.columnNumber)
 
 class TestSimpleUnionValueError (unittest.TestCase):
-    Good_xmlt = u'<eSimpleInstance><eUnionCard>dau</eUnionCard></eSimpleInstance>'
+    Good_xmlt = six.u('<eSimpleInstance><eUnionCard>dau</eUnionCard></eSimpleInstance>')
     Good_xmld = Good_xmlt.encode('utf-8')
-    Bad_xmlt = u'<eSimpleInstance><eUnionCard>pump</eUnionCard></eSimpleInstance>'
+    Bad_xmlt = six.u('<eSimpleInstance><eUnionCard>pump</eUnionCard></eSimpleInstance>')
     Bad_xmld = Bad_xmlt.encode('utf-8')
 
     def testSchemaSupport (self):
         for (ty, va) in ((trac26.tCardCymru, 'un'), (trac26.tCardEnglish, 'two') , (xs.int, 3)):
             instance = trac26.eUnionCard(va)
             self.assertTrue(isinstance(instance, ty))
-            xmlt = u'<eUnionCard>%s</eUnionCard>' % (va,)
+            xmlt = six.u('<eUnionCard>%s</eUnionCard>') % (va,)
             xmld = xmlt.encode('utf-8')
             self.assertEqual(xmld, instance.toxml('utf-8', root_only=True))
         instance = trac26.CreateFromDocument(self.Good_xmlt)
@@ -960,9 +961,9 @@ class TestSimpleUnionValueError (unittest.TestCase):
         self.assertEqual(17, e.location.columnNumber)
 
 class TestSimpleFacetValueError (unittest.TestCase):
-    Good_xmlt = u'<eTLA>ABC</eTLA>'
+    Good_xmlt = six.u('<eTLA>ABC</eTLA>')
     Good_xmld = Good_xmlt.encode('utf-8')
-    Bad_xmlt = u'<eTLA>ABCD</eTLA>'
+    Bad_xmlt = six.u('<eTLA>ABCD</eTLA>')
     Bad_xmld = Bad_xmlt.encode('utf-8')
 
     def testSchemaSupport (self):

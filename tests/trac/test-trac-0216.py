@@ -5,6 +5,7 @@ if __name__ == '__main__':
 _log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.utils.domutils
+import pyxb.utils.six as six
 from xml.dom import Node
 
 import os.path
@@ -42,15 +43,15 @@ import unittest
 class TestTrac0216 (unittest.TestCase):
 
     def testBasic (self):
-        xmlt = u'<elt>30313233</elt>'
+        xmlt = six.u('<elt>30313233</elt>')
         xmld = xmlt.encode('utf-8')
         instance = CreateFromDocument(xmlt)
-        self.assertEqual(pyxb.utils.types_.DataType(u'0123'.encode('utf-8')), instance.value())
-        xmlt = u'<elt Color="33323130">30313233</elt>'
+        self.assertEqual(pyxb.utils.types_.DataType(b'0123'), instance.value())
+        xmlt = six.u('<elt Color="33323130">30313233</elt>')
         xmld = xmlt.encode('utf-8')
         instance = CreateFromDocument(xmlt)
-        self.assertEqual(pyxb.utils.types_.DataType(u'0123'.encode('utf-8')), instance.value())
-        self.assertEqual(pyxb.utils.types_.DataType(u'3210'.encode('utf-8')), instance.Color)
+        self.assertEqual(pyxb.utils.types_.DataType(b'0123'), instance.value())
+        self.assertEqual(pyxb.utils.types_.DataType(b'3210'), instance.Color)
 
 if __name__ == '__main__':
     unittest.main()

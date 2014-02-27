@@ -5,6 +5,7 @@ if __name__ == '__main__':
 _log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.utils.domutils
+import pyxb.utils.six as six
 from xml.dom import Node
 
 import os.path
@@ -98,7 +99,7 @@ class TestTrac0153 (unittest.TestCase):
         vc._setContentInfluencesGeneration(vc.NEVER)
         # All non-element content is lost, and element content is
         # emitted in declaration order.
-        xmlt = u'<text><bold/><bold/><ital><bold/></ital></text>'
+        xmlt = six.u('<text><bold/><bold/><ital><bold/></ital></text>')
         xmld = xmlt.encode('utf-8')
         self.assertEqual(i.toxml('utf-8', root_only=True), xmld)
 
@@ -107,13 +108,13 @@ class TestTrac0153 (unittest.TestCase):
         # Drop the second bold
         dropped = i.bold.pop()
         self.assertEqual(vc.orphanElementInContent, vc.IGNORE_ONCE)
-        xmlt = u'<text>Intro with <bold>bold text</bold> and <ital>italicized text with <bold>bold</bold> inside</ital> ending with a little  text.</text>'
+        xmlt = six.u('<text>Intro with <bold>bold text</bold> and <ital>italicized text with <bold>bold</bold> inside</ital> ending with a little  text.</text>')
         xmld = xmlt.encode('utf-8')
         self.assertEqual(i.toxml('utf-8', root_only=True), xmld)
         vc._setOrphanElementInContent(vc.GIVE_UP)
         self.assertEqual(vc.orphanElementInContent, vc.GIVE_UP)
         self.assertEqual(gvc.orphanElementInContent, gvc.IGNORE_ONCE)
-        xmlt = u'<text>Intro with <bold>bold text</bold> and <ital>italicized text with <bold>bold</bold> inside</ital> ending with a little  text.</text>'
+        xmlt = six.u('<text>Intro with <bold>bold text</bold> and <ital>italicized text with <bold>bold</bold> inside</ital> ending with a little  text.</text>')
         xmld = xmlt.encode('utf-8')
         self.assertEqual(i.toxml('utf-8', root_only=True), xmld)
         vc._setOrphanElementInContent(vc.RAISE_EXCEPTION)
@@ -135,12 +136,12 @@ class TestTrac0153 (unittest.TestCase):
         self.assertEqual(3, len(i.bold))
         dropped = i.bold.pop(0)
         self.assertEqual(vc.orphanElementInContent, vc.IGNORE_ONCE)
-        xmlt = u'<text>t1t3<bold>b4</bold><ital>i5</ital><bold>b6</bold></text>'
+        xmlt = six.u('<text>t1t3<bold>b4</bold><ital>i5</ital><bold>b6</bold></text>')
         xmld = xmlt.encode('utf-8')
         self.assertEqual(i.toxml('utf-8', root_only=True), xmld)
         vc._setOrphanElementInContent(vc.GIVE_UP)
         # Elements in declaration order, non-element content at end
-        xmlt = u'<text><bold>b4</bold><bold>b6</bold><ital>i5</ital>t1t3</text>'
+        xmlt = six.u('<text><bold>b4</bold><bold>b6</bold><ital>i5</ital>t1t3</text>')
         xmld = xmlt.encode('utf-8')
         self.assertEqual(i.toxml('utf-8', root_only=True), xmld)
 

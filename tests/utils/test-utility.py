@@ -6,6 +6,7 @@ _log = logging.getLogger(__name__)
 import unittest
 from pyxb.utils.utility import *
 from pyxb.utils.utility import _DeconflictSymbols_mixin
+import pyxb.utils.six as six
 import sys
 
 class DST_base (_DeconflictSymbols_mixin):
@@ -32,9 +33,9 @@ class BasicTest (unittest.TestCase):
             , ( "\"1'\\n'2\"", '1\'\n\'2' ) # expanded newline to escape sequence (single quotes)
             , ( "\"1\\x22\\n\\x222\"", '1"\n"2' ) # escape double quotes around expanded newline
             , ( "r'1\\'\\n\\'2'", r'1\'\n\'2' )   # preserve escaped quote and newline
-            , ( r'u"1\u00042"', u"1\0042" )       # unicode expanded octal
-            , ( r'u"1\u00222&3"', u'1"2&3' )      # unicode escape double quotes
-            , ( r'u"one' + "'" + r'two"', u"one'two" ) # unicode embedded single quote
+            , ( r'u"1\u00042"', six.u("1\0042") )       # unicode expanded octal
+            , ( r'u"1\u00222&3"', six.u('1"2&3') )      # unicode escape double quotes
+            , ( r'u"one' + "'" + r'two"', six.u("one'two") ) # unicode embedded single quote
             , ( "r'\\i\\c*'", r'\i\c*' )               # backslashes as in patterns
             , ( u'u"0"', u'\u0030' )                   # expanded unicode works
             , ( u'u"\\u0022"', u'"' )      # unicode double quotes are escaped

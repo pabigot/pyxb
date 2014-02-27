@@ -50,16 +50,17 @@ class TestTrac_0190 (unittest.TestCase):
 
     def testUnicode (self):
         if sys.version_info[:2] < (2, 7):
-            self.assertRaises(pyxb.SimpleFacetValueError, UC, u'\xf6')
+            self.assertRaises(pyxb.SimpleFacetValueError, UC, six.unichr(0xf6))
         else:
             with self.assertRaises(pyxb.SimpleFacetValueError) as cm:
-                i = UC(u'\xf6')
+                i = UC(six.unichr(0xf6))
             e = cm.exception
             self.assertEqual(e.type, tUC)
-            self.assertEqual(e.value, u'\xf6')
+            self.assertEqual(e.value, six.unichr(0xf6))
             self.assertTrue(isinstance(e.facet, pyxb.binding.facets.CF_pattern))
-            self.assertRaises(UnicodeEncodeError, str, e.details())  #!python3!
-            self.assertEqual(e.details(), u'Type tUC pattern constraint violated by value \xf6')
+            if six.PY2:
+                self.assertRaises(UnicodeEncodeError, str, e.details())
+            self.assertEqual(e.details(), six.u('Type tUC pattern constraint violated by value \xf6'))
 
 if __name__ == '__main__':
     unittest.main()

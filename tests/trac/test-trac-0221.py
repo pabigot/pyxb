@@ -5,6 +5,7 @@ if __name__ == '__main__':
 _log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.utils.domutils
+import pyxb.utils.six as six
 from xml.dom import Node
 import pyxb.binding.datatypes as xs
 
@@ -53,45 +54,45 @@ class TestTrac0221 (unittest.TestCase):
             self.assertNotEqual(None, v)
 
     def testValueForUnicode (self):
-        self.assertEqual(english.one, english._valueForUnicode(u'one'))
-        self.assertEqual(None, english._valueForUnicode(u'no such element'))
-        self.assertEqual(english.bd, english._valueForUnicode(u'b@d'))
+        self.assertEqual(english.one, english._valueForUnicode(six.u('one')))
+        self.assertEqual(None, english._valueForUnicode(six.u('no such element')))
+        self.assertEqual(english.bd, english._valueForUnicode(six.u('b@d')))
 
     def testProcessing (self):
         v = CreateFromDocument('<eng>one</eng>')
         self.assertEqual(english.one, v)
         v = CreateFromDocument('<pow>8</pow>')
         self.assertEqual(po2._elementForValue(8).value(), v)
-        self.assertEqual(v, po2._valueForUnicode(u'8'))
+        self.assertEqual(v, po2._valueForUnicode(six.u('8')))
 
     def testDirect (self):
         v = po2(8)
         self.assertEqual(po2._elementForValue(8).value(), v)
         self.assertTrue(isinstance(v, po2))
-        v = po2(u'8')
+        v = po2(six.u('8'))
         self.assertEqual(po2._elementForValue(8).value(), v)
         self.assertTrue(isinstance(v, po2))
         self.assertRaises(SimpleFacetValueError, po2, 9)
 
-        v = english(u'b@d')
+        v = english(six.u('b@d'))
         self.assertEqual(english.bd, v)
-        self.assertRaises(SimpleFacetValueError, eng, u'bd')
+        self.assertRaises(SimpleFacetValueError, eng, six.u('bd'))
 
     def testLegacy (self):
-        self.assertEqual(english.one, english._CF_enumeration.elementForValue(u'one').value())
+        self.assertEqual(english.one, english._CF_enumeration.elementForValue(six.u('one')).value())
 
     def testElementForValue (self):
-        e1 = english._elementForValue(u'one')
+        e1 = english._elementForValue(six.u('one'))
         self.assertEqual(english.one, e1.value())
         self.assertEqual('one', e1.tag())
-        self.assertRaises(KeyError, english._elementForValue, u'no such value')
-        ev = english._elementForValue(u'b@d')
+        self.assertRaises(KeyError, english._elementForValue, six.u('no such value'))
+        ev = english._elementForValue(six.u('b@d'))
         self.assertEqual(english.bd, ev.value())
 
         v2 = po2._elementForValue(2)
         self.assertEqual(2, v2.value())
         self.assertIsNone(v2.tag())
-        self.assertRaises(KeyError, po2._elementForValue, u'2')
+        self.assertRaises(KeyError, po2._elementForValue, six.u('2'))
 
 if __name__ == '__main__':
     unittest.main()

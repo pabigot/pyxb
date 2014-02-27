@@ -7,6 +7,7 @@ import pyxb.binding.generate
 import pyxb.binding.datatypes as xs
 import pyxb.binding.basis
 import pyxb.utils.domutils
+import pyxb.utils.six as six
 
 import os.path
 xsd='''
@@ -29,7 +30,7 @@ import unittest
 
 class TestTrac_0058 (unittest.TestCase):
     def testRoundTrip (self):
-        xmlt = u'<iopt xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"></iopt>'
+        xmlt = six.u('<iopt xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"></iopt>')
         xmld = xmlt.encode('utf-8')
         instance = CreateFromDocument(xmlt)
         self.assertTrue(instance._isNil())

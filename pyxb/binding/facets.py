@@ -148,7 +148,7 @@ class Facet (pyxb.cscRoot):
 
     def _valueString (self):
         if isinstance(self, _CollectionFacet_mixin):
-            return u','.join([ unicode(_i) for _i in self.iteritems() ])
+            return six.u(',').join([ unicode(_i) for _i in self.iteritems() ])
         if (self.valueDatatype() is not None) and (self.value() is not None):
             try:
                 return self.valueDatatype().XsdLiteral(self.value())
@@ -612,9 +612,9 @@ class _WhiteSpace_enum (datatypes.NMTOKEN, _Enumeration_mixin):
     """The enumeration used to constrain the whiteSpace facet"""
     pass
 _WhiteSpace_enum._CF_enumeration = CF_enumeration(value_datatype=_WhiteSpace_enum)
-_WhiteSpace_enum.preserve = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'preserve', tag='preserve')
-_WhiteSpace_enum.replace = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'replace', tag='replace')
-_WhiteSpace_enum.collapse = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'collapse', tag='collapse')
+_WhiteSpace_enum.preserve = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=six.u('preserve'), tag='preserve')
+_WhiteSpace_enum.replace = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=six.u('replace'), tag='replace')
+_WhiteSpace_enum.collapse = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=six.u('collapse'), tag='collapse')
 # NOTE: For correctness we really need to initialize the facet map for
 # WhiteSpace_enum, even though at the moment it isn't necessary.  We
 # can't right now, because its parent datatypes.NMTOKEN hasn't been
@@ -873,10 +873,10 @@ datatypes.IDREFS._InitializeFacetMap(datatypes.IDREFS._CF_pattern,
    datatypes.IDREFS._CF_whiteSpace,
    datatypes.IDREFS._CF_length)
 datatypes.NCName._CF_pattern = CF_pattern()
-datatypes.NCName._CF_pattern.addPattern(pattern=u'[\\i-[:]][\\c-[:]]*')
+datatypes.NCName._CF_pattern.addPattern(pattern=six.u('[\\i-[:]][\\c-[:]]*'))
 datatypes.NCName._InitializeFacetMap(datatypes.NCName._CF_pattern)
 datatypes.NMTOKEN._CF_pattern = CF_pattern()
-datatypes.NMTOKEN._CF_pattern.addPattern(pattern=u'\\c+')
+datatypes.NMTOKEN._CF_pattern.addPattern(pattern=six.u('\\c+'))
 datatypes.NMTOKEN._InitializeFacetMap(datatypes.NMTOKEN._CF_pattern)
 datatypes.NMTOKENS._CF_pattern = CF_pattern()
 datatypes.NMTOKENS._CF_maxLength = CF_maxLength()
@@ -903,7 +903,7 @@ datatypes.NOTATION._InitializeFacetMap(datatypes.NOTATION._CF_minLength,
    datatypes.NOTATION._CF_whiteSpace,
    datatypes.NOTATION._CF_length)
 datatypes.Name._CF_pattern = CF_pattern()
-datatypes.Name._CF_pattern.addPattern(pattern=u'\\i\\c*')
+datatypes.Name._CF_pattern.addPattern(pattern=six.u('\\i\\c*'))
 datatypes.Name._InitializeFacetMap(datatypes.Name._CF_pattern)
 datatypes.QName._CF_minLength = CF_minLength()
 datatypes.QName._CF_maxLength = CF_maxLength()
@@ -945,8 +945,8 @@ datatypes.boolean._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse
 datatypes.boolean._CF_pattern = CF_pattern()
 datatypes.boolean._InitializeFacetMap(datatypes.boolean._CF_whiteSpace,
    datatypes.boolean._CF_pattern)
-datatypes.byte._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.byte, value=datatypes.anySimpleType(u'-128'))
-datatypes.byte._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.byte, value=datatypes.anySimpleType(u'127'))
+datatypes.byte._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.byte, value=datatypes.anySimpleType(six.u('-128')))
+datatypes.byte._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.byte, value=datatypes.anySimpleType(six.u('127')))
 datatypes.byte._InitializeFacetMap(datatypes.byte._CF_minInclusive,
    datatypes.byte._CF_maxInclusive)
 datatypes.date._CF_pattern = CF_pattern()
@@ -1119,34 +1119,34 @@ datatypes.hexBinary._InitializeFacetMap(datatypes.hexBinary._CF_minLength,
    datatypes.hexBinary._CF_pattern,
    datatypes.hexBinary._CF_whiteSpace,
    datatypes.hexBinary._CF_length)
-datatypes.int._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.int, value=datatypes.anySimpleType(u'-2147483648'))
-datatypes.int._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.int, value=datatypes.anySimpleType(u'2147483647'))
+datatypes.int._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.int, value=datatypes.anySimpleType(six.u('-2147483648')))
+datatypes.int._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.int, value=datatypes.anySimpleType(six.u('2147483647')))
 datatypes.int._InitializeFacetMap(datatypes.int._CF_minInclusive,
    datatypes.int._CF_maxInclusive)
 datatypes.integer._CF_pattern = CF_pattern()
-datatypes.integer._CF_pattern.addPattern(pattern=u'[\\-+]?[0-9]+')
+datatypes.integer._CF_pattern.addPattern(pattern=six.u('[\\-+]?[0-9]+'))
 datatypes.integer._CF_fractionDigits = CF_fractionDigits(value=datatypes.nonNegativeInteger(0L))
 datatypes.integer._InitializeFacetMap(datatypes.integer._CF_pattern,
    datatypes.integer._CF_fractionDigits)
 datatypes.language._CF_pattern = CF_pattern()
-datatypes.language._CF_pattern.addPattern(pattern=u'[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*')
+datatypes.language._CF_pattern.addPattern(pattern=six.u('[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*'))
 datatypes.language._InitializeFacetMap(datatypes.language._CF_pattern)
-datatypes.long._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.long, value=datatypes.anySimpleType(u'-9223372036854775808'))
-datatypes.long._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.long, value=datatypes.anySimpleType(u'9223372036854775807'))
+datatypes.long._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.long, value=datatypes.anySimpleType(six.u('-9223372036854775808')))
+datatypes.long._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.long, value=datatypes.anySimpleType(six.u('9223372036854775807')))
 datatypes.long._InitializeFacetMap(datatypes.long._CF_minInclusive,
    datatypes.long._CF_maxInclusive)
-datatypes.negativeInteger._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.negativeInteger, value=datatypes.anySimpleType(u'-1'))
+datatypes.negativeInteger._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.negativeInteger, value=datatypes.anySimpleType(six.u('-1')))
 datatypes.negativeInteger._InitializeFacetMap(datatypes.negativeInteger._CF_maxInclusive)
-datatypes.nonNegativeInteger._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.nonNegativeInteger, value=datatypes.anySimpleType(u'0'))
+datatypes.nonNegativeInteger._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.nonNegativeInteger, value=datatypes.anySimpleType(six.u('0')))
 datatypes.nonNegativeInteger._InitializeFacetMap(datatypes.nonNegativeInteger._CF_minInclusive)
-datatypes.nonPositiveInteger._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.nonPositiveInteger, value=datatypes.anySimpleType(u'0'))
+datatypes.nonPositiveInteger._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.nonPositiveInteger, value=datatypes.anySimpleType(six.u('0')))
 datatypes.nonPositiveInteger._InitializeFacetMap(datatypes.nonPositiveInteger._CF_maxInclusive)
 datatypes.normalizedString._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.replace)
 datatypes.normalizedString._InitializeFacetMap(datatypes.normalizedString._CF_whiteSpace)
-datatypes.positiveInteger._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.positiveInteger, value=datatypes.anySimpleType(u'1'))
+datatypes.positiveInteger._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.positiveInteger, value=datatypes.anySimpleType(six.u('1')))
 datatypes.positiveInteger._InitializeFacetMap(datatypes.positiveInteger._CF_minInclusive)
-datatypes.short._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.short, value=datatypes.anySimpleType(u'-32768'))
-datatypes.short._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.short, value=datatypes.anySimpleType(u'32767'))
+datatypes.short._CF_minInclusive = CF_minInclusive(value_datatype=datatypes.short, value=datatypes.anySimpleType(six.u('-32768')))
+datatypes.short._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.short, value=datatypes.anySimpleType(six.u('32767')))
 datatypes.short._InitializeFacetMap(datatypes.short._CF_minInclusive,
    datatypes.short._CF_maxInclusive)
 datatypes.string._CF_minLength = CF_minLength()
@@ -1177,11 +1177,11 @@ datatypes.time._InitializeFacetMap(datatypes.time._CF_pattern,
    datatypes.time._CF_maxInclusive)
 datatypes.token._CF_whiteSpace = CF_whiteSpace(value=_WhiteSpace_enum.collapse)
 datatypes.token._InitializeFacetMap(datatypes.token._CF_whiteSpace)
-datatypes.unsignedByte._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.unsignedByte, value=datatypes.anySimpleType(u'255'))
+datatypes.unsignedByte._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.unsignedByte, value=datatypes.anySimpleType(six.u('255')))
 datatypes.unsignedByte._InitializeFacetMap(datatypes.unsignedByte._CF_maxInclusive)
-datatypes.unsignedInt._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.unsignedInt, value=datatypes.anySimpleType(u'4294967295'))
+datatypes.unsignedInt._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.unsignedInt, value=datatypes.anySimpleType(six.u('4294967295')))
 datatypes.unsignedInt._InitializeFacetMap(datatypes.unsignedInt._CF_maxInclusive)
-datatypes.unsignedLong._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.unsignedLong, value=datatypes.anySimpleType(u'18446744073709551615'))
+datatypes.unsignedLong._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.unsignedLong, value=datatypes.anySimpleType(six.u('18446744073709551615')))
 datatypes.unsignedLong._InitializeFacetMap(datatypes.unsignedLong._CF_maxInclusive)
-datatypes.unsignedShort._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.unsignedShort, value=datatypes.anySimpleType(u'65535'))
+datatypes.unsignedShort._CF_maxInclusive = CF_maxInclusive(value_datatype=datatypes.unsignedShort, value=datatypes.anySimpleType(six.u('65535')))
 datatypes.unsignedShort._InitializeFacetMap(datatypes.unsignedShort._CF_maxInclusive)

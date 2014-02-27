@@ -6,6 +6,7 @@ _log = logging.getLogger(__name__)
 import pyxb
 import pyxb.binding.generate
 import pyxb.utils.domutils
+import pyxb.utils.six as six
 
 from xml.dom import Node
 
@@ -27,35 +28,35 @@ import unittest
 
 class TestXSIType (unittest.TestCase):
     def testFailsNoType (self):
-        xmlt = u'<elt/>'
+        xmlt = six.u('<elt/>')
         doc = pyxb.utils.domutils.StringToDOM(xmlt)
         self.assertRaises(pyxb.AbstractInstantiationError, CreateFromDOM, doc.documentElement)
 
     def testDirect (self):
-        xmlt = u'<notAlt attrOne="low"><first>content</first></notAlt>'
+        xmlt = six.u('<notAlt attrOne="low"><first>content</first></notAlt>')
         doc = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = CreateFromDOM(doc.documentElement)
         self.assertEqual('content', instance.first)
         self.assertEqual('low', instance.attrOne)
 
     def testSubstitutions (self):
-        xmlt = u'<elt attrOne="low" xsi:type="alt1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><first>content</first></elt>'
+        xmlt = six.u('<elt attrOne="low" xsi:type="alt1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><first>content</first></elt>')
         doc = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = CreateFromDOM(doc.documentElement)
         self.assertEqual('content', instance.first)
         self.assertEqual('low', instance.attrOne)
-        xmlt = u'<elt attrTwo="hi" xsi:type="alt2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><second/></elt>'
+        xmlt = six.u('<elt attrTwo="hi" xsi:type="alt2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><second/></elt>')
         doc = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = CreateFromDOM(doc.documentElement)
         self.assertTrue(instance.second is not None)
         self.assertEqual('hi', instance.attrTwo)
 
     def testMultilevel (self):
-        xmlt = u'<concreteBase><basement>dirt floor</basement></concreteBase>'
+        xmlt = six.u('<concreteBase><basement>dirt floor</basement></concreteBase>')
         doc = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = CreateFromDOM(doc.documentElement)
         self.assertEqual('dirt floor', instance.basement)
-        xmlt = u'<oneFloor xsi:type="restaurant" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><basement>concrete</basement><lobby>tiled</lobby><room>eats</room></oneFloor>'
+        xmlt = six.u('<oneFloor xsi:type="restaurant" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><basement>concrete</basement><lobby>tiled</lobby><room>eats</room></oneFloor>')
         doc = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = CreateFromDOM(doc.documentElement)
         self.assertEqual(concreteBase_.basement, instance.__class__.basement)
@@ -70,7 +71,7 @@ class TestXSIType (unittest.TestCase):
                'room' : 'eats' }
         ctd = restaurant_(**kw)
         dom = ctd.toDOM(element_name='restaurant').documentElement
-        xmlt = u'<restaurant><basement>concrete</basement><lobby>tiled</lobby><room>eats</room></restaurant>'
+        xmlt = six.u('<restaurant><basement>concrete</basement><lobby>tiled</lobby><room>eats</room></restaurant>')
         xmld = xmlt.encode('utf-8')
         self.assertEqual(dom.toxml("utf-8"), xmld)
 
