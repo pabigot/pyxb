@@ -346,6 +346,7 @@ def ResolveSiblingNamespaces (sibling_namespaces):
             raise pyxb.LogicError('Unexpected external dependency in sibling namespaces: %s' % (six.u('\n  ').join( [six.text_type(_ns) for _ns in need_resolved_set ]),))
         last_state = state
 
+@six.unicode_convertible
 class NamespaceContext (object):
     """Records information associated with namespaces at a DOM node.
     """

@@ -633,3 +633,10 @@ def add_metaclass(metaclass):
                 orig_vars.pop(slots_var)
         return metaclass(cls.__name__, cls.__bases__, orig_vars)
     return wrapper
+
+def unicode_convertible (clazz):
+    if not PY3:
+        import pyxb
+        clazz.__unicode__ = clazz.__str__
+        clazz.__str__ = lambda _s: _s.__unicode__().encode(pyxb._OutputEncoding)
+    return clazz

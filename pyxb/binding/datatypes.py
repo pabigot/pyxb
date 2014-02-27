@@ -93,6 +93,7 @@ _PrimitiveDatatypes.append(string)
 
 # It is illegal to subclass the bool type in Python, so we subclass
 # int instead.
+@six.unicode_convertible
 class boolean (basis.simpleTypeDefinition, pyxb.utils.types_.IntType):
     """XMLSchema datatype U{boolean<http://www.w3.org/TR/xmlschema-2/#boolean>}."""
     _XsdBaseType = anySimpleType
@@ -106,8 +107,8 @@ class boolean (basis.simpleTypeDefinition, pyxb.utils.types_.IntType):
 
     def __str__ (self):
         if self:
-            return 'true'
-        return 'false'
+            return six.u('true')
+        return six.u('false')
 
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)

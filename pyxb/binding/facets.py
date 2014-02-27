@@ -441,6 +441,7 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
                 return True
         return False
 
+@six.unicode_convertible
 class _EnumerationElement (object):
     """This class represents individual values that appear within a
     L{CF_enumeration} collection."""
