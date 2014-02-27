@@ -5,6 +5,7 @@ if __name__ == '__main__':
 _log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.utils.domutils
+from pyxb.utils import six
 from xml.dom import Node
 
 import os.path
@@ -35,27 +36,27 @@ class TestTrac0111 (unittest.TestCase):
     Expected = set( ('clubs', 'hearts', 'diamonds', 'spades') )
     def testItems (self):
         vals = set()
-        for ee in cards.iteritems():
+        for ee in six.iteritems(cards):
             self.assertTrue(isinstance(ee, cards._CF_enumeration._CollectionFacet_itemType))
             vals.add(ee.value())
         self.assertEqual(self.Expected, vals)
 
     def testIterItems (self):
         vals = set()
-        for ee in cards.iteritems():
+        for ee in six.iteritems(cards):
             self.assertTrue(isinstance(ee, cards._CF_enumeration._CollectionFacet_itemType))
             vals.add(ee.value())
         self.assertEqual(self.Expected, vals)
 
     def testValues (self):
         vals = set()
-        for e in cards.itervalues():
+        for e in six.itervalues(cards):
             vals.add(e)
         self.assertEqual(self.Expected, vals)
 
     def testIterValues (self):
         vals = set()
-        for e in cards.itervalues():
+        for e in six.itervalues(cards):
             vals.add(e)
         self.assertEqual(self.Expected, vals)
 

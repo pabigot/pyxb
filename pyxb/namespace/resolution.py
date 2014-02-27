@@ -326,7 +326,7 @@ def ResolveSiblingNamespaces (sibling_namespaces):
                 continue
             if not ns.resolveDefinitions(allow_unresolved=True):
                 deps = dependency_map.setdefault(ns, set())
-                for (c, dcs) in ns._unresolvedDependents().iteritems():
+                for (c, dcs) in six.iteritems(ns._unresolvedDependents()):
                     for dc in dcs:
                         dns = dc.expandedName().namespace()
                         if dns != ns:
@@ -358,7 +358,7 @@ class NamespaceContext (object):
         if self.targetNamespace() is not None:
             rv.extend([ '(targetNamespace=', six.text_type(self.targetNamespace()), ') '])
         rv.append("\n")
-        for (pfx, ns) in self.inScopeNamespaces().iteritems():
+        for (pfx, ns) in six.iteritems(self.inScopeNamespaces()):
             if pfx is not None:
                 rv.append('  xmlns:%s=%s' % (pfx, six.text_type(ns)))
         return six.u('').join(rv)
@@ -407,7 +407,7 @@ class NamespaceContext (object):
         """Return a prefix associated with the given namespace in this
         context, or None if the namespace is the default or is not in
         scope."""
-        for (pfx, ns) in self.__inScopeNamespaces.iteritems():
+        for (pfx, ns) in six.iteritems(self.__inScopeNamespaces):
             if namespace == ns:
                 return pfx
         return None

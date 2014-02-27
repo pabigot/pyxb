@@ -5,6 +5,7 @@ if __name__ == '__main__':
 _log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.utils.domutils
+from pyxb.utils import six
 from xml.dom import Node
 
 import os.path
@@ -55,7 +56,7 @@ class TestTrac0100 (unittest.TestCase):
         self.assertEqual(instance.attrib2, "text2")
         wca = instance.wildcardAttributeMap()
         self.assertEqual(1, len(wca))
-        (attr, val) = wca.items()[0]
+        (attr, val) = next(six.iteritems(wca))
         self.assertEqual(attr.namespaceURI(), "urn:other")
         self.assertEqual(attr.localName(), "attrib3")
         self.assertEqual(val, "text3")

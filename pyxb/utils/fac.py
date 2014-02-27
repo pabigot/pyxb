@@ -1093,7 +1093,7 @@ class Configuration (Configuration_ABC):
         return other
 
     def __str__ (self):
-        return '%s: %s' % (self.__state, ' ; '.join([ '%s=%u' % (_c,_v) for (_c,_v) in self.__counterValues.iteritems()]))
+        return '%s: %s' % (self.__state, ' ; '.join([ '%s=%u' % (_c,_v) for (_c,_v) in six.iteritems(self.__counterValues)]))
 
 class MultiConfiguration (Configuration_ABC):
     """Support parallel execution of state machine.
@@ -1450,7 +1450,7 @@ class Node (object):
         """A map from nodes to their position in the term tree."""
         if self.__nodePosMap is None:
             npm = {}
-            for (p,n) in self.posNodeMap.iteritems():
+            for (p,n) in six.iteritems(self.posNodeMap):
                 npm[n] = p
             self.__nodePosMap = npm
         return self.__nodePosMap
@@ -1465,7 +1465,7 @@ class Node (object):
     def _PosConcatUpdateInstruction (cls, pos, psi):
         """Implement definition 11.2 in B{HOV09}"""
         rv = {}
-        for (q, v) in psi.iteritems():
+        for (q, v) in six.iteritems(psi):
             rv[pos + q] = v
         return rv
 
@@ -1495,10 +1495,10 @@ class Node (object):
             assert isinstance(nci, NumericalConstraint)
             assert nci not in counter_map
             counter_map[pos] = ctr_cond_ctor(nci.min, nci.max, nci.metadata)
-        counters = counter_map.values()
+        counters = list(six.itervalues(counter_map))
 
         state_map = { }
-        for pos in self.follow.iterkeys():
+        for pos in six.iterkeys(self.follow):
             sym = self.posNodeMap.get(pos)
             assert isinstance(sym, LeafNode)
             assert sym not in state_map
@@ -1520,15 +1520,15 @@ class Node (object):
             state_map[pos] = state_ctor(sym.metadata, is_initial=is_initial, final_update=final_update, is_unordered_catenation=isinstance(sym, All))
             if isinstance(sym, All):
                 state_map[pos]._set_subAutomata(*map(lambda _s: _s.buildAutomaton(state_ctor, ctr_cond_ctor, containing_state=state_map[pos]), sym.terms))
-        states = state_map.values()
+        states = list(six.itervalues(state_map))
 
-        for (spos, transition_set) in self.follow.iteritems():
+        for (spos, transition_set) in six.iteritems(self.follow):
             src = state_map[spos]
             phi = []
             for (dpos, psi) in transition_set:
                 dst = state_map[dpos]
                 uiset = set()
-                for (counter, action) in psi.iteritems():
+                for (counter, action) in six.iteritems(psi):
                     uiset.add(UpdateInstruction(counter_map[counter], self.INCREMENT == action))
                 phi.append(Transition(dst, uiset))
             src._set_transitionSet(phi)
@@ -1572,7 +1572,7 @@ class Node (object):
         maps using positions."""
         rv = []
         rv.append('r\t= %s' % (str(self),))
-        states = list(self.follow.iterkeys())
+        states = list(six.iterkeys(self.follow))
         rv.append('sym(r)\t= %s' % (' '.join(map(str, map(self.posNodeMap.get, states)))))
         rv.append('first(r)\t= %s' % (' '.join(map(str, self.first))))
         rv.append('last(r)\t= %s' % (' '.join(map(str, self.last))))
@@ -1583,7 +1583,7 @@ class Node (object):
             for (dpos, transition_set) in self.follow[spos]:
                 dst = self.posNodeMap[dpos]
                 uv = []
-                for (c, u) in transition_set.iteritems():
+                for (c, u) in six.iteritems(transition_set):
                     uv.append('%s %s' % (u == self.INCREMENT and "inc" or "rst", str(c)))
                 rv.append('%s -%s-> %s ; %s' % (str(spos), dst.metadata, str(dpos), ' ; '.join(uv)))
         return '\n'.join(rv)
@@ -1691,7 +1691,7 @@ class NumericalConstraint (Node):
         rv = {}
         pp = (0,)
         last_r1 = set(self.__term.last)
-        for (q, transition_set) in self.__term.follow.iteritems():
+        for (q, transition_set) in six.iteritems(self.__term.follow):
             rv[pp+q] = self._PosConcatTransitionSet(pp, transition_set)
             if q in last_r1:
                 last_r1.remove(q)
@@ -1757,7 +1757,7 @@ class Choice (MultiTermNode):
     def _follow (self):
         rv = {}
         for c in xrange(len(self.terms)):
-            for (q, transition_set) in self.terms[c].follow.iteritems():
+            for (q, transition_set) in six.iteritems(self.terms[c].follow):
                 pp = (c,)
                 rv[pp + q] = self._PosConcatTransitionSet(pp, transition_set)
         return rv
@@ -1815,7 +1815,7 @@ class Sequence (MultiTermNode):
         rv = {}
         for c in xrange(len(self.terms)):
             pp = (c,)
-            for (q, transition_set) in self.terms[c].follow.iteritems():
+            for (q, transition_set) in six.iteritems(self.terms[c].follow):
                 rv[pp + q] = self._PosConcatTransitionSet(pp, transition_set)
         for c in xrange(len(self.terms)-1):
             t = self.terms[c]

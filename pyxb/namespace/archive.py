@@ -21,6 +21,7 @@ import os
 import os.path
 import pyxb
 import pyxb.utils.utility
+from pyxb.utils import six
 
 _log = logging.getLogger(__name__)
 
@@ -139,7 +140,7 @@ class NamespaceArchive (object):
             # this is the first time through.
             if cls.__NamespaceArchives is None:
                 cls.__NamespaceArchives = { }
-            existing_archives = set(cls.__NamespaceArchives.itervalues())
+            existing_archives = set(six.itervalues(cls.__NamespaceArchives))
             archive_set = set()
 
             # Ensure we have an archive path.  If not, don't do anything.
@@ -387,10 +388,10 @@ class NamespaceArchive (object):
                     _log.info('Have required base data %s', xmr)
 
             for origin in mr.origins():
-                for (cat, names) in origin.categoryMembers().iteritems():
+                for (cat, names) in six.iteritems(origin.categoryMembers()):
                     if not (cat in ns.categories()):
                         continue
-                    cross_objects = names.intersection(ns.categoryMap(cat).iterkeys())
+                    cross_objects = names.intersection(six.iterkeys(ns.categoryMap(cat)))
                     if 0 < len(cross_objects):
                         raise pyxb.NamespaceArchiveError('Archive %s namespace %s module %s origin %s archive/active conflict on category %s: %s' % (self.__archivePath, ns, mr, origin, cat, " ".join(cross_objects)))
                     _log.info('%s no conflicts on %d names', cat, len(names))
@@ -542,7 +543,7 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
 
     def isActive (self, empty_inactive=False):
         if self.__isActive and empty_inactive:
-            for (ct, cm) in self._categoryMap().iteritems():
+            for (ct, cm) in six.iteritems(self._categoryMap()):
                 if 0 < len(cm):
                     return True
             return False
@@ -602,7 +603,7 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
         return rv
 
     def moduleRecords (self):
-        return self.__moduleRecordMap.values()
+        return list(six.itervalues(self.__moduleRecordMap))
     __moduleRecordMap = None
 
     def addModuleRecord (self, module_record):
@@ -674,7 +675,7 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
     __generationUID = None
 
     def origins (self):
-        return self.__originMap.values()
+        return list(six.itervalues(self.__originMap))
     def addOrigin (self, origin):
         assert isinstance(origin, _ObjectOrigin)
         assert not (origin.signature() in self.__originMap)
@@ -765,10 +766,10 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
         assert self.__categoryObjects is None
         assert not self.__constructedLocally
         ns = self.namespace()
-        ns.configureCategories(category_objects.iterkeys())
-        for (cat, obj_map) in category_objects.iteritems():
+        ns.configureCategories(six.iterkeys(category_objects))
+        for (cat, obj_map) in six.iteritems(category_objects):
             current_map = ns.categoryMap(cat)
-            for (local_name, component) in obj_map.iteritems():
+            for (local_name, component) in six.iteritems(obj_map):
                 existing_component = current_map.get(local_name)
                 if existing_component is None:
                     current_map[local_name] = component
@@ -845,7 +846,7 @@ class _ObjectOrigin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.cscRoot):
     def originatedObjects (self):
         if self.__originatedObjects is None:
             components = set()
-            [ components.update(_v.itervalues()) for _v in self.__categoryObjectMap.itervalues() ]
+            [ components.update(six.itervalues(_v)) for _v in six.itervalues(self.__categoryObjectMap) ]
             self.__originatedObjects = frozenset(components)
         return self.__originatedObjects
 

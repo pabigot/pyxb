@@ -38,7 +38,7 @@ for fn in sys.argv[1:]:
         print(' %s : %s, module-path=%s, %s' % (mr.namespace(), mr.generationUID(), mr.modulePath(), (mr.isPublic() and 'public') or 'private'))
         for origin in mr.origins():
             print('  + %s' % (origin,))
-            for (c, k) in origin.categoryMembers().iteritems():
+            for (c, k) in six.iteritems(origin.categoryMembers()):
                 print('   - %s %d items' % (c, len(k)))
 
 # LocalVariables:

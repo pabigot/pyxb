@@ -4,7 +4,7 @@ import sys
 import DWML
 import datetime
 import pyxb
-from pyxb.utils import domutils
+from pyxb.utils import domutils, six
 from pyxb.utils.six.moves.urllib import request as urllib_request
 import pyxb.binding.datatypes as xsd
 import pyxb.bundles.wssplat.soap11 as soapenv
@@ -45,7 +45,7 @@ weather_params = ndfd.weatherParametersType(maxt=True, mint=True, temp=True, sky
 
 # The schema didn't say the other parameters are optional (even though
 # they are), so set them to false if not already initialized.
-for eu in weather_params._ElementMap.values():
+for eu in six.itervalues(weather_params._ElementMap):
     if eu.value(weather_params) is None:
         eu.set(weather_params, False)
 

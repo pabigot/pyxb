@@ -26,6 +26,7 @@ submodules:
 """
 
 import logging
+from pyxb.utils import six
 
 _log = logging.getLogger(__name__)
 
@@ -127,7 +128,7 @@ _XMLStyle = XMLStyle_saxer
 _XMLStyleMap = { 'minidom' : XMLStyle_minidom,
                  'saxdom' : XMLStyle_saxdom,
                  'saxer' : XMLStyle_saxer }
-_XMLStyleMapReverse = dict([ (_v, _k) for (_k, _v) in _XMLStyleMap.iteritems() ])
+_XMLStyleMapReverse = dict([ (_v, _k) for (_k, _v) in six.iteritems(_XMLStyleMap) ])
 
 _XMLStyle_envvar = 'PYXB_XML_STYLE'
 

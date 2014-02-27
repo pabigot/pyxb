@@ -590,7 +590,7 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
                 anon_name = 'ANON_IN_GROUP'
             if unique_id is not None:
                 anon_name = '%s_%s' % (anon_name, unique_id)
-            anon_name = pyxb.utils.utility.MakeUnique(anon_name, set(namespace.categoryMap(self.__AnonymousCategory).iterkeys()))
+            anon_name = pyxb.utils.utility.MakeUnique(anon_name, set(six.iterkeys(namespace.categoryMap(self.__AnonymousCategory))))
         self.__anonymousName = anon_name
         namespace.addCategoryObject(self.__AnonymousCategory, anon_name, self)
     def _anonymousName (self, namespace=None):
@@ -1811,9 +1811,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         exists) will be returned.
         """
         if reset or (self.__localScopedDeclarations is None):
-            rve = [ _ed for _ed in self.__scopedElementDeclarations.itervalues() if (self == _ed.scope()) ]
+            rve = [ _ed for _ed in six.itervalues(self.__scopedElementDeclarations) if (self == _ed.scope()) ]
             rve.sort(key=lambda _x: _x.expandedName())
-            rva = [ _ad for _ad in self.__scopedAttributeDeclarations.itervalues() if (self == _ad.scope()) ]
+            rva = [ _ad for _ad in six.itervalues(self.__scopedAttributeDeclarations) if (self == _ad.scope()) ]
             rva.sort(key=lambda _x: _x.expandedName())
             self.__localScopedDeclarations = rve
             self.__localScopedDeclarations.extend(rva)
@@ -2141,7 +2141,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
         # Past the last point where we might not resolve this instance.  Store
         # the attribute uses, also recording local attribute declarations.
-        self.__attributeUses = frozenset(use_map.itervalues())
+        self.__attributeUses = frozenset(six.itervalues(use_map))
         if not self._scopeIsIndeterminate():
             for au in self.__attributeUses:
                 assert not au.attributeDeclaration()._scopeIsIndeterminate(), 'indeterminate scope for %s' % (au,)
@@ -3840,7 +3840,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             #raise pyxb.LogicError('Unexpected variety %s' % (self.variety(),))
         if self.__facets:
             felts = []
-            for (k, v) in self.__facets.iteritems():
+            for (k, v) in six.iteritems(self.__facets):
                 if v is not None:
                     felts.append(six.text_type(v))
             elts.append(six.u('\n  %s') % (','.join(felts),))
@@ -3952,7 +3952,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         else:
             raise pyxb.IncompleteImplementationError('No implementation for xml:%s' % (name,))
         bi.__facets = { }
-        for v in bi.pythonSupport().__dict__.itervalues():
+        for v in six.itervalues(bi.pythonSupport().__dict__):
             if isinstance(v, facets.ConstrainingFacet):
                 bi.__facets[v.__class__] = v
         return bi
@@ -4114,7 +4114,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
     def __resolveBuiltin (self):
         if self.hasPythonSupport():
             self.__facets = { }
-            for v in self.pythonSupport().__dict__.itervalues():
+            for v in six.itervalues(self.pythonSupport().__dict__):
                 if isinstance(v, facets.ConstrainingFacet):
                     self.__facets[v.__class__] = v
                     if v.ownerTypeDefinition() is None:
@@ -4234,7 +4234,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         base_facets.update(self.facets())
 
         self.__facets = self.__localFacets
-        for fc in base_facets.iterkeys():
+        for fc in six.iterkeys(base_facets):
             self.__facets.setdefault(fc, base_facets[fc])
         assert type(self.__facets) == types.DictType
 
@@ -4768,7 +4768,7 @@ class Schema (_SchemaComponent_mixin):
         self.__attributeMap = self.__attributeMap.copy()
         self.__annotations = []
         # @todo: This isn't right if namespaces are introduced deeper in the document
-        self.__referencedNamespaces = self._namespaceContext().inScopeNamespaces().values()
+        self.__referencedNamespaces = list(six.itervalues(self._namespaceContext().inScopeNamespaces()))
 
     __TopLevelComponentMap = {
         'element' : ElementDeclaration,
@@ -4887,7 +4887,7 @@ class Schema (_SchemaComponent_mixin):
             ebv = self.schemaAttribute('%sDefault' % (attr,))
         rv = 0
         if ebv == self._SA_All:
-            for v in candidate_map.itervalues():
+            for v in six.itervalues(candidate_map):
                 rv += v
         else:
             for candidate in ebv.split():

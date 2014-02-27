@@ -2,13 +2,14 @@ from __future__ import print_function
 import xml.dom
 import xml.dom.minidom
 import pyxb.utils.domutils
+from pyxb.utils import six
 import pyxb.namespace
 
 # Structure
 #import DWML
 #print 'Validating DWML'
 #DWML.Namespace.validateSchema()
-#print 'Validated DWML: types %s' % ("\n".join(DWML.Namespace.typeDefinitions().iterkeys()),)
+#print 'Validated DWML: types %s' % ("\n".join(six.iterkeys(DWML.Namespace.typeDefinitions()),)
 
 dom = xml.dom.minidom.parse(open('NDFDgen.xml', 'rb'))
 body_dom = dom.documentElement.firstChild.nextSibling.firstChild.nextSibling

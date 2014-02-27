@@ -112,12 +112,12 @@ def emitCategoryMap (data_file):
     category_map.setdefault('Cn', []).append((last_codepoint + 1, 0x10FFFF))
     category_map.setdefault('C', []).append((last_codepoint + 1, 0x10FFFF))
 
-    for k, v in list(category_map.iteritems()):
+    for k, v in six.iteritems(category_map):
         category_map[k] = condenseCodepoints(v)
 
     print('# Unicode general category properties: %d properties' % (len(category_map),))
     print('PropertyMap = {')
-    for (k, v) in sorted(category_map.iteritems()):
+    for (k, v) in sorted(six.iteritems(category_map)):
         print('  # %s: %d codepoint groups (%d codepoints)' % (k, len(v), countCodepoints(v)))
         print("  %-4s : CodePointSet([" % ("'%s'" % k,))
         print("           %s" % (rangesToPython(v, indent=11, width=67),))
@@ -142,7 +142,7 @@ def emitBlockMap (data_file):
 
     print('# Unicode code blocks: %d blocks' % (len(block_map),))
     print('BlockMap = {')
-    for k in sorted(block_map.iterkeys()):
+    for k in sorted(six.iterkeys(block_map)):
         v = block_map.get(k)
         print('  %s : CodePointSet(' % (repr(k),))
         print('     %s' % (rangesToPython(v, indent=6, width=67),))

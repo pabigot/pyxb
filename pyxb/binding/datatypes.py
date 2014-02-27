@@ -402,7 +402,7 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
         lexical_re = cls.__LexicalREMap.get(cls)
         if lexical_re is None:
             pattern = '^' + cls._Lexical_fmt + '%Z?$'
-            for (k, v) in cls.__PatternMap.iteritems():
+            for (k, v) in six.iteritems(cls.__PatternMap):
                 pattern = pattern.replace(k, v)
             lexical_re = re.compile(pattern)
             cls.__LexicalREMap[cls] = lexical_re
@@ -411,7 +411,7 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
             raise SimpleTypeValueError(cls, text)
         match_map = match.groupdict()
         kw = { }
-        for (k, v) in match_map.iteritems():
+        for (k, v) in six.iteritems(match_map):
             if (k in cls.__LexicalIntegerFields) and (v is not None):
                 kw[k] = pyxb.utils.types_.IntType(v)
         if '-' == match_map.get('negYear'):
@@ -469,7 +469,7 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
             use_kw.setdefault('day', cls._DefaultDay)
             dt = datetime.datetime(tzinfo=tzoffs, **use_kw)
             dt -= tzoffs.utcoffset(dt)
-            for k in kw.iterkeys():
+            for k in six.iterkeys(kw):
                 kw[k] = getattr(dt, k)
             kw['tzinfo'] = cls._UTCTimeZone
 

@@ -705,13 +705,13 @@ for c in r'\|.-^?*+{}()[]':
 # Production 26: Complemented Category Escapes
 catEsc = { }
 complEsc = { }
-for k, v in PropertyMap.iteritems():
+for k, v in six.iteritems(PropertyMap):
     catEsc[six.u('p{%s}') % (k,)] = v
     catEsc[six.u('P{%s}') % (k,)] = v.negate()
 
 # Production 36 : IsBlock escapes
 IsBlockEsc = { }
-for k, v in BlockMap.iteritems():
+for k, v in six.iteritems(BlockMap):
     IsBlockEsc[six.u('p{Is%s}') % (k,)] = v
     IsBlockEsc[six.u('P{Is%s}') % (k,)] = v.negate()
 

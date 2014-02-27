@@ -192,7 +192,7 @@ class ReferenceEnumerationMember (ReferenceLiteral):
 def pythonLiteral (value, **kw):
     # For dictionaries, apply translation to all values (not keys)
     if isinstance(value, types.DictionaryType):
-        return ', '.join([ '%s=%s' % (k, pythonLiteral(v, **kw)) for (k, v) in value.iteritems() ])
+        return ', '.join([ '%s=%s' % (k, pythonLiteral(v, **kw)) for (k, v) in six.iteritems(value) ])
 
     # For lists, apply translation to all members
     if isinstance(value, types.ListType):
@@ -385,7 +385,7 @@ def GenerateFacets (td, generator, **kw):
     outf = binding_module.bindingIO()
     facet_instances = []
     gen_enum_tag = _useEnumerationTags(td)
-    for (fc, fi) in td.facets().iteritems():
+    for (fc, fi) in six.iteritems(td.facets()):
         #if (fi is None) or (fi.ownerTypeDefinition() != td):
         #    continue
         if (fi is None) and (fc in td.baseTypeDefinition().facets()):
@@ -410,7 +410,7 @@ def GenerateFacets (td, generator, **kw):
         outf.write("%s = %s(%s)\n" % binding_module.literal( (facet_var, fc, argset ), **kw))
         facet_instances.append(binding_module.literal(facet_var, **kw))
         if (fi is not None) and is_collection:
-            for i in fi.iteritems():
+            for i in six.iteritems(fi):
                 if isinstance(i, facets._EnumerationElement):
                     enum_config = '%s.addEnumeration(unicode_value=%s, tag=%s)' % binding_module.literal( ( facet_var, i.unicodeValue(), i.tag() ), **kw)
                     if gen_enum_tag and (i.tag() is not None):
@@ -435,7 +435,7 @@ def GenerateFacets (td, generator, **kw):
                 fi = mtd.facets().get(facets.CF_enumeration)
                 if fi is None:
                     continue
-                for i in fi.iteritems():
+                for i in six.iteritems(fi):
                     assert isinstance(i, facets._EnumerationElement)
                     etd = i.enumeration().ownerTypeDefinition()
                     enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i, **kw)
@@ -1100,7 +1100,7 @@ def _PrepareSimpleTypeDefinition (std, generator, nsm, module_context):
     if _useEnumerationTags(std):
         enum_facet = std.facets().get(pyxb.binding.facets.CF_enumeration)
         if (enum_facet is not None) and (std == enum_facet.ownerTypeDefinition()):
-            for ei in enum_facet.iteritems():
+            for ei in six.iteritems(enum_facet):
                 assert ei.tag() is None, '%s already has a tag' % (ei,)
                 ei._setTag(utility.PrepareIdentifier(ei.unicodeValue(), nsm.uniqueInClass(std)))
 
@@ -1315,7 +1315,7 @@ class _ModuleNaming_mixin (object):
     def moduleContents (self):
         template_map = {}
         aux_imports = []
-        for (mr, as_path) in self.__importModulePathMap.iteritems():
+        for (mr, as_path) in six.iteritems(self.__importModulePathMap):
             assert self != mr
             if as_path is not None:
                 aux_imports.append('import %s as %s' % (mr.modulePath(), as_path))
@@ -1462,7 +1462,7 @@ class _ModuleNaming_mixin (object):
                 else:
                     nsn = 'Namespace'
                 nsdef = None
-                for im in self.__importModulePathMap.iterkeys():
+                for im in six.iterkeys(self.__importModulePathMap):
                     if isinstance(im, pyxb.namespace.archive.ModuleRecord):
                         if im.namespace() == namespace:
                             nsdef = self.pathFromImport(im, 'Namespace')

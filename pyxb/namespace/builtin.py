@@ -17,6 +17,7 @@
 
 import logging
 import pyxb
+from pyxb.utils import six
 
 _log = logging.getLogger(__name__)
 
@@ -219,7 +220,7 @@ class _XMLSchema (Namespace):
 
         # Provide access to the binding classes
         self.configureCategories(['typeBinding', 'elementBinding'])
-        for ( en, td ) in self.typeDefinitions().iteritems():
+        for ( en, td ) in six.iteritems(self.typeDefinitions()):
             if td.pythonSupport() is not None:
                 self.addCategoryObject('typeBinding', en, td.pythonSupport())
 

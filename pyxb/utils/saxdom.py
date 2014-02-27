@@ -44,7 +44,7 @@ def _DumpDOM (n, depth=0):
         print('%sElement[%d] %s %s with %d children' % (pfx, n._indexInParent(), n, pyxb.namespace.ExpandedName(n.name), len(n.childNodes)))
         ins = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(n).inScopeNamespaces()
         print('%s%s' % (pfx, ' ; '.join([ '%s=%s' % (_k, _v.uri()) for (_k, _v) in ins.items()])))
-        for (k, v) in n.attributes.iteritems():
+        for (k, v) in six.iteritems(n.attributes):
             print('%s %s=%s' % (pfx, pyxb.namespace.ExpandedName(k), v))
         for cn in n.childNodes:
             _DumpDOM(cn, depth+1)

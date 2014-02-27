@@ -51,15 +51,15 @@ def _InitializeAllEsc ():
 
     _AllEsc.update({ six.u('.'): pyxb.utils.unicode.WildcardEsc })
     bs = six.unichr(0x5c)
-    for k, v in pyxb.utils.unicode.SingleCharEsc.iteritems():
+    for k, v in six.iteritems(pyxb.utils.unicode.SingleCharEsc):
         _AllEsc[bs + six.text_type(k)] = v
-    for k, v in pyxb.utils.unicode.MultiCharEsc.iteritems():
+    for k, v in six.iteritems(pyxb.utils.unicode.MultiCharEsc):
         _AllEsc[bs + six.text_type(k)] = v
-    for k, v in pyxb.utils.unicode.catEsc.iteritems():
+    for k, v in six.iteritems(pyxb.utils.unicode.catEsc):
         _AllEsc[bs + six.text_type(k)] = v
-    for k, v in pyxb.utils.unicode.complEsc.iteritems():
+    for k, v in six.iteritems(pyxb.utils.unicode.complEsc):
         _AllEsc[bs + six.text_type(k)] = v
-    for k, v in pyxb.utils.unicode.IsBlockEsc.iteritems():
+    for k, v in six.iteritems(pyxb.utils.unicode.IsBlockEsc):
         _AllEsc[bs + six.text_type(k)] = v
 _InitializeAllEsc()
 

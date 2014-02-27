@@ -148,7 +148,7 @@ class Facet (pyxb.cscRoot):
 
     def _valueString (self):
         if isinstance(self, _CollectionFacet_mixin):
-            return six.u(',').join([ six.text_type(_i) for _i in self.iteritems() ])
+            return six.u(',').join([ six.text_type(_i) for _i in six.iteritems(self) ])
         if (self.valueDatatype() is not None) and (self.value() is not None):
             try:
                 return self.valueDatatype().XsdLiteral(self.value())
@@ -552,15 +552,15 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
 
     def elements (self):
         """@deprecated: Use L{items} or L{iteritems} instead."""
-        return self.items()
+        return list(six.iteritems(self))
 
     def values (self):
         """Return a list of enumeration values."""
-        return [ _ee.value() for _ee in self.iteritems() ]
+        return [ _ee.value() for _ee in six.iteritems(self) ]
 
     def itervalues (self):
         """Generate the enumeration values."""
-        for ee in self.iteritems():
+        for ee in six.iteritems(self):
             yield ee.value()
 
     def addEnumeration (self, **kw):
@@ -598,7 +598,7 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
         # restrictions applied yet, return True.
         if 0 == len(self._items()):
             return True
-        for ee in self.iteritems():
+        for ee in six.iteritems(self):
             if ee.value() == value:
                 return True
         return False

@@ -547,7 +547,7 @@ class UnprocessedKeywordContentError (ContentValidationError):
         super(UnprocessedKeywordContentError, self).__init__(instance, keywords, location)
 
     def __str__ (self):
-        return six.u('Unprocessed keywords instantiating %s: %s') % (self.instance._Name(), ' '.join(self.keywords.iterkeys()))
+        return six.u('Unprocessed keywords instantiating %s: %s') % (self.instance._Name(), ' '.join(six.iterkeys(self.keywords)))
 
 class IncrementalElementContentError (ContentValidationError):
     """Element or element-like content could not be validly associated with an sub-element in the content model.
@@ -709,7 +709,7 @@ class BatchElementContentError (ContentValidationError):
         else:
             rv.append('The following content was not processed by the automaton:')
             rv2 = []
-            for (ed, syms) in self.symbol_set.iteritems():
+            for (ed, syms) in six.iteritems(self.symbol_set):
                 if ed is None:
                     rv2.append('xs:any (%u instances)' % (len(syms),))
                 else:

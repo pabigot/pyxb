@@ -1,6 +1,7 @@
 import unittest
 import sys
 from pyxb.utils.fac import *
+from pyxb.utils import six
 from pyxb.utils.six.moves import xrange
 
 class TestFAC (unittest.TestCase):
@@ -99,7 +100,7 @@ class TestFAC (unittest.TestCase):
     def testFollow (self):
         m = self.a.follow
         self.assertEqual(1, len(m))
-        self.assertEqual([((), frozenset())], m.items())
+        self.assertEqual([((), frozenset())], list(six.iteritems(m)))
 
     def testValidateAutomaton (self):
         a = Symbol('a')
@@ -143,7 +144,7 @@ class TestFAC (unittest.TestCase):
         tt = All(Symbol('a'), Symbol('b'))
         au = tt.buildAutomaton()
         self.assertEqual(1, len(au.states))
-        st = iter(au.states).next()
+        st = next(iter(au.states))
         self.assertTrue(st.isUnorderedCatenation)
 
     # Example from Kilpelainen & Tuhkanen, "Towards Efficient

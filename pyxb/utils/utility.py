@@ -65,7 +65,7 @@ def IteratedCompareMixed (lhs, rhs):
     ri = iter(rhs)
     while True:
         try:
-            (lv, rv) = (li.next(), ri.next())
+            (lv, rv) = (next(li), next(ri))
             if lv is None:
                 if rv is None:
                     continue
@@ -639,7 +639,7 @@ class Graph:
         order = []
         nodes = set(self.__nodes)
         edge_map = {}
-        for (d, srcs) in self.__edgeMap.iteritems():
+        for (d, srcs) in six.iteritems(self.__edgeMap):
             edge_map[d] = srcs.copy()
         while nodes:
             freeset = set()
@@ -652,7 +652,7 @@ class Graph:
             order.append(freeset)
             nodes.difference_update(freeset)
             new_edge_map = {}
-            for (d, srcs) in edge_map.iteritems():
+            for (d, srcs) in six.iteritems(edge_map):
                 srcs.difference_update(freeset)
                 if 0 != len(srcs):
                     new_edge_map[d] = srcs
@@ -701,7 +701,7 @@ def NormalizeLocation (uri, parent_uri=None, prefix_map=None):
         abs_uri = urlparse.urljoin(parent_uri, uri)
     if prefix_map is None:
         prefix_map = LocationPrefixRewriteMap_
-    for (pfx, sub) in prefix_map.iteritems():
+    for (pfx, sub) in six.iteritems(prefix_map):
         if abs_uri.startswith(pfx):
             abs_uri = sub + abs_uri[len(pfx):]
     if 0 > abs_uri.find(':'):
@@ -1106,7 +1106,7 @@ class PrivateTransient_mixin (pyxb.cscRoot):
         if skipped is None:
             skipped = set()
             for cl in self.__class__.mro():
-                for (k, v) in cl.__dict__.iteritems():
+                for (k, v) in six.iteritems(cl.__dict__):
                     if k.endswith(self.__Attribute):
                         cl2 = k[:-len(self.__Attribute)]
                         skipped.update([ '%s__%s' % (cl2, _n) for _n in v ])
@@ -1117,7 +1117,7 @@ class PrivateTransient_mixin (pyxb.cscRoot):
         # Uncomment the following to test whether undesirable types
         # are being pickled, generally by accidently leaving a
         # reference to one in an instance private member.
-        #for (k, v) in state.iteritems():
+        #for (k, v) in six.iteritems(state):
         #    import pyxb.namespace
         #    import xml.dom
         #    import pyxb.xmlschema.structures

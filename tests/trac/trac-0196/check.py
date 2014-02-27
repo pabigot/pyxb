@@ -12,6 +12,7 @@ import uq0196 as uq
 import uu0196 as uu
 import mix
 from pyxb.utils.domutils import BindingDOMSupport
+from pyxb.utils import six
 
 BindingDOMSupport.DeclareNamespace(qq.Namespace, 'qq')
 BindingDOMSupport.DeclareNamespace(qu.Namespace, 'qu')
@@ -65,8 +66,8 @@ class TestTrac0196 (unittest.TestCase):
     def testQualified (self):
         # Top-level declarations are qualified regardless of presence/absence of form attribute.
         # Internal declarations follow form attribute or schema default
-        for (m, ( efd, afd )) in self.module_map.iteritems():
-            for (n, d) in m.t._AttributeMap.iteritems():
+        for (m, ( efd, afd )) in six.iteritems(self.module_map):
+            for (n, d) in six.iteritems(m.t._AttributeMap):
                 if n.localName() in ('a', 'au', 'aq'):
                     self.assertEqual(n.namespace(), m.Namespace)
                 elif 'taq' == n.localName():
@@ -77,7 +78,7 @@ class TestTrac0196 (unittest.TestCase):
                     self.assertEqual(n.namespace(), afd)
                 else:
                     self.assertFalse()
-            for (n, d) in m.t._ElementMap.iteritems():
+            for (n, d) in six.iteritems(m.t._ElementMap):
                 if n.localName() in ('e', 'eu', 'eq'):
                     self.assertEqual(n.namespace(), m.Namespace)
                 elif 'teq' == n.localName():
