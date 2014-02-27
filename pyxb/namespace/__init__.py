@@ -162,7 +162,7 @@ class ExpandedName (object):
             assert 1 == len(args)
             ln = args[0]
             ns = None
-            if isinstance(ln, basestring):
+            if isinstance(ln, six.string_types):
                 pass
             elif isinstance(ln, tuple) and (2 == len(ln)):
                 (ns, ln) = ln
@@ -179,7 +179,7 @@ class ExpandedName (object):
         if (ns is None) and (fallback_namespace is not None):
             if fallback_namespace.isAbsentNamespace():
                 ns = fallback_namespace
-        if isinstance(ns, basestring):
+        if isinstance(ns, six.string_types):
             ns = NamespaceForURI(ns, create_if_missing=True)
         if isinstance(ns, ExpandedName):
             ns = ns.namespace()
@@ -207,7 +207,7 @@ class ExpandedName (object):
         return tuple.__hash__(self.__expandedName)
 
     def __otherForCompare (self, other):
-        if isinstance(other, basestring):
+        if isinstance(other, six.string_types):
             other = ( None, other )
         if not isinstance(other, tuple):
             other = other.__uriTuple
@@ -983,7 +983,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         create the initial context."""
         if nsval is None:
             return self
-        if isinstance(nsval, basestring):
+        if isinstance(nsval, six.string_types):
             nsval = globals().get(nsval)
         if isinstance(nsval, Namespace):
             return nsval

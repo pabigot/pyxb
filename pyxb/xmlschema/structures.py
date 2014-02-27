@@ -4704,7 +4704,7 @@ class Schema (_SchemaComponent_mixin):
 
     def schemaHasAttribute (self, attr_name):
         """Return True iff the schema has an attribute with the given (nc)name."""
-        if isinstance(attr_name, basestring):
+        if isinstance(attr_name, six.string_types):
             attr_name = pyxb.namespace.ExpandedName(None, attr_name)
         return attr_name in self.__attributeMap
 
@@ -4716,7 +4716,7 @@ class Schema (_SchemaComponent_mixin):
         has not been defined and has no default.
         @raise KeyError: C{attr_name} is not a valid attribute for a C{schema} element.
         """
-        if isinstance(attr_name, basestring):
+        if isinstance(attr_name, six.string_types):
             attr_name = pyxb.namespace.ExpandedName(None, attr_name)
         return self.__attributeMap[attr_name]
 
@@ -4803,7 +4803,7 @@ class Schema (_SchemaComponent_mixin):
         """
         schema_location = kw.pop('absolute_schema_location', pyxb.utils.utility.NormalizeLocation(kw.get('schema_location'), kw.get('parent_uri'), kw.get('prefix_map')))
         kw['location_base'] = kw['schema_location'] = schema_location
-        assert isinstance(schema_location, basestring), 'Unexpected value %s type %s for schema_location' % (schema_location, type(schema_location))
+        assert isinstance(schema_location, six.string_types), 'Unexpected value %s type %s for schema_location' % (schema_location, type(schema_location))
         uri_content_archive_directory = kw.get('uri_content_archive_directory')
         return cls.CreateFromDocument(pyxb.utils.utility.DataFromURI(schema_location, archive_directory=uri_content_archive_directory), **kw)
 

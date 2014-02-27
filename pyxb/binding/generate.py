@@ -369,7 +369,7 @@ def _useEnumerationTags (td):
     # Atomic types that use strings as their representation
     if (ptd.VARIETY_atomic == ptd.variety()):
         python_support = ptd.primitiveTypeDefinition().pythonSupport()
-        return issubclass(python_support, basestring)
+        return issubclass(python_support, six.string_types)
     # Derivations from anySimpleType use strings too
     if (ptd.VARIETY_absent == ptd.variety()):
         return True
@@ -1813,7 +1813,7 @@ class Generator (object):
     __bindingRoot = None
 
     def __moduleFilePath (self, module_elts, inhibit_extension=False):
-        if isinstance(module_elts, basestring):
+        if isinstance(module_elts, six.string_types):
             module_elts = module_elts.split('.')
         else:
             module_elts = module_elts[:]
@@ -2649,7 +2649,7 @@ from %s import *
         # Assign Python modules to hold bindings for the schema we're
         # processing.
         for schema in self.__schemas:
-            if isinstance(schema, basestring):
+            if isinstance(schema, six.string_types):
                 schema = xs.schema.CreateFromDocument(schema, generation_uid=self.generationUID())
             origin = schema.originRecord()
             assert origin is not None

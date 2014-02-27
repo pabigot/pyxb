@@ -402,7 +402,7 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
     See U{http://www.w3.org/TR/xmlschema-2/#rf-pattern}
 
     @note: In PyXB, pattern constraints are ignored for any type with
-    a Python representation that does not derive from C{basestring}.
+    a Python representation that does not derive from a string type.
     This is due to the difficulty in reconstructing the lexical
     representation of a non-string type after it has been converted to
     its value space.

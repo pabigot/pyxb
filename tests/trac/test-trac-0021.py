@@ -5,6 +5,7 @@ if __name__ == '__main__':
 _log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.utils.domutils
+from pyxb.utils import six
 from xml.dom import Node
 
 import os.path
@@ -51,7 +52,7 @@ class TestTrac0021 (unittest.TestCase):
         instance = complex("hi")
         self.assertRaises(pyxb.NotSimpleContentError, instance.value)
         elt = instance.orderedContent()[0]
-        self.assertTrue(isinstance(elt.value, basestring))
+        self.assertTrue(isinstance(elt.value, six.string_types))
         self.assertEqual("hi", elt.value)
 
 

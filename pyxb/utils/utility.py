@@ -893,7 +893,7 @@ class UniqueIdentifier (object):
             uid = args[0]
         if isinstance(uid, UniqueIdentifier):
             uid = uid.uid()
-        if not isinstance(uid, basestring):
+        if not isinstance(uid, six.string_types):
             raise TypeError('UniqueIdentifier uid must be a string')
         rv = cls.__ExistingUIDs.get(uid)
         if rv is None:
@@ -930,7 +930,7 @@ class UniqueIdentifier (object):
             return False
         elif isinstance(other, UniqueIdentifier):
             other_uid = other.uid()
-        elif isinstance(other, basestring):
+        elif isinstance(other, six.string_types):
             other_uid = other
         else:
             raise TypeError('UniqueIdentifier: Cannot compare with type %s' % (type(other),))
@@ -978,7 +978,7 @@ class UTCOffsetTimeZone (datetime.tzinfo):
         """
 
         if spec is not None:
-            if isinstance(spec, basestring):
+            if isinstance(spec, six.string_types):
                 if 'Z' == spec:
                     self.__utcOffset_min = 0
                 else:

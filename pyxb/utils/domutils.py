@@ -266,7 +266,7 @@ class _BDSNamespaceSupport (object):
         C{unicode}.
         """
 
-        if isinstance(default_namespace, basestring):
+        if isinstance(default_namespace, six.string_types):
             default_namespace = pyxb.namespace.NamespaceForURI(default_namespace, create_if_missing=True)
         if (default_namespace is not None) and default_namespace.isAbsentNamespace():
             raise pyxb.UsageError('Default namespace must not be an absent namespace')
@@ -337,7 +337,7 @@ class _BDSNamespaceSupport (object):
 
         if (namespace is None) or namespace.isAbsentNamespace():
             return None
-        if isinstance(namespace, basestring):
+        if isinstance(namespace, six.string_types):
             namespace = pyxb.namespace.NamespaceForURI(namespace, create_if_missing=True)
         if (self.__defaultNamespace == namespace) and enable_default_namespace:
             return None
@@ -575,7 +575,7 @@ class BindingDOMSupport (object):
             parent = self.document().documentElement
         if parent is None:
             parent = self.__document
-        if isinstance(expanded_name, basestring):
+        if isinstance(expanded_name, six.string_types):
             expanded_name = pyxb.namespace.ExpandedName(None, expanded_name)
         if not isinstance(expanded_name, pyxb.namespace.ExpandedName):
             raise pyxb.LogicError('Invalid type %s for expanded name' % (type(expanded_name),))

@@ -112,7 +112,7 @@ class CodePointSet (object):
         if isinstance(value, tuple):
             (s, e) = value
             e += 1
-        elif isinstance(value, basestring):
+        elif isinstance(value, six.string_types):
             if 1 < len(value):
                 raise TypeError()
             s = ord(value)

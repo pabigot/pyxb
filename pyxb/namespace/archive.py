@@ -309,7 +309,7 @@ class NamespaceArchive (object):
     __namespaces = None
 
     def __createPickler (self, output):
-        if isinstance(output, basestring):
+        if isinstance(output, six.string_types):
             output = open(output, 'wb')
         pickler = pickle.Pickler(output, -1)
 
@@ -701,7 +701,7 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
     def modulePath (self):
         return self.__modulePath
     def setModulePath (self, module_path):
-        assert (module_path is None) or isinstance(module_path, basestring)
+        assert (module_path is None) or isinstance(module_path, six.string_types)
         self.__modulePath = module_path
         return self
     __modulePath = None
