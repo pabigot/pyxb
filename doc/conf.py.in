@@ -37,8 +37,8 @@ source_suffix = '.txt'
 master_doc = 'index'
 
 # General information about the project.
-project = u'PyXB'
-copyright = u'2009-@THIS_YEAR@, Peter A. Bigot'
+project = 'PyXB'
+copyright = '2009-@THIS_YEAR@, Peter A. Bigot'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -172,8 +172,8 @@ htmlhelp_basename = 'PyXBdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'PyXB.tex', u'PyXB Documentation',
-   u'Peter A. Bigot', 'manual'),
+  ('index', 'PyXB.tex', 'PyXB Documentation',
+   'Peter A. Bigot', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
