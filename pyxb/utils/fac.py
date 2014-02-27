@@ -1020,7 +1020,7 @@ class Configuration (Configuration_ABC):
                     supxit = self.__superConfiguration.candidateTransitions(symbol)
                     transitions.extend(map(lambda _sx: lxit.chainTo(_sx), supxit))
         assert len(frozenset(transitions)) == len(transitions)
-        return filter(update_filter, filter(match_filter, transitions))
+        return list(filter(update_filter, filter(match_filter, transitions)))
 
     def acceptableSymbols (self):
         return [ _xit.consumedSymbol() for _xit in self.candidateTransitions()]

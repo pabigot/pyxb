@@ -419,7 +419,7 @@ class AutomatonConfiguration (object):
         assert self.__cfg is None
         multi = self.__multi
         if prefer_accepting:
-            multi = filter(lambda _ts: _ts[0].isAccepting(), self.__multi)
+            multi = list(filter(lambda _ts: _ts[0].isAccepting(), self.__multi))
             if 0 == len(multi):
                 multi = self.__multi
         # step() will not create an empty multi list, so cannot get here with
