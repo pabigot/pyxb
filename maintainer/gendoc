@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import pyxb.binding.generate
 import os.path
 import sys
@@ -36,7 +37,7 @@ class OptionGroupDocumentation:
     __Conversions = ( ( __Epydoc_Code_re, lambda _x: '``%s``' % (_x.group('text'),) ),
                       ( __Epydoc_Ital_re, lambda _x: '*%s*' % (_x.group('text'),) ),
                       )
-                      
+
 
     def __init__ (self, option_list=None, group=None, title=None, description=None, underscore=None, sub_underscore=None):
         if group is not None:
@@ -53,7 +54,7 @@ class OptionGroupDocumentation:
         self.__metavars = []
         self.__descriptions = []
         self._extractColumnData()
-        
+
     def _extractColumnData (self):
         for opt in self.__optionList:
             self.__longOptions.append(' '.join('``%s``' % (_o,) for _o in opt._long_opts) )
@@ -132,16 +133,16 @@ class OptionGroupDocumentation:
 
         return "\n".join(rv)
 
-print '.. _%s-cli:' % (program,)
-print
+print('.. _%s-cli:' % (program,))
+print()
 title = "``%s`` Command Line Options" % (program,)
-print title
-print '=' * len(title)
+print(title)
+print('=' * len(title))
 
-print OptionGroupDocumentation(option_list=parser.option_list, title='Generic Options', underscore='-', sub_underscore='^', description='')
+print(OptionGroupDocumentation(option_list=parser.option_list, title='Generic Options', underscore='-', sub_underscore='^', description=''))
 for g in parser.option_groups:
-    print OptionGroupDocumentation(group=g, underscore='-', sub_underscore='^')
-    
+    print(OptionGroupDocumentation(group=g, underscore='-', sub_underscore='^'))
+
 # LocalVariables:
 # mode:python
 # End:

@@ -3,6 +3,7 @@
 # Stripped down version of pyxbgen incorporating Japanese-to-Romaji
 # transliteration provided by Hiroaki Itoh.
 
+from __future__ import print_function
 import pyxb.xmlschema
 import pyxb.binding.generate
 import pyxb.utils.utility
@@ -38,8 +39,8 @@ try:
     _tagger2 = MeCab.Tagger("-Oyomi")
     pyxb.utils.utility._SetXMLIdentifierToPython(ConvertJPIdentifier)
 except ImportError as e:
-    print 'WARNING: No Kanji/Hiragana/Katana-to-ASCII transliteration available'
-    print e
+    print('WARNING: No Kanji/Hiragana/Katana-to-ASCII transliteration available')
+    print(e)
 
 # The rest of this is the standard pyxbgen, with the WSDL support code
 # removed.
@@ -65,7 +66,7 @@ import traceback
 try:
     tns = generator.namespaces().pop()
     modules = generator.bindingModules()
-    print 'Python for %s requires %d modules' % (tns, len(modules))
+    print('Python for %s requires %d modules' % (tns, len(modules)))
 
     top_module = None
     path_dirs = set()
@@ -74,7 +75,7 @@ try:
 
     generator.writeNamespaceArchive()
 except Exception as e:
-    print 'Exception generating bindings: %s' % (e,)
+    print('Exception generating bindings: %s' % (e,))
     traceback.print_exception(*sys.exc_info())
     sys.exit(3)
 

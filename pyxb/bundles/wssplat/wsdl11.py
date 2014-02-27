@@ -12,6 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from __future__ import print_function
 from pyxb.bundles.wssplat.raw.wsdl11 import *
 import pyxb.bundles.wssplat.raw.wsdl11 as raw_wsdl11
 
@@ -271,9 +272,9 @@ class tDefinitions (raw_wsdl11.tDefinitions):
         global pyxb
         import pyxb.xmlschema
 
-        print 'PS %s' % (generation_uid,)
+        print('PS %s' % (generation_uid,))
         if self.__schema is not None:
-            print 'Already have schema'
+            print('Already have schema')
             return self.__schema
         for t in self.types:
             for wc in t.wildcardElements():
@@ -284,12 +285,12 @@ class tDefinitions (raw_wsdl11.tDefinitions):
                         try:
                             ns.validateComponentModel()
                         except Exception as e:
-                            print 'Error validating component model for %s: %s' % (ns.uri(), e)
+                            print('Error validating component model for %s: %s' % (ns.uri(), e))
                     self.__schema = pyxb.xmlschema.schema.CreateFromDOM(wc, namespace_context=self.namespaceContext(), generation_uid=generation_uid)
                 elif isinstance(wc, pyxb.xmlschema.schema):
                     self.__schema = wc
                 else:
-                    print 'No match: %s %s' % (wc.namespaceURI, namespace.localName)
+                    print('No match: %s %s' % (wc.namespaceURI, namespace.localName))
                 if self.__schema is not None:
                     return self.__schema
         return None

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import pyxb.namespace
 import sys
 import traceback
@@ -10,7 +11,7 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 pyxb.namespace.archive.NamespaceArchive.PreLoadArchives()
 ans = pyxb.namespace.AvailableNamespaces()
-print '%d available namespaces' % (len(ans),)
+print('%d available namespaces' % (len(ans),))
 for ns in ans:
     for mr in ns.moduleRecords():
         mp = mr.modulePath()
@@ -21,7 +22,7 @@ for ns in ans:
         if mr.archive() is not None:
             fp = mr.archive().archivePath()
             uid = mr.archive().generationUID()
-        print "%s\t%s\t%s\t%s %s" % (ns, mp, fp, (mr.isPublic() and 'Public') or 'private', uid)
+        print("%s\t%s\t%s\t%s %s" % (ns, mp, fp, (mr.isPublic() and 'Public') or 'private', uid))
 
 sys.exit(0)
 for fn in sys.argv[1:]:
@@ -29,16 +30,16 @@ for fn in sys.argv[1:]:
     try:
         nsa = pyxb.namespace.archive.NamespaceArchive.ForPath(fn)
     except pyxb.NamespaceArchiveError as e:
-        print '%s: %s' % (fn, e)
+        print('%s: %s' % (fn, e))
         continue
-    print '%s : %d namespaces:' % (fn, len(nsa.namespaces()))
+    print('%s : %d namespaces:' % (fn, len(nsa.namespaces())))
     nsa.readNamespaces()
     for mr in nsa.moduleRecords():
-        print ' %s : %s, module-path=%s, %s' % (mr.namespace(), mr.generationUID(), mr.modulePath(), (mr.isPublic() and 'public') or 'private')
+        print(' %s : %s, module-path=%s, %s' % (mr.namespace(), mr.generationUID(), mr.modulePath(), (mr.isPublic() and 'public') or 'private'))
         for origin in mr.origins():
-            print '  + %s' % (origin,)
+            print('  + %s' % (origin,))
             for (c, k) in origin.categoryMembers().iteritems():
-                print '   - %s %d items' % (c, len(k))
+                print('   - %s %d items' % (c, len(k)))
 
 # LocalVariables:
 # mode:python

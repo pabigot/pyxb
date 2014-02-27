@@ -18,6 +18,7 @@
 #
 # Modifications by PAB to override reference text
 
+from __future__ import print_function
 import os.path
 from docutils import nodes
 import sys
@@ -47,7 +48,7 @@ def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     exists = lambda f: os.path.exists(prefix + f)
 
     # assume module is references
-    
+
     #print 'Text "%s"' % (text,)
     mo = __Reference_re.match(text)
     label = None
@@ -66,7 +67,7 @@ def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
         uri = file = '%s/%s-class.html' % (basedir, text)
     #print 'Trying class file %s' % (file,)
 
-    # if not a class, then function or class method 
+    # if not a class, then function or class method
     if not exists(file):
         method = chunks[-1]
         fprefix = '.'.join(chunks[:-1])
@@ -88,7 +89,7 @@ def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
         node = nodes.reference(rawtext, label, refuri=uri, **options)
     else:
         # cannot find reference, then just inline the text
-        print 'WARNING: Unable to find %s in API' % (text,)
+        print('WARNING: Unable to find %s in API' % (text,))
         node = nodes.literal(rawtext, text)
 
     return [node], []
@@ -100,7 +101,7 @@ def ticket_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     trac_root = 'https://sourceforge.net/apps/trac/pyxb'
 
     # assume module is references
-    
+
     #print 'Text "%s"' % (text,)
     mo = __Reference_re.match(text)
     label = None
@@ -127,7 +128,7 @@ def pyex_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     if mo is not None:
         ( label, text ) = mo.group(1, 2)
     exc = text.strip()
-    print 'Python exception %s as %s' % (text, label)
+    print('Python exception %s as %s' % (text, label))
 
     uri = pyex_fmt % (exc,)
     if label is None:
@@ -143,4 +144,4 @@ def setup(app):
     app.add_role('ticket', ticket_role)
     app.add_config_value('epydoc_track_root', 'http://sourceforge.net/apps/track/project', False)
     app.add_role('pyex', pyex_role)
-    
+

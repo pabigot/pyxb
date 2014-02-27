@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import pyxb.xmlschema
 import pyxb.binding.generate
 import pyxb.utils.utility
@@ -23,7 +24,7 @@ def WSDLToSchema (generator, wsdl_uri):
     import pyxb.bundles.wssplat.wsdl11 as wsdl
     wsdl.ImportRelatedNamespaces()
     wsdl_uri = pyxb.utils.utility.NormalizeLocation(wsdl_uri)
-    print 'Retrieving WSDL from %s' % (wsdl_uri,)
+    print('Retrieving WSDL from %s' % (wsdl_uri,))
     xmld = pyxb.utils.utility.DataFromURI(wsdl_uri)
     spec = wsdl.definitions.createFromDOM(pyxb.utils.domutils.StringToDOM(xmld, location_base=wsdl_uri), process_schema=True, generation_uid=generator.generationUID())
     return spec.schema()
@@ -62,7 +63,7 @@ import traceback
 try:
     tns = generator.namespaces().pop()
     modules = generator.bindingModules()
-    print 'Python for %s requires %d modules' % (tns, len(modules))
+    print('Python for %s requires %d modules' % (tns, len(modules)))
 
     top_module = None
     path_dirs = set()
@@ -71,7 +72,7 @@ try:
 
     generator.writeNamespaceArchive()
 except Exception as e:
-    print 'Exception generating bindings: %s' % (e,)
+    print('Exception generating bindings: %s' % (e,))
     traceback.print_exception(*sys.exc_info())
     sys.exit(3)
 

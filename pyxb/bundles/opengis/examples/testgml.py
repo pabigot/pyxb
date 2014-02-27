@@ -1,5 +1,6 @@
 #  PYTHONPATH=../..:. PYXB_ARCHIVE_PATH=opengis/iso19139:+ ../../scripts/pyxbgen -u gmlapp.xsd -m gmlapp
 
+from __future__ import print_function
 import pyxb.bundles.opengis.gml_3_2 as gml
 import gmlapp
 import pyxb.utils.domutils
@@ -28,6 +29,6 @@ bds.reset()
 xml2 = instance.toxml("utf-8", bds=bds)
 
 assert xml == xml2
-print xml2
+print(xml2)
 
 
