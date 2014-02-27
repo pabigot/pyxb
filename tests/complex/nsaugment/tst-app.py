@@ -8,7 +8,7 @@ import app
 import common
 
 import pyxb.utils.domutils
-import pyxb.utils.six as six
+from pyxb.utils import six
 
 pyxb.utils.domutils.BindingDOMSupport.DeclareNamespace(app.Namespace, 'app')
 pyxb.utils.domutils.BindingDOMSupport.DeclareNamespace(common.Namespace, 'common')

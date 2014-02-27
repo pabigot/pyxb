@@ -27,7 +27,7 @@ underlying Python type.
 # This module has to be types_ else the following import tries to
 # read this module.  Hurrah for eliminating relative imports!
 import types
-import pyxb.utils.six as six
+from pyxb.utils import six
 
 IntType = types.IntType
 """The type underlying C{int}."""

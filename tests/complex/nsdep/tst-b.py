@@ -4,7 +4,7 @@ if __name__ == '__main__':
     logging.basicConfig()
 _log = logging.getLogger(__name__)
 from pyxb.utils.domutils import BindingDOMSupport
-import pyxb.utils.six as six
+from pyxb.utils import six
 import unittest
 
 import bindings._A as A

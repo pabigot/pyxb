@@ -10,7 +10,7 @@ import unittest
 import pyxb.binding
 import pyxb.binding.facets as facets
 import pyxb.binding.datatypes as datatypes
-import pyxb.utils.six as six
+from pyxb.utils import six
 import sys
 
 # 4.3.1 length

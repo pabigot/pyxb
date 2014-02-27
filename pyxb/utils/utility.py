@@ -23,7 +23,7 @@ from pyxb.utils.six.moves.urllib import parse as urlparse
 import time
 import datetime
 import logging
-import pyxb.utils.six as six
+from pyxb.utils import six
 
 _log = logging.getLogger(__name__)
 

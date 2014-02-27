@@ -33,7 +33,7 @@ import pyxb.namespace
 import pyxb.utils.fac
 from pyxb.binding import basis
 import pyxb.utils.utility
-import pyxb.utils.six as six
+from pyxb.utils import six
 
 _log = logging.getLogger(__name__)
 

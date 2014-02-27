@@ -6,7 +6,7 @@ _log = logging.getLogger(__name__)
 import pyxb
 import pyxb.binding.generate
 import pyxb.utils.domutils
-import pyxb.utils.six as six
+from pyxb.utils import six
 from xml.dom import Node
 
 import pyxb.binding.basis

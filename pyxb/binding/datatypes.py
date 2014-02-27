@@ -52,7 +52,7 @@ from pyxb.exceptions_ import *
 import pyxb.utils.types_
 import pyxb.namespace
 import pyxb.utils.unicode
-import pyxb.utils.six as six
+from pyxb.utils import six
 from . import basis
 
 _log = logging.getLogger(__name__)

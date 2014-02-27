@@ -7,7 +7,7 @@ if __name__ == '__main__':
 _log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.utils.domutils
-import pyxb.utils.six as six
+from pyxb.utils import six
 
 import os.path
 xsd='''<?xml version="1.0" encoding="UTF-8"?>

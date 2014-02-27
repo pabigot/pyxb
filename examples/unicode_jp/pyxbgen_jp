@@ -8,7 +8,7 @@ import pyxb.xmlschema
 import pyxb.binding.generate
 import pyxb.utils.utility
 import pyxb.utils.domutils
-import pyxb.utils.six as six
+from pyxb.utils import six
 import pyxb.utils.saxutils
 import os.path
 import sys

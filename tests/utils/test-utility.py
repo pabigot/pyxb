@@ -6,7 +6,7 @@ _log = logging.getLogger(__name__)
 import unittest
 from pyxb.utils.utility import *
 from pyxb.utils.utility import _DeconflictSymbols_mixin
-import pyxb.utils.six as six
+from pyxb.utils import six
 import sys
 
 class DST_base (_DeconflictSymbols_mixin):

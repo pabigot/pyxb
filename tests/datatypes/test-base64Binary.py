@@ -7,7 +7,7 @@ import unittest
 import binascii
 import pyxb
 import pyxb.binding.datatypes as xsd
-import pyxb.utils.six as six
+from pyxb.utils import six
 
 class Test_base64Binary (unittest.TestCase):
     RFC4648_S9 = ( (six.u('14fb9c03d97e'), six.u('FPucA9l+')),

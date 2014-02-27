@@ -37,7 +37,7 @@ _log = logging.getLogger(__name__)
 
 import pyxb
 import pyxb.binding.datatypes as xs
-import pyxb.utils.six as six
+from pyxb.utils import six
 import trac26
 import unittest
 import sys

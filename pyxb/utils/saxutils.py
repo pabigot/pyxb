@@ -28,7 +28,7 @@ import xml.sax.handler
 import io
 import logging
 import pyxb.namespace
-import pyxb.utils.six as six
+from pyxb.utils import six
 
 _log = logging.getLogger(__name__)
 
