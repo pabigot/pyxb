@@ -27,8 +27,23 @@ relaxed policy is:
 
 As examples, :ticket:`correcting the content model for weak determinism <112>`
 resulted in PyXB 1.2.0, and :ticket:`support of Python 3 <150>` will be part of
-PyXB 1.3.0 along with :ticket:`support for XML Schema 1.1 <217>`.
+PyXB 1.3.0.  :ticket:`support for XML Schema 1.1 <217>` will not be addressed
+until PyXB 1.4.0 if at all.
 
+
+.. _pyxb-1.3.0:
+
+1.3.x
+=====
+
+1.3.0 (TBD)
+-------------------
+
+This release incorporates several bug fixes, but in particular adds
+:ticket:`support for Python 3 <150>`, with testing on Python versions from 2.6
+through 3.4.  This is done using the `six <http://pypi.python.org/pypi/six>`_
+package.  The ``maintainer/2to3`` script used in PyXB 1.2.3 is no longer
+supported.
 
 1.2.x
 =====
