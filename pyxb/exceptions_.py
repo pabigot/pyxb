@@ -161,7 +161,7 @@ class StructuralBadDocumentError (BadDocumentError):
             elif self.__elementUse is not None:
                 kw.setdefault('message', '%s not consistent with content model for %s' % (self.__content, self.__elementUse))
             else:
-                kw.setdefault('message', unicode(self.__content))
+                kw.setdefault('message', six.text_type(self.__content))
         BadDocumentError.__init__(self, **kw)
 
 class UnrecognizedDOMRootNodeError (StructuralBadDocumentError):
@@ -206,7 +206,7 @@ class ValidationError (PyXBException):
         original schema.
 
         @return: a string description of validation failure"""
-        return unicode(self)
+        return six.text_type(self)
 
 @six.unicode_convertible
 class NonElementValidationError (ValidationError):
@@ -242,13 +242,13 @@ class NonElementValidationError (ValidationError):
             if isinstance(self.element, pyxb.binding.basis.simpleTypeDefinition):
                 value = self.element.xsdLiteral()
             elif self.element._IsSimpleTypeContent():
-                value = unicode(self.element.value())
+                value = six.text_type(self.element.value())
             else:
                 value = 'Complex value'
         elif isinstance(self.element, xml.dom.Node):
             value = 'DOM node %s' % (self.element.nodeName,)
         else:
-            value = '%s type %s' % (unicode(self.element), type(self.element))
+            value = '%s type %s' % (six.text_type(self.element), type(self.element))
         if self.location is not None:
             location = ' at %s' % (self.location,)
         return six.u('%s%s not permitted%s') % (value, boundto, location)
@@ -583,7 +583,7 @@ class IncrementalElementContentError (ContentValidationError):
             return self.value._diagnosticName()
         if isinstance(self.value, xml.dom.Node):
             return self.value.nodeName
-        return unicode(self.value)
+        return six.text_type(self.value)
 
 @six.unicode_convertible
 class UnrecognizedContentError (IncrementalElementContentError):
@@ -602,7 +602,7 @@ class UnrecognizedContentError (IncrementalElementContentError):
             names = []
             for u in acceptable:
                 if isinstance(u, pyxb.binding.content.ElementUse):
-                    n = unicode(u.elementBinding().name())
+                    n = six.text_type(u.elementBinding().name())
                 else:
                     assert isinstance(u, pyxb.binding.content.WildcardUse)
                     n = 'xs:any'
@@ -622,7 +622,7 @@ class UnrecognizedContentError (IncrementalElementContentError):
         rv = [ ]
         if i._element() is not None:
             rv.append('The containing element %s is defined at %s.' % (i._element().name(), i._element().xsdLocation()))
-        rv.append('The containing element type %s is defined at %s' % (self.instance._Name(), unicode(self.instance._XSDLocation)))
+        rv.append('The containing element type %s is defined at %s' % (self.instance._Name(), six.text_type(self.instance._XSDLocation)))
         if self.location is not None:
             rv.append('The unrecognized content %s begins at %s' % (self._valueDescription(), self.location))
         else:
@@ -681,7 +681,7 @@ class BatchElementContentError (ContentValidationError):
         rv = [ ]
         if i._element() is not None:
             rv.append('The containing element %s is defined at %s.' % (i._element().name(), i._element().xsdLocation()))
-        rv.append('The containing element type %s is defined at %s' % (self.instance._Name(), unicode(self.instance._XSDLocation)))
+        rv.append('The containing element type %s is defined at %s' % (self.instance._Name(), six.text_type(self.instance._XSDLocation)))
         rv.append('The %s automaton %s in an accepting state.' % (self.instance._Name(), self.fac_configuration.isAccepting() and "is" or "is not"))
         if self.symbols is None:
             rv.append('Any accepted content has been stored in instance')
