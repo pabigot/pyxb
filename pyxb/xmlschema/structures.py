@@ -2633,6 +2633,9 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
             agd = ag_en.attributeGroupDefinition()
             if agd is None:
                 raise pyxb.SchemaValidationError('Attribute group %s cannot be found' % (ag_en,))
+            if not agd.isResolved():
+                self._queueForResolution('attributeGroup %s not resolved' % (ag_en,))
+                return self
             attribute_groups.append(agd)
             uses = uses.union(agd.attributeUses())
 
