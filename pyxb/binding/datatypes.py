@@ -125,7 +125,7 @@ class boolean (basis.simpleTypeDefinition, six.int_type):
 
 _PrimitiveDatatypes.append(boolean)
 
-class decimal (basis.simpleTypeDefinition, python_decimal.Decimal):
+class decimal (basis.simpleTypeDefinition, python_decimal.Decimal, basis._RepresentAsXsdLiteral_mixin):
     """XMLSchema datatype U{decimal<http://www.w3.org/TR/xmlschema-2/#decimal>}.
 
     This class uses Python's L{decimal.Decimal} class to support (by
@@ -147,9 +147,6 @@ class decimal (basis.simpleTypeDefinition, python_decimal.Decimal):
             raise SimpleTypeValueError(cls, *args)
         cls._CheckValidValue(rv)
         return rv
-
-    def __repr__ (self):
-        return 'pyxb.binding.datatypes.decimal(%s)' % (repr(str(self)),)
 
     @classmethod
     def _CheckValidValue (cls, value):
@@ -210,7 +207,7 @@ _PrimitiveDatatypes.append(double)
 
 import datetime
 
-class duration (basis.simpleTypeDefinition, datetime.timedelta):
+class duration (basis.simpleTypeDefinition, datetime.timedelta, basis._RepresentAsXsdLiteral_mixin):
     """XMLSchema datatype U{duration<http://www.w3.org/TR/xmlschema-2/#duration>}.
 
     This class uses the Python C{datetime.timedelta} class as its
@@ -361,7 +358,7 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
 
 _PrimitiveDatatypes.append(duration)
 
-class _PyXBDateTime_base (basis.simpleTypeDefinition):
+class _PyXBDateTime_base (basis.simpleTypeDefinition, basis._RepresentAsXsdLiteral_mixin):
 
     _Lexical_fmt = None
     """Format for the lexical representation of a date-related instance, excluding timezone.
@@ -738,7 +735,6 @@ class date (_PyXBDateOnly_base):
         if rtz is not None:
             fmt += rtz.tzname(value)
         return value.strftime(fmt)
-
 
 _PrimitiveDatatypes.append(date)
 

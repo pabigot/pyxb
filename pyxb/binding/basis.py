@@ -682,6 +682,14 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
         except TypeError:
             raise pyxb.SimpleTypeValueError(ctor, args)
 
+class _RepresentAsXsdLiteral_mixin (pyxb.cscRoot):
+    """Marker class for data types using XSD literal string as pythonLiteral.
+
+    This is necessary for any simple data type where Python repr() produces a
+    constructor call involving a class that may not be available by that name;
+    e.g. duration, decimal, and any of the date/time types."""
+    pass
+
 class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """L{simpleTypeDefinition} is a base class that is part of the
     hierarchy of any class that represents the Python datatype for a
@@ -1084,6 +1092,8 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         """Return a string which can be embedded into Python source to
         represent the given value as an instance of this class."""
         class_name = cls.__name__
+        if issubclass(cls, _RepresentAsXsdLiteral_mixin):
+            value = value.xsdLiteral()
         return '%s(%s)' % (class_name, repr(value))
 
     def pythonLiteral (self):
