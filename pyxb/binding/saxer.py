@@ -217,7 +217,12 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
                 if info.maybe_element or (info.element_decl is not None):
                     raise pyxb.NonElementValidationError(info.item, info.location)
                 args.append(info.item)
-            self.__constructElement(self.__delayedConstructor, self.__attributes, args)
+            try:
+                self.__constructElement(self.__delayedConstructor, self.__attributes, args)
+            except pyxb.ValidationError as e:
+                if e.location is None:
+                    e.location = self.location()
+                raise
         else:
             for info in self.content():
                 self.__bindingInstance.append(info.item,
