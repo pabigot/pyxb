@@ -2332,6 +2332,22 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             raise pyxb.NotSimpleContentError(self)
         return self.__content
 
+    def _setValue (self, value):
+        """Change the simple content value without affecting attributes."""
+        if self._CT_SIMPLE != self._ContentTypeTag:
+            raise pyxb.NotSimpleContentError(self)
+        location = self._location()
+        if self._isNil():
+            if value is not None:
+                raise pyxb.ContentInNilInstanceError(self, value, location)
+        else:
+            if not isinstance(value, self._TypeDefinition):
+                value = self._TypeDefinition.Factory(value)
+            self.__setContent(value)
+            if self._validationConfig.forBinding:
+                self.xsdConstraintsOK(location)
+        return self
+
     def _resetContent (self, reset_elements=False):
         if reset_elements:
             for eu in six.itervalues(self._ElementMap):
