@@ -19,7 +19,7 @@ xsd='''<?xml version="1.0" encoding="UTF-8"?>
     </xs:restriction>
   </xs:simpleType>
   <xs:element name="Element">
-   <xs:complexType name="tElement">
+   <xs:complexType>
      <xs:attribute name="attr" type="tABCD"/>
      <xs:attribute name="Required" type="xs:string" use="required"/>
    </xs:complexType>

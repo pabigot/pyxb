@@ -107,7 +107,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
     __PrivateTransient.add('ownedComponent')
 
     def _scope (self):
-        """The context into which declarations in or subordinate to this nodeare placed."""
+        """The context into which declarations in or subordinate to this node are placed."""
         return self.__scope
     __scope = None
 
@@ -1044,7 +1044,8 @@ class _ScopedDeclaration_mixin (pyxb.cscRoot):
         Valid values are SCOPE_global, or a complex type definition.
         A value of None means a non-global declaration that is not
         owned by a complex type definition.  These can only appear in
-        attribute group definitions or model group definitions.
+        attribute group definitions, model group definitions, and element
+        declarations.
 
         @todo: For declarations in named model groups (viz., local
         elements that aren't references), the scope needs to be set by
@@ -1593,6 +1594,13 @@ class ElementDeclaration (_ParticleTree_mixin, _SchemaComponent_mixin, _NamedCom
         kw.pop('node', None)
         kw['owner'] = rv
 
+        # Global EDs should be given indeterminate scope to ensure subordinate
+        # declarations are not inappropriately associated with the element's
+        # namespace.  If the ED is within a non-global scope that scope should
+        # be retained.
+        if rv._scopeIsGlobal():
+            kw['scope'] = _ScopedDeclaration_mixin.XSCOPE_indeterminate
+
         identity_constraints = []
         for cn in node.childNodes:
             if (Node.ELEMENT_NODE == cn.nodeType) and xsd.nodeIsNamed(cn, 'key', 'unique', 'keyref'):
@@ -2033,15 +2041,18 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
         rv = cls(name=name, node=node, derivation_method=None, **kw)
 
-        if name is None:
-            assert not isinstance(rv.owner(), Schema)
-
         # Most of the time, the scope will be global.  It can be something
         # else only if this is an anonymous CTD (created within an element
         # declaration which itself may be global, in a containing CTD, or in a
         # model group).
-        if not (rv._scopeIsGlobal() or rv.isAnonymous()):
-            raise pyxb.LogicError('Attempt to create non-global complex type definition')
+        if rv._scopeIsGlobal():
+            assert isinstance(rv.owner(), Schema)
+            if rv.isAnonymous():
+                raise pyxb.SchemaValidationError("Anonymous complex type at schema top level")
+        else:
+            assert not isinstance(rv.owner(), Schema)
+            if not rv.isAnonymous():
+                raise pyxb.SchemaValidationError('Name attribute invalid on non-global complex types: %s' % (rv.expandedName(),))
 
         kw.pop('node', None)
         kw['owner'] = rv

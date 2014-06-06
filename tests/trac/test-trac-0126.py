@@ -12,7 +12,7 @@ import os.path
 xsd='''<?xml version="1.0" encoding="UTF-8"?>
 <schema xmlns="http://www.w3.org/2001/XMLSchema">
   <element name="Element">
-   <complexType name="tElement">
+   <complexType>
      <attribute name="Required" type="string" use="required"/>
      <attribute name="Optional" type="string" use="optional"/>
    </complexType>
