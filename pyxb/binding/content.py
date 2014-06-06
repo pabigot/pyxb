@@ -328,6 +328,11 @@ class AutomatonConfiguration (object):
     # defining schema.
     __multi = None
 
+    PermittedNondeterminism = 20
+    """The maximum amount of unresolved non-determinism that is acceptable.
+    If the value is exceeded, a L{pyxb.ContentNondeterminismExceededError}
+    exception will be raised."""
+
     def __init__ (self, instance):
         self.__instance = instance
 
@@ -393,6 +398,8 @@ class AutomatonConfiguration (object):
                 fn(self.__instance)
         else:
             # Non-deterministic.  Save everything for subsequent resolution.
+            if rv > self.PermittedNondeterminism:
+                raise pyxb.ContentNondeterminismExceededError(self.__instance)
             self.__cfg = None
             self.__multi = new_multi
         return rv

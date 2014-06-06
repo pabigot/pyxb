@@ -438,6 +438,21 @@ class ContentValidationError (ComplexTypeValidationError):
     pass
 
 @six.unicode_convertible
+class ContentNondeterminismExceededError (ContentValidationError):
+    """Content validation exceeded the allowed limits of nondeterminism."""
+
+    instance = None
+    """The binding instance being validated."""
+
+    def __init__ (self, instance):
+        """@param instance: the value for the L{instance} attribute."""
+        self.instance = instance
+        super(ContentNondeterminismExceededError, self).__init__(instance)
+
+    def __str__ (self):
+        return six.u('Nondeterminism exceeded validating %s') % (self.instance._Name(),)
+
+@six.unicode_convertible
 class SimpleContentAbsentError (ContentValidationError):
     """An instance with simple content was not provided with a value."""
 

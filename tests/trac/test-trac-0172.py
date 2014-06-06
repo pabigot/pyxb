@@ -52,6 +52,10 @@ class TestTrac_0172 (unittest.TestCase):
         # But there's a problem here, which is now trac/173
         cfg.step('a', a_ed)
         self.assertEqual(4, cfg.nondeterminismCount())
+        self.assertTrue(4 < cfg.PermittedNondeterminism)
+        cfg.PermittedNondeterminism = 4
+        with self.assertRaises(pyxb.ContentNondeterminismExceededError) as cm:
+            cfg.step('a', a_ed)
 
 if __name__ == '__main__':
     unittest.main()
