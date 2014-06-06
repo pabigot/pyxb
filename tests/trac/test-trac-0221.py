@@ -17,11 +17,14 @@ xsd='''<?xml version="1.0" encoding="UTF-8"?>
       <xs:enumeration value="one"/>
       <xs:enumeration value="two"/>
       <xs:enumeration value="three"/>
-<!--
-      <xs:enumeration value="itervalues"/>
-      <xs:enumeration value="iteritems"/>
--->
       <xs:enumeration value="b@d"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="conflict">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="items"/>
+      <xs:enumeration value="two"/>
+      <xs:enumeration value="values"/>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="po2">
@@ -93,6 +96,15 @@ class TestTrac0221 (unittest.TestCase):
         self.assertEqual(2, v2.value())
         self.assertIsNone(v2.tag())
         self.assertRaises(KeyError, po2._elementForValue, six.u('2'))
+
+    def testIteratorAspects (self):
+        self.assertEqual([1,2,4,8], sorted(po2.values()))
+        self.assertEqual(['b@d', 'one', 'three', 'two'], sorted(english.values()))
+
+    def testConflict (self):
+        self.assertEqual(['items', 'two', 'values'], sorted(conflict.values()))
+        self.assertEqual('items', conflict.items_)
+        self.assertEqual('values', conflict.values_)
 
 if __name__ == '__main__':
     unittest.main()

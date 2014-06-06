@@ -1826,6 +1826,8 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
 class enumeration_mixin (pyxb.cscRoot):
     """Marker in case we need to know that a PST has an enumeration constraint facet."""
 
+    _ReservedSymbols = set([ 'itervalues', 'values', 'iteritems', 'items' ])
+
     @classmethod
     def itervalues (cls):
         """Return a generator for the values that the enumeration can take."""

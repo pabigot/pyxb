@@ -453,6 +453,16 @@ def _VCAppendAuxInit (vc_source, aux_init, binding_module, kw):
     elif vc_source.default() is not None:
         aux_init.append('unicode_default=%s' % (binding_module.literal(vc_source.default(), **kw),))
 
+# If std is a simple type that requires an enumeration mixin, return the
+# corresponding facet; otherwise return None.
+def simpleTypeOwnedEnumerationFacet (std):
+    if not isinstance(std, xs.structures.SimpleTypeDefinition):
+        return None
+    enum_facet = std.facets().get(facets.CF_enumeration)
+    if (enum_facet is not None) and (enum_facet.ownerTypeDefinition() == std):
+        return enum_facet
+    return None
+
 def GenerateSTD (std, generator):
 
     binding_module = generator.moduleForComponent(std)
@@ -467,8 +477,7 @@ def GenerateSTD (std, generator):
     kw['class_unique'] = class_unique
 
     parent_classes = [ binding_module.literal(std.baseTypeDefinition(), **kw) ]
-    enum_facet = std.facets().get(facets.CF_enumeration)
-    if (enum_facet is not None) and (enum_facet.ownerTypeDefinition() == std):
+    if simpleTypeOwnedEnumerationFacet(std) is not None:
         parent_classes.append('pyxb.binding.basis.enumeration_mixin')
 
     template_map = { }
@@ -1097,8 +1106,8 @@ def GenerateED (ed, generator, **kw):
 def _PrepareSimpleTypeDefinition (std, generator, nsm, module_context):
     std._templateMap()['_unique'] = nsm.uniqueInClass(std)
     if _useEnumerationTags(std):
-        enum_facet = std.facets().get(pyxb.binding.facets.CF_enumeration)
-        if (enum_facet is not None) and (std == enum_facet.ownerTypeDefinition()):
+        enum_facet = simpleTypeOwnedEnumerationFacet(std)
+        if enum_facet is not None:
             for ei in six.iteritems(enum_facet):
                 assert ei.tag() is None, '%s already has a tag' % (ei,)
                 ei._setTag(utility.PrepareIdentifier(ei.unicodeValue(), nsm.uniqueInClass(std)))
@@ -1265,6 +1274,8 @@ class _ModuleNaming_mixin (object):
             rv.update(self.__referencedFromClass)
             if isinstance(component, xs.structures.SimpleTypeDefinition):
                 rv.update(basis.simpleTypeDefinition._ReservedSymbols)
+                if simpleTypeOwnedEnumerationFacet(component) is not None:
+                    rv.update(basis.enumeration_mixin._ReservedSymbols)
             else:
                 assert isinstance(component, xs.structures.ComplexTypeDefinition)
                 if component._isHierarchyRoot():
