@@ -423,6 +423,29 @@ class NamespaceContext (object):
         return self.__inScopeNamespaces
     __inScopeNamespaces = None
 
+    """Map from L{Namespace} instances to sets of prefix strings associated
+    with the namespace.  The default namespace is not represented."""
+    __inScopePrefixes = None
+
+    def __removePrefixMap (self, pfx):
+        ns = self.__inScopeNamespaces.pop(pfx, None)
+        if ns is not None:
+            pfxs = self.__inScopePrefixes.get(ns)
+            if pfxs is not None:
+                pfxs.discard(pfx)
+
+    def __addPrefixMap (self, pfx, ns):
+        # Any previous assignment must have already been removed
+        self.__inScopeNamespaces[pfx] = ns
+        self.__inScopePrefixes.setdefault(ns, set()).add(pfx)
+
+    def __clonePrefixMap (self):
+        self.__inScopeNamespaces = self.__inScopeNamespaces.copy()
+        isp = {}
+        for (ns, pfxs) in six.iteritems(self.__inScopePrefixes):
+            isp[ns] = pfxs.copy()
+        self.__inScopePrefixes = isp
+
     def prefixForNamespace (self, namespace):
         """Return a prefix associated with the given namespace in this
         context, or None if the namespace is the default or is not in
@@ -452,21 +475,25 @@ class NamespaceContext (object):
         node.__namespaceContext = self
 
     def processXMLNS (self, prefix, uri):
+        from pyxb.namespace import builtin
         if not self.__mutableInScopeNamespaces:
-            self.__inScopeNamespaces = self.__inScopeNamespaces.copy()
+            self.__clonePrefixMap()
             self.__mutableInScopeNamespaces = True
+        if builtin.XML.boundPrefix() == prefix:
+            # Bound prefix xml is permitted if it's bound to the right URI, or
+            # if the scope is being left.  In neither case is the mapping
+            # adjusted.
+            if (uri is None) or builtin.XML.uri() == uri:
+                return
+            raise pyxb.LogicError('Cannot manipulate bound prefix xml')
         if uri:
             if prefix is None:
                 ns = self.__defaultNamespace = utility.NamespaceForURI(uri, create_if_missing=True)
                 self.__inScopeNamespaces[None] = self.__defaultNamespace
             else:
                 ns = utility.NamespaceForURI(uri, create_if_missing=True)
-                self.__inScopeNamespaces[prefix] = ns
-                #if ns.prefix() is None:
-                #    ns.setPrefix(prefix)
-                # @todo should we record prefix in namespace so we can use it
-                # during generation?  I'd rather make the user specify what to
-                # use.
+                self.__removePrefixMap(prefix)
+                self.__addPrefixMap(prefix, ns)
             if self.__targetNamespace:
                 self.__targetNamespace._referenceNamespace(ns)
             else:
@@ -479,7 +506,7 @@ class NamespaceContext (object):
             # if you try it.  I don't think it's legal.
             if prefix is not None:
                 raise pyxb.NamespaceError(self, 'Attempt to undefine non-default namespace %s' % (prefix,))
-            self.__inScopeNamespaces.pop(prefix, None)
+            self.__removePrefixMap(prefix)
             self.__defaultNamespace = None
 
     def finalizeTargetNamespace (self, tns_uri=None, including_context=None):
@@ -560,17 +587,21 @@ class NamespaceContext (object):
         self.__defaultNamespace = default_namespace
         self.__targetNamespace = target_namespace
         self.__inScopeNamespaces = builtin._UndeclaredNamespaceMap
+        self.__inScopePrefixes = {}
         self.__mutableInScopeNamespaces = False
 
         if in_scope_namespaces is not None:
             if parent_context is not None:
                 raise pyxb.LogicError('Cannot provide both parent_context and in_scope_namespaces')
-            self.__inScopeNamespaces = builtin._UndeclaredNamespaceMap.copy()
-            self.__inScopeNamespaces.update(in_scope_namespaces)
+            self.__clonePrefixMap()
+            for (pfx, ns) in six.iteritems(in_scope_namespaces):
+                self.__removePrefixMap(pfx)
+                self.__addPrefixMap(pfx, ns)
             self.__mutableInScopeNamespaces = True
 
         if parent_context is not None:
-            self.__inScopeNamespaces = parent_context.inScopeNamespaces()
+            self.__inScopeNamespaces = parent_context.__inScopeNamespaces
+            self.__inScopePrefixes = parent_context.__inScopePrefixes
             self.__mutableInScopeNamespaces = False
             self.__defaultNamespace = parent_context.defaultNamespace()
             self.__targetNamespace = parent_context.targetNamespace()
