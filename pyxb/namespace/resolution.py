@@ -381,6 +381,26 @@ class NamespaceContext (object):
         return self.__defaultNamespace
     __defaultNamespace = None
 
+    def setDefaultNamespace (self, default_namespace):
+        """Set the default namespace for the generated document.
+
+        Even if invoked post construction, the default namespace will affect
+        the entire document, as all namespace declarations are placed in the
+        document root.
+
+        @param default_namespace: The namespace to be defined as the default
+        namespace in the top-level element of the document.  May be provided
+        as a real namespace, or just its URI.
+        @type default_namespace: L{pyxb.namespace.Namespace} or C{str} or
+        C{unicode}.
+        """
+
+        if isinstance(default_namespace, six.string_types):
+            default_namespace = utility.NamespaceForURI(default_namespace, create_if_missing=True)
+        if (default_namespace is not None) and default_namespace.isAbsentNamespace():
+            raise pyxb.UsageError('Default namespace must not be an absent namespace')
+        self.__defaultNamespace = default_namespace
+
     # If C{True}, this context is within a schema that has no target
     # namespace, and we should use the target namespace as a fallback if no
     # default namespace is available and no namespace prefix appears on a
@@ -485,6 +505,13 @@ class NamespaceContext (object):
         assert self.__targetNamespace is not None
         if (not self.__fallbackToTargetNamespace) and self.__targetNamespace.isAbsentNamespace():
             self.__fallbackToTargetNamespace = True
+
+    def reset (self):
+        """Reset this instance to the state it was when created.
+
+        This flushes the list of namespaces for the document.  The
+        defaultNamespace is not modified."""
+        pass
 
     def __init__ (self,
                   dom_node=None,
