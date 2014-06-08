@@ -446,6 +446,19 @@ class NamespaceContext (object):
             isp[ns] = pfxs.copy()
         self.__inScopePrefixes = isp
 
+    __InitialScopeNamespaces = None
+    __InitialScopePrefixes = None
+
+    @classmethod
+    def __BuildInitialPrefixMap (cls):
+        if cls.__InitialScopeNamespaces is not None:
+            return
+        from pyxb.namespace import builtin
+        cls.__InitialScopeNamespaces = builtin._UndeclaredNamespaceMap
+        cls.__InitialScopePrefixes = {}
+        for (pfx, ns) in six.iteritems(cls.__InitialScopeNamespaces):
+            cls.__InitialScopePrefixes.setdefault(ns, set()).add(pfx)
+
     def prefixForNamespace (self, namespace):
         """Return a prefix associated with the given namespace in this
         context, or None if the namespace is the default or is not in
@@ -573,7 +586,7 @@ class NamespaceContext (object):
         @keyword in_scope_namespaces: Optional value to set as the initial set
         of in-scope namespaces.  The always-present namespaces are added to
         this if necessary.
-        @type in_scope_namespaces: C{dict} mapping C{string} to L{Namespace}.
+        @type in_scope_namespaces: C{dict} mapping prefix C{string} to L{Namespace}.
         """
         from pyxb.namespace import builtin
 
@@ -586,23 +599,25 @@ class NamespaceContext (object):
 
         self.__defaultNamespace = default_namespace
         self.__targetNamespace = target_namespace
-        self.__inScopeNamespaces = builtin._UndeclaredNamespaceMap
-        self.__inScopePrefixes = {}
+        if self.__InitialScopeNamespaces is None:
+            self.__BuildInitialPrefixMap()
+        self.__inScopeNamespaces = self.__InitialScopeNamespaces
+        self.__inScopePrefixes = self.__InitialScopePrefixes
         self.__mutableInScopeNamespaces = False
 
         if in_scope_namespaces is not None:
             if parent_context is not None:
                 raise pyxb.LogicError('Cannot provide both parent_context and in_scope_namespaces')
             self.__clonePrefixMap()
+            self.__mutableInScopeNamespaces = True
             for (pfx, ns) in six.iteritems(in_scope_namespaces):
                 self.__removePrefixMap(pfx)
                 self.__addPrefixMap(pfx, ns)
-            self.__mutableInScopeNamespaces = True
-
-        if parent_context is not None:
+        elif parent_context is not None:
             self.__inScopeNamespaces = parent_context.__inScopeNamespaces
             self.__inScopePrefixes = parent_context.__inScopePrefixes
-            self.__mutableInScopeNamespaces = False
+            if parent_context.__mutableInScopeNamespaces:
+                self.__clonePrefixMap()
             self.__defaultNamespace = parent_context.defaultNamespace()
             self.__targetNamespace = parent_context.targetNamespace()
             self.__fallbackToTargetNamespace = parent_context.__fallbackToTargetNamespace
