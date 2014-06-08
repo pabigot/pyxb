@@ -463,9 +463,9 @@ class NamespaceContext (object):
         """Return a prefix associated with the given namespace in this
         context, or None if the namespace is the default or is not in
         scope."""
-        for (pfx, ns) in six.iteritems(self.__inScopeNamespaces):
-            if namespace == ns:
-                return pfx
+        pfxs = self.__inScopePrefixes.get(namespace)
+        if pfxs:
+            return next(iter(pfxs))
         return None
 
     @classmethod
