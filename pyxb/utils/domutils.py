@@ -321,10 +321,10 @@ class _BDSNamespaceSupport (object):
             namespace = pyxb.namespace.NamespaceForURI(namespace, create_if_missing=True)
         if (self.defaultNamespace() == namespace) and enable_default_namespace:
             return None
-        ns = self.__namespaces.get(namespace)
-        if ns is None:
-            ns = self.declareNamespace(namespace)
-        return ns
+        pfx = self.__namespaces.get(namespace)
+        if pfx is None:
+            pfx = self.declareNamespace(namespace)
+        return pfx
 
     def namespaces (self):
         """Return the set of Namespace instances known to this instance."""
