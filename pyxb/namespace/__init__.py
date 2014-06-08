@@ -94,10 +94,14 @@ class ExpandedName (object):
         # Don't try to recognize private names (like __setstate__)
         if name.startswith('__'):
             return super(ExpandedName, self).__getattr__(name)
-        if self.namespace() is None:
+        ns = self.namespace()
+        if ns is None:
             return lambda: None
+        # Anything we're going to look stuff up in requires a component model.
+        # Make sure we have one loaded.
+        ns.validateComponentModel()
         # NOTE: This will raise pyxb.NamespaceError if the category does not exist.
-        category_value = self.namespace().categoryMap(name).get(self.localName())
+        category_value = ns.categoryMap(name).get(self.localName())
         return lambda : category_value
 
     def createName (self, local_name):

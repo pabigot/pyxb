@@ -696,11 +696,6 @@ class NamespaceContext (object):
                 namespace = self.targetNamespace()
             if namespace is None:
                 raise pyxb.SchemaValidationError('QName %s with absent default namespace cannot be resolved' % (local_name,))
-        # Anything we're going to look stuff up in requires a component model.
-        # Make sure we can load one, unless we're looking up in the thing
-        # we're constructing (in which case it's being built right now).
-        if (namespace != self.targetNamespace()):
-            namespace.validateComponentModel()
         return pyxb.namespace.ExpandedName(namespace, local_name)
 
     def queueForResolution (self, component, depends_on=None):
