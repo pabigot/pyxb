@@ -507,8 +507,7 @@ class BindingDOMSupport (object):
         if ns is not None:
             ns_uri = ns.uri()
             self.declareNamespace(ns, pfx)
-            if pfx is None:
-                pfx = self.namespacePrefix(ns)
+            pfx = self.namespacePrefix(ns)
             if pfx is not None:
                 node_name = '%s:%s' % (pfx, local_name)
         return (ns_uri, node_name)
