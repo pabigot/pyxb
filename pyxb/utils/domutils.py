@@ -314,7 +314,7 @@ class _BDSNamespaceSupport (object):
         self.__namespaceContext.declareNamespace(pyxb.namespace.XMLSchema_instance, 'xsi')
         self.__referencedNamespacePrefixes = set()
 
-    def __init__ (self, default_namespace=None, namespace_prefix_map=None, inherit_from=None):
+    def __init__ (self, default_namespace=None, namespace_prefix_map=None, parent_context=None):
         """Create a new namespace declaration configuration.
 
         @keyword default_namespace: Optional L{pyxb.namespace.Namespace}
@@ -330,9 +330,6 @@ class _BDSNamespaceSupport (object):
         defaults are inherited.  Inheritance is overridden by values of other
         keywords in the initializer.
         """
-        parent_context = None
-        if inherit_from:
-            parent_context = inherit_from.__namespaceContext
         self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext(parent_context=parent_context)
         if default_namespace is not None:
             self.__namespaceContext.setDefaultNamespace(default_namespace)
@@ -379,9 +376,9 @@ class BindingDOMSupport (object):
         self.__namespaceContext.reset(**kw)
 
     @classmethod
-    def Reset (cls, **kw):
-        """Reset the global defaults for default/prefix/namespace informmation."""
-        cls.__NamespaceSupport.reset(**kw)
+    def Reset (cls):
+        """Reset the global defaults for default/prefix/namespace information."""
+        cls.__NamespaceContext.reset()
 
     def __init__ (self, implementation=None, default_namespace=None, require_xsi_type=False, namespace_prefix_map=None):
         """Create a new instance used for building a single document.
@@ -412,11 +409,11 @@ class BindingDOMSupport (object):
             implementation = GetDOMImplementation()
         self.__implementation = implementation
         self.__requireXSIType = require_xsi_type
-        self.__namespaceContext = _BDSNamespaceSupport(default_namespace, namespace_prefix_map, inherit_from=self.__NamespaceSupport)
+        self.__namespaceContext = _BDSNamespaceSupport(default_namespace, namespace_prefix_map, parent_context=self.__NamespaceContext)
         self.reset()
 
     __namespaceContext = None
-    __NamespaceSupport = _BDSNamespaceSupport()
+    __NamespaceContext = pyxb.namespace.resolution.NamespaceContext()
 
     # Namespace declarations required on the top element
     def defaultNamespace (self):
@@ -425,13 +422,13 @@ class BindingDOMSupport (object):
     @classmethod
     def DefaultNamespace (cls):
         """The global default namespace (used on instance creation if not overridden)"""
-        return cls.__NamespaceSupport.defaultNamespace()
+        return cls.__NamespaceContext.defaultNamespace()
 
     def setDefaultNamespace (self, default_namespace):
         return self.__namespaceContext.setDefaultNamespace(default_namespace)
     @classmethod
     def SetDefaultNamespace (cls, default_namespace):
-        return cls.__NamespaceSupport.setDefaultNamespace(default_namespace)
+        return cls.__NamespaceContext.setDefaultNamespace(default_namespace)
 
     def declareNamespace (self, namespace, prefix=None):
         """Declare a namespace within this instance only."""
@@ -439,7 +436,7 @@ class BindingDOMSupport (object):
     @classmethod
     def DeclareNamespace (cls, namespace, prefix=None):
         """Declare a namespace that will made available to each created instance."""
-        return cls.__NamespaceSupport.declareNamespace(namespace, prefix)
+        return cls.__NamespaceContext.declareNamespace(namespace, prefix)
 
     def namespacePrefix (self, namespace, enable_default_namespace=True):
         """Obtain the prefix for the given namespace using this instance's configuration."""
@@ -448,11 +445,6 @@ class BindingDOMSupport (object):
     def namespacePrefixMap (self):
         """Get the map from namespaces to prefixes for this instance"""
         return self.__namespaceContext.namespacePrefixMap().copy()
-
-    @classmethod
-    def NamespacePrefixMap (cls):
-        """Get the map of default namespace-to-prefix mappings"""
-        return cls.__NamespaceSupport.namespacePrefixMap().copy()
 
     def addAttribute (self, element, expanded_name, value):
         """Add an attribute to the given element.

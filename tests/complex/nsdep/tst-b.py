@@ -16,7 +16,7 @@ class Test (unittest.TestCase):
         BindingDOMSupport.DeclareNamespace(B.Namespace, 'b')
 
     def tearDown (self):
-        BindingDOMSupport.Reset(prefix_map=True)
+        BindingDOMSupport.Reset()
 
     def tests (self):
         # Element {URN:nsdep:A}e1 uses Python identifier e1

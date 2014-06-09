@@ -14,7 +14,7 @@ class Test (unittest.TestCase):
         BindingDOMSupport.DeclareNamespace(A.Namespace, 'a')
 
     def tearDown (self):
-        BindingDOMSupport.Reset(prefix_map=True)
+        BindingDOMSupport.Reset()
 
     def tests (self):
         x = A.A_c_e1("A_b_e1", "e1")
