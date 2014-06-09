@@ -32,6 +32,8 @@ class TestTrac0202 (unittest.TestCase):
         bds.declareNamespace(xsi)
         samdom = sam.toDOM(bds)
         bds.addAttribute(samdom.documentElement, xsi.createExpandedName('schemaLocation'), "c:\sample.xsd")
+        # xsi is probably not referenced elsewhere, so add the XMLNS declaration too
+        bds.addXMLNSDeclaration(samdom.documentElement, xsi)
         xmld = samdom.toprettyxml(encoding = "utf-8")
         self.assertEqual(self.Expectedd, xmld)
 

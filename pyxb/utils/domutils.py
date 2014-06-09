@@ -289,11 +289,11 @@ class _BDSNamespaceSupport (object):
         pfx = self.__namespaceContext.prefixForNamespace(namespace)
         if pfx is None:
             pfx = self.__namespaceContext.declareNamespace(namespace)
-        self.__referencedNamespacePrefixes.add((pfx, namespace))
+        self.__referencedNamespacePrefixes.add((namespace, pfx))
         return pfx
 
     def _referencedNamespacePrefixes (self):
-        """Return a list of pairs of C{(prefix, namespace)} that were used in
+        """Return a list of pairs of C{(namespace, prefix)} that were used in
         QName formation.
 
         If a default namespace is present, it is first in the list and its
@@ -301,7 +301,7 @@ class _BDSNamespaceSupport (object):
         rv = []
         dns = self.defaultNamespace()
         if dns is not None:
-            rv.append((None, dns))
+            rv.append((dns, None))
         rv.extend(self.__referencedNamespacePrefixes)
         return rv
 
@@ -475,6 +475,31 @@ class BindingDOMSupport (object):
                 name = '%s:%s' % (prefix, name)
         element.setAttributeNS(namespace, name, value)
 
+    def addXMLNSDeclaration (self, element, namespace, prefix=None):
+        """Manually add an XMLNS declaration to the document element.
+
+        @param namespace: a L{pyxb.namespace.Namespace} instance
+
+        @param prefix: the prefix by which the namespace is known.  If
+        C{None}, the default prefix as previously declared will be used; if
+        C{''} (empty string) a declaration for C{namespace} as the default
+        namespace will be generated.
+
+        @return C{prefix} as used in the added declaration.
+        """
+        if not isinstance(namespace, pyxb.namespace.Namespace):
+            raise pyxb.UsageError('addXMLNSdeclaration: must be given a namespace instance')
+        if namespace.isAbsentNamespace():
+            raise pyxb.UsageError('addXMLNSdeclaration: namespace must not be an absent namespace')
+        if prefix is None:
+            prefix = self.__namespaceContext.namespacePrefix(namespace)
+        if not prefix: # None or empty string
+            an = 'xmlns'
+        else:
+            an = 'xmlns:' + prefix
+        element.setAttributeNS(pyxb.namespace.XMLNamespaces.uri(), an, namespace.uri())
+        return prefix
+
     def finalize (self):
         """Do the final cleanup after generating the tree.  This makes sure
         that the document element includes XML Namespace declarations for all
@@ -482,12 +507,8 @@ class BindingDOMSupport (object):
 
         @return: The document that has been created.
         @rtype: C{xml.dom.Document}"""
-        for (pfx, ns) in self.__namespaceContext._referencedNamespacePrefixes():
-            if pfx is None:
-                an = 'xmlns'
-            else:
-                an = 'xmlns:' + pfx
-            self.document().documentElement.setAttributeNS(pyxb.namespace.XMLNamespaces.uri(), an, ns.uri())
+        for (ns, pfx) in self.__namespaceContext._referencedNamespacePrefixes():
+            self.addXMLNSDeclaration(self.document().documentElement, ns, pfx)
         return self.document()
 
     def createChildElement (self, expanded_name, parent=None):
