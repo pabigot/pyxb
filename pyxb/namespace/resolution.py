@@ -705,7 +705,7 @@ class NamespaceContext (object):
             assert Node.ELEMENT_NODE == dom_node.nodeType
             for cn in dom_node.childNodes:
                 if Node.ELEMENT_NODE == cn.nodeType:
-                    NamespaceContext(cn, self, True)
+                    NamespaceContext(dom_node=cn, parent_context=self, recurse=True)
 
     def interpretQName (self, name, namespace=None):
         """Convert the provided name into an L{ExpandedName}, i.e. a tuple of
