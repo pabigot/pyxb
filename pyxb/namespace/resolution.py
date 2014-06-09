@@ -734,23 +734,27 @@ class NamespaceContext (object):
                 if Node.ELEMENT_NODE == cn.nodeType:
                     NamespaceContext(dom_node=cn, parent_context=self, recurse=True)
 
-    def interpretQName (self, name, namespace=None):
+    def interpretQName (self, name, namespace=None, default_no_namespace=False):
         """Convert the provided name into an L{ExpandedName}, i.e. a tuple of
         L{Namespace} and local name.
 
         If the name includes a prefix, that prefix must map to an in-scope
         namespace in this context.  Absence of a prefix maps to
         L{defaultNamespace()}, which must be provided (or defaults to the
-        target namespace, if that is absent).
+        target namespace, if that is not absent).
 
         @param name: A QName.
         @type name: C{str} or C{unicode}
         @param name: Optional namespace to use for unqualified names when
         there is no default namespace.  Note that a defined default namespace,
         even if absent, supersedes this value.
+        @kw default_no_namespace: If C{False} (default), an NCName in a
+        context where C{namespace} is C{None} and no default or fallback
+        namespace can be identified produces an exception.  If C{True}, such an
+        NCName is implicitly placed in no namespace.
         @return: An L{ExpandedName} tuple: ( L{Namespace}, C{str} )
-        @raise pyxb.SchemaValidationError: The prefix is not in scope
-        @raise pyxb.SchemaValidationError: No prefix is given and the default namespace is absent
+        @raise pyxb.QNameResolutionError: The prefix is not in scope
+        @raise pyxb.QNameResolutionError: No prefix is given and the default namespace is absent
         """
         assert isinstance(name, six.string_types)
         if 0 <= name.find(':'):
@@ -758,7 +762,7 @@ class NamespaceContext (object):
             assert self.inScopeNamespaces() is not None
             namespace = self.inScopeNamespaces().get(prefix)
             if namespace is None:
-                raise pyxb.SchemaValidationError('No namespace declared for QName %s prefix' % (name,))
+                raise pyxb.QNameResolutionError('No namespace declaration for prefix', name, self)
         else:
             local_name = name
             # Context default supersedes caller-provided namespace
@@ -768,8 +772,8 @@ class NamespaceContext (object):
             # namespace, use that instead.
             if (namespace is None) and self.__fallbackToTargetNamespace:
                 namespace = self.targetNamespace()
-            if namespace is None:
-                raise pyxb.SchemaValidationError('QName %s with absent default namespace cannot be resolved' % (local_name,))
+            if (namespace is None) and not default_no_namespace:
+                raise pyxb.QNameResolutionError('NCName with no fallback/default namespace cannot be resolved', name, self)
         return pyxb.namespace.ExpandedName(namespace, local_name)
 
     def queueForResolution (self, component, depends_on=None):

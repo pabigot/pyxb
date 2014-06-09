@@ -18,7 +18,7 @@ class TestTrac0119 (unittest.TestCase):
         m = base.Message(c)
         xmld = m.toxml("utf-8")
         # Cannot resolve absent namespace in base module
-        self.assertRaises(pyxb.SchemaValidationError, base.CreateFromDocument, xmld)
+        self.assertRaises(pyxb.QNameResolutionError, base.CreateFromDocument, xmld)
         # Can resolve it in absent module
         instance = absent.CreateFromDocument(xmld)
         self.assertEqual(xmld, instance.toxml("utf-8"))
@@ -32,7 +32,7 @@ class TestTrac0119 (unittest.TestCase):
 </base:Message>
 '''
         # Cannot resolve absent namespace in base module
-        self.assertRaises(pyxb.SchemaValidationError, base.CreateFromDocument, xmlt)
+        self.assertRaises(pyxb.QNameResolutionError, base.CreateFromDocument, xmlt)
         # Can resolve it in absent module
         instance = absent.CreateFromDocument(xmlt)
         self.assertEqual('hi', instance.command.payload)
@@ -49,7 +49,7 @@ class TestTrac0119 (unittest.TestCase):
 </Message>
 '''
         # Cannot resolve absent namespace in base module
-        self.assertRaises(pyxb.SchemaValidationError, base.CreateFromDocument, xmlt)
+        self.assertRaises(pyxb.QNameResolutionError, base.CreateFromDocument, xmlt)
         # Can resolve it in absent module
         instance = absent.CreateFromDocument(xmlt)
         self.assertEqual('hi', instance.command.payload)

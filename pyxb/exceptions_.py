@@ -122,6 +122,16 @@ class NotInNamespaceError (PyXBException):
     __namespace = None
     __ncName = None
 
+class QNameResolutionError (NamespaceError):
+    '''Raised when a QName cannot be associated with a namespace.'''
+    namespaceContext = None
+    qname = None
+
+    def __init__ (self, message, qname, xmlns_context):
+        self.qname = qname
+        self.namespaceContext = xmlns_context
+        super(QNameResolutionError, self).__init__(message, qname, xmlns_context)
+
 class BadDocumentError (PyXBException):
     """Raised when processing document content and an error is encountered."""
     pass
