@@ -675,15 +675,7 @@ class NamespaceContext (object):
         self.__mutableInScopeNamespaces = False
         self.__namespacePrefixCounter = 0
 
-        if in_scope_namespaces is not None:
-            if parent_context is not None:
-                raise pyxb.LogicError('Cannot provide both parent_context and in_scope_namespaces')
-            self.__clonePrefixMap()
-            self.__mutableInScopeNamespaces = True
-            for (pfx, ns) in six.iteritems(in_scope_namespaces):
-                self.__removePrefixMap(pfx)
-                self.__addPrefixMap(pfx, ns)
-        elif parent_context is not None:
+        if parent_context is not None:
             self.__inScopeNamespaces = parent_context.__inScopeNamespaces
             self.__inScopePrefixes = parent_context.__inScopePrefixes
             if parent_context.__mutableInScopeNamespaces:
@@ -691,6 +683,12 @@ class NamespaceContext (object):
             self.__defaultNamespace = parent_context.defaultNamespace()
             self.__targetNamespace = parent_context.targetNamespace()
             self.__fallbackToTargetNamespace = parent_context.__fallbackToTargetNamespace
+        if in_scope_namespaces is not None:
+            self.__clonePrefixMap()
+            self.__mutableInScopeNamespaces = True
+            for (pfx, ns) in six.iteritems(in_scope_namespaces):
+                self.__removePrefixMap(pfx)
+                self.__addPrefixMap(pfx, ns)
 
         # Record a copy of the initial mapping, exclusive of namespace
         # directives from C{dom_node}, so we can reset to that state.

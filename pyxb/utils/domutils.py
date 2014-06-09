@@ -234,110 +234,6 @@ def ExtractTextContent (node):
         return None
     return ''.join(text)
 
-class _BDSNamespaceSupport (object):
-    """Class holding information relevant to generating the namespace aspects
-    of a DOM instance."""
-    # Namespace declarations required on the top element
-    __namespaces = None
-
-    # The actual context data for namespaces
-    __namespaceContext = None
-
-    # Set of pairs of (namespace, prefix) identifying the declarations that
-    # must be placed in the document root so that QNames can be resolved.
-    __referencedNamespacePrefixes = None
-
-    def defaultNamespace (self):
-        return self.__namespaceContext.defaultNamespace()
-
-    def setDefaultNamespace (self, default_namespace):
-        return self.__namespaceContext.setDefaultNamespace(default_namespace)
-
-    def declareNamespace (self, namespace, prefix=None):
-        """Record a mapping from namespace to a prefix, for use in generating
-        QNames.
-
-        This forwards to the owned
-        L{pyxb.namespace.resolution.NamespaceContext}.  Presence of the
-        mapping does cause a corresponding XMLNS directive to be generated,
-        unless the mapping is referenced through a call to L{namespacePrefix}.
-        """
-        return self.__namespaceContext.declareNamespace(namespace, prefix)
-
-    def namespacePrefix (self, namespace, enable_default_namespace=True):
-        """Return the prefix to be used for the given namespace.
-
-        This will L{declare <declareNamespace>} the namespace if it has not
-        yet been observed.  It will also ensure the mapping from the returned
-        prefix to C{namespace} is recorded for addition as an xmlns directive
-        in the final document.
-
-        @param namespace: The namespace for which a prefix is needed.  If the
-        provided namespace is C{None} or an absent namespace, the C{None}
-        value will be returned as the corresponding prefix.
-
-        @keyword enable_default_namespace: Normally if the namespace is the default
-        namespace C{None} is returned to indicate this.  If this keyword is
-        C{False} then we need a namespace prefix even if this is the default.
-        """
-        if (namespace is None) or namespace.isAbsentNamespace():
-            return None
-        if isinstance(namespace, six.string_types):
-            namespace = pyxb.namespace.NamespaceForURI(namespace, create_if_missing=True)
-        if (self.defaultNamespace() == namespace) and enable_default_namespace:
-            return None
-        pfx = self.__namespaceContext.prefixForNamespace(namespace)
-        if pfx is None:
-            pfx = self.__namespaceContext.declareNamespace(namespace)
-        self.__referencedNamespacePrefixes.add((namespace, pfx))
-        return pfx
-
-    def _referencedNamespacePrefixes (self):
-        """Return a list of pairs of C{(namespace, prefix)} that were used in
-        QName formation.
-
-        If a default namespace is present, it is first in the list and its
-        prefix is C{None}."""
-        rv = []
-        dns = self.defaultNamespace()
-        if dns is not None:
-            rv.append((dns, None))
-        rv.extend(self.__referencedNamespacePrefixes)
-        return rv
-
-    def reset (self, prefix_map=False):
-        """Reset this instance to the state it was when created.
-
-        This flushes the list of namespaces for the document.  The
-        defaultNamespace is not modified."""
-        self.__namespaceContext.reset()
-        self.__namespaceContext.declareNamespace(pyxb.namespace.XMLSchema_instance, 'xsi')
-        self.__referencedNamespacePrefixes = set()
-
-    def __init__ (self, default_namespace=None, namespace_prefix_map=None, parent_context=None):
-        """Create a new namespace declaration configuration.
-
-        @keyword default_namespace: Optional L{pyxb.namespace.Namespace}
-        instance that serves as the default namespace (applies to unqualified
-        names).
-
-        @keyword namespace_prefix_map: Optional map from
-        L{pyxb.namespace.Namespace} instances to C{str} values that are to be
-        used as the corresponding namespace prefix when constructing
-        U{qualified names<http://www.w3.org/TR/1999/REC-xml-names-19990114/#dt-qname>}.
-
-        @keyword inherit_from: Optional instance of this class from which
-        defaults are inherited.  Inheritance is overridden by values of other
-        keywords in the initializer.
-        """
-        self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext(parent_context=parent_context)
-        if default_namespace is not None:
-            self.__namespaceContext.setDefaultNamespace(default_namespace)
-        self.reset()
-        if namespace_prefix_map is not None:
-            for (ns, pfx) in six.iteritems(namespace_prefix_map):
-                self.declareNamespace(ns, pfx)
-
 class BindingDOMSupport (object):
     """This holds DOM-related information used when generating a DOM tree from
     a binding instance."""
@@ -366,14 +262,19 @@ class BindingDOMSupport (object):
         return self.__requireXSIType
     __requireXSIType = None
 
-    def reset (self, **kw):
+    def reset (self):
         """Reset this instance to the state it was when created.
 
-        This creates a new root document with no content, and flushes the list
-        of namespaces for the document.  The defaultNamespace and
+        This creates a new root document with no content, resets the
+        namespace-prefix map to its as-constructed content, and clears the set
+        of referenced namespace prefixes.  The defaultNamespace and
         requireXSIType are not modified."""
         self.__document = self.implementation().createDocument(None, None, None)
-        self.__namespaceContext.reset(**kw)
+        self.__namespaceContext.reset()
+        # For historical reasons this is also added automatically, though
+        # 'xsi' is not a bound prefix.
+        self.__namespaceContext.declareNamespace(pyxb.namespace.XMLSchema_instance, 'xsi')
+        self.__referencedNamespacePrefixes = set()
 
     @classmethod
     def Reset (cls):
@@ -409,13 +310,24 @@ class BindingDOMSupport (object):
             implementation = GetDOMImplementation()
         self.__implementation = implementation
         self.__requireXSIType = require_xsi_type
-        self.__namespaceContext = _BDSNamespaceSupport(default_namespace, namespace_prefix_map, parent_context=self.__NamespaceContext)
+        self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext(parent_context=self.__NamespaceContext,
+                                                                             in_scope_namespaces=namespace_prefix_map)
+        if default_namespace is not None:
+            self.__namespaceContext.setDefaultNamespace(default_namespace)
         self.reset()
 
-    __namespaceContext = None
+    # Default namespace-prefix map support
     __NamespaceContext = pyxb.namespace.resolution.NamespaceContext()
 
-    # Namespace declarations required on the top element
+    # Instance-specific namespace-prefix map support
+    __namespaceContext = None
+
+    # Set of pairs of (namespace, prefix) identifying the declarations that
+    # must be placed in the document root so that QNames can be resolved.
+    # These are the prefixes associated with namespaces that were queried
+    # through L{namespacePrefix()} since the last reset().
+    __referencedNamespacePrefixes = None
+
     def defaultNamespace (self):
         """The default namespace for this instance"""
         return self.__namespaceContext.defaultNamespace()
@@ -439,12 +351,32 @@ class BindingDOMSupport (object):
         return cls.__NamespaceContext.declareNamespace(namespace, prefix)
 
     def namespacePrefix (self, namespace, enable_default_namespace=True):
-        """Obtain the prefix for the given namespace using this instance's configuration."""
-        return self.__namespaceContext.namespacePrefix(namespace, enable_default_namespace)
+        """Return the prefix to be used for the given namespace.
 
-    def namespacePrefixMap (self):
-        """Get the map from namespaces to prefixes for this instance"""
-        return self.__namespaceContext.namespacePrefixMap().copy()
+        This will L{declare <declareNamespace>} the namespace if it has not
+        yet been observed.  It will also ensure the mapping from the returned
+        prefix to C{namespace} is recorded for addition as an xmlns directive
+        in the final document.
+
+        @param namespace: The namespace for which a prefix is needed.  If the
+        provided namespace is C{None} or an absent namespace, the C{None}
+        value will be returned as the corresponding prefix.
+
+        @keyword enable_default_namespace: Normally if the namespace is the default
+        namespace C{None} is returned to indicate this.  If this keyword is
+        C{False} then we need a namespace prefix even if this is the default.
+        """
+        if (namespace is None) or namespace.isAbsentNamespace():
+            return None
+        if isinstance(namespace, six.string_types):
+            namespace = pyxb.namespace.NamespaceForURI(namespace, create_if_missing=True)
+        if (self.defaultNamespace() == namespace) and enable_default_namespace:
+            return None
+        pfx = self.__namespaceContext.prefixForNamespace(namespace)
+        if pfx is None:
+            pfx = self.__namespaceContext.declareNamespace(namespace)
+        self.__referencedNamespacePrefixes.add((namespace, pfx))
+        return pfx
 
     def addAttribute (self, element, expanded_name, value):
         """Add an attribute to the given element.
@@ -485,7 +417,7 @@ class BindingDOMSupport (object):
         if namespace.isAbsentNamespace():
             raise pyxb.UsageError('addXMLNSdeclaration: namespace must not be an absent namespace')
         if prefix is None:
-            prefix = self.__namespaceContext.namespacePrefix(namespace)
+            prefix = self.namespacePrefix(namespace)
         if not prefix: # None or empty string
             an = 'xmlns'
         else:
@@ -500,7 +432,10 @@ class BindingDOMSupport (object):
 
         @return: The document that has been created.
         @rtype: C{xml.dom.Document}"""
-        for (ns, pfx) in self.__namespaceContext._referencedNamespacePrefixes():
+        ns = self.defaultNamespace()
+        if ns is not None:
+            self.addXMLNSDeclaration(self.document().documentElement, ns, '')
+        for (ns, pfx) in self.__referencedNamespacePrefixes:
             self.addXMLNSDeclaration(self.document().documentElement, ns, pfx)
         return self.document()
 
