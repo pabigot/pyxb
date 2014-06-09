@@ -251,12 +251,7 @@ class _BDSNamespaceSupport (object):
         return self.__namespaceContext.defaultNamespace()
 
     def setDefaultNamespace (self, default_namespace):
-        dns = self.defaultNamespace()
-        self.__referencedNamespacePrefixes.discard((None, dns))
-        if default_namespace is not None:
-            self.__referencedNamespacePrefixes.add((None, default_namespace))
-        rc = self.__namespaceContext.setDefaultNamespace(default_namespace)
-        return rc
+        return self.__namespaceContext.setDefaultNamespace(default_namespace)
 
     def declareNamespace (self, namespace, prefix=None):
         """Record a mapping from namespace to a prefix, for use in generating
@@ -298,7 +293,17 @@ class _BDSNamespaceSupport (object):
         return pfx
 
     def _referencedNamespacePrefixes (self):
-        return self.__referencedNamespacePrefixes
+        """Return a list of pairs of C{(prefix, namespace)} that were used in
+        QName formation.
+
+        If a default namespace is present, it is first in the list and its
+        prefix is C{None}."""
+        rv = []
+        dns = self.defaultNamespace()
+        if dns is not None:
+            rv.append((None, dns))
+        rv.extend(self.__referencedNamespacePrefixes)
+        return rv
 
     def reset (self, prefix_map=False):
         """Reset this instance to the state it was when created.
@@ -477,13 +482,12 @@ class BindingDOMSupport (object):
 
         @return: The document that has been created.
         @rtype: C{xml.dom.Document}"""
-        ns = self.__namespaceContext.defaultNamespace()
-        if ns is not None:
-            self.document().documentElement.setAttributeNS(pyxb.namespace.XMLNamespaces.uri(), 'xmlns', ns.uri())
-        for ( pfx, ns ) in self.__namespaceContext._referencedNamespacePrefixes():
+        for (pfx, ns) in self.__namespaceContext._referencedNamespacePrefixes():
             if pfx is None:
-                continue
-            self.document().documentElement.setAttributeNS(pyxb.namespace.XMLNamespaces.uri(), 'xmlns:%s' % (pfx,), ns.uri())
+                an = 'xmlns'
+            else:
+                an = 'xmlns:' + pfx
+            self.document().documentElement.setAttributeNS(pyxb.namespace.XMLNamespaces.uri(), an, ns.uri())
         return self.document()
 
     def createChildElement (self, expanded_name, parent=None):
