@@ -243,68 +243,39 @@ class _BDSNamespaceSupport (object):
     # The actual context data for namespaces
     __namespaceContext = None
 
-    # Integer counter to help generate unique namespace prefixes
-    __namespacePrefixCounter = None
+    # Set of pairs of (namespace, prefix) identifying the declarations that
+    # must be placed in the document root so that QNames can be resolved.
+    __referencedNamespacePrefixes = None
 
     def defaultNamespace (self):
         return self.__namespaceContext.defaultNamespace()
 
     def setDefaultNamespace (self, default_namespace):
-        return self.__namespaceContext.setDefaultNamespace(default_namespace)
+        dns = self.defaultNamespace()
+        self.__referencedNamespacePrefixes.discard((None, dns))
+        if default_namespace is not None:
+            self.__referencedNamespacePrefixes.add((None, default_namespace))
+        rc = self.__namespaceContext.setDefaultNamespace(default_namespace)
+        return rc
 
-    def namespacePrefixMap (self):
-        """Return a map from Namespace instances to the prefix by which they
-        are represented in the DOM document."""
-        return self.__namespacePrefixMap.copy()
-    __namespacePrefixMap = None
+    def declareNamespace (self, namespace, prefix=None):
+        """Record a mapping from namespace to a prefix, for use in generating
+        QNames.
 
-    def declareNamespace (self, namespace, prefix=None, add_to_map=False):
-        """Add the given namespace as one to be used in this document.
-
-        @param namespace: The namespace to be associated with the document.
-        @type namespace: L{pyxb.namespace.Namespace}
-
-        @keyword prefix: Optional prefix to be used with this namespace.  If
-        not provided, a unique prefix is generated or a standard prefix is
-        used, depending on the namespace.
-
-        @keyword add_to_map: If C{False} (default), the prefix is not added to
-        the namespace prefix map.  If C{True} it is added.  (Often, things
-        added to the prefix map are preserved across resets, which is often
-        not desired for specific prefix/namespace pairs).
-
-        @todo: ensure multiple namespaces do not share the same prefix
-        @todo: provide default prefix in L{pyxb.namespace.Namespace}
-        @todo: support multiple prefixes for each namespace
+        This forwards to the owned
+        L{pyxb.namespace.resolution.NamespaceContext}.  Presence of the
+        mapping does cause a corresponding XMLNS directive to be generated,
+        unless the mapping is referenced through a call to L{namespacePrefix}.
         """
-        if not isinstance(namespace, pyxb.namespace.Namespace):
-            raise pyxb.UsageError('declareNamespace: must be given a namespace instance')
-        if namespace.isAbsentNamespace():
-            raise pyxb.UsageError('declareNamespace: namespace must not be an absent namespace')
-        if prefix is None:
-            prefix = self.__namespaces.get(namespace)
-        if prefix is None:
-            prefix = self.__namespacePrefixMap.get(namespace)
-        if prefix is None:
-            prefix = namespace.prefix()
-        if prefix is None:
-            self.__namespacePrefixCounter += 1
-            prefix = 'ns%d' % (self.__namespacePrefixCounter,)
-        if prefix == self.__namespaces.get(namespace):
-            return prefix
-        if prefix in self.__prefixes:
-            raise pyxb.LogicError('Prefix %s is already in use' % (prefix,))
-        self.__namespaces[namespace] = prefix
-        self.__prefixes.add(prefix)
-        if add_to_map:
-            self.__namespacePrefixMap[namespace] = prefix
-        return prefix
+        return self.__namespaceContext.declareNamespace(namespace, prefix)
 
     def namespacePrefix (self, namespace, enable_default_namespace=True):
         """Return the prefix to be used for the given namespace.
 
         This will L{declare <declareNamespace>} the namespace if it has not
-        yet been observed.
+        yet been observed.  It will also ensure the mapping from the returned
+        prefix to C{namespace} is recorded for addition as an xmlns directive
+        in the final document.
 
         @param namespace: The namespace for which a prefix is needed.  If the
         provided namespace is C{None} or an absent namespace, the C{None}
@@ -314,38 +285,28 @@ class _BDSNamespaceSupport (object):
         namespace C{None} is returned to indicate this.  If this keyword is
         C{False} then we need a namespace prefix even if this is the default.
         """
-
         if (namespace is None) or namespace.isAbsentNamespace():
             return None
         if isinstance(namespace, six.string_types):
             namespace = pyxb.namespace.NamespaceForURI(namespace, create_if_missing=True)
         if (self.defaultNamespace() == namespace) and enable_default_namespace:
             return None
-        pfx = self.__namespaces.get(namespace)
+        pfx = self.__namespaceContext.prefixForNamespace(namespace)
         if pfx is None:
-            pfx = self.declareNamespace(namespace)
+            pfx = self.__namespaceContext.declareNamespace(namespace)
+        self.__referencedNamespacePrefixes.add((pfx, namespace))
         return pfx
 
-    def namespaces (self):
-        """Return the set of Namespace instances known to this instance."""
-        return self.__namespaces
-
-    # Restore the namespace map to its default, which is the undeclared
-    # namespace for XML schema instances (C{xsi}
-    def __resetNamespacePrefixMap (self):
-        self.__namespacePrefixMap = { pyxb.namespace.XMLSchema_instance : 'xsi' }
+    def _referencedNamespacePrefixes (self):
+        return self.__referencedNamespacePrefixes
 
     def reset (self, prefix_map=False):
         """Reset this instance to the state it was when created.
 
         This flushes the list of namespaces for the document.  The
         defaultNamespace is not modified."""
-        self.__namespaceContext.reset()
-        self.__namespaces = { }
-        self.__prefixes = set()
-        self.__namespacePrefixCounter = 0
-        if prefix_map:
-            self.__resetNamespacePrefixMap()
+        self.__namespaceContext.declareNamespace(pyxb.namespace.XMLSchema_instance, 'xsi')
+        self.__referencedNamespacePrefixes = set()
 
     def __init__ (self, default_namespace=None, namespace_prefix_map=None, inherit_from=None):
         """Create a new namespace declaration configuration.
@@ -363,29 +324,16 @@ class _BDSNamespaceSupport (object):
         defaults are inherited.  Inheritance is overridden by values of other
         keywords in the initializer.
         """
-        self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext()
-        self.__prefixes = set()
-        self.__namespacePrefixCounter = 0
-        self.__namespaces = { }
-        self.__resetNamespacePrefixMap()
-        if inherit_from is not None:
-            if default_namespace is None:
-                default_namespace = inherit_from.defaultNamespace()
-            self.__namespacePrefixMap.update(inherit_from.__namespacePrefixMap)
-            self.__namespacePrefixCount = inherit_from.__namespacePrefixCounter
-            self.__namespaces.update(inherit_from.__namespaces)
-            self.__prefixes.update(inherit_from.__prefixes)
-        self.__namespaceContext.setDefaultNamespace(default_namespace)
-        prefixes = set(six.itervalues(self.__namespacePrefixMap))
-        prefixes.update(self.__prefixes)
+        parent_context = None
+        if inherit_from:
+            parent_context = inherit_from.__namespaceContext
+        self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext(parent_context=parent_context)
+        if default_namespace is not None:
+            self.__namespaceContext.setDefaultNamespace(default_namespace)
+        self.reset()
         if namespace_prefix_map is not None:
-            prefixes = set()
             for (ns, pfx) in six.iteritems(namespace_prefix_map):
-                ns = pyxb.namespace.NamespaceInstance(ns)
-                if pfx in prefixes:
-                    raise pyxb.LogicError('Cannot assign same prefix to multiple namespacess: %s' % (pfx,))
-                prefixes.add(pfx)
-                self.__namespacePrefixMap[ns] = pfx
+                self.declareNamespace(ns, pfx)
 
 class BindingDOMSupport (object):
     """This holds DOM-related information used when generating a DOM tree from
@@ -481,11 +429,11 @@ class BindingDOMSupport (object):
 
     def declareNamespace (self, namespace, prefix=None):
         """Declare a namespace within this instance only."""
-        return self.__namespaceContext.declareNamespace(namespace, prefix, add_to_map=True)
+        return self.__namespaceContext.declareNamespace(namespace, prefix)
     @classmethod
     def DeclareNamespace (cls, namespace, prefix=None):
-        """Declare a namespace that will be added to each created instance."""
-        return cls.__NamespaceSupport.declareNamespace(namespace, prefix, add_to_map=True)
+        """Declare a namespace that will made available to each created instance."""
+        return cls.__NamespaceSupport.declareNamespace(namespace, prefix)
 
     def namespacePrefix (self, namespace, enable_default_namespace=True):
         """Obtain the prefix for the given namespace using this instance's configuration."""
@@ -494,6 +442,7 @@ class BindingDOMSupport (object):
     def namespacePrefixMap (self):
         """Get the map from namespaces to prefixes for this instance"""
         return self.__namespaceContext.namespacePrefixMap().copy()
+
     @classmethod
     def NamespacePrefixMap (cls):
         """Get the map of default namespace-to-prefix mappings"""
@@ -531,8 +480,9 @@ class BindingDOMSupport (object):
         ns = self.__namespaceContext.defaultNamespace()
         if ns is not None:
             self.document().documentElement.setAttributeNS(pyxb.namespace.XMLNamespaces.uri(), 'xmlns', ns.uri())
-        for ( ns, pfx ) in six.iteritems(self.__namespaceContext.namespaces()):
-            assert pfx is not None
+        for ( pfx, ns ) in self.__namespaceContext._referencedNamespacePrefixes():
+            if pfx is None:
+                continue
             self.document().documentElement.setAttributeNS(pyxb.namespace.XMLNamespaces.uri(), 'xmlns:%s' % (pfx,), ns.uri())
         return self.document()
 

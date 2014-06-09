@@ -487,6 +487,51 @@ class NamespaceContext (object):
     def setNodeContext (self, node):
         node.__namespaceContext = self
 
+    # Integer counter to help generate unique namespace prefixes
+    __namespacePrefixCounter = None
+
+    def declareNamespace (self, namespace, prefix=None, add_to_map=False):
+        """Record the given namespace as one to be used in this document.
+
+        @param namespace: The namespace to be associated with the document.
+        @type namespace: L{pyxb.namespace.Namespace}
+
+        @keyword prefix: Optional prefix to be used with this namespace.  If
+        not provided, a unique prefix is generated or a standard prefix is
+        used, depending on the namespace.
+
+        @return a prefix that may be used with the namespace.  If C{prefix}
+        was C{None} the return value may be a previously-assigned prefix.
+
+        @todo: ensure multiple namespaces do not share the same prefix
+        @todo: provide default prefix in L{pyxb.namespace.Namespace}
+        """
+        if not isinstance(namespace, pyxb.namespace.Namespace):
+            raise pyxb.UsageError('declareNamespace: must be given a namespace instance')
+        if namespace.isAbsentNamespace():
+            raise pyxb.UsageError('declareNamespace: namespace must not be an absent namespace')
+        if prefix is None:
+            prefix = namespace.prefix()
+        if prefix is None:
+            pfxs = self.__inScopePrefixes.get(namespace)
+            if pfxs:
+                prefix = next(iter(pfxs))
+        while prefix is None:
+            self.__namespacePrefixCounter += 1
+            candidate_prefix = 'ns%d' % (self.__namespacePrefixCounter,)
+            if not (candidate_prefix in self.__inScopeNamespaces):
+                prefix = candidate_prefix
+        ns = self.__inScopePrefixes.get(prefix)
+        if ns:
+            if ns != namespace:
+                raise pyxb.LogicError('Prefix %s is already in use for %s' % (prefix, ns))
+            return prefix
+        if not self.__mutableInScopeNamespaces:
+            self.__clonePrefixMap()
+            self.__mutableInScopeNamespaces = True
+        self.__addPrefixMap(prefix, namespace)
+        return prefix
+
     def processXMLNS (self, prefix, uri):
         from pyxb.namespace import builtin
         if not self.__mutableInScopeNamespaces:
@@ -551,6 +596,7 @@ class NamespaceContext (object):
 
         This flushes the list of namespaces for the document.  The
         defaultNamespace is not modified."""
+        self.__namespacePrefixCounter = 0
         pass
 
     def __init__ (self,
@@ -604,6 +650,7 @@ class NamespaceContext (object):
         self.__inScopeNamespaces = self.__InitialScopeNamespaces
         self.__inScopePrefixes = self.__InitialScopePrefixes
         self.__mutableInScopeNamespaces = False
+        self.__namespacePrefixCounter = 0
 
         if in_scope_namespaces is not None:
             if parent_context is not None:
