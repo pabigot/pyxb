@@ -310,6 +310,7 @@ class _BDSNamespaceSupport (object):
 
         This flushes the list of namespaces for the document.  The
         defaultNamespace is not modified."""
+        self.__namespaceContext.reset()
         self.__namespaceContext.declareNamespace(pyxb.namespace.XMLSchema_instance, 'xsi')
         self.__referencedNamespacePrefixes = set()
 

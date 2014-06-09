@@ -446,8 +446,15 @@ class NamespaceContext (object):
             isp[ns] = pfxs.copy()
         self.__inScopePrefixes = isp
 
+    # Class-scope initial map from prefix to namespace
     __InitialScopeNamespaces = None
+    # Class-scope initial map from namespace to prefix(es)
     __InitialScopePrefixes = None
+    # Instance-specific initial map from prefix to namespace
+    __initialScopeNamespaces = None
+    # Instance-specific initial map from namespace to prefix(es)
+    __initialScopePrefixes = None
+
 
     @classmethod
     def __BuildInitialPrefixMap (cls):
@@ -592,12 +599,19 @@ class NamespaceContext (object):
             self.__fallbackToTargetNamespace = True
 
     def reset (self):
-        """Reset this instance to the state it was when created.
+        """Reset this instance to the state it was when created, exclusive of
+        XMLNS directives passed in a constructor C{dom_node} parameter.
 
-        This flushes the list of namespaces for the document.  The
-        defaultNamespace is not modified."""
+        This preserves parent context and constructor-specified prefix maps,
+        but clears the namespace-prefix mapping of any additions made while
+        processing namespace directives in DOM nodes, or manually added
+        post-construction.
+
+        The defaultNamespace is also retained."""
+        self.__inScopeNamespaces = self.__initialScopeNamespaces
+        self.__inScopePrefixes = self.__initialScopePrefixes
+        self.__mutableInScopeNamespaces = False
         self.__namespacePrefixCounter = 0
-        pass
 
     def __init__ (self,
                   dom_node=None,
@@ -611,6 +625,15 @@ class NamespaceContext (object):
                   finalize_target_namespace=True):  # MUST BE True for WSDL to work with minidom
         """Determine the namespace context that should be associated with the
         given node and, optionally, its element children.
+
+        Primarily this class maintains a map between namespaces and prefixes
+        used in QName instances.  The initial map comprises the bound prefixes
+        (C{xml} and C{xmlns}), prefixes inherited from C{parent_context}, and
+        prefixes passed through the C{in_scope_namespaces}
+        parameter to the constructor.  This map is then augmented by any
+        namespace declarations present in a passed C{dom_node}.  The initial
+        map prior to augmentation may be restored through the L{reset()}
+        method.
 
         @param dom_node: The DOM node
         @type dom_node: C{xml.dom.Element}
@@ -668,6 +691,12 @@ class NamespaceContext (object):
             self.__defaultNamespace = parent_context.defaultNamespace()
             self.__targetNamespace = parent_context.targetNamespace()
             self.__fallbackToTargetNamespace = parent_context.__fallbackToTargetNamespace
+
+        # Record a copy of the initial mapping, exclusive of namespace
+        # directives from C{dom_node}, so we can reset to that state.
+        self.__initialScopeNamespaces = self.__inScopeNamespaces
+        self.__initialScopePrefixes = self.__inScopePrefixes
+        self.__mutableInScopeNamespaces = False
 
         if self.__targetNamespace is None:
             self.__pendingReferencedNamespaces = set()
