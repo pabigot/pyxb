@@ -219,8 +219,7 @@ class AttributeUse (pyxb.cscRoot):
         """If this attribute as been set, add the corresponding attribute to the DOM element."""
         ( provided, value ) = self.__getValue(ctd_instance)
         if provided:
-            assert value is not None
-            dom_support.addAttribute(element, self.__name, value.xsdLiteral())
+            dom_support.addAttribute(element, self.__name, value)
         return self
 
     def validate (self, ctd_instance):
@@ -1098,11 +1097,7 @@ class ElementDeclaration (object):
                 if isinstance(value, basis.STD_union) and isinstance(value, elt_type._MemberTypes):
                     val_type = elt_type
             if dom_support.requireXSIType() or elt_type._RequireXSIType(val_type):
-                val_type_qname = value._ExpandedName.localName()
-                tns_prefix = dom_support.namespacePrefix(value._ExpandedName.namespace())
-                if tns_prefix is not None:
-                    val_type_qname = '%s:%s' % (tns_prefix, val_type_qname)
-                dom_support.addAttribute(element, pyxb.namespace.XMLSchema_instance.createExpandedName('type'), val_type_qname)
+                dom_support.addAttribute(element, pyxb.namespace.XMLSchema_instance.createExpandedName('type'), value._ExpandedName)
             value._toDOM_csc(dom_support, element)
         elif isinstance(value, six.string_types):
             element = dom_support.createChildElement(self.name(), parent)

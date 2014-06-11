@@ -378,6 +378,31 @@ class BindingDOMSupport (object):
         self.__referencedNamespacePrefixes.add((namespace, pfx))
         return pfx
 
+    def qnameAsText (self, qname, enable_default_namespace=True):
+        assert isinstance(qname, pyxb.namespace.ExpandedName)
+        name = qname.localName()
+        prefix = self.namespacePrefix(qname.namespace(), enable_default_namespace=enable_default_namespace)
+        if prefix is not None:
+            name = '%s:%s' % (prefix, name)
+        return name
+
+    def valueAsText (self, value, enable_default_namespace=True):
+        """Represent a simple type value as XML text.
+
+        This is essentially what C{value.xsdLiteral()} does, but this one
+        handles any special cases such as QName values where the lexical
+        representation cannot be done in isolation of external information
+        such as namespace declarations."""
+        from pyxb.binding.basis import simpleTypeDefinition, STD_list
+        if isinstance(value, pyxb.namespace.ExpandedName):
+            return self.qnameAsText(value, enable_default_namespace=enable_default_namespace)
+        if isinstance(value, STD_list):
+            return ' '.join([ self.valueAsText(_v, enable_default_namespace=enable_default_namespace) for _v in value ])
+        if isinstance(value, simpleTypeDefinition):
+            return value.xsdLiteral()
+        assert value is not None
+        return six.text_type(value)
+
     def addAttribute (self, element, expanded_name, value):
         """Add an attribute to the given element.
 
@@ -390,15 +415,12 @@ class BindingDOMSupport (object):
         @type value: C{str} or C{unicode}
         """
         name = expanded_name
-        namespace = None
+        ns_uri = xml.dom.EMPTY_NAMESPACE
         if isinstance(name, pyxb.namespace.ExpandedName):
-            name = expanded_name.localName()
-            namespace = expanded_name.namespace()
+            ns_uri = expanded_name.namespaceURI()
             # Attribute names do not use default namespace
-            prefix = self.namespacePrefix(namespace, enable_default_namespace=False)
-            if prefix is not None:
-                name = '%s:%s' % (prefix, name)
-        element.setAttributeNS(namespace, name, value)
+            name = self.qnameAsText(expanded_name, enable_default_namespace=False)
+        element.setAttributeNS(ns_uri, name, self.valueAsText(value))
 
     def addXMLNSDeclaration (self, element, namespace, prefix=None):
         """Manually add an XMLNS declaration to the document element.
@@ -463,12 +485,11 @@ class BindingDOMSupport (object):
         if not isinstance(expanded_name, pyxb.namespace.ExpandedName):
             raise pyxb.LogicError('Invalid type %s for expanded name' % (type(expanded_name),))
         ns = expanded_name.namespace()
-        name = expanded_name.localName()
         ns_uri = xml.dom.EMPTY_NAMESPACE
-        pfx = self.namespacePrefix(ns)
-        if pfx is not None:
+        name = expanded_name.localName()
+        if ns is not None:
             ns_uri = ns.uri()
-            name = '%s:%s' % (pfx, name)
+            name = self.qnameAsText(expanded_name)
         element = self.__document.createElementNS(ns_uri, name)
         return parent.appendChild(element)
 
@@ -507,9 +528,7 @@ class BindingDOMSupport (object):
         if ns is not None:
             ns_uri = ns.uri()
             self.declareNamespace(ns, pfx)
-            pfx = self.namespacePrefix(ns)
-            if pfx is not None:
-                node_name = '%s:%s' % (pfx, local_name)
+            node_name = self.qnameAsText(ns.createExpandedName(local_name))
         return (ns_uri, node_name)
 
     def _deepClone (self, node, docnode):
@@ -562,8 +581,7 @@ class BindingDOMSupport (object):
 
     def appendTextChild (self, text, parent):
         """Add the text to the parent as a text node."""
-        return parent.appendChild(self.document().createTextNode(text))
-
+        return parent.appendChild(self.document().createTextNode(self.valueAsText(text)))
 
 ## Local Variables:
 ## fill-column:78

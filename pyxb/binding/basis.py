@@ -509,11 +509,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
             raise pyxb.UnboundElementError(self)
         element = bds.createChildElement(element_name, parent)
         if need_xsi_type:
-            val_type_qname = self._ExpandedName.localName()
-            tns_prefix = bds.namespacePrefix(self._ExpandedName.namespace())
-            if tns_prefix is not None:
-                val_type_qname = '%s:%s' % (tns_prefix, val_type_qname)
-            bds.addAttribute(element, XSI.type, val_type_qname)
+            bds.addAttribute(element, XSI.type, self._ExpandedName)
         self._toDOM_csc(bds, element)
         bds.finalize()
         return bds.document()
@@ -1103,7 +1099,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
 
     def _toDOM_csc (self, dom_support, parent):
         assert parent is not None
-        dom_support.appendTextChild(self.xsdLiteral(), parent)
+        dom_support.appendTextChild(self, parent)
         return getattr(super(simpleTypeDefinition, self), '_toDOM_csc', lambda *_args,**_kw: dom_support)(dom_support, parent)
 
     @classmethod
@@ -2635,7 +2631,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         elif self._CT_SIMPLE == self._ContentTypeTag:
             if self.__content is None:
                 raise pyxb.SimpleContentAbsentError(self, self._location())
-            dom_support.appendTextChild(self.value().xsdLiteral(), element)
+            dom_support.appendTextChild(self.value(), element)
         else:
             if pyxb.GlobalValidationConfig.forDocument:
                 order = self._validatedChildren()
