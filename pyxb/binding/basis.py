@@ -2570,7 +2570,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
     def extend (self, value_list, _fallback_namespace=None, _from_xml=False, _location=None):
         """Invoke L{append} for each value in the list, in turn."""
-        [ self.append(_v, _fallback_namespace=_fallback_namespace, _from_xml=_from_xml, _location=_location) for _v in value_list ]
+        kw = { '_fallback_namespace': _fallback_namespace,
+               '_from_xml': _from_xml,
+               '_location': _location }
+        [ self.append(_v, **kw) for _v in value_list ]
         return self
 
     def __setContent (self, value):
