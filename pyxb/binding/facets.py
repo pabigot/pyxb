@@ -188,8 +188,9 @@ class ConstrainingFacet (Facet):
     def __setFromKeywords(self, **kw):
         kwv = kw.get('value')
         if kwv is not None:
-            if not isinstance(kwv, self.valueDatatype()):
-                kwv = self.valueDatatype()(kwv)
+            vdt = self.valueDatatype()
+            if not isinstance(kwv, vdt):
+                kwv = vdt(kwv)
             self._value(kwv)
 
     def _setFromKeywords_vb (self, **kw):
@@ -485,8 +486,9 @@ class _EnumerationElement (object):
         # structures.SimpleTypeDefinition.__updateFacets, the unicode
         # value comes in through the keyword "value".  Similarly for
         # "enumeration" and "facet_instance".
+        value = kw.get('value', unicode_value)
         if unicode_value is None:
-            unicode_value = kw['value']
+            unicode_value = value
         if enumeration is None:
             enumeration = kw['facet_instance']
         self.__unicodeValue = unicode_value
@@ -498,7 +500,7 @@ class _EnumerationElement (object):
         assert self.__enumeration is not None
 
         value_datatype = self.enumeration().valueDatatype()
-        self.__value = value_datatype.Factory(self.unicodeValue(), _validate_constraints=False, _from_xml=True)
+        self.__value = value_datatype.Factory(value, _validate_constraints=False, _from_xml=True)
 
         if (self.__description is None) and (self.__annotation is not None):
             self.__description = six.text_type(self.__annotation)

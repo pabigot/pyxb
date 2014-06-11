@@ -4368,7 +4368,11 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         # Determine what facets, if any, apply to this type.  This
         # should only do something if this is a primitive type.
         self.__processHasFacetAndProperty(variety)
-        self.__updateFacets(body)
+        try:
+            pyxb.namespace.NamespaceContext.PushContext(pyxb.namespace.NamespaceContext.GetNodeContext(body))
+            self.__updateFacets(body)
+        finally:
+            pyxb.namespace.NamespaceContext.PopContext()
 
         self.__derivationAlternative = alternative
         self.__variety = variety

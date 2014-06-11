@@ -411,7 +411,10 @@ def GenerateFacets (td, generator, **kw):
         if (fi is not None) and is_collection:
             for i in six.iteritems(fi):
                 if isinstance(i, facets._EnumerationElement):
-                    enum_config = '%s.addEnumeration(unicode_value=%s, tag=%s)' % binding_module.literal( ( facet_var, i.unicodeValue(), i.tag() ), **kw)
+                    if isinstance(i.value(), pyxb.namespace.ExpandedName):
+                        enum_config = '%s.addEnumeration(value=%s, tag=%s)' % binding_module.literal( ( facet_var, i.value(), i.tag() ), **kw)
+                    else:
+                        enum_config = '%s.addEnumeration(unicode_value=%s, tag=%s)' % binding_module.literal( ( facet_var, i.unicodeValue(), i.tag() ), **kw)
                     if gen_enum_tag and (i.tag() is not None):
                         enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i, **kw)
                         outf.write("%s = %s\n" % (binding_module.literal(enum_member, **kw), enum_config))
@@ -1486,7 +1489,10 @@ class _ModuleNaming_mixin (object):
                 # and this module is not a namespace group which includes the
                 # namespace as part of its content, something went wrong.
                 if (nsdef is None) and not (isinstance(self, NamespaceGroupModule) and self.moduleForNamespace(namespace) is not None):
-                    raise pyxb.LogicError('MISSING NSDEF: %s cannot be found for %s in imports' % (namespace, nsn))
+                    # This can happen if we've got a QName for some namespace for which
+                    # we don't have any information.  That's actually OK, so just go
+                    # ahead and define a namespace we can reference.
+                    pass
 
                 rv =  self.defineNamespace(namespace, nsn, nsdef, protected=True)
                 assert 0 < len(self.__namespaceDeclarations)

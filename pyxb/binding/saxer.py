@@ -202,7 +202,11 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
         if type_class._IsSimpleTypeContent():
             self.__delayedConstructor = new_object_factory
         else:
-            self.__constructElement(new_object_factory, attrs)
+            try:
+                pyxb.namespace.NamespaceContext.PushContext(self.namespaceContext())
+                self.__constructElement(new_object_factory, attrs)
+            finally:
+                pyxb.namespace.NamespaceContext.PopContext()
         return self.__bindingInstance
 
     def endBindingElement (self):
@@ -218,11 +222,14 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
                     raise pyxb.NonElementValidationError(info.item, info.location)
                 args.append(info.item)
             try:
+                pyxb.namespace.NamespaceContext.PushContext(self.namespaceContext())
                 self.__constructElement(self.__delayedConstructor, self.__attributes, args)
             except pyxb.ValidationError as e:
                 if e.location is None:
                     e.location = self.location()
                 raise
+            finally:
+                pyxb.namespace.NamespaceContext.PopContext()
         else:
             for info in self.content():
                 self.__bindingInstance.append(info.item,

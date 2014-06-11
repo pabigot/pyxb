@@ -37,7 +37,7 @@ input = pop.input
 print(input.toxml("utf-8"))
 print(type(input))
 print(input.message)
-im_en = input._namespaceContext().interpretQName(input.message)
+im_en = input.message
 print(im_en)
 msg = im_en.message()
 print(msg)

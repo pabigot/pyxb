@@ -29,7 +29,7 @@ import logging
 _log = logging.getLogger(__name__)
 
 @pyxb.utils.utility.BackfillComparisons
-class ExpandedName (object):
+class ExpandedName (pyxb.cscRoot):
 
     """Represent an U{expanded name
     <http://www.w3.org/TR/REC-xml-names/#dt-expname>}, which pairs a
@@ -196,7 +196,7 @@ class ExpandedName (object):
         assert self.__localName is not None
         self.__expandedName = ( self.__namespace, self.__localName )
         self.__uriTuple = ( self.__namespaceURI, self.__localName )
-
+        super(ExpandedName, self).__init__(*args, **kw)
 
     def __str__ (self):
         assert self.__localName is not None

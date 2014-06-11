@@ -895,7 +895,7 @@ class anyURI (basis.simpleTypeDefinition, six.text_type):
 
 _PrimitiveDatatypes.append(anyURI)
 
-class QName (basis.simpleTypeDefinition, six.text_type):
+class QName (basis.simpleTypeDefinition, pyxb.namespace.ExpandedName):
     """XMLSchema datatype U{QName<http://www.w3.org/TR/xmlschema-2/#QName>}."""
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('QName')
@@ -905,44 +905,47 @@ class QName (basis.simpleTypeDefinition, six.text_type):
         """Section 4.3.1.3: Legacy length return None to indicate no check"""
         return None
 
-    __localName = None
-    __prefix = None
-
-    def prefix (self):
-        """Return the prefix portion of the QName, or None if the name is not qualified."""
-        if self.__localName is None:
-            self.__resolveLocals()
-        return self.__prefix
-
-    def localName (self):
-        """Return the local portion of the QName."""
-        if self.__localName is None:
-            self.__resolveLocals()
-        return self.__localName
-
-    def __resolveLocals (self):
-        if self.find(':'):
-            (self.__prefix, self.__localName) = self.split(':', 1)
-        else:
-            self.__localName = six.text_type(self)
-
     @classmethod
-    def XsdLiteral (cls, value):
-        return six.text_type(value)
-
-    @classmethod
-    def _XsdConstraintsPreCheck_vb (cls, value):
+    def _ConvertIf (cls, value, xmlns_context):
+        if isinstance(value, pyxb.namespace.ExpandedName):
+            assert 0 > value.localName().find(':')
+            return value
         if not isinstance(value, six.string_types):
             raise SimpleTypeValueError(cls, value)
         if 0 <= value.find(':'):
             (prefix, local) = value.split(':', 1)
             if (NCName._ValidRE.match(prefix) is None) or (NCName._ValidRE.match(local) is None):
                 raise SimpleTypeValueError(cls, value)
-        else:
-            if NCName._ValidRE.match(value) is None:
-                raise SimpleTypeValueError(cls, value)
+            if xmlns_context is None:
+                raise pyxb.QNameResolutionError('QName resolution requires namespace context', value, xmlns_context)
+            return xmlns_context.interpretQName(value, default_no_namespace=True)
+        if NCName._ValidRE.match(value) is None:
+            raise SimpleTypeValueError(cls, value)
+        if xmlns_context is not None:
+            return xmlns_context.interpretQName(value, default_no_namespace=True)
+        return pyxb.namespace.ExpandedName(value)
+
+    @classmethod
+    def _ConvertArguments_vx (cls, args, kw):
+        if 1 == len(args):
+            xmlns_context = kw.pop('_xmlns_context', pyxb.namespace.NamespaceContext.Current())
+            args = (cls._ConvertIf(args[0], xmlns_context),)
+        super_fn = getattr(super(QName, cls), '_ConvertArguments_vx', lambda *a,**kw: args)
+        return super_fn(args, kw)
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        # A QName has no unicode/XSD representation in the absence of
+        # a registered namespace.  Whatever called this should have
+        # detected that the value is a QName and used
+        # BindingDOMSupport.qnameToText() to convert it to a lexical
+        # representation that incorporates a declared namespace.
+        raise pyxb.UsageError('Cannot represent QName without namespace declaration')
+
+    @classmethod
+    def _XsdConstraintsPreCheck_vb (cls, value):
         super_fn = getattr(super(QName, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
-        return super_fn(value)
+        return super_fn(cls._ConvertIf(value, pyxb.namespace.NamespaceContext.Current()))
 
 
 _PrimitiveDatatypes.append(QName)

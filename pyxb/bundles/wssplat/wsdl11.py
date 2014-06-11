@@ -242,11 +242,11 @@ class tDefinitions (raw_wsdl11.tDefinitions):
                 if op.output is not None:
                     params.append(op.output)
                 for p in params:
-                    msg_en = m._namespaceContext().interpretQName(p.message)
-                    p._setMessageReference(msg_en.message())
+                    msg_en = p.message
+                    p._setMessageReference(p.message.message())
         for b in self.binding:
             tns.bindings()[b.name] = b
-            port_type_en = b._namespaceContext().interpretQName(b.type)
+            port_type_en = b.type
             b.setPortTypeReference(port_type_en.portType())
             for wc in b.wildcardElements():
                 if isinstance(wc, _WSDL_binding_mixin):
@@ -261,7 +261,7 @@ class tDefinitions (raw_wsdl11.tDefinitions):
         for s in self.service:
             tns.services()[s.name] = s
             for p in s.port:
-                binding_en = p._namespaceContext().interpretQName(p.binding)
+                binding_en = p.binding
                 p._setBindingReference(binding_en.binding())
                 for wc in p.wildcardElements():
                     if isinstance(wc, _WSDL_port_mixin):
@@ -300,10 +300,10 @@ class tDefinitions (raw_wsdl11.tDefinitions):
         for m in six.itervalues(tns.messages()):
             for p in m.part:
                 if (p.element is not None) and (p.elementReference is None):
-                    elt_en = p._namespaceContext().interpretQName(p.element)
+                    elt_en = p.element
                     p._setElementReference(elt_en.elementDeclaration())
                 if (p.type is not None) and (p.typeReference is None):
-                    type_en = p._namespaceContext().interpretQName(p.type)
+                    type_en = p.type
                     p._setTypeReference(type_en.typeDefinition())
 
 raw_wsdl11.tDefinitions._SetSupersedingClass(tDefinitions)

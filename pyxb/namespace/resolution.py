@@ -363,6 +363,35 @@ class NamespaceContext (object):
                 rv.append('  xmlns:%s=%s' % (pfx, six.text_type(ns)))
         return six.u('').join(rv)
 
+    __ContextStack = []
+    @classmethod
+    def PushContext (cls, ctx):
+        """Make C{ctx} the currently active namespace context.
+
+        Prior contexts are retained on a LIFO stack."""
+        assert isinstance(ctx, cls)
+        cls.__ContextStack.append(ctx)
+        return ctx
+
+    @classmethod
+    def Current (cls):
+        """Access the currently active namespace context.
+
+        If no context is active, C{None} is returned.  This probably
+        represents mis-use of the infrastructure (viz., failure to record the
+        context within which a QName must be resolved)."""
+        if cls.__ContextStack:
+            return cls.__ContextStack[-1]
+        return None
+
+    @classmethod
+    def PopContext (cls):
+        """Discard the currently active namespace context, restoring its
+        predecessor.
+
+        The discarded context is returned."""
+        return cls.__ContextStack.pop()
+
     __TargetNamespaceAttributes = { }
     @classmethod
     def _AddTargetNamespaceAttribute (cls, expanded_name, attribute_name):
@@ -756,6 +785,8 @@ class NamespaceContext (object):
         @raise pyxb.QNameResolutionError: The prefix is not in scope
         @raise pyxb.QNameResolutionError: No prefix is given and the default namespace is absent
         """
+        if isinstance(name, pyxb.namespace.ExpandedName):
+            return name
         assert isinstance(name, six.string_types)
         if 0 <= name.find(':'):
             (prefix, local_name) = name.split(':', 1)

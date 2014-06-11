@@ -1689,7 +1689,11 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         if is_nil is not None:
             kw['_nil'] = pyxb.binding.datatypes.boolean(is_nil)
 
-        rv = type_class.Factory(_dom_node=node, **kw)
+        try:
+            pyxb.namespace.NamespaceContext.PushContext(ns_ctx)
+            rv = type_class.Factory(_dom_node=node, **kw)
+        finally:
+            pyxb.namespace.NamespaceContext.PopContext()
         assert rv._element() == element_binding
         rv._setNamespaceContext(pyxb.namespace.NamespaceContext.GetNodeContext(node))
         return rv._postDOMValidate()
