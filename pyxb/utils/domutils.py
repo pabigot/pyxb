@@ -575,7 +575,7 @@ class BindingDOMSupport (object):
 
         # @todo This check is incomplete; is there a standard way to find the
         # implementation of an xml.dom.Node instance?
-        if isinstance(child, pyxb.utils.saxdom.Node):
+        if isinstance(child, (pyxb.utils.saxdom.Node, xml.dom.minidom.Node)):
             child = self.cloneIntoImplementation(child)
         return parent.appendChild(child)
 
