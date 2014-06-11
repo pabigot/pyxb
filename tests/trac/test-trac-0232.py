@@ -52,16 +52,18 @@ class TestTrac0232 (unittest.TestCase):
 </numbers>''')
         e = cm.exception
         # NB: Location is the start tag of the containing element
-        self.assertEqual(2, e.location.lineNumber)
-        self.assertEqual(0, e.location.columnNumber)
+        if e.location is not None:
+            self.assertEqual(2, e.location.lineNumber)
+            self.assertEqual(0, e.location.columnNumber)
 
     def testInvalidAttribute (self):
         with self.assertRaises(pyxb.SimpleTypeValueError) as cm:
             instance = CreateFromDocument('''<numbers><number scale="c">1.5</number></numbers>''')
         e = cm.exception
         # NB: Location is the start tag of the containing element
-        self.assertEqual(1, e.location.lineNumber)
-        self.assertEqual(9, e.location.columnNumber)
+        if e.location is not None:
+            self.assertEqual(1, e.location.lineNumber)
+            self.assertEqual(9, e.location.columnNumber)
 
 if __name__ == '__main__':
     unittest.main()
