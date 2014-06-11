@@ -2639,7 +2639,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             else:
                 order = self.__childrenForDOM()
             for content in order:
-                assert content.value != self
+                assert id(content.value) != id(self)
                 if isinstance(content, NonElementContent):
                     dom_support.appendTextChild(content.value, element)
                     continue
