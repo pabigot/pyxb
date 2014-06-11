@@ -139,8 +139,7 @@ class SAXElementState (object):
     __parentState = None
 
     def namespaceContext (self):
-        """The L{pyxb.namespace.resolution.NamespaceContext} used for this
-        binding."""
+        """The L{pyxb.namespace.NamespaceContext} used for this binding."""
         return self.__namespaceContext
     __namespaceContext = None
 
@@ -241,7 +240,7 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         """Return the namespace context used for QName resolution within the
         current element.
 
-        @return: An instance of L{pyxb.namespace.resolution.NamespaceContext}"""
+        @return: An instance of L{pyxb.namespace.NamespaceContext}"""
         return self.__namespaceContext
     __namespaceContext = None
 
@@ -278,10 +277,10 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
 
         @return: C{self}
         """
-        self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext(default_namespace=self.__fallbackNamespace,
-                                                                             target_namespace=self.__targetNamespace,
-                                                                             including_context=self.__includingContext,
-                                                                             finalize_target_namespace=False)
+        self.__namespaceContext = pyxb.namespace.NamespaceContext(default_namespace=self.__fallbackNamespace,
+                                                                  target_namespace=self.__targetNamespace,
+                                                                  including_context=self.__includingContext,
+                                                                  finalize_target_namespace=False)
         self.__nextNamespaceContext = None
         self.__elementState = self.__elementStateConstructor(content_handler=self,
                                                              namespace_context=self.__namespaceContext)
@@ -333,7 +332,7 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         ns_ctx = self.__nextNamespaceContext
         if ns_ctx is None:
             assert self.__namespaceContext is not None
-            ns_ctx = pyxb.namespace.resolution.NamespaceContext(parent_context=self.__namespaceContext)
+            ns_ctx = pyxb.namespace.NamespaceContext(parent_context=self.__namespaceContext)
             self.__nextNamespaceContext = ns_ctx
         return ns_ctx
 
@@ -358,7 +357,7 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
 
         # See if this element supports a targetNamespace attribute.  xs:schema
         # and wsdl:definitions both do.
-        tns_attr = pyxb.namespace.resolution.NamespaceContext._TargetNamespaceAttribute(expanded_name)
+        tns_attr = pyxb.namespace.NamespaceContext._TargetNamespaceAttribute(expanded_name)
 
         # If we need to assign a target namespace, we need a new context.
         # Otherwise we use the context created from pending namespace

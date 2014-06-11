@@ -42,7 +42,7 @@ def _DumpDOM (n, depth=0):
     pfx = ' ' * depth
     if (xml.dom.Node.ELEMENT_NODE == n.nodeType):
         print('%sElement[%d] %s %s with %d children' % (pfx, n._indexInParent(), n, pyxb.namespace.ExpandedName(n.name), len(n.childNodes)))
-        ins = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(n).inScopeNamespaces()
+        ins = pyxb.namespace.NamespaceContext.GetNodeContext(n).inScopeNamespaces()
         print('%s%s' % (pfx, ' ; '.join([ '%s=%s' % (_k, _v.uri()) for (_k, _v) in ins.items()])))
         for (k, v) in six.iteritems(n.attributes):
             print('%s %s=%s' % (pfx, pyxb.namespace.ExpandedName(k), v))
@@ -243,7 +243,7 @@ class NamedNodeMap (object):
         return self.__members[index]
 
     def _addItem (self, attr):
-        assert pyxb.namespace.resolution.NamespaceContext.GetNodeContext(attr) is not None
+        assert pyxb.namespace.NamespaceContext.GetNodeContext(attr) is not None
         self.__members.append(attr)
         en = attr._expandedName
         if en is not None:

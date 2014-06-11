@@ -23,7 +23,7 @@ xhtml_ns = pyxb.namespace.NamespaceInstance('http://www.w3.org/1999/xhtml')
 
 class TestInScopeNames (unittest.TestCase):
     def show (self, node):
-        xmlns_map = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node).inScopeNamespaces()
+        xmlns_map = pyxb.namespace.NamespaceContext.GetNodeContext(node).inScopeNamespaces()
         #print '%s: %s' % (node.nodeName, ' ; '.join([ '%s=%s' % (_k, _v.uri()) for (_k, _v) in six.iteritems(xmlns_map)]))
         return xmlns_map
 

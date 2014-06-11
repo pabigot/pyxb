@@ -219,7 +219,7 @@ class tDefinitions (raw_wsdl11.tDefinitions):
         (process_schema, generation_uid, dom_node) = state
         assert isinstance(dom_node, xml.dom.Node)
         node_en = pyxb.namespace.ExpandedName(dom_node)
-        self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(dom_node)
+        self.__namespaceContext = pyxb.namespace.NamespaceContext.GetNodeContext(dom_node)
         self.__buildMaps()
         if process_schema:
             self.__processSchema(generation_uid)
@@ -308,4 +308,4 @@ class tDefinitions (raw_wsdl11.tDefinitions):
 
 raw_wsdl11.tDefinitions._SetSupersedingClass(tDefinitions)
 
-pyxb.namespace.resolution.NamespaceContext._AddTargetNamespaceAttribute(raw_wsdl11.Namespace.createExpandedName('definitions'), pyxb.namespace.ExpandedName('targetNamespace'))
+pyxb.namespace.NamespaceContext._AddTargetNamespaceAttribute(raw_wsdl11.Namespace.createExpandedName('definitions'), pyxb.namespace.ExpandedName('targetNamespace'))

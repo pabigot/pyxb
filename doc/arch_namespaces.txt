@@ -126,8 +126,8 @@ resolution of another (e.g., an element reference), resolution is an
 iterative process, implemented by
 :api:`pyxb.namespace.resolution._NamespaceResolution_mixin.resolveDefinitions`, and
 executed when all named objects have been added to the namespace.  It
-depends on :api:`pyxb.namespace.resolution.NamespaceContext` to identify named objects
-using the :api:`pyxb.namespace.resolution.NamespaceContext.interpretQName` method.
+depends on :api:`pyxb.namespace.NamespaceContext` to identify named objects
+using the :api:`pyxb.namespace.NamespaceContext.interpretQName` method.
 
 Expanded Names
 --------------

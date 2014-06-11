@@ -1680,7 +1680,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         # associated, one will be created.  Do not make assumptions about the
         # namespace context; if the user cared, she should have assigned a
         # context before calling this.
-        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
+        ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node)
         (did_replace, type_class) = XSI._InterpretTypeAttribute(XSI.type.getAttribute(node), ns_ctx, fallback_namespace, type_class)
 
         if type_class is None:
@@ -1695,7 +1695,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
 
         rv = type_class.Factory(_dom_node=node, **kw)
         assert rv._element() == element_binding
-        rv._setNamespaceContext(pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node))
+        rv._setNamespaceContext(pyxb.namespace.NamespaceContext.GetNodeContext(node))
         return rv._postDOMValidate()
 
     # element
@@ -2484,7 +2484,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     xsi_type = XSI.type.getAttribute(node)
                     try_create = False
                     if xsi_type is not None:
-                        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
+                        ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node)
                         (try_create, type_class) = XSI._InterpretTypeAttribute(xsi_type, ns_ctx, fallback_namespace, None)
                     if try_create:
                         value = element.CreateDOMBinding(node, None, _fallback_namespace=fallback_namespace)

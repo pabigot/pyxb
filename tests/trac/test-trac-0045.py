@@ -15,7 +15,7 @@ def CreateDocumentationNode (content):
     xmls = '<xs:annotation xmlns:xs="%s"><xs:documentation>%s</xs:documentation></xs:annotation>' % (pyxb.namespace.XMLSchema.uri(), content)
     dom = pyxb.utils.domutils.StringToDOM(xmls)
     node = dom.documentElement
-    nsc = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
+    nsc = pyxb.namespace.NamespaceContext.GetNodeContext(node)
     if nsc.targetNamespace() is None:
         nsc.finalizeTargetNamespace()
     return pyxb.xmlschema.structures.Annotation.CreateFromDOM(node)

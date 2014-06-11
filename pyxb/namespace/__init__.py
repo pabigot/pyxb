@@ -572,6 +572,7 @@ from pyxb.namespace.utility import NamespaceForURI
 from pyxb.namespace.utility import CreateAbsentNamespace
 from pyxb.namespace.utility import AvailableNamespaces
 from pyxb.namespace import resolution
+NamespaceContext = resolution.NamespaceContext
 
 class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin, _NamespaceComponentAssociation_mixin, archive._NamespaceArchivable_mixin):
     """Represents an XML namespace (a URI).

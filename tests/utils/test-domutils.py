@@ -16,7 +16,7 @@ def NonTextSibling (n):
 
 class TestInScopeNames (unittest.TestCase):
     def show (self, node):
-        xmlns_map = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node).inScopeNamespaces()
+        xmlns_map = pyxb.namespace.NamespaceContext.GetNodeContext(node).inScopeNamespaces()
         #print '%s: %s' % (node.nodeName, ' ; '.join([ '%s=%s' % (_k, _v.uri()) for (_k, _v) in xmlns_map.items()]))
         xmlns_map = xmlns_map.copy()
         self.assertEqual(pyxb.namespace.XML.uri(), xmlns_map.pop('xml').uri())
@@ -39,7 +39,7 @@ class TestInScopeNames (unittest.TestCase):
 </book>'''
         book = StringToDOM(xml).documentElement
         self.assertEqual('book', book.localName)
-        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(book)
+        ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(book)
         xmlns_map = self.show(book)
         self.assertEqual(2, len(xmlns_map))
         self.assertEqual('urn:loc.gov:books', xmlns_map[None].uri())
@@ -91,7 +91,7 @@ class TestInScopeNames (unittest.TestCase):
     </table>
   </Beers>'''
         Beers = StringToDOM(xml).documentElement
-        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(Beers)
+        ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(Beers)
         xmlns_map = self.show(Beers)
         self.assertEqual(0, len(xmlns_map))
         table = NonTextSibling(Beers.firstChild)

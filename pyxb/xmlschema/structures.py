@@ -160,7 +160,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         if self.__namespaceContext is None:
             if node is None:
                 raise pyxb.LogicError('Schema component constructor must be given namespace_context or node')
-            self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
+            self.__namespaceContext = pyxb.namespace.NamespaceContext.GetNodeContext(node)
         if self.__namespaceContext is None:
             raise pyxb.LogicError('No namespace_context for schema component')
 
@@ -2253,7 +2253,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # Do content type.  Cache the keywords that need to be used
         # for newly created schema components.
         ckw = kw.copy()
-        ckw['namespace_context'] = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(type_node)
+        ckw['namespace_context'] = pyxb.namespace.NamespaceContext.GetNodeContext(type_node)
 
         # Definition 1: effective mixed
         mixed_attr = None
@@ -3379,7 +3379,7 @@ class Wildcard (_ParticleTree_mixin, _SchemaComponent_mixin, _Annotated_mixin):
     # CFD:Wildcard
     @classmethod
     def CreateFromDOM (cls, node, **kw):
-        namespace_context = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
+        namespace_context = pyxb.namespace.NamespaceContext.GetNodeContext(node)
         assert xsd.nodeIsNamed(node, 'any', 'anyAttribute')
         nc = domutils.NodeAttribute(node, 'namespace')
         if nc is None:
@@ -4115,7 +4115,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         mta = domutils.NodeAttribute(body, 'memberTypes')
         self.__memberTypesExpandedNames = None
         if mta is not None:
-            nsc = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(body)
+            nsc = pyxb.namespace.NamespaceContext.GetNodeContext(body)
             self.__memberTypesExpandedNames = [ nsc.interpretQName(_mten) for _mten in mta.split() ]
         if self.__localMemberTypes is None:
             self.__localMemberTypes = []
@@ -4584,7 +4584,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
             # namespace from an archive or a built-in description
             self.__schemaLocation = None
 
-        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
+        ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node)
         if self.schemaLocation() is not None:
             # @todo: NOTICE
             (has_schema, schema_instance) = self.__namespace.lookupSchemaByLocation(schema_location)
@@ -4842,8 +4842,8 @@ class Schema (_SchemaComponent_mixin):
         if Node.ELEMENT_NODE != root_node.nodeType:
             raise pyxb.LogicError('Must be given a DOM node of type ELEMENT')
 
-        assert (namespace_context is None) or isinstance(namespace_context, pyxb.namespace.resolution.NamespaceContext)
-        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(root_node,
+        assert (namespace_context is None) or isinstance(namespace_context, pyxb.namespace.NamespaceContext)
+        ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(root_node,
                                                                            parent_context=namespace_context,
                                                                            including_context=including_context)
 

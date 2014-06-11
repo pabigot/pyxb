@@ -108,7 +108,7 @@ def NodeAttributeQName (node, attribute_ncname, attribute_ns=None):
     attr = NodeAttribute(node, attribute_ncname, attribute_ns)
     if attr is None:
         return None
-    nsc = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
+    nsc = pyxb.namespace.NamespaceContext.GetNodeContext(node)
     return nsc.interpretQName(attr)
 
 def LocateUniqueChild (node, tag, absent_ok=True, namespace=pyxb.namespace.XMLSchema):
@@ -310,14 +310,14 @@ class BindingDOMSupport (object):
             implementation = GetDOMImplementation()
         self.__implementation = implementation
         self.__requireXSIType = require_xsi_type
-        self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext(parent_context=self.__NamespaceContext,
-                                                                             in_scope_namespaces=namespace_prefix_map)
+        self.__namespaceContext = pyxb.namespace.NamespaceContext(parent_context=self.__NamespaceContext,
+                                                                  in_scope_namespaces=namespace_prefix_map)
         if default_namespace is not None:
             self.__namespaceContext.setDefaultNamespace(default_namespace)
         self.reset()
 
     # Default namespace-prefix map support
-    __NamespaceContext = pyxb.namespace.resolution.NamespaceContext()
+    __NamespaceContext = pyxb.namespace.NamespaceContext()
 
     # Instance-specific namespace-prefix map support
     __namespaceContext = None
