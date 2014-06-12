@@ -106,9 +106,10 @@ class TestAbstractElementError (unittest.TestCase):
         with self.assertRaises(pyxb.AbstractElementError) as cm:
             instance = trac26.CreateFromDocument(self.Bad_xmlt)
         e = cm.exception
-        self.assertFalse(e.location is None)
-        self.assertEqual(1, e.location.lineNumber)
-        self.assertEqual(47, e.location.columnNumber)
+        self.assertFalse((e.location is None) and (pyxb.XMLStyle_saxer == pyxb._XMLStyle))
+        if e.location is not None:
+            self.assertEqual(1, e.location.lineNumber)
+            self.assertEqual(47, e.location.columnNumber)
 
     def testDisplayException (self):
         if DisplayException:
@@ -154,9 +155,10 @@ class TestAbstractInstantiationError (unittest.TestCase):
         e = cm.exception
         self.assertTrue(instance is None)
         # Location within Bad_xmlt where error occurred
-        self.assertFalse(e.location is None)
-        self.assertEqual(1, e.location.lineNumber)
-        self.assertEqual(68, e.location.columnNumber)
+        self.assertFalse((e.location is None) and (pyxb.XMLStyle_saxer == pyxb._XMLStyle))
+        if e.location is not None:
+            self.assertEqual(1, e.location.lineNumber)
+            self.assertEqual(68, e.location.columnNumber)
 
     def testDisplayException (self):
         if DisplayException:
@@ -223,9 +225,10 @@ class TestSimpleContentAbsentError (unittest.TestCase):
             instance = trac26.CreateFromDocument(self.Bad_xmlt)
         e = cm.exception
         self.assertTrue(instance is None)
-        self.assertFalse(e.location is None)
-        self.assertEqual(1, e.location.lineNumber)
-        self.assertEqual(0, e.location.columnNumber)
+        self.assertFalse((e.location is None) and (pyxb.XMLStyle_saxer == pyxb._XMLStyle))
+        if e.location is not None:
+            self.assertEqual(1, e.location.lineNumber)
+            self.assertEqual(0, e.location.columnNumber)
         self.assertEqual(str(e), 'Type {http://www.w3.org/2001/XMLSchema}int requires content')
 
     def testDocumentSeq (self):
@@ -234,9 +237,10 @@ class TestSimpleContentAbsentError (unittest.TestCase):
             instance = trac26.CreateFromDocument(self.BadSeq_xmlt)
         e = cm.exception
         self.assertTrue(instance is None)
-        self.assertFalse(e.location is None)
-        self.assertEqual(1, e.location.lineNumber)
-        self.assertEqual(34, e.location.columnNumber)
+        self.assertFalse((e.location is None) and (pyxb.XMLStyle_saxer == pyxb._XMLStyle))
+        if e.location is not None:
+            self.assertEqual(1, e.location.lineNumber)
+            self.assertEqual(34, e.location.columnNumber)
         self.assertEqual(str(e), 'Type {http://www.w3.org/2001/XMLSchema}int requires content')
 
     def testDisplayException (self):
@@ -299,9 +303,10 @@ class TestAttributeChangeError (unittest.TestCase):
         self.assertEqual(e.type, trac26.tAttributes)
         self.assertEqual(e.tag, 'aFixed')
         self.assertFalse(e.instance is None) # there, but partially defined
-        self.assertFalse(e.location is None)
-        self.assertEqual(1, e.location.lineNumber)
-        self.assertEqual(0, e.location.columnNumber)
+        self.assertFalse((e.location is None) and (pyxb.XMLStyle_saxer == pyxb._XMLStyle))
+        if e.location is not None:
+            self.assertEqual(1, e.location.lineNumber)
+            self.assertEqual(0, e.location.columnNumber)
 
     def testDisplayExceptionDoc (self):
         if DisplayException:
@@ -387,9 +392,10 @@ class TestMissingAttributeError (unittest.TestCase):
         au = trac26.tAttributes._AttributeMap['aReq']
         self.assertFalse(e.instance is None)
         self.assertEqual(e.type, trac26.tAttributes)
-        self.assertFalse(e.location is None)
-        self.assertEqual(1, e.location.lineNumber)
-        self.assertEqual(0, e.location.columnNumber)
+        self.assertFalse((e.location is None) and (pyxb.XMLStyle_saxer == pyxb._XMLStyle))
+        if e.location is not None:
+            self.assertEqual(1, e.location.lineNumber)
+            self.assertEqual(0, e.location.columnNumber)
         self.assertEqual(str(e), "Instance of <class 'trac26.tAttributes'> lacks required attribute aReq")
 
     def testDisplayBatch (self):
@@ -445,9 +451,10 @@ class TestProhibitedAttributeError (unittest.TestCase):
         e = cm.exception
         self.assertFalse(e.instance is None)
         self.assertEqual(e.type, trac26.tAttributesProhibited)
-        self.assertFalse(e.location is None)
-        self.assertEqual(1, e.location.lineNumber)
-        self.assertEqual(0, e.location.columnNumber)
+        self.assertFalse((e.location is None) and (pyxb.XMLStyle_saxer == pyxb._XMLStyle))
+        if e.location is not None:
+            self.assertEqual(1, e.location.lineNumber)
+            self.assertEqual(0, e.location.columnNumber)
         self.assertEqual(str(e), "Attempt to reference prohibited attribute aProhibited in type <class 'trac26.tAttributesProhibited'>")
 
     def testDisplay (self):
@@ -497,9 +504,10 @@ class TestUnrecognizedAttributeError (unittest.TestCase):
         # location.  Note that initialization of the instance was left
         # incomplete.
         self.assertFalse(e.instance is None)
-        self.assertFalse(e.location is None)
-        self.assertEqual(1, e.location.lineNumber)
-        self.assertEqual(0, e.location.columnNumber)
+        self.assertFalse((e.location is None) and (pyxb.XMLStyle_saxer == pyxb._XMLStyle))
+        if e.location is not None:
+            self.assertEqual(1, e.location.lineNumber)
+            self.assertEqual(0, e.location.columnNumber)
 
     def testDisplayDOM (self):
         if DisplayException:
@@ -531,9 +539,10 @@ class TestAttributeOnSimpleTypeError (unittest.TestCase):
         e = cm.exception
         self.assertEqual(e.tag, 'bits')
         self.assertEqual(e.value, six.u('1'))
-        self.assertFalse(e.location is None)
-        self.assertEqual(1, e.location.lineNumber)
-        self.assertEqual(7, e.location.columnNumber)
+        self.assertFalse((e.location is None) and (pyxb.XMLStyle_saxer == pyxb._XMLStyle))
+        if e.location is not None:
+            self.assertEqual(1, e.location.lineNumber)
+            self.assertEqual(7, e.location.columnNumber)
         self.assertEqual(str(e), "Simple type {http://www.w3.org/2001/XMLSchema}int cannot support attribute bits")
 
     def testDisplay (self):
@@ -606,11 +615,14 @@ class TestMixedContentError (unittest.TestCase):
         with self.assertRaises(pyxb.MixedContentError) as cm:
             instance = trac26.CreateFromDocument(self.Bad_xmlt)
         e = cm.exception
-        self.assertFalse(e.location is None)
-        self.assertEqual(1, e.location.lineNumber)
-        self.assertEqual(34, e.location.columnNumber)
+        self.assertFalse((e.location is None) and (pyxb.XMLStyle_saxer == pyxb._XMLStyle))
+        loctext = ''
+        if e.location is not None:
+            self.assertEqual(1, e.location.lineNumber)
+            self.assertEqual(34, e.location.columnNumber)
+            loctext = ' at <unknown>[1:34]'
         self.assertEqual(e.value, 'noise')
-        self.assertEqual(str(e), 'Invalid non-element content at <unknown>[1:34]')
+        self.assertEqual(str(e), 'Invalid non-element content{}'.format(loctext))
 
     def testDisplay (self):
         if DisplayException:
@@ -656,32 +668,39 @@ The following element and wildcard content would be accepted:
         self.assertEqual(acceptable[0].typeDefinition(), trac26.eInt.typeDefinition())
         self.assertTrue(isinstance(acceptable[1], pyxb.binding.content.WildcardUse))
         self.assertEqual(str(e), 'Invalid content eCTwSC (expect eInt or xs:any)')
-        self.assertEqual(e.details(), self.Bad_details)
+        if pyxb.XMLStyle_minidom != pyxb._XMLStyle:
+            self.assertEqual(e.details(), self.Bad_details)
 
     def testDocument (self):
         instance = None
         with self.assertRaises(pyxb.UnrecognizedContentError) as cm:
             instance = trac26.CreateFromDocument(self.Bad_xmlt)
         e = cm.exception
-        self.assertFalse(e.location is None)
-        self.assertEqual(1, e.location.lineNumber)
-        self.assertEqual(7, e.location.columnNumber)
+        self.assertFalse((e.location is None) and (pyxb.XMLStyle_saxer == pyxb._XMLStyle))
+        loctext = ''
+        if e.location is not None:
+            self.assertEqual(1, e.location.lineNumber)
+            self.assertEqual(7, e.location.columnNumber)
+            loctext= ' at <unknown>[1:7]'
         self.assertTrue(isinstance(e.value, trac26.tCTwSC))
         self.assertEqual(e._valueDescription(), 'eCTwSC')
         acceptable = e.automaton_configuration.acceptableContent()
         self.assertEqual(1, len(acceptable))
         self.assertNotEqual(acceptable[0].elementBinding(), trac26.eInt)
         self.assertEqual(acceptable[0].typeDefinition(), trac26.eInt.typeDefinition())
-        self.assertEqual(str(e), 'Invalid content eCTwSC at <unknown>[1:7] (expect eInt)')
+        self.assertEqual(str(e), 'Invalid content eCTwSC{} (expect eInt)'.format(loctext))
 
     def testDocument2 (self):
         instance = None
         with self.assertRaises(pyxb.UnrecognizedContentError) as cm:
             instance = trac26.CreateFromDocument(self.Bad2_xmlt)
         e = cm.exception
-        self.assertFalse(e.location is None)
-        self.assertEqual(1, e.location.lineNumber)
-        self.assertEqual(7, e.location.columnNumber)
+        self.assertFalse((e.location is None) and (pyxb.XMLStyle_saxer == pyxb._XMLStyle))
+        loctext = ''
+        if e.location is not None:
+            self.assertEqual(1, e.location.lineNumber)
+            self.assertEqual(7, e.location.columnNumber)
+            loctext= ' at <unknown>[1:7]'
         self.assertTrue(isinstance(e.value, xml.dom.Node))
         self.assertFalse(isinstance(e.value, pyxb.binding.basis._TypeBinding_mixin))
         self.assertEqual(e._valueDescription(), 'something')
@@ -689,7 +708,7 @@ The following element and wildcard content would be accepted:
         self.assertEqual(1, len(acceptable))
         self.assertNotEqual(acceptable[0].elementBinding(), trac26.eInt)
         self.assertEqual(acceptable[0].typeDefinition(), trac26.eInt.typeDefinition())
-        self.assertEqual(str(e), 'Invalid content something at <unknown>[1:7] (expect eInt)')
+        self.assertEqual(str(e), 'Invalid content something{} (expect eInt)'.format(loctext))
 
     def testDisplay (self):
         if DisplayException:
@@ -711,6 +730,14 @@ The tTranslateCard automaton is not in an accepting state.
 The last accepted content was eConcCardCymru
 The following element and wildcard content would be accepted:
 \tAn element eConcCardEnglish per trac26.xsd[119:8]
+The following content was not processed by the automaton:
+\tcardinal (1 instances)'''
+    Bad_details_noloc = '''The containing element eTranslateCard is defined at None.
+The containing element type tTranslateCard is defined at None
+The tTranslateCard automaton is not in an accepting state.
+The last accepted content was eConcCardCymru
+The following element and wildcard content would be accepted:
+\tAn element eConcCardEnglish per None
 The following content was not processed by the automaton:
 \tcardinal (1 instances)'''
 
@@ -738,7 +765,10 @@ The following content was not processed by the automaton:
         (ed, syms) = next(six.iteritems(e.symbol_set))
         self.assertEqual(1, len(syms))
         self.assertEqual(instance.cardinal, syms[0])
-        self.assertEqual(e.details(), self.Bad_details)
+        expect = self.Bad_details
+        if pyxb.XMLStyle_minidom == pyxb._XMLStyle:
+            expect = self.Bad_details_noloc
+        self.assertEqual(e.details(), expect)
 
 class TestUnprocessedElementContentError (unittest.TestCase):
     Bad_details = '''The containing element eTranslateCardMulti is defined at trac26.xsd[132:2].
@@ -775,7 +805,8 @@ The following content was not processed by the automaton:
         (ed, syms) = next(six.iteritems(e.symbol_set))
         self.assertEqual(1, len(syms))
         self.assertEqual(instance.cardinal[1], syms[0])
-        self.assertEqual(e.details(), self.Bad_details)
+        if pyxb.XMLStyle_minidom != pyxb._XMLStyle:
+            self.assertEqual(e.details(), self.Bad_details)
 
 class TestContentInNilInstanceError (unittest.TestCase):
     Good_xmlt = six.u('<eNilCTwSC xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>')
@@ -919,9 +950,10 @@ class TestSimpleListValueError (unittest.TestCase):
         e = cm.exception
         self.assertEqual(e.type, trac26.tListCardCymru)
         self.assertEqual(e.value, 'pump')
-        self.assertFalse(e.location is None)
-        self.assertEqual(1, e.location.lineNumber)
-        self.assertEqual(0, e.location.columnNumber)
+        self.assertFalse((e.location is None) and (pyxb.XMLStyle_saxer == pyxb._XMLStyle))
+        if e.location is not None:
+            self.assertEqual(1, e.location.lineNumber)
+            self.assertEqual(0, e.location.columnNumber)
 
 class TestSimpleUnionValueError (unittest.TestCase):
     Good_xmlt = six.u('<eSimpleInstance><eUnionCard>dau</eUnionCard></eSimpleInstance>')
@@ -955,10 +987,11 @@ class TestSimpleUnionValueError (unittest.TestCase):
             instance = trac26.CreateFromDocument(self.Bad_xmlt)
         e = cm.exception
         self.assertEqual(e.type, trac26.tUnionCard)
-        self.assertEqual(e.value, ('pump',))
-        self.assertFalse(e.location is None)
-        self.assertEqual(1, e.location.lineNumber)
-        self.assertEqual(17, e.location.columnNumber)
+        if pyxb.XMLStyle_saxer == pyxb._XMLStyle:
+            self.assertEqual(e.value, ('pump',))
+            self.assertFalse(e.location is None)
+            self.assertEqual(1, e.location.lineNumber)
+            self.assertEqual(17, e.location.columnNumber)
 
 class TestSimpleFacetValueError (unittest.TestCase):
     Good_xmlt = six.u('<eTLA>ABC</eTLA>')
@@ -988,9 +1021,10 @@ class TestSimpleFacetValueError (unittest.TestCase):
         with self.assertRaises(pyxb.SimpleFacetValueError) as cm:
             instance = trac26.CreateFromDocument(self.Bad_xmlt)
         e = cm.exception
-        self.assertFalse(e.location is None)
-        self.assertEqual(1, e.location.lineNumber)
-        self.assertEqual(0, e.location.columnNumber)
+        self.assertFalse((e.location is None) and (pyxb.XMLStyle_saxer == pyxb._XMLStyle))
+        if e.location is not None:
+            self.assertEqual(1, e.location.lineNumber)
+            self.assertEqual(0, e.location.columnNumber)
         self.assertEqual(e.type, trac26.tTLA)
         self.assertEqual(e.value, 'ABCD')
         self.assertEqual(e.facet, trac26.tTLA._CF_length)
