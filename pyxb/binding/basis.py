@@ -2622,6 +2622,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             if pyxb.GlobalValidationConfig.forDocument:
                 au.validate(self)
             au.addDOMAttribute(dom_support, self, element)
+        if self.__wildcardAttributeMap:
+            for (an, av) in six.iteritems(self.__wildcardAttributeMap):
+                dom_support.addAttribute(element, an, av)
         return element
 
     def _toDOM_csc (self, dom_support, parent):
