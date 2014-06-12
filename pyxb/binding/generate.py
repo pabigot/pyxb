@@ -1677,7 +1677,7 @@ def CreateFromDocument (xml_text, default_namespace=None, location_base=None):
 
     if pyxb.XMLStyle_saxer != pyxb._XMLStyle:
         dom = pyxb.utils.domutils.StringToDOM(xml_text)
-        return CreateFromDOM(dom.documentElement)
+        return CreateFromDOM(dom.documentElement, default_namespace=default_namespace)
     if default_namespace is None:
         default_namespace = Namespace.fallbackNamespace()
     saxer = pyxb.binding.saxer.make_parser(fallback_namespace=default_namespace, location_base=location_base)
