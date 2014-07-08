@@ -1092,7 +1092,8 @@ class ElementDeclaration (object):
             elt_type = element_binding.typeDefinition()
             val_type = type(value)
             if isinstance(value, basis.complexTypeDefinition):
-                assert isinstance(value, elt_type)
+                if not (isinstance(value, elt_type) or elt_type._RequireXSIType(val_type)):
+                    raise pyxb.LogicError('toDOM with implicit value type %s unrecoverable from %s' % (type(value), elt_type))
             else:
                 if isinstance(value, basis.STD_union) and isinstance(value, elt_type._MemberTypes):
                     val_type = elt_type
