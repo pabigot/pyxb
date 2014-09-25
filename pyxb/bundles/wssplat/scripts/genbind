@@ -39,5 +39,6 @@ http://docs.oasis-open.org/wsn/t-1.xsd wstop
 http://docs.oasis-open.org/wsrf/bf-2.xsd wsrf_bf
 http://docs.oasis-open.org/wsn/b-2.xsd wsnt
 http://docs.oasis-open.org/wsn/br-2.xsd wsrf_br
+http://www.w3.org/ns/sawsdl sawsdl
 EOList
 ) | generateBindings
