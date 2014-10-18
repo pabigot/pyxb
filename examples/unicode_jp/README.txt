@@ -1,6 +1,6 @@
 This directory contains an example of processing Unicode XML, where both the
 schemas and the documents are in various encodings.  It derives from the
-PyXB ticket: http://sourceforge.net/apps/trac/pyxb/ticket/139
+PyXB ticket: http://sourceforge.net/p/pyxb/tickets/139
 
 The files in the data subdirectory include a schema and a sample document,
 in each of the encodings shift_jis, euc-jp, iso-2022-jp, and utf-8.  The

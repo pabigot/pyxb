@@ -36,7 +36,11 @@ and email the `mailing list
 <https://sourceforge.net/mailarchive/forum.php?forum_name=pyxb-users>`_.
 
 To file a bug report or see the status of defects reported against the current
-release, visit the `Trac database <http://sourceforge.net/apps/trac/pyxb/>`_.
+release, visit the `Github issues page
+<http://github.com/pabigot/pyxb/issues>`_.  (Older defects were archived under
+Trac at SourceForge; the historical data was moved to the `SF ticket interface
+<http://sourceforge.net/p/pyxb/tickets/>`_ when SourceForge stopped supporting
+hosted applications.  Do not attempt to open new issues on SourceForge.)
 
 For a history of releases, see :ref:`releases`.
 

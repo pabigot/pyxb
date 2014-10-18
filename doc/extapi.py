@@ -98,7 +98,7 @@ def ticket_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     """
     Role `:ticket:` generates references to Trac tickets.
     """
-    trac_root = 'https://sourceforge.net/apps/trac/pyxb'
+    trac_root = 'https://sourceforge.net/p/pyxb/tickets'
 
     # assume module is references
 
@@ -109,7 +109,7 @@ def ticket_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
         ( label, text ) = mo.group(1, 2)
     ticket = text.strip()
 
-    uri = '%s/ticket/%s' % (trac_root, ticket)
+    uri = '%s/%s/' % (trac_root, ticket)
     if label is None:
         label = '#%s' % (ticket,)
     node = nodes.reference(rawtext, label, refuri=uri, **options)
@@ -142,6 +142,5 @@ def setup(app):
     app.add_config_value('epydoc_basedir', 'api', False)
     app.add_config_value('epydoc_prefix', 'doc/html/', False)
     app.add_role('ticket', ticket_role)
-    app.add_config_value('epydoc_track_root', 'http://sourceforge.net/apps/track/project', False)
     app.add_role('pyex', pyex_role)
 
