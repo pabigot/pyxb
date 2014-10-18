@@ -536,7 +536,7 @@ class NamespaceContext (object):
         not provided, a unique prefix is generated or a standard prefix is
         used, depending on the namespace.
 
-        @return a prefix that may be used with the namespace.  If C{prefix}
+        @return: a prefix that may be used with the namespace.  If C{prefix}
         was C{None} the return value may be a previously-assigned prefix.
 
         @todo: ensure multiple namespaces do not share the same prefix
@@ -777,7 +777,7 @@ class NamespaceContext (object):
         @param name: Optional namespace to use for unqualified names when
         there is no default namespace.  Note that a defined default namespace,
         even if absent, supersedes this value.
-        @kw default_no_namespace: If C{False} (default), an NCName in a
+        @keyword default_no_namespace: If C{False} (default), an NCName in a
         context where C{namespace} is C{None} and no default or fallback
         namespace can be identified produces an exception.  If C{True}, such an
         NCName is implicitly placed in no namespace.

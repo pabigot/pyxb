@@ -432,7 +432,7 @@ class BindingDOMSupport (object):
         C{''} (empty string) a declaration for C{namespace} as the default
         namespace will be generated.
 
-        @return C{prefix} as used in the added declaration.
+        @return: C{prefix} as used in the added declaration.
         """
         if not isinstance(namespace, pyxb.namespace.Namespace):
             raise pyxb.UsageError('addXMLNSdeclaration: must be given a namespace instance')
