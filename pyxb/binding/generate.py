@@ -1515,7 +1515,6 @@ class _ModuleNaming_mixin (object):
         ns = decl.expandedName().namespace()
         if ns is None:
             return
-        assert sdecl._objectOrigin().moduleRecord().namespace() == ns
         mr = sdecl._objectOrigin().moduleRecord()
         if isinstance(self, NamespaceModule):
             need_import = self.moduleRecord().modulePath() != mr.modulePath()
