@@ -875,7 +875,10 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         kw.pop('_location', None)
         assert issubclass(cls, _TypeBinding_mixin)
         try:
-            return super(simpleTypeDefinition, cls).__new__(cls, *args, **kw)
+            parent = super(simpleTypeDefinition, cls)
+            if parent.__new__ is object.__new__:
+                return parent.__new__(cls)
+            return parent.__new__(cls, *args, **kw)
         except ValueError:
             raise pyxb.SimpleTypeValueError(cls, args)
         except OverflowError:
