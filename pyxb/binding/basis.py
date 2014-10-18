@@ -1093,7 +1093,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         class_name = cls.__name__
         if issubclass(cls, _RepresentAsXsdLiteral_mixin):
             value = value.xsdLiteral()
-        return '%s(%s)' % (class_name, repr(value))
+        return '%s(%s)' % (class_name, pyxb.utils.utility.repr2to3(value))
 
     def pythonLiteral (self):
         """Return a string which can be embedded into Python source to

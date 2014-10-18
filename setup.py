@@ -6,9 +6,9 @@ import sys
 # The current version of the system.  Format is #.#.#[-DEV].
 version = '1.2.4-DEV'
 
-# Require Python 2.6 or higher
-if sys.version_info[:2] < (2, 6):
-    raise ValueError('PyXB requires Python version 2.6 or later (you have %s)' % (sys.version,))
+# Require Python 2.6 or higher or Python 3.1 or higher
+if (sys.version_info[:2] < (2, 6)) or ((sys.version_info[0] == 3) and sys.version_info[:2] < (3, 1)):
+    raise ValueError('PyXB requires:\n\tPython2 version 2.6 or later; or\n\tPython3 version 3.1 or later\n(You have %s.)' % (sys.version,))
 
 import os
 import stat

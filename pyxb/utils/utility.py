@@ -1278,7 +1278,7 @@ class Location (object):
     def __repr__ (self):
         t = type(self)
         ctor = '%s.%s' % (t.__module__, t.__name__)
-        return '%s(%r, %r, %r)' % (ctor, self.__locationBase, self.__lineNumber, self.__columnNumber)
+        return '%s(%s, %r, %r)' % (ctor, repr2to3(self.__locationBase), self.__lineNumber, self.__columnNumber)
 
 class Locatable_mixin (pyxb.cscRoot):
     __location = None
@@ -1292,3 +1292,30 @@ class Locatable_mixin (pyxb.cscRoot):
 
     def _location (self):
         return self.__location
+
+def repr2to3 (v):
+    """Filtered built-in repr for python 2/3 compatibility in
+    generated bindings.
+
+    All generated string values are to be unicode.  We always import
+    unicode_literals from __future__, so we want plain quotes with no
+    prefix u.  Strip that off.
+
+    Integer constants should not have the suffix L even if they do not
+    fit in a Python2 int.  The references generated through this
+    function are never used for calculations, so the implicit cast to
+    a larger type is sufficient.
+
+    All other values use their standard representations.
+    """
+    if isinstance(v, six.string_types):
+        qu = QuotedEscaped(v)
+        if 'u' == qu[0]:
+            return qu[1:]
+        return qu
+    if isinstance(v, six.integer_types):
+        vs = repr(v)
+        if vs.endswith('L'):
+            return vs[:-1]
+        return vs
+    return repr(v)

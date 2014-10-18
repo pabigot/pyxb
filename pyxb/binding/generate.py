@@ -28,6 +28,7 @@ import errno
 import pyxb
 import pyxb.xmlschema as xs
 from pyxb.utils import utility, templates, six
+from pyxb.utils.utility import repr2to3
 from pyxb.binding import basis, datatypes, facets
 
 _log = logging.getLogger(__name__)
@@ -102,13 +103,13 @@ class ReferenceWildcard (ReferenceLiteral):
                     namespaces.append(None)
                 else:
                     namespaces.append(ns.uri())
-            template_map['nc'] = 'set([%s])' % (",".join( [ repr(_ns) for _ns in namespaces ]))
+            template_map['nc'] = 'set([%s])' % (",".join( [ repr2to3(_ns) for _ns in namespaces ]))
         else:
             assert isinstance(wildcard.namespaceConstraint(), tuple)
             ns = wildcard.namespaceConstraint()[1]
             if ns is not None:
                 ns = ns.uri()
-            template_map['nc'] = templates.replaceInText('(%{Wildcard}.NC_not, %{namespace})', namespace=repr(ns), **template_map)
+            template_map['nc'] = templates.replaceInText('(%{Wildcard}.NC_not, %{namespace})', namespace=repr2to3(ns), **template_map)
         template_map['pc'] = wildcard.processContents()
         self.setLiteral(templates.replaceInText('%{Wildcard}(process_contents=%{Wildcard}.PC_%{pc}, namespace_constraint=%{nc})', **template_map))
 
@@ -225,10 +226,6 @@ def pythonLiteral (value, **kw):
         if issubclass(value, facets.Facet):
             return PrefixModule(value)
 
-    # String instances go out as their representation
-    if isinstance(value, six.string_types):
-        return utility.QuotedEscaped(value,)
-
     if isinstance(value, facets.Facet):
         return pythonLiteral(ReferenceFacet(facet=value, **kw))
 
@@ -254,11 +251,11 @@ def pythonLiteral (value, **kw):
 
     # Represent namespaces by their URI
     if isinstance(value, pyxb.namespace.Namespace):
-        return repr(value.uri())
+        return repr2to3(value.uri())
 
-    # Standard Python types
-    if isinstance(value, (six.none_type, six.boolean_type, six.float_type, six.integer_types)):
-        return repr(value)
+    # Standard Python types, including string types
+    if isinstance(value, (six.none_type, six.boolean_type, six.float_type, six.integer_types, six.string_types)):
+        return pyxb.utils.utility.repr2to3(value)
 
     raise Exception('Unexpected literal type %s' % (type(value),))
 
@@ -306,7 +303,7 @@ def %{name} ():
     for cc in sorted_counter_conditions:
         cc_id = 'cc_%u' % (len(counter_map),)
         counter_map[cc] = cc_id
-        au_src.append('    %s = fac.CounterCondition(min=%r, max=%r, metadata=%r)' % (cc_id, cc.min, cc.max, cc.metadata._location()))
+        au_src.append('    %s = fac.CounterCondition(min=%s, max=%s, metadata=%r)' % (cc_id, repr2to3(cc.min), repr2to3(cc.max), cc.metadata._location()))
         au_src.append('    counters.add(%s)' % (cc_id,))
     state_map = {}
     au_src.append('    states = []')
@@ -329,10 +326,10 @@ def %{name} ():
         else:
             (particle, symbol) = st.symbol
             if isinstance(symbol, xs.structures.Wildcard):
-                au_src.append(templates.replaceInText('    symbol = pyxb.binding.content.WildcardUse(%{wildcard}, %{location})', wildcard=binding_module.literal(symbol, **kw), location=repr(particle._location())))
+                au_src.append(templates.replaceInText('    symbol = pyxb.binding.content.WildcardUse(%{wildcard}, %{location})', wildcard=binding_module.literal(symbol, **kw), location=repr2to3(particle._location())))
             elif isinstance(symbol, xs.structures.ElementDeclaration):
                 binding_module.importForDeclaration(symbol)
-                au_src.append(templates.replaceInText('    symbol = pyxb.binding.content.ElementUse(%{ctd}._UseForTag(%{field_tag}), %{location})', field_tag=binding_module.literal(symbol.expandedName(), **kw), location=repr(particle._location()), **template_map))
+                au_src.append(templates.replaceInText('    symbol = pyxb.binding.content.ElementUse(%{ctd}._UseForTag(%{field_tag}), %{location})', field_tag=binding_module.literal(symbol.expandedName(), **kw), location=repr2to3(particle._location()), **template_map))
         au_src.append('    %s = fac.State(symbol, is_initial=%r, final_update=final_update, is_unordered_catenation=%r)' % (st_id, st.isInitial, st.isUnorderedCatenation))
         if st.subAutomata is not None:
             au_src.append('    %s._set_subAutomata(*sub_automata)' % (st_id,))
@@ -497,7 +494,7 @@ def GenerateSTD (std, generator):
     else:
         template_map['qname'] = '[anonymous]'
     template_map['namespaceReference'] = binding_module.literal(std.bindingNamespace(), **kw)
-    template_map['xsd_location'] = repr(std._location())
+    template_map['xsd_location'] = repr2to3(std._location())
     if std.annotation() is not None:
         template_map['documentation'] = std.annotation().asDocString()
         template_map['documentation_expr'] = binding_module.literal(std.annotation().text())
@@ -564,7 +561,7 @@ class %{std} (pyxb.binding.basis.STD_union):
 def elementDeclarationMap (ed, binding_module, **kw):
     template_map = { }
     template_map['qname'] = six.text_type(ed.expandedName())
-    template_map['decl_location'] = repr(ed._location())
+    template_map['decl_location'] = repr2to3(ed._location())
     template_map['namespaceReference'] = binding_module.literal(ed.bindingNamespace(), **kw)
     if (ed.SCOPE_global == ed.scope()):
         binding_name = template_map['class'] = binding_module.literal(ed, **kw)
@@ -870,10 +867,10 @@ def GenerateCTD (ctd, generator, **kw):
         template_map['qname'] = six.text_type(ctd.expandedName())
     else:
         template_map['qname'] = '[anonymous]'
-    template_map['xsd_location'] = repr(ctd._location())
+    template_map['xsd_location'] = repr2to3(ctd._location())
     template_map['simple_base_type'] = binding_module.literal(None, **kw)
     template_map['contentTypeTag'] = content_type_tag
-    template_map['is_abstract'] = repr(not not ctd.abstract())
+    template_map['is_abstract'] = repr2to3(not not ctd.abstract())
 
     content_basis = None
     if (ctd.CT_SIMPLE == content_type_tag):
@@ -954,7 +951,7 @@ class %{ctd} (%{superclass}):
             if ed.scope() == ctd:
                 ef_map.update(elementDeclarationMap(ed, binding_module, **kw))
                 aux_init = []
-                ef_map['is_plural'] = repr(is_plural)
+                ef_map['is_plural'] = repr2to3(is_plural)
                 element_uses.append(templates.replaceInText('%{use}.name() : %{use}', **ef_map))
                 if 0 == len(aux_init):
                     ef_map['aux_init'] = ''
@@ -1023,8 +1020,8 @@ class %{ctd} (%{superclass}):
 
         assert ad.typeDefinition() is not None
         au_map['attr_type'] = binding_module.literal(ad.typeDefinition(), **kw)
-        au_map['decl_location'] = repr(ad._location())
-        au_map['use_location'] = repr(au._location())
+        au_map['decl_location'] = repr2to3(ad._location())
+        au_map['use_location'] = repr2to3(au._location())
 
         vc_source = ad
         if au.valueConstraint() is not None:
@@ -1338,7 +1335,7 @@ class _ModuleNaming_mixin (object):
         template_map['aux_imports'] = "\n".join(aux_imports)
         template_map['namespace_decls'] = "\n".join(self.__namespaceDeclarations)
         template_map['module_uid'] = self.moduleUID()
-        template_map['generation_uid_expr'] = repr(self.generator().generationUID())
+        template_map['generation_uid_expr'] = repr2to3(self.generator().generationUID())
         self._finalizeModuleContents_vx(template_map)
         return self.__bindingIO.contents()
 
@@ -1448,7 +1445,7 @@ class _ModuleNaming_mixin (object):
             if namespace.isAbsentNamespace():
                 definition = 'pyxb.namespace.CreateAbsentNamespace()'
             else:
-                definition = 'pyxb.namespace.NamespaceForURI(%s, create_if_missing=True)' % (repr(namespace.uri()),)
+                definition = 'pyxb.namespace.NamespaceForURI(%s, create_if_missing=True)' % (repr2to3(namespace.uri()),)
         self.__namespaceDeclarations.append('%s = %s' % (name, definition))
         self.__namespaceDeclarations.append("%s.configureCategories(['typeBinding', 'elementBinding'])" % (name,))
         self.__referencedNamespaces[namespace] = name
@@ -1625,19 +1622,17 @@ class NamespaceModule (_ModuleNaming_mixin):
 
     def _initialBindingTemplateMap (self):
         kw = { 'moduleType' : 'namespace'
-             , 'targetNamespace' : repr(self.__namespace.uri())
+             , 'targetNamespace' : repr2to3(self.__namespace.uri())
              , 'namespaceURI' : self.__namespace.uri()
              , 'namespaceReference' : self.referenceNamespace(self.__namespace)
-             , 'pyxb_version' : repr(pyxb.__version__)
+             , 'pyxb_version' : repr2to3(pyxb.__version__)
              }
         return kw
 
     def _finalizeModuleContents_vx (self, template_map):
-        if six.PY2:
-            template_map['_TextType'] = 'unicode'
-        else:
-            template_map['_TextType'] = 'str'
+        template_map['_TextType'] = '_six.text_type'
         self.bindingIO().prolog().append(self.bindingIO().expand('''
+from __future__ import unicode_literals
 import pyxb
 import pyxb.binding
 import pyxb.binding.saxer
@@ -1645,6 +1640,7 @@ import io
 import pyxb.utils.utility
 import pyxb.utils.domutils
 import sys
+import pyxb.utils.six as _six
 
 # Unique identifier for bindings created at the same time
 _GenerationUID = %{generation_uid_expr}
@@ -1767,9 +1763,11 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
 
     def _finalizeModuleContents_vx (self, template_map):
         self.bindingIO().prolog().append(self.bindingIO().expand('''
+from __future__ import unicode_literals
 import pyxb
 import pyxb.binding
 import pyxb.utils.utility
+import pyxb.utils.six as _six
 
 # Unique identifier for bindings created at the same time
 _GenerationUID = %{generation_uid_expr}
