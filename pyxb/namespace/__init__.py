@@ -663,11 +663,24 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
     def _NamespaceForURI (cls, uri):
         """If a Namespace instance for the given URI exists, return it; otherwise return None.
 
-        Note; Absent namespaces are not stored in the registry.  If you use
+        Note: Absent namespaces are not stored in the registry.  If you use
         one (e.g., for a schema with no target namespace), don't lose hold of
         it."""
-        assert uri is not None
+        if uri is None:
+            raise pyxb.UsageError('Absent namespaces are unlocatable')
         return cls.__Registry.get(uri)
+
+    # A map from string UUIDs to absent Namespace instances.  Used for
+    # in-session deserialization as required for cloning objects.  Non-absent
+    # namespaces are identified by URI and recorded in __Registry.
+    __AbsentNamespaceRegistry = { }
+
+    # The UUID used to serialize this namespace. This serves the same role in
+    # __AbsentNamespaceRegistry as the namespace URI does in __Registry, but
+    # is retained only within a single PyXB session.
+    __absentSerializedUUID = None
+
+    __SerializedVariantAbsent = 'absent'
 
     def __getnewargs__ (self):
         """Pickling support.
@@ -676,7 +689,16 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         URI, we ensure that the routine that creates unpickled
         instances knows what it's supposed to return."""
         if self.uri() is None:
-            raise pyxb.LogicError('Illegal to serialize absent namespaces')
+            # We can't reconstruct absent namespaces.  However, it is
+            # convenient to be able to use Python's copy module to clone
+            # instances.  Support for that does require ability to identify
+            # specific absent namespaces, which we do by representing them as
+            # a tuple containing a variant tag and unique identifier.
+            if self.__absentSerializedUUID is None:
+                _log.warning('Instances with absent namespaces can only be reconstructed in-session')
+                self.__absentSerializedUUID = pyxb.utils.utility.UniqueIdentifier()
+                self.__AbsentNamespaceRegistry[self.__absentSerializedUUID.uid()] = self
+            return ((self.__SerializedVariantAbsent, self.__absentSerializedUUID.uid()),)
         return (self.uri(),)
 
     def __new__ (cls, *args, **kw):
@@ -687,7 +709,16 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         doesn't normally get called when unpickling instances; this
         does.  See also __getnewargs__()."""
         (uri,) = args
-        if not (uri in cls.__Registry):
+        if isinstance(uri, tuple):
+            # Special handling to reconstruct absent namespaces.
+            (variant, uid) = uri
+            if cls.__SerializedVariantAbsent == variant:
+                ns = cls.__AbsentNamespaceRegistry.get(uid)
+                if ns is None:
+                    raise pyxb.UsageError('Unable to reconstruct instance of absent namespace')
+                return ns
+            raise pyxb.LogicError('Unrecognized serialized namespace variant %s uid %s' % (variant, uid))
+        elif not (uri in cls.__Registry):
             instance = object.__new__(cls)
             # Do this one step of __init__ so we can do checks during unpickling
             instance.__uri = uri
