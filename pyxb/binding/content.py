@@ -490,7 +490,6 @@ class AutomatonConfiguration (object):
         while cfg.isAccepting() and (cfg.superConfiguration is not None):
             cfg = cfg.superConfiguration
         if not cfg.isAccepting():
-            _log.warning('Incomplete content, expect %s' % (' or '.join(map(str, cfg.acceptableSymbols()))))
             raise pyxb.IncompleteElementContentError(self.__instance, cfg, symbols, symbol_set)
         return cfg
 
