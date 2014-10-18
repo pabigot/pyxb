@@ -60,14 +60,14 @@ class TestIssue13 (unittest.TestCase):
     def testElements (self):
         instance = CreateFromDocument(six.u('<qn>nons</qn>'))
         self.assertEqual(six.u('nons'), instance)
-        self.assertEqual(six.u('<qn>nons</qn>'), instance.toxml('utf-8',root_only=True))
+        self.assertEqual(six.u('<qn>nons</qn>').encode('utf-8'), instance.toxml('utf-8',root_only=True))
         instance = CreateFromDocument(six.u('<qn>xml:nons</qn>'))
         self.assertTrue(isinstance(instance, pyxb.namespace.ExpandedName))
         self.assertEqual(pyxb.namespace.XML, instance.namespace())
         self.assertEqual(pyxb.namespace.XML.createExpandedName('nons'), instance)
         xmld = instance.toxml('utf-8',root_only=True)
         self.assertEqual(instance, CreateFromDocument(xmld))
-        self.assertEqual(six.u('<qn xmlns:xml="http://www.w3.org/XML/1998/namespace">xml:nons</qn>'), xmld)
+        self.assertEqual(six.u('<qn xmlns:xml="http://www.w3.org/XML/1998/namespace">xml:nons</qn>').encode('utf-8'), xmld)
 
 if __name__ == '__main__':
     unittest.main()

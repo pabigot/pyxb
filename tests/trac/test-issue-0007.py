@@ -36,25 +36,25 @@ class TestIssue0007 (unittest.TestCase):
     def testConstruction (self):
         # Absence of attribute uses implicit default
         i = number(53)
-        self.assertEqual('<number>53</number>', i.toxml('utf-8', root_only=True))
+        self.assertEqual(six.u('<number>53</number>').encode('utf-8'), i.toxml('utf-8', root_only=True))
         self.assertTrue(i.bounded)
         # Explicit assignment of attribute makes it explicit even if same as default
         i.bounded = True
-        self.assertEqual('<number bounded="true">53</number>', i.toxml('utf-8', root_only=True))
+        self.assertEqual(six.u('<number bounded="true">53</number>').encode('utf-8'), i.toxml('utf-8', root_only=True))
         i.bounded = False
-        self.assertEqual('<number bounded="false">53</number>', i.toxml('utf-8', root_only=True))
+        self.assertEqual(six.u('<number bounded="false">53</number>').encode('utf-8'), i.toxml('utf-8', root_only=True))
 
     def testNilConstruction (self):
         i = number(_nil=True)
-        self.assertEqual('<number xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>', i.toxml('utf-8', root_only=True))
+        self.assertEqual(six.u('<number xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>').encode('utf-8'), i.toxml('utf-8', root_only=True))
         self.assertRaises(pyxb.ContentInNilInstanceError, i._setValue, 25)
 
     def testReplacement (self):
         i = number(53, bounded=True)
-        self.assertEqual('<number bounded="true">53</number>', i.toxml('utf-8', root_only=True))
+        self.assertEqual(six.u('<number bounded="true">53</number>').encode('utf-8'), i.toxml('utf-8', root_only=True))
         self.assertEqual(53, i.value())
         i._setValue(27)
-        self.assertEqual('<number bounded="true">27</number>', i.toxml('utf-8', root_only=True))
+        self.assertEqual(six.u('<number bounded="true">27</number>').encode('utf-8'), i.toxml('utf-8', root_only=True))
         self.assertRaises(pyxb.SimpleTypeValueError, i._setValue, 'text')
 
 if __name__ == '__main__':
