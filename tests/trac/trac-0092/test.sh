@@ -4,6 +4,7 @@ mkdir bindings
 XSD_DIR=../../schemas
 PYXB_ARCHIVE_PATH='bindings'
 export PYXB_ARCHIVE_PATH
+export PYTHONPATH=${PYTHONPATH:+${PYTHONPATH}:}.
 
 pyxbgen \
   --schema-location=${XSD_DIR}/shared-types.xsd --module=st \
