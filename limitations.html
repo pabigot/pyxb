@@ -1,0 +1,200 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Limitations &mdash; PyXB 1.2.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.2.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyXB 1.2.3 documentation" href="index.html" />
+    <link rel="up" title="Overview" href="overview.html" />
+    <link rel="next" title="License and Disclaimers" href="legal.html" />
+    <link rel="prev" title="Examples of Supported Schema" href="bundles.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="legal.html" title="License and Disclaimers"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="bundles.html" title="Examples of Supported Schema"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+          <li><a href="overview.html" accesskey="U">Overview</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="limitations">
+<h1>Limitations<a class="headerlink" href="#limitations" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="things-that-work">
+<h2>Things That Work<a class="headerlink" href="#things-that-work" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Class constants corresponding to string enumeration constraints</li>
+<li>Simple and complex type definitions</li>
+<li>List and union datatypes</li>
+<li>Constraints on (simple) datatypes (e.g., minInclusive, length)</li>
+<li>Model groups and attribute groups</li>
+<li>Complex content models (all, sequence, choice); minOccurs and maxOccurs</li>
+<li>Abstract types, <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#xsi_type">xsi:type</a>,
+substitution groups</li>
+<li>Nillable elements with <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#xsi_nil">xsi:nil</a></li>
+<li>Namespace qualified attributes and elements</li>
+<li>Documentation annotations present in the schema are converted to Python
+docstrings in the generated bindings.</li>
+<li>Pattern constraints (as long as the simple type derives from something
+that is represented as a Python string)</li>
+</ul>
+</div>
+<div class="section" id="things-that-don-t-work">
+<h2>Things That Don&#8217;t Work<a class="headerlink" href="#things-that-don-t-work" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="but-could-someday">
+<h3>...but could someday<a class="headerlink" href="#but-could-someday" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Identity constraints (&#8220;key&#8221;, &#8220;unique&#8221;, &#8220;keyref&#8221;) are stored in the content
+model, but are not used.</li>
+<li><a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#Wildcards">Wildcard elements</a> are
+supported in the sense that classes that enable them in the content model
+provide access to unrecognized values through the
+<a class="reference external" href="api/pyxb.binding.basis.complexTypeDefinition-class.html#wildcardElements">complexTypeDefinition.wildcardElements</a> method.
+Where the type of the node is recognized, it is converted to a Python
+binding instance; otherwise, the xml DOM instance is stored.  Although
+namespace constraints are applied when checking for wildcard matches, the
+process contents attribute of the wildcard is ignored.</li>
+<li><a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#ag-attribute_wildcard">Wildcard attributes</a> are supported
+in much the same sense as wildcard elements: no constraints are checked,
+and all are aggregated into the
+<a class="reference external" href="api/pyxb.binding.basis.complexTypeDefinition-class.html#wildcardAttributeMap">complexTypeDefinition.wildcardAttributeMap</a>.
+Values are uninterpreted Unicode strings.</li>
+</ul>
+</div>
+<div class="section" id="and-probably-never-will">
+<h3>...and probably never will<a class="headerlink" href="#and-probably-never-will" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>The <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#modify-schema">redefine directive</a>
+is not supported.</li>
+<li>The ability to use templates to customize binding generation was promised
+in the vision document, but after three years of no plausible use case it
+is no longer part of the plan.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="things-that-mostly-work-but-they-re-ugly">
+<h2>Things That Mostly Work, But They&#8217;re Ugly<a class="headerlink" href="#things-that-mostly-work-but-they-re-ugly" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>The <a class="reference external" href="http://www.w3.org/TR/xmlschema-2/#duration">duration</a> type is based
+on the Python <tt class="docutils literal"><span class="pre">datetime.timedelta</span></tt> class, which works reasonably well
+for small deltas but does not handle month and year deltas.  The PyXB
+version records that information, but the <tt class="docutils literal"><span class="pre">timedelta</span></tt> functionality
+(adding/substracting from <tt class="docutils literal"><span class="pre">datetime</span></tt> instances) does not incorporate
+that portion of the delta.  Negative durations also may not work properly.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Limitations</a><ul>
+<li><a class="reference internal" href="#things-that-work">Things That Work</a></li>
+<li><a class="reference internal" href="#things-that-don-t-work">Things That Don&#8217;t Work</a><ul>
+<li><a class="reference internal" href="#but-could-someday">...but could someday</a></li>
+<li><a class="reference internal" href="#and-probably-never-will">...and probably never will</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#things-that-mostly-work-but-they-re-ugly">Things That Mostly Work, But They&#8217;re Ugly</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="bundles.html"
+                        title="previous chapter">Examples of Supported Schema</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="legal.html"
+                        title="next chapter">License and Disclaimers</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/limitations.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="legal.html" title="License and Disclaimers"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="bundles.html" title="Examples of Supported Schema"
+             >previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+          <li><a href="overview.html" >Overview</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009-2013, Peter A. Bigot.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

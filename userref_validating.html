@@ -1,0 +1,239 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Debugging Validation Errors &mdash; PyXB 1.2.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.2.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyXB 1.2.3 documentation" href="index.html" />
+    <link rel="up" title="User Reference" href="userref_index.html" />
+    <link rel="next" title="pyxbgen Command Line Options" href="pyxbgen_cli.html" />
+    <link rel="prev" title="Using Binding Classes" href="userref_usebind.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="pyxbgen_cli.html" title="pyxbgen Command Line Options"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="userref_usebind.html" title="Using Binding Classes"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+          <li><a href="userref_index.html" accesskey="U">User Reference</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="debugging-validation-errors">
+<span id="validating"></span><h1>Debugging Validation Errors<a class="headerlink" href="#debugging-validation-errors" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This material should be expanded in a future release when
+<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/171">trac/171</a> is addressed.</p>
+</div>
+<p>In the 1.1.x release series of PyXB a common and valid complaint was that
+PyXB would validate documents and binding instances, but did not provide
+useful information explaining why a particular document was invalid.  The
+content validation approach described in <a class="reference internal" href="arch_content.html#validating-content"><em>Validating the Content Model</em></a> allows
+the application to diagnose:</p>
+<ul class="simple">
+<li>the element or instance data that failed to satisfy the content model;</li>
+<li>the location of that element within a document being parsed;</li>
+<li>the point in the XML schema where the containing complex type was defined;</li>
+<li>the content that was expected to have been encountered.</li>
+</ul>
+<p>Perhaps the quickest way to see the information PyXB now provides is to look
+at the <a class="reference internal" href="examples.html#ex-ndfd"><em>Professional Weather (National Digital Forecast Data)</em></a> example, and in particular the <tt class="docutils literal"><span class="pre">latlon.py</span></tt> script.
+This script uses WSDL to obtain the near-term forecast for a location within
+the United States using latitude and longitude.</p>
+<p>In the course of validating PyXB 1.2.0, it was discovered that the National
+Weather Service has added some new elements to their schema, with the result
+that the servers no longer provide valid XML: in particular, order
+constraints on individual forecast characteristics are violated.  This
+caused the example to fail.</p>
+<p>While the script needs to be cleaned up considerably, the following code
+block shows how the retrieved XML document is converted into a binding
+instance:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Create the binding instance from the response.  If there&#39;s a</span>
+<span class="c"># problem, diagnose the issue, then try again with validation</span>
+<span class="c"># disabled.</span>
+<span class="n">r</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">DWML</span><span class="o">.</span><span class="n">CreateFromDocument</span><span class="p">(</span><span class="n">rxml</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">pyxb</span><span class="o">.</span><span class="n">UnrecognizedContentError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;*** ERROR validating response:&#39;</span>
+    <span class="k">print</span> <span class="n">e</span><span class="o">.</span><span class="n">details</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">r</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="n">pyxb</span><span class="o">.</span><span class="n">RequireValidWhenParsing</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">DWML</span><span class="o">.</span><span class="n">CreateFromDocument</span><span class="p">(</span><span class="n">rxml</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When invoking the program, the following diagnostic output is provided
+through the <a class="reference external" href="api/pyxb.exceptions_.ValidationError-class.html#details">details</a>
+method:</p>
+<div class="highlight-none"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15</pre></div></td><td class="code"><div class="highlight"><pre>*** ERROR validating response:
+The containing element parameters is defined at ndfd_data.xsd[29:12].
+The containing element type parametersType is defined at parameters.xsd[21:4]
+The unrecognized content probability-of-precipitation begins at &lt;unknown&gt;[217:6]
+The parametersType automaton is in an accepting state.
+The following element and wildcard content would be accepted:
+     An element cloud-amount per parameters.xsd[379:12]
+     An element humidity per parameters.xsd[416:12]
+     An element weather per parameters.xsd[449:12]
+     An element conditions-icon per parameters.xsd[566:12]
+     An element hazards per parameters.xsd[585:12]
+     An element wordedForecast per parameters.xsd[701:11]
+     An element pressure per parameters.xsd[715:12]
+     An element probabilisticCondition per parameters.xsd[751:12]
+     An element water-state per parameters.xsd[785:12]
+</pre></div>
+</td></tr></table></div>
+<p>This tells the user that:</p>
+<ol class="arabic simple" start="2">
+<li>A problem was encountered processing an element <tt class="docutils literal"><span class="pre">parameters</span></tt> from an
+element declaration found in the <tt class="docutils literal"><span class="pre">ndfd_data.xsd</span></tt> schema starting at
+column 12 on line 29.</li>
+<li>The <tt class="docutils literal"><span class="pre">parameters</span></tt> element is of type <tt class="docutils literal"><span class="pre">parametersType</span></tt>, and its content
+model can be found in the complex type definition in the
+<tt class="docutils literal"><span class="pre">parameters.xsd</span></tt> schema starting on line 21.</li>
+<li>The error in the document was failure to recognize an element
+<tt class="docutils literal"><span class="pre">probability-of-precipitation</span></tt> which was found at line 217 of the
+input.  (The document is being parsed from a Python string, so no URI is
+available).</li>
+<li>Had the containing <tt class="docutils literal"><span class="pre">parameters</span></tt> element ended before this point, the
+element would be valid.</li>
+<li>The names and definition locations of element data that would have been
+acceptable at that point follow in lines 7 through 15.</li>
+</ol>
+<p>A much shorter but still useful synopsis of the invalidity would be
+available through the <tt class="docutils literal"><span class="pre">str</span></tt> operation on the exception.  Full details are
+available through attributes on the <a class="reference external" href="api/pyxb.exceptions_.UnrecognizedContentError-class.html">UnrecognizedContentError</a> and other exceptions.</p>
+<p>In cases where the service generating the documents is under your control,
+you can use this information to correct the documents.  In cases like this
+where the error is in a production server, the proper approach is to <a class="reference external" href="http://tech.groups.yahoo.com/group/NDFD_SOAP_Service/message/2218">report
+the error</a>,
+disable validation, and move on with ones life.</p>
+<div class="section" id="runtime-exception-hierarchy">
+<h2>Runtime Exception Hierarchy<a class="headerlink" href="#runtime-exception-hierarchy" title="Permalink to this headline">¶</a></h2>
+<p>Details on the interfaces presented by these exceptions can be found through
+the <a class="reference external" href="api/pyxb.exceptions_.ValidationError-class.html">API Documentation</a>.</p>
+<img alt="_images/RuntimeExceptions.jpg" src="_images/RuntimeExceptions.jpg" />
+<img alt="_images/CTDValidationExceptions.jpg" src="_images/CTDValidationExceptions.jpg" />
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Debugging Validation Errors</a><ul>
+<li><a class="reference internal" href="#runtime-exception-hierarchy">Runtime Exception Hierarchy</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="userref_usebind.html"
+                        title="previous chapter">Using Binding Classes</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pyxbgen_cli.html"
+                        title="next chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">pyxbgen</span></tt> Command Line Options</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/userref_validating.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="pyxbgen_cli.html" title="pyxbgen Command Line Options"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="userref_usebind.html" title="Using Binding Classes"
+             >previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+          <li><a href="userref_index.html" >User Reference</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009-2013, Peter A. Bigot.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

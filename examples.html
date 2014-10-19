@@ -1,0 +1,453 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Examples &mdash; PyXB 1.2.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.2.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyXB 1.2.3 documentation" href="index.html" />
+    <link rel="next" title="Release History" href="releases.html" />
+    <link rel="prev" title="Related Packages" href="related.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="releases.html" title="Release History"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="related.html" title="Related Packages"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="examples">
+<span id="id1"></span><h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
+<p>A detailed, albeit contrived, example of how to use PyXB is in
+<a class="reference internal" href="userref_pyxbgen.html#pyxbgen"><em>Generating Binding Classes</em></a>.</p>
+<p>Multiple real-world XML and web service examples of varying complexity are
+provided in the <tt class="file docutils literal"><span class="pre">examples</span></tt> subdirectories of the PyXB distribution and of the
+various bundles.  Some are WSDL services, and others are simply XMLSchema
+documents.  Often there are a couple trivial programs that show how the
+bindings are used.  The script <tt class="file docutils literal"><span class="pre">test.sh</span></tt> in each directory can be used
+to generate the bindings and run the programs in a single step.</p>
+<p>See the <tt class="file docutils literal"><span class="pre">README.txt</span></tt> file in each example subdirectory for more
+information.</p>
+<dl class="docutils">
+<dt>For ...</dt>
+<dd><ul class="first last simple">
+<li>REST-style interactions, see <a class="reference internal" href="#ex-dictionary"><em>Dictionary (Aonaware)</em></a>, <a class="reference internal" href="#ex-ndfd"><em>Professional Weather (National Digital Forecast Data)</em></a>, and <a class="reference internal" href="index.html#thirty-sec-example"><em>Thirty Second Example</em></a></li>
+<li>SOAP interactions, see <a class="reference internal" href="#ex-weather"><em>Simple Weather (CDyne)</em></a>, <a class="reference internal" href="#ex-ndfd"><em>Professional Weather (National Digital Forecast Data)</em></a>, and <a class="reference internal" href="#ex-geocoder"><em>Address-To-Latitude/Longitude (http://geocoder.us)</em></a></li>
+<li>Customizing a generated binding, see <a class="reference internal" href="#ex-tmsxtvd"><em>Television Schedules (Tribune Media Services)</em></a></li>
+<li>Using a SAX parser, see <a class="reference internal" href="#ex-tmsxtvd"><em>Television Schedules (Tribune Media Services)</em></a></li>
+</ul>
+</dd>
+</dl>
+<p>You may also want to look at some of the unit tests for other ideas.</p>
+<div class="section" id="dictionary-aonaware">
+<span id="ex-dictionary"></span><h2>Dictionary (Aonaware)<a class="headerlink" href="#dictionary-aonaware" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference external" href="http://www.aonaware.com/services.htm">Dictionary web service at Aonaware</a>.</p>
+<p>The example <tt class="file docutils literal"><span class="pre">define.py</span></tt> looks up a word in all available dictionaries:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">dict</span>
+<span class="kn">import</span> <span class="nn">urllib2</span>
+<span class="kn">import</span> <span class="nn">pyxb.utils.domutils</span> <span class="kn">as</span> <span class="nn">domutils</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="n">word</span> <span class="o">=</span> <span class="s">&#39;xml&#39;</span>
+<span class="k">if</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">):</span>
+    <span class="n">word</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="c"># Create a REST-style query to retrieve the information about this dictionary.</span>
+<span class="n">uri</span> <span class="o">=</span> <span class="s">&#39;http://services.aonaware.com/DictService/DictService.asmx/Define?word=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">word</span><span class="p">,)</span>
+<span class="n">rxml</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">resp</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">CreateFromDOM</span><span class="p">(</span><span class="n">domutils</span><span class="o">.</span><span class="n">StringToDOM</span><span class="p">(</span><span class="n">rxml</span><span class="p">))</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s">&#39;Definitions of </span><span class="si">%s</span><span class="s">:&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">Word</span><span class="p">,))</span>
+<span class="k">for</span> <span class="n">definition</span> <span class="ow">in</span> <span class="n">resp</span><span class="o">.</span><span class="n">Definitions</span><span class="o">.</span><span class="n">Definition</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;From </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">):&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">definition</span><span class="o">.</span><span class="n">Dictionary</span><span class="o">.</span><span class="n">Name</span><span class="p">,</span> <span class="n">definition</span><span class="o">.</span><span class="n">Dictionary</span><span class="o">.</span><span class="n">Id</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">definition</span><span class="o">.</span><span class="n">WordDefinition</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The example <tt class="file docutils literal"><span class="pre">showdict.py</span></tt> lists the available dictionaries:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">dict</span>
+<span class="kn">import</span> <span class="nn">urllib2</span>
+<span class="kn">import</span> <span class="nn">pyxb.utils.domutils</span> <span class="kn">as</span> <span class="nn">domutils</span>
+<span class="kn">from</span> <span class="nn">xml.dom</span> <span class="kn">import</span> <span class="n">minidom</span>
+
+<span class="c"># Get the list of dictionaries available from the service.</span>
+<span class="n">port_uri</span> <span class="o">=</span> <span class="s">&#39;http://services.aonaware.com/DictService/DictService.asmx&#39;</span>
+<span class="n">uri</span> <span class="o">=</span> <span class="n">port_uri</span> <span class="o">+</span> <span class="s">&#39;/DictionaryList&#39;</span>
+<span class="n">dle_xml</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">dle_dom</span> <span class="o">=</span> <span class="n">domutils</span><span class="o">.</span><span class="n">StringToDOM</span><span class="p">(</span><span class="n">dle_xml</span><span class="p">)</span>
+<span class="n">dle</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">ArrayOfDictionary</span><span class="o">.</span><span class="n">createFromDOM</span><span class="p">(</span><span class="n">dle_dom</span><span class="p">)</span>
+
+<span class="n">op_path</span> <span class="o">=</span> <span class="s">&#39;/DictionaryInfo&#39;</span>
+<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dle</span><span class="o">.</span><span class="n">Dictionary</span><span class="p">:</span>
+    <span class="c"># Create a REST-style query to retrieve the information about this dictionary.</span>
+    <span class="n">uri</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s%s</span><span class="s">?dictId=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">port_uri</span><span class="p">,</span> <span class="n">op_path</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">Id</span><span class="p">)</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="c"># The response is a simple type derived from string, so we can</span>
+    <span class="c"># just extract and print it.</span>
+    <span class="n">di_resp</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">CreateFromDOM</span><span class="p">(</span><span class="n">domutils</span><span class="o">.</span><span class="n">StringToDOM</span><span class="p">(</span><span class="n">resp</span><span class="p">))</span>
+    <span class="c"># Do the &quot;encode&quot; garbage because one of these dictionaries has a</span>
+    <span class="c"># non-ASCII character</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">)</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">Name</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">),</span> <span class="n">d</span><span class="o">.</span><span class="n">Id</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">),</span> <span class="n">di_resp</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>Sorry, no automatic generation of classes corresponding to the WSDL
+operations.  Next release, maybe.</p>
+</div>
+<div class="section" id="simple-weather-cdyne">
+<span id="ex-weather"></span><h2>Simple Weather (CDyne)<a class="headerlink" href="#simple-weather-cdyne" title="Permalink to this headline">¶</a></h2>
+<p>A <a class="reference external" href="http://ws.cdyne.com/WeatherWS/Weather.asmx">free weather service</a>.
+The REST interface was demonstrated as the <a class="reference internal" href="index.html#thirty-sec-example"><em>Thirty Second Example</em></a>.  A
+SOAP interface example is in <tt class="docutils literal"><span class="pre">client.py</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">weather</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">pyxb.bundles.wssplat.soap11</span> <span class="kn">as</span> <span class="nn">soapenv</span>
+<span class="kn">import</span> <span class="nn">urllib2</span>
+
+<span class="nb">zip</span> <span class="o">=</span> <span class="mi">55113</span>
+<span class="k">if</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">):</span>
+    <span class="nb">zip</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="c"># Create an envelope, and give it a body that is the request for the</span>
+<span class="c"># service we want.</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">soapenv</span><span class="o">.</span><span class="n">Envelope</span><span class="p">(</span><span class="n">soapenv</span><span class="o">.</span><span class="n">Body</span><span class="p">(</span><span class="n">weather</span><span class="o">.</span><span class="n">GetCityForecastByZIP</span><span class="p">(</span><span class="n">ZIP</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="nb">zip</span><span class="p">))))</span>
+<span class="nb">open</span><span class="p">(</span><span class="s">&#39;request.xml&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">))</span>
+
+<span class="c"># Invoke the service</span>
+<span class="n">uri</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="s">&#39;http://wsf.cdyne.com/WeatherWS/Weather.asmx&#39;</span><span class="p">,</span>
+                      <span class="n">env</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">),</span>
+                      <span class="p">{</span> <span class="s">&#39;SOAPAction&#39;</span> <span class="p">:</span> <span class="s">&quot;http://ws.cdyne.com/WeatherWS/GetCityForecastByZIP&quot;</span><span class="p">,</span> <span class="s">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s">&#39;text/xml&#39;</span> <span class="p">}</span> <span class="p">)</span>
+<span class="n">rxml</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="nb">open</span><span class="p">(</span><span class="s">&#39;response.xml&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">rxml</span><span class="p">)</span>
+
+<span class="c"># Convert the response to a SOAP envelope, then extract the actual</span>
+<span class="c"># response from the wildcard elements of the body.  Note that because</span>
+<span class="c"># the weather namespace was registered, PyXB already created the</span>
+<span class="c"># binding for the response.</span>
+<span class="n">soap_resp</span> <span class="o">=</span> <span class="n">soapenv</span><span class="o">.</span><span class="n">CreateFromDocument</span><span class="p">(</span><span class="n">rxml</span><span class="p">)</span>
+<span class="n">resp</span> <span class="o">=</span> <span class="n">soap_resp</span><span class="o">.</span><span class="n">Body</span><span class="o">.</span><span class="n">wildcardElements</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="n">fc_return</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">GetCityForecastByZIPResult</span>
+<span class="k">if</span> <span class="n">fc_return</span><span class="o">.</span><span class="n">Success</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Got response for </span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">:&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fc_return</span><span class="o">.</span><span class="n">City</span><span class="p">,</span> <span class="n">fc_return</span><span class="o">.</span><span class="n">State</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">fc</span> <span class="ow">in</span> <span class="n">fc_return</span><span class="o">.</span><span class="n">ForecastResult</span><span class="o">.</span><span class="n">Forecast</span><span class="p">:</span>
+        <span class="n">when</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%A, %B </span><span class="si">%d</span><span class="s"> %Y&#39;</span><span class="p">,</span> <span class="n">fc</span><span class="o">.</span><span class="n">Date</span><span class="o">.</span><span class="n">timetuple</span><span class="p">())</span>
+        <span class="n">outlook</span> <span class="o">=</span> <span class="n">fc</span><span class="o">.</span><span class="n">Desciption</span> <span class="c"># typos in WSDL left unchanged</span>
+        <span class="n">low</span> <span class="o">=</span> <span class="n">fc</span><span class="o">.</span><span class="n">Temperatures</span><span class="o">.</span><span class="n">MorningLow</span>
+        <span class="n">high</span> <span class="o">=</span> <span class="n">fc</span><span class="o">.</span><span class="n">Temperatures</span><span class="o">.</span><span class="n">DaytimeHigh</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;  </span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">, from </span><span class="si">%s</span><span class="s"> to </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">when</span><span class="p">,</span> <span class="n">outlook</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">))</span>
+        
+    
+</pre></div>
+</div>
+<p>Note the various misspellings in the schema (e.g., &#8220;Desciption&#8221;).  Also, be
+aware that the weather information in this service does not get updated
+often, and sometimes fails to provide valid dates.  Try various zip codes;
+usually you can find one that works.</p>
+</div>
+<div class="section" id="professional-weather-national-digital-forecast-data">
+<span id="ex-ndfd"></span><h2>Professional Weather (National Digital Forecast Data)<a class="headerlink" href="#professional-weather-national-digital-forecast-data" title="Permalink to this headline">¶</a></h2>
+<p>Interact with the <a class="reference external" href="http://www.nws.noaa.gov/xml">National Digital Forecast Database</a>.</p>
+<p>Use the <tt class="file docutils literal"><span class="pre">genbindings.sh</span></tt> script to retrieve the schema for Digital
+Weather Markup Language and generate the bindings.  Note that the schema has
+two levels of <tt class="docutils literal"><span class="pre">include</span></tt> directives, which PyXB follows.</p>
+<p>The examples for this service are too long to include into the web
+documentation.  <tt class="file docutils literal"><span class="pre">forecast.py</span></tt> uses the REST interface to get the
+forecast temperature data for two locations, and print it in several ways.
+<tt class="file docutils literal"><span class="pre">latlon.py</span></tt> does something similar but for a latitude/longitude pair,
+using SOAP, and requesting more data.</p>
+</div>
+<div class="section" id="television-schedules-tribune-media-services">
+<span id="ex-tmsxtvd"></span><h2>Television Schedules (Tribune Media Services)<a class="headerlink" href="#television-schedules-tribune-media-services" title="Permalink to this headline">¶</a></h2>
+<p>A commercial service for <a class="reference external" href="http://www.tribunemediaservices.com/product-and-services/television/services/">television listings</a>.
+Only one sample document is available for testing; it is retrieved using
+<tt class="file docutils literal"><span class="pre">genbindings.sh</span></tt>.  The <tt class="file docutils literal"><span class="pre">dumpsample.py</span></tt> demonstrates extending a
+binding to add a custom method, and parsing content with both DOM and SAX.
+It also provides timing information; the document is about 200KB, and takes
+several seconds to parse.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">tmstvd</span>
+<span class="kn">import</span> <span class="nn">pyxb.utils.domutils</span> <span class="kn">as</span> <span class="nn">domutils</span>
+<span class="kn">import</span> <span class="nn">xml.dom.minidom</span>
+<span class="kn">import</span> <span class="nn">pyxb.utils.saxdom</span>
+<span class="kn">import</span> <span class="nn">pyxb.binding.saxer</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="c">#import cProfile</span>
+
+<span class="c"># Extend the anonymous class used by the xtvd element to add a method</span>
+<span class="c"># we can use to test equality of two instances.  Normally, you&#39;d just</span>
+<span class="c"># refer to the complex type binding class itself, but we don&#39;t know</span>
+<span class="c"># what PyXB named it.</span>
+<span class="k">class</span> <span class="nc">my_xtvd</span> <span class="p">(</span><span class="n">tmstvd</span><span class="o">.</span><span class="n">xtvd</span><span class="o">.</span><span class="n">typeDefinition</span><span class="p">()):</span>
+    <span class="k">def</span> <span class="nf">equal</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">station</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">station</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">station</span><span class="p">)):</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">station</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">o</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">station</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">callSign</span> <span class="o">!=</span> <span class="n">o</span><span class="o">.</span><span class="n">callSign</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">o</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">id</span> <span class="o">!=</span> <span class="n">o</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Match station </span><span class="si">%s</span><span class="s"> is </span><span class="si">%s</span><span class="s">, id </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">callSign</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">True</span>
+<span class="n">tmstvd</span><span class="o">.</span><span class="n">xtvd</span><span class="o">.</span><span class="n">typeDefinition</span><span class="p">()</span><span class="o">.</span><span class="n">_SetSupersedingClass</span><span class="p">(</span><span class="n">my_xtvd</span><span class="p">)</span>
+
+<span class="c"># The sample document.</span>
+<span class="n">xml_file</span> <span class="o">=</span> <span class="s">&#39;tmsdatadirect_sample.xml&#39;</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s">&#39;Generating binding from </span><span class="si">%s</span><span class="s"> with minidom&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xml_file</span><span class="p">,))</span>
+<span class="n">mt1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">xmld</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">xml_file</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">mt2</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">dom</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">dom</span><span class="o">.</span><span class="n">minidom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">xmld</span><span class="p">))</span>
+<span class="n">mt3</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="c">#cProfile.run(&#39;tmstvd.CreateFromDOM(dom.documentElement)&#39;, &#39;dom.prf&#39;)</span>
+<span class="n">dom_instance</span> <span class="o">=</span> <span class="n">tmstvd</span><span class="o">.</span><span class="n">CreateFromDOM</span><span class="p">(</span><span class="n">dom</span><span class="o">.</span><span class="n">documentElement</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&#39;minidom first callSign at </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">dom_instance</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">station</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">callSign</span><span class="o">.</span><span class="n">_location</span><span class="p">(),))</span>
+<span class="n">mt4</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s">&#39;Generating binding from </span><span class="si">%s</span><span class="s"> with SAXDOM&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xml_file</span><span class="p">,))</span>
+<span class="n">dt1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">dom</span> <span class="o">=</span> <span class="n">pyxb</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">saxdom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">xmld</span><span class="p">),</span> <span class="n">location_base</span><span class="o">=</span><span class="n">xml_file</span><span class="p">)</span>
+<span class="n">dt2</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="c">#cProfile.run(&#39;tmstvd.CreateFromDOM(dom.documentElement)&#39;, &#39;saxdom.prf&#39;)</span>
+<span class="n">saxdom_instance</span> <span class="o">=</span> <span class="n">tmstvd</span><span class="o">.</span><span class="n">CreateFromDOM</span><span class="p">(</span><span class="n">dom</span><span class="o">.</span><span class="n">documentElement</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&#39;SAXDOM first callSign at </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">saxdom_instance</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">station</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">callSign</span><span class="o">.</span><span class="n">_location</span><span class="p">(),))</span>
+<span class="n">dt3</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s">&#39;Generating binding from </span><span class="si">%s</span><span class="s"> with SAX&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xml_file</span><span class="p">,))</span>
+<span class="n">st1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">saxer</span> <span class="o">=</span> <span class="n">pyxb</span><span class="o">.</span><span class="n">binding</span><span class="o">.</span><span class="n">saxer</span><span class="o">.</span><span class="n">make_parser</span><span class="p">(</span><span class="n">location_base</span><span class="o">=</span><span class="n">xml_file</span><span class="p">)</span>
+<span class="n">handler</span> <span class="o">=</span> <span class="n">saxer</span><span class="o">.</span><span class="n">getContentHandler</span><span class="p">()</span>
+<span class="n">st2</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">saxer</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">xmld</span><span class="p">))</span>
+<span class="c">#cProfile.run(&#39;saxer.parse(open(xml_file))&#39;, &#39;sax.prf&#39;)</span>
+<span class="n">st3</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">sax_instance</span> <span class="o">=</span> <span class="n">handler</span><span class="o">.</span><span class="n">rootObject</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&#39;SAXER first callSign at </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sax_instance</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">station</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">callSign</span><span class="o">.</span><span class="n">_location</span><span class="p">(),))</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s">&#39;DOM-based read </span><span class="si">%f</span><span class="s">, parse </span><span class="si">%f</span><span class="s">, bind </span><span class="si">%f</span><span class="s">, total </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mt2</span><span class="o">-</span><span class="n">mt1</span><span class="p">,</span> <span class="n">mt3</span><span class="o">-</span><span class="n">mt2</span><span class="p">,</span> <span class="n">mt4</span><span class="o">-</span><span class="n">mt3</span><span class="p">,</span> <span class="n">mt4</span><span class="o">-</span><span class="n">mt2</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&#39;SAXDOM-based parse </span><span class="si">%f</span><span class="s">, bind </span><span class="si">%f</span><span class="s">, total </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dt2</span><span class="o">-</span><span class="n">dt1</span><span class="p">,</span> <span class="n">dt3</span><span class="o">-</span><span class="n">dt2</span><span class="p">,</span> <span class="n">dt3</span><span class="o">-</span><span class="n">dt1</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&#39;SAX-based read </span><span class="si">%f</span><span class="s">, parse and bind </span><span class="si">%f</span><span class="s">, total </span><span class="si">%f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">st2</span><span class="o">-</span><span class="n">st1</span><span class="p">,</span> <span class="n">st3</span><span class="o">-</span><span class="n">st2</span><span class="p">,</span> <span class="n">st3</span><span class="o">-</span><span class="n">st1</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&quot;Equality test on DOM vs SAX: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dom_instance</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sax_instance</span><span class="p">),))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&quot;Equality test on SAXDOM vs SAX: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">saxdom_instance</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sax_instance</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">),))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="address-to-latitude-longitude-http-geocoder-us">
+<span id="ex-geocoder"></span><h2>Address-To-Latitude/Longitude (<a class="reference external" href="http://geocoder.us">http://geocoder.us</a>)<a class="headerlink" href="#address-to-latitude-longitude-http-geocoder-us" title="Permalink to this headline">¶</a></h2>
+<p>This service provides the latitude and longitude for free-form US addresses.
+It also demonstrates several of the pitfalls of using WSDL, which has a very
+lax concept of schemas, with a system that expects to operate on validatable
+documents.  The following changes were made to make the service easier to
+work with:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Change the element form default to <tt class="docutils literal"><span class="pre">qualified</span></tt>.  This is necessary
+because there is a non-absent target namespace in the schema, and the
+documents returned from the service set it as the default namespace.
+This causes the XML engine to associate that namespace with
+locally-scoped elements like &#8220;number&#8221;, while the original <tt class="docutils literal"><span class="pre">unqualified</span></tt>
+form default caused the schema to record them with no namespace.</li>
+<li>Set <tt class="docutils literal"><span class="pre">minOccurs</span></tt> on all the elements, since some are missing from some
+responses</li>
+<li>Set <tt class="docutils literal"><span class="pre">nillable</span></tt> on all elements that are observed to use <tt class="docutils literal"><span class="pre">xsi:nil=&quot;true&quot;</span></tt> in
+response documents</li>
+<li>Provide types and elements corresponding to the request and response
+messages, since PyXB&#8217;s WSDL support does not currently generate them from
+the operation messages.</li>
+</ul>
+</div></blockquote>
+<p><tt class="file docutils literal"><span class="pre">genbindings.sh</span></tt> applies changes to the WSDL after retrieving it and
+prior to generating the bindings.</p>
+<p>A second complication is the need to burrow down through wildcard elements
+in the binding instance generated from the SOAP response.  This is the
+consequence of an <a class="reference external" href="http://tech.groups.yahoo.com/group/soapbuilders/message/5879">error in the WSDL specification</a>, which was
+discovered after too many tools had already worked around it.  Currently,
+PyXB also requires that you work around it manually, although a
+customization of the relevant SOAP encoding class could make it unnecessary.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">GeoCoder</span>
+<span class="kn">from</span> <span class="nn">pyxb</span> <span class="kn">import</span> <span class="n">BIND</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">pyxb.utils.domutils</span> <span class="kn">as</span> <span class="nn">domutils</span>
+<span class="kn">import</span> <span class="nn">pyxb.bundles.wssplat.soap11</span> <span class="kn">as</span> <span class="nn">soapenv</span>
+<span class="kn">import</span> <span class="nn">pyxb.bundles.wssplat.soapenc</span> <span class="kn">as</span> <span class="nn">soapenc</span>
+<span class="kn">import</span> <span class="nn">urllib2</span>
+
+<span class="n">address</span> <span class="o">=</span> <span class="s">&#39;1600 Pennsylvania Ave., Washington, DC&#39;</span>
+<span class="k">if</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">):</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="n">env</span> <span class="o">=</span> <span class="n">soapenv</span><span class="o">.</span><span class="n">Envelope</span><span class="p">(</span><span class="n">Body</span><span class="o">=</span><span class="n">BIND</span><span class="p">(</span><span class="n">GeoCoder</span><span class="o">.</span><span class="n">geocode</span><span class="p">(</span><span class="n">address</span><span class="p">)))</span>
+
+<span class="n">uri</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="s">&#39;http://rpc.geocoder.us/service/soap/&#39;</span><span class="p">,</span>
+                      <span class="n">env</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">),</span>
+                      <span class="p">{</span> <span class="s">&#39;SOAPAction&#39;</span> <span class="p">:</span> <span class="s">&quot;http://rpc.geocoder.us/Geo/Coder/US#geocode&quot;</span><span class="p">,</span> <span class="s">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s">&#39;text/xml&#39;</span> <span class="p">}</span> <span class="p">)</span>
+
+<span class="n">rxml</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="c">#open(&#39;response.xml&#39;, &#39;w&#39;).write(rxml)</span>
+<span class="c">#rxml = open(&#39;response.xml&#39;).read()</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">soapenv</span><span class="o">.</span><span class="n">CreateFromDocument</span><span class="p">(</span><span class="n">rxml</span><span class="p">)</span>
+
+<span class="c"># OK, here we get into ugliness due to WSDL&#39;s concept of schema in the</span>
+<span class="c"># SOAP encoding not being consistent with XML Schema, even though it</span>
+<span class="c"># uses the same namespace.  See</span>
+<span class="c"># http://tech.groups.yahoo.com/group/soapbuilders/message/5879.  In</span>
+<span class="c"># short, the WSDL spec shows an example using soapenc:Array where a</span>
+<span class="c"># restriction was used to set the value of the wsdl:arrayType</span>
+<span class="c"># attribute.  This restriction failed to duplicate the element content</span>
+<span class="c"># of the base type, resulting in a content type of empty in the</span>
+<span class="c"># restricted type.  Consequently, PyXB can&#39;t get the information out</span>
+<span class="c"># of the DOM node, and we have to skip over the wildcard items to find</span>
+<span class="c"># something we can deal with.</span>
+
+<span class="c"># As further evidence the folks who designed SOAP 1.1 didn&#39;t know what</span>
+<span class="c"># they were doing, the encodingStyle attribute that&#39;s supposed to go</span>
+<span class="c"># in the Envelope can&#39;t validly be present there, since it&#39;s not</span>
+<span class="c"># listed and it&#39;s not in the namespace admitted by the attribute</span>
+<span class="c"># wildcard.  Fortunately, PyXB doesn&#39;t currently validate wildcards.</span>
+
+<span class="n">encoding_style</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">wildcardAttributeMap</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">soapenv</span><span class="o">.</span><span class="n">Namespace</span><span class="o">.</span><span class="n">createExpandedName</span><span class="p">(</span><span class="s">&#39;encodingStyle&#39;</span><span class="p">))</span>
+<span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">if</span> <span class="n">encoding_style</span> <span class="o">==</span> <span class="n">soapenc</span><span class="o">.</span><span class="n">Namespace</span><span class="o">.</span><span class="n">uri</span><span class="p">():</span>
+    <span class="n">gcr</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">Body</span><span class="o">.</span><span class="n">wildcardElements</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">soap_array</span> <span class="o">=</span> <span class="n">gcr</span><span class="o">.</span><span class="n">wildcardElements</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="n">soap_array</span><span class="o">.</span><span class="n">wildcardElements</span><span class="p">()</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">lat</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">item</span><span class="o">.</span><span class="n">lat</span><span class="o">.</span><span class="n">_isNil</span><span class="p">():</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Warning: Address did not resolve&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"></span>
+<span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">  </span><span class="si">%s</span><span class="s"></span>
+<span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">number</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">street</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">suffix</span><span class="p">,</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">city</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">zip</span><span class="p">,</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">lat</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">long</span><span class="p">))</span>
+    
+</pre></div>
+</div>
+</div>
+<div class="section" id="opengis-http-www-opengeospatial-org">
+<span id="ex-opengis"></span><h2>OpenGIS (<a class="reference external" href="http://www.opengeospatial.org">http://www.opengeospatial.org</a>)<a class="headerlink" href="#opengis-http-www-opengeospatial-org" title="Permalink to this headline">¶</a></h2>
+<p>See the directory <tt class="docutils literal"><span class="pre">examples/OpenGIS</span></tt> in the distribution.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Examples</a><ul>
+<li><a class="reference internal" href="#dictionary-aonaware">Dictionary (Aonaware)</a></li>
+<li><a class="reference internal" href="#simple-weather-cdyne">Simple Weather (CDyne)</a></li>
+<li><a class="reference internal" href="#professional-weather-national-digital-forecast-data">Professional Weather (National Digital Forecast Data)</a></li>
+<li><a class="reference internal" href="#television-schedules-tribune-media-services">Television Schedules (Tribune Media Services)</a></li>
+<li><a class="reference internal" href="#address-to-latitude-longitude-http-geocoder-us">Address-To-Latitude/Longitude (http://geocoder.us)</a></li>
+<li><a class="reference internal" href="#opengis-http-www-opengeospatial-org">OpenGIS (http://www.opengeospatial.org)</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="related.html"
+                        title="previous chapter">Related Packages</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="releases.html"
+                        title="next chapter">Release History</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/examples.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="releases.html" title="Release History"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="related.html" title="Related Packages"
+             >previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009-2013, Peter A. Bigot.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

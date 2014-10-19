@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.xmlschema.structures._ScopedDeclaration_mixin</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.xmlschema-module.html">Package&nbsp;xmlschema</a> ::
+        <a href="pyxb.xmlschema.structures-module.html">Module&nbsp;structures</a> ::
+        Class&nbsp;_ScopedDeclaration_mixin
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.xmlschema.structures._ScopedDeclaration_mixin-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== TYPE DESCRIPTION ==================== -->
+<h1 class="epydoc">type _ScopedDeclaration_mixin</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_ScopedDeclaration_mixin">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+object --+    
+         |    
+   <a href="pyxb.cscRoot-class.html">cscRoot</a> --+
+             |
+            <strong class="uidshort">_ScopedDeclaration_mixin</strong>
+</pre>
+
+<dl><dt>Known Subclasses:</dt>
+<dd>
+      <ul class="subclass-list">
+<li><a href="pyxb.xmlschema.structures.AttributeDeclaration-class.html">AttributeDeclaration</a></li><li>, <a href="pyxb.xmlschema.structures.ElementDeclaration-class.html">ElementDeclaration</a></li>  </ul>
+</dd></dl>
+
+<hr />
+<p>Mix-in class for named components that have a scope.</p>
+  <p>Scope is important when doing cross-namespace inheritance, e.g. 
+  extending or restricting a complex type definition that is from a 
+  different namespace.  In this case, we will need to retain a reference to
+  the external component when the schema is serialized.</p>
+  <p>This is done in the pickling process by including the scope when 
+  pickling a component as a reference.  The scope is the SCOPE_global if 
+  global; otherwise, it is a tuple containing the external namespace URI 
+  and the NCName of the complex type definition in that namespace.  We 
+  assume that the complex type definition has global scope; otherwise, it 
+  should not have been possible to extend or restrict it.  (Should this be 
+  untrue, there are comments in the code about a possible solution.)</p>
+
+<hr />
+<div class="fields">      <p><strong>Warning:</strong>
+        This mix-in must follow <a 
+        href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html" 
+        class="link" onclick="show_private();">_NamedComponent_mixin</a> in
+        the <code>mro</code>.
+      </p>
+</div><!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.xmlschema.structures._ScopedDeclaration_mixin-class.html#_scopeIsCompatible" class="summary-sig-name" onclick="show_private();">_scopeIsCompatible</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">scope</span>)</span><br />
+      Return True if this scope currently assigned to this instance is 
+      compatible with the given scope.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_ScopedDeclaration_mixin._scopeIsCompatible">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.xmlschema.structures._ScopedDeclaration_mixin-class.html#scope" class="summary-sig-name">scope</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      The scope for the declaration.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_ScopedDeclaration_mixin.scope">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="baseDeclaration"></a><span class="summary-sig-name">baseDeclaration</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_ScopedDeclaration_mixin.baseDeclaration">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_baseDeclaration"></a><span class="summary-sig-name">_baseDeclaration</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">referenced_declaration</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_ScopedDeclaration_mixin._baseDeclaration">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.cscRoot-class.html">cscRoot</a></code></b>:
+      <code><a href="pyxb.cscRoot-class.html#__init__">__init__</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="IsValidScope"></a><span class="summary-sig-name">IsValidScope</span>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">value</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_ScopedDeclaration_mixin.IsValidScope">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ScopeIsIndeterminate"></a><span class="summary-sig-name">ScopeIsIndeterminate</span>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">value</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_ScopedDeclaration_mixin.ScopeIsIndeterminate">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ScopeIsGlobal"></a><span class="summary-sig-name">ScopeIsGlobal</span>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">value</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_ScopedDeclaration_mixin.ScopeIsGlobal">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="SCOPE_global"></a><span class="summary-name">SCOPE_global</span> = <code title="'global'"><code class="variable-quote">'</code><code class="variable-string">global</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="XSCOPE_indeterminate"></a><span class="summary-name">XSCOPE_indeterminate</span> = <code title="'indeterminate'"><code class="variable-quote">'</code><code class="variable-string">indeterminate</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__baseDeclaration"></a><span class="summary-name">__baseDeclaration</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_ScopedDeclaration_mixin__baseDeclaration"></a><span class="summary-name">_ScopedDeclaration_mixin__baseDeclaration</span> = <code title="None">None</code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="_scopeIsCompatible"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_scopeIsCompatible</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">scope</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_ScopedDeclaration_mixin._scopeIsCompatible">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return True if this scope currently assigned to this instance is 
+  compatible with the given scope.</p>
+  <p>If either scope is indeterminate, presume they will ultimately be 
+  compatible.  Scopes that are equal are compatible, as is a local scope if
+  this already has a global scope.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="scope"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">scope</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_ScopedDeclaration_mixin.scope">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>The scope for the declaration.</p>
+  <p>Valid values are SCOPE_global, or a complex type definition. A value 
+  of None means a non-global declaration that is not owned by a complex 
+  type definition.  These can only appear in attribute group definitions or
+  model group definitions.</p>
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>To Do:</strong>
+        For declarations in named model groups (viz., local elements that 
+    aren't references), the scope needs to be set by the owning complex 
+    type.
+      </p>
+</div></td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:38 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

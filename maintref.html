@@ -1,0 +1,320 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Maintainer Reference &mdash; PyXB 1.2.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.2.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyXB 1.2.3 documentation" href="index.html" />
+    <link rel="prev" title="pyxbgen Command Line Options" href="pyxbgen_cli.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="pyxbgen_cli.html" title="pyxbgen Command Line Options"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="maintainer-reference">
+<h1>Maintainer Reference<a class="headerlink" href="#maintainer-reference" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="the-api">
+<h2>The <a class="reference external" href="api/index.html">API</a><a class="headerlink" href="#the-api" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference external" href="api/index.html">API</a> for PyXB was generated using <a class="reference external" href="http://epydoc.sourceforge.net/">Epydoc</a>.  Most of the public API is commented,
+though not all docstrings have been updated to use Epydoc syntax.</p>
+</div>
+<div class="section" id="git-repository">
+<span id="id2"></span><h2>Git Repository<a class="headerlink" href="#git-repository" title="Permalink to this headline">¶</a></h2>
+<p>PyXB is developed using <a class="reference external" href="http://gitscm.org">git</a>.  You can check out the
+development branch with:</p>
+<div class="highlight-python"><pre>git clone git://pyxb.git.sourceforge.net/gitroot/pyxb/pyxb</pre>
+</div>
+<p>Public development is mostly done on the <tt class="docutils literal"><span class="pre">next</span></tt> branch, which is the
+default for checkouts from SourceForge.  The <tt class="docutils literal"><span class="pre">master</span></tt> branch contains
+material integrated into the release, and follows <tt class="docutils literal"><span class="pre">next</span></tt>.  Tags for each
+release are in the format <tt class="docutils literal"><span class="pre">PyXB-X.Y.Z</span></tt>.</p>
+<p>Bug fixes with unit tests are pushed to the <tt class="docutils literal"><span class="pre">next</span></tt> branch as soon as they
+are fixed.  Users whose reported issues have been fixed are encouraged to
+use the development branch until the fix has been made available in a tagged
+and packaged release.</p>
+</div>
+<div class="section" id="coding-practices">
+<h2>Coding Practices<a class="headerlink" href="#coding-practices" title="Permalink to this headline">¶</a></h2>
+<p>The practices described herein are <em>intended</em> to be used, but evolved over
+time, and not all are followed in every situation.</p>
+<div class="section" id="style">
+<h3>Style<a class="headerlink" href="#style" title="Permalink to this headline">¶</a></h3>
+<p>PyXB follows generally uses a coding style consistent with those described
+in the Python coding standard in <span class="target" id="index-0"></span><a class="pep reference external" href="http://www.python.org/dev/peps/pep-0008"><strong>PEP 8</strong></a>.  Specific exceptions are listed
+below.</p>
+<div class="section" id="whitespace">
+<h4>Whitespace<a class="headerlink" href="#whitespace" title="Permalink to this headline">¶</a></h4>
+<p>The pet peeves of PyXB&#8217;s maintainer differ from the <a class="reference external" href="http://en.wikipedia.org/wiki/Guido_van_Rossum">BDFL</a>&#8216;s when it comes to
+whitespace.  Spaces are used around operators to reveal precedence
+assumptions, and sometimes around parenthesis to distinguish tuple value
+boundaries:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">hypot2</span> <span class="o">=</span> <span class="n">x</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="o">*</span><span class="n">y</span>
+<span class="n">pair_of_pairs</span> <span class="o">=</span> <span class="p">(</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">),</span> <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>Definitions of methods and classes always use a space before the
+parenthesis; invocations never do:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">declaration</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recurse</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+   <span class="k">if</span> <span class="n">recurse</span><span class="p">:</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">declaration</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="naming">
+<span id="identifier-naming"></span><h4>Naming<a class="headerlink" href="#naming" title="Permalink to this headline">¶</a></h4>
+<p>PyXB heavily uses a single leading underscore as an indication of
+protected/friend status, as suggested in <span class="target" id="index-1"></span><a class="pep reference external" href="http://www.python.org/dev/peps/pep-0008"><strong>PEP 8</strong></a>.  Wherever possible,
+double leading underscores are used to hide class member fields, restricting
+access to them through protected or public accessor methods.</p>
+<p>Class members that are specifically <em>class</em> (as opposed to <em>instance</em>)
+members begin with a capital letter.</p>
+<p>An underscore is used to separate the descriptive class or function name
+from a suffix that indicates its use.  Standard suffixes are:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">mixin</span></tt> : A class that does not stand alone, but is a superclass of one
+or more classes</li>
+<li><tt class="docutils literal"><span class="pre">csc</span></tt> : A method that uses <a class="reference internal" href="#coding-csc"><em>cooperative super calling</em></a></li>
+<li><tt class="docutils literal"><span class="pre">vx</span></tt>, <tt class="docutils literal"><span class="pre">vb</span></tt> : An indication that the method is expected to be
+overridden in a subclass.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="exceptions">
+<h3>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h3>
+<p>PyXB provides a <a class="reference external" href="api/pyxb.exceptions_-module.html">standard exception hierarchy</a> that extends the one built into Python.</p>
+<p>Where an execution branch has been identified that requires behavior that
+has not yet been implemented, raise an
+<a class="reference external" href="api/pyxb.exceptions_.IncompleteImplementationError-class.html">IncompleteImplementationError</a>.  At the current stage
+of development, these should be extremely rare.</p>
+<p>Where the system detects that a precondition is not satisfied, processing
+must stop.  If the precondition failure is due to improper use of the PyXB
+internal or public API, a <a class="reference external" href="api/pyxb.exceptions_.LogicError-class.html">LogicError</a> should be
+raised.  If the precondition failure is due to invalid input from the
+schema, a <a class="reference external" href="api/pyxb.exceptions_.SchemaValidationError-class.html">SchemaValidationError</a> should be raised.</p>
+<p>If the precondition is inexplicably false, Python&#8217;s <tt class="docutils literal"><span class="pre">assert</span></tt> functionality
+may be used.  Use of <tt class="docutils literal"><span class="pre">assert</span></tt> should be rare, and only in places that are
+guaranteed to be exercised during the course of testing.</p>
+<p>The exception behavior of methods SHOULD be documented.  Documentation of
+asserts is not required.</p>
+</div>
+<div class="section" id="annotations">
+<h3>Annotations<a class="headerlink" href="#annotations" title="Permalink to this headline">¶</a></h3>
+<p>Use decorators (<span class="target" id="index-2"></span><a class="pep reference external" href="http://www.python.org/dev/peps/pep-0318"><strong>PEP 318</strong></a>) to mark class methods.  Note that this restricts
+us to Python 2.4 or later.  Sigh with disappointment and move on.</p>
+</div>
+<div class="section" id="documentation">
+<h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h3>
+<p>Use the <a class="reference external" href="http://epydoc.sourceforge.net/manual-epytext.html">Epytext Markup Language</a> for all public and
+implementation-shared methods and classes.  (Formerly, this was &#8220;Use
+docstrings <span class="target" id="index-3"></span><a class="pep reference external" href="http://www.python.org/dev/peps/pep-0257"><strong>PEP 257</strong></a>&#8221;.  Documentation in only a few modules has been
+converted.)</p>
+</div>
+<div class="section" id="comments">
+<h3>Comments<a class="headerlink" href="#comments" title="Permalink to this headline">¶</a></h3>
+<p>Use comments copiously.  Do not duplicate detailed information from
+standards, but do include pertinent summaries and a reference to the section
+in which the details can be found.  The casual reader should not be forced
+to open the standard to figure out what the coder intended to accomplish.</p>
+</div>
+<div class="section" id="terminology">
+<h3>Terminology<a class="headerlink" href="#terminology" title="Permalink to this headline">¶</a></h3>
+<p>The term &#8220;attribute&#8221; has different meanings in Python and XML.</p>
+<p>tag : Refers to the text that opens an XML element</p>
+<p>instance : [as an adjective] Refers to a characteristic of an instance of a
+Python class.</p>
+<p>class : [as an adjective] Refers to a characteristic of a Python class
+itself, shared among all instances.</p>
+<p>field : Refers to a named attribute of a Python object (class).  When the
+attribute holds a value, it is an &#8220;instance (class) variable&#8221; or &#8220;instance
+(class) field&#8221;.  When it holds a reference to an invokable object, it is an
+&#8220;instance (class) method&#8221;.</p>
+</div>
+<div class="section" id="use-of-new-style-classes">
+<h3>Use of new-style classes<a class="headerlink" href="#use-of-new-style-classes" title="Permalink to this headline">¶</a></h3>
+<p>Too many things, such as clean hooking into the pickling system, require the
+use of <a class="reference external" href="http://www.geocities.com/foetsch/python/new_style_classes.htm">new-style classes</a>.
+Namespaces, schema components, and types (simple and complex) all use
+new-style classes.</p>
+<p>For this to work properly, if you implement an <tt class="docutils literal"><span class="pre">__init__</span></tt> method, it must take
+arbitrary args and keywords, invoke <tt class="docutils literal"><span class="pre">super(Class,</span> <span class="pre">self).__init__(*args,**kw)</span></tt>,
+and extract any arguments it needs from the keywords.  If you do not need to
+do anything in the init method, leave it out.  See
+<a class="reference external" href="http://fuhm.net/super-harmful/">this commentary</a> for a detailed
+description of the intricacies of <tt class="docutils literal"><span class="pre">super</span></tt>.</p>
+</div>
+<div class="section" id="inheritance">
+<h3>Inheritance<a class="headerlink" href="#inheritance" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="mix-in-classes">
+<span id="mixins"></span><h4>Mix-in classes<a class="headerlink" href="#mix-in-classes" title="Permalink to this headline">¶</a></h4>
+<p>PyXB makes heavy use of multiple inheritance through <a class="reference external" href="http://en.wikipedia.org/wiki/Mixin">mix-in classes</a>.  If there are constraints on where
+the mix-in must appear in the method resolution order (mro), note that
+clearly in the mix-in documentation.</p>
+</div>
+<div class="section" id="invoking-superclass-instances">
+<span id="coding-csc"></span><h4>Invoking Superclass Instances<a class="headerlink" href="#invoking-superclass-instances" title="Permalink to this headline">¶</a></h4>
+<p><a class="reference external" href="http://www.geocities.com/foetsch/python/new_style_classes.htm#super">Cooperative super calling</a> is a
+pattern where a class may inherit multiple implementations of the same
+method, and want to call all of them.  Normally this is done by invoking the
+parent class implementation before or after the subclass implementation.  In
+non-trivial inheritance hierarchies (as result from using many mix-ins),
+it&#8217;s not obvious who the next parent to call is, so the Python <tt class="docutils literal"><span class="pre">super</span></tt>
+function is used.  However, at some point a class will be reached that has
+no more definitions for the called method, and attempting to invoke one
+would produce an <tt class="docutils literal"><span class="pre">AttributeError</span></tt>.</p>
+<p>Use the following idiom to conditionally invoke superclass methods when you
+are not sure the superclass has such a method.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">method_csc</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="n">super_fn</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">super</span><span class="p">(</span><span class="n">ThisClass</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span> <span class="s">&#39;method_csc&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span><span class="o">**</span><span class="n">kw</span><span class="p">:</span> <span class="bp">self</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">super_fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note the use of the <tt class="docutils literal"><span class="pre">_csc</span></tt> suffix to highlight that this method uses
+cooperative super calling.</p>
+</div>
+<div class="section" id="class-variables-at-multiple-levels">
+<h4>Class Variables At Multiple Levels<a class="headerlink" href="#class-variables-at-multiple-levels" title="Permalink to this headline">¶</a></h4>
+<p>There are several cases where we want to store information in a class, but
+allow subclasses (not instances) to override it.  An example is in the
+<a class="reference external" href="api/pyxb.binding.basis.simpleTypeDefinition-class.html">simpleTypeDefinition</a> hierarchy where each class
+maintains a set of <a class="reference external" href="api/pyxb.binding.facets.ConstrainingFacet-class.html">ConstrainingFacet</a> instances
+that are available for constraining values of the class.  In many cases, a
+subclass will not change the set of facets that affect instances, so we want
+to be able to inherit the parent class map; but in other cases we may need
+to add constraints that only affect the new class and its descendents.</p>
+<p>This sort of thing is supported by implementing a private class method in
+the base class which combines the dynamically-determined actual class name
+with a constant identifier and uses <tt class="docutils literal"><span class="pre">getattr</span></tt> and <tt class="docutils literal"><span class="pre">setattr</span></tt> to access
+the class-specific value.</p>
+<p>Type declarations may extend a type of the same name in a different
+namespace.  If they do so, their binding classes will likely have the same
+name, but in different modules, while also inheriting (in exactly the
+situation where we want different values).  For this reason, the constructed
+attribute name should also incorporate the module or namespace, something
+normally not done with the double-underscore feature of Python.</p>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Maintainer Reference</a><ul>
+<li><a class="reference internal" href="#the-api">The API</a></li>
+<li><a class="reference internal" href="#git-repository">Git Repository</a></li>
+<li><a class="reference internal" href="#coding-practices">Coding Practices</a><ul>
+<li><a class="reference internal" href="#style">Style</a><ul>
+<li><a class="reference internal" href="#whitespace">Whitespace</a></li>
+<li><a class="reference internal" href="#naming">Naming</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#exceptions">Exceptions</a></li>
+<li><a class="reference internal" href="#annotations">Annotations</a></li>
+<li><a class="reference internal" href="#documentation">Documentation</a></li>
+<li><a class="reference internal" href="#comments">Comments</a></li>
+<li><a class="reference internal" href="#terminology">Terminology</a></li>
+<li><a class="reference internal" href="#use-of-new-style-classes">Use of new-style classes</a></li>
+<li><a class="reference internal" href="#inheritance">Inheritance</a><ul>
+<li><a class="reference internal" href="#mix-in-classes">Mix-in classes</a></li>
+<li><a class="reference internal" href="#invoking-superclass-instances">Invoking Superclass Instances</a></li>
+<li><a class="reference internal" href="#class-variables-at-multiple-levels">Class Variables At Multiple Levels</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pyxbgen_cli.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">pyxbgen</span></tt> Command Line Options</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/maintref.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="pyxbgen_cli.html" title="pyxbgen Command Line Options"
+             >previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009-2013, Peter A. Bigot.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

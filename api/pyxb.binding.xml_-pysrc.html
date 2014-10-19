@@ -1,0 +1,633 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.binding.xml_</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.binding-module.html">Package&nbsp;binding</a> ::
+        Module&nbsp;xml_
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.binding.xml_-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="pyxb.binding.xml_-module.html">Module pyxb.binding.xml_</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># -*- coding: utf-8 -*-</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-comment"># Copyright 2009-2013, Peter A. Bigot</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-comment"># Licensed under the Apache License, Version 2.0 (the "License"); you may</tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-comment"># not use this file except in compliance with the License. You may obtain a</tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-comment"># copy of the License at:</tt> </tt>
+<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-comment">#            http://www.apache.org/licenses/LICENSE-2.0</tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-comment"># Unless required by applicable law or agreed to in writing, software</tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"><tt class="py-comment"># distributed under the License is distributed on an "AS IS" BASIS, WITHOUT</tt> </tt>
+<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"><tt class="py-comment"># WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</tt> </tt>
+<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line"><tt class="py-comment"># License for the specific language governing permissions and limitations</tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"><tt class="py-comment"># under the License.</tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"><tt class="py-docstring">"""Binding classes for types referenced by the attribute and attribute</tt> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"><tt class="py-docstring">group declarations in the XML namespace</tt> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"><tt class="py-docstring">(http://www.w3.org/XML/1998/namespace).</tt> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line"><tt class="py-docstring">The content of this module was generated by PyXB and is coupled to the</tt> </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line"><tt class="py-docstring">components defined in L{pyxb.namespace.builtin._XML}.</tt> </tt>
+<a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line"> </tt>
+<a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line"><tt class="py-comment"># ./pyxb/standard/bindings/raw/xml_.py</tt> </tt>
+<a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line"><tt class="py-comment"># PyXB bindings for NamespaceModule</tt> </tt>
+<a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line"><tt class="py-comment"># Generated 2009-07-25 13:37:53.257717 by PyXB version 0.5.2</tt> </tt>
+<a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-0" class="py-name" targets="Package pyxb=pyxb-module.html"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-0', 'pyxb', 'link-0');">pyxb</a></tt> </tt>
+<a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-1" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-1', 'pyxb', 'link-0');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Package pyxb.binding=pyxb.binding-module.html"><a title="pyxb.binding" class="py-name" href="#" onclick="return doclink('link-2', 'binding', 'link-2');">binding</a></tt> </tt>
+<a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-3" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-3', 'pyxb', 'link-0');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-4" class="py-name" targets="Package pyxb.utils=pyxb.utils-module.html"><a title="pyxb.utils" class="py-name" href="#" onclick="return doclink('link-4', 'utils', 'link-4');">utils</a></tt><tt class="py-op">.</tt><tt id="link-5" class="py-name" targets="Module pyxb.namespace.utility=pyxb.namespace.utility-module.html,Module pyxb.utils.utility=pyxb.utils.utility-module.html"><a title="pyxb.namespace.utility
+pyxb.utils.utility" class="py-name" href="#" onclick="return doclink('link-5', 'utility', 'link-5');">utility</a></tt> </tt>
+<a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-6" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-6', 'pyxb', 'link-0');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-7" class="py-name"><a title="pyxb.utils" class="py-name" href="#" onclick="return doclink('link-7', 'utils', 'link-4');">utils</a></tt><tt class="py-op">.</tt><tt id="link-8" class="py-name" targets="Module pyxb.utils.domutils=pyxb.utils.domutils-module.html"><a title="pyxb.utils.domutils" class="py-name" href="#" onclick="return doclink('link-8', 'domutils', 'link-8');">domutils</a></tt> </tt>
+<a name="L32"></a><tt class="py-lineno">32</tt>  <tt class="py-line"> </tt>
+<a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line"><tt class="py-comment"># Unique identifier for bindings created at the same time</tt> </tt>
+<a name="L34"></a><tt class="py-lineno">34</tt>  <tt class="py-line"><tt id="link-9" class="py-name" targets="Variable pyxb.binding.xml_._GenerationUID=pyxb.binding.xml_-module.html#_GenerationUID"><a title="pyxb.binding.xml_._GenerationUID" class="py-name" href="#" onclick="return doclink('link-9', '_GenerationUID', 'link-9');">_GenerationUID</a></tt> <tt class="py-op">=</tt> <tt id="link-10" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-10', 'pyxb', 'link-0');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-11" class="py-name" targets="Method pyxb.binding.generate.NamespaceModule.namespace()=pyxb.binding.generate.NamespaceModule-class.html#namespace,Method pyxb.exceptions_.NamespaceError.namespace()=pyxb.exceptions_.NamespaceError-class.html#namespace,Method pyxb.exceptions_.SchemaUniquenessError.namespace()=pyxb.exceptions_.SchemaUniquenessError-class.html#namespace,Package pyxb.namespace=pyxb.namespace-module.html,Method pyxb.namespace.ExpandedName.namespace()=pyxb.namespace.ExpandedName-class.html#namespace,Method pyxb.namespace.NamedObjectMap.namespace()=pyxb.namespace.NamedObjectMap-class.html#namespace,Method pyxb.namespace.archive.ModuleRecord.namespace()=pyxb.namespace.archive.ModuleRecord-class.html#namespace,Method pyxb.namespace.archive._ObjectOrigin.namespace()=pyxb.namespace.archive._ObjectOrigin-class.html#namespace,Method pyxb.xmlschema.structures._ImportElementInformationItem.namespace()=pyxb.xmlschema.structures._ImportElementInformationItem-class.html#namespace,Method pyxb.xmlschema.structures._PickledAnonymousReference.namespace()=pyxb.xmlschema.structures._PickledAnonymousReference-class.html#namespace"><a title="pyxb.binding.generate.NamespaceModule.namespace
+pyxb.exceptions_.NamespaceError.namespace
+pyxb.exceptions_.SchemaUniquenessError.namespace
+pyxb.namespace
+pyxb.namespace.ExpandedName.namespace
+pyxb.namespace.NamedObjectMap.namespace
+pyxb.namespace.archive.ModuleRecord.namespace
+pyxb.namespace.archive._ObjectOrigin.namespace
+pyxb.xmlschema.structures._ImportElementInformationItem.namespace
+pyxb.xmlschema.structures._PickledAnonymousReference.namespace" class="py-name" href="#" onclick="return doclink('link-11', 'namespace', 'link-11');">namespace</a></tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Module pyxb.namespace.builtin=pyxb.namespace.builtin-module.html"><a title="pyxb.namespace.builtin" class="py-name" href="#" onclick="return doclink('link-12', 'builtin', 'link-12');">builtin</a></tt><tt class="py-op">.</tt><tt id="link-13" class="py-name" targets="Variable pyxb.namespace.builtin.BuiltInObjectUID=pyxb.namespace.builtin-module.html#BuiltInObjectUID"><a title="pyxb.namespace.builtin.BuiltInObjectUID" class="py-name" href="#" onclick="return doclink('link-13', 'BuiltInObjectUID', 'link-13');">BuiltInObjectUID</a></tt> </tt>
+<a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line"> </tt>
+<a name="L36"></a><tt class="py-lineno">36</tt>  <tt class="py-line"><tt class="py-comment"># Import bindings for namespaces imported into schema</tt> </tt>
+<a name="L37"></a><tt class="py-lineno">37</tt>  <tt class="py-line"> </tt>
+<a name="L38"></a><tt class="py-lineno">38</tt>  <tt class="py-line"><tt id="link-14" class="py-name" targets="Variable pyxb.binding.xml_.Namespace=pyxb.binding.xml_-module.html#Namespace,Class pyxb.namespace.Namespace=pyxb.namespace.Namespace-class.html"><a title="pyxb.binding.xml_.Namespace
+pyxb.namespace.Namespace" class="py-name" href="#" onclick="return doclink('link-14', 'Namespace', 'link-14');">Namespace</a></tt> <tt class="py-op">=</tt> <tt id="link-15" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-15', 'pyxb', 'link-0');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-16" class="py-name"><a title="pyxb.binding.generate.NamespaceModule.namespace
+pyxb.exceptions_.NamespaceError.namespace
+pyxb.exceptions_.SchemaUniquenessError.namespace
+pyxb.namespace
+pyxb.namespace.ExpandedName.namespace
+pyxb.namespace.NamedObjectMap.namespace
+pyxb.namespace.archive.ModuleRecord.namespace
+pyxb.namespace.archive._ObjectOrigin.namespace
+pyxb.xmlschema.structures._ImportElementInformationItem.namespace
+pyxb.xmlschema.structures._PickledAnonymousReference.namespace" class="py-name" href="#" onclick="return doclink('link-16', 'namespace', 'link-11');">namespace</a></tt><tt class="py-op">.</tt><tt id="link-17" class="py-name" targets="Function pyxb.namespace.utility.NamespaceForURI()=pyxb.namespace.utility-module.html#NamespaceForURI"><a title="pyxb.namespace.utility.NamespaceForURI" class="py-name" href="#" onclick="return doclink('link-17', 'NamespaceForURI', 'link-17');">NamespaceForURI</a></tt><tt class="py-op">(</tt><tt class="py-string">'http://www.w3.org/XML/1998/namespace'</tt><tt class="py-op">,</tt> <tt class="py-name">create_if_missing</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+<a name="L39"></a><tt class="py-lineno">39</tt>  <tt class="py-line"> </tt>
+<a name="L40"></a><tt class="py-lineno">40</tt>  <tt class="py-line"><tt class="py-comment"># Atomic SimpleTypeDefinition</tt> </tt>
+<a name="STD_ANON_space"></a><div id="STD_ANON_space-def"><a name="L41"></a><tt class="py-lineno">41</tt> <a class="py-toggle" href="#" id="STD_ANON_space-toggle" onclick="return toggle('STD_ANON_space');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="pyxb.binding.xml_.STD_ANON_space-class.html">STD_ANON_space</a> <tt class="py-op">(</tt><tt class="py-base-class">pyxb</tt><tt class="py-op">.</tt><tt class="py-base-class">binding</tt><tt class="py-op">.</tt><tt class="py-base-class">datatypes</tt><tt class="py-op">.</tt><tt class="py-base-class">NCName</tt><tt class="py-op">,</tt> <tt class="py-base-class">pyxb</tt><tt class="py-op">.</tt><tt class="py-base-class">binding</tt><tt class="py-op">.</tt><tt class="py-base-class">basis</tt><tt class="py-op">.</tt><tt class="py-base-class">enumeration_mixin</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="STD_ANON_space-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="STD_ANON_space-expanded"><a name="L42"></a><tt class="py-lineno">42</tt>  <tt class="py-line">    <tt class="py-docstring">"""No information"""</tt> </tt>
+<a name="L43"></a><tt class="py-lineno">43</tt>  <tt class="py-line"> </tt>
+<a name="L44"></a><tt class="py-lineno">44</tt>  <tt class="py-line">    <tt id="link-18" class="py-name" targets="Variable pyxb.binding.basis._TypeBinding_mixin._ExpandedName=pyxb.binding.basis._TypeBinding_mixin-class.html#_ExpandedName,Variable pyxb.binding.datatypes.ENTITIES._ExpandedName=pyxb.binding.datatypes.ENTITIES-class.html#_ExpandedName,Variable pyxb.binding.datatypes.ENTITY._ExpandedName=pyxb.binding.datatypes.ENTITY-class.html#_ExpandedName,Variable pyxb.binding.datatypes.ID._ExpandedName=pyxb.binding.datatypes.ID-class.html#_ExpandedName,Variable pyxb.binding.datatypes.IDREF._ExpandedName=pyxb.binding.datatypes.IDREF-class.html#_ExpandedName,Variable pyxb.binding.datatypes.IDREFS._ExpandedName=pyxb.binding.datatypes.IDREFS-class.html#_ExpandedName,Variable pyxb.binding.datatypes.NCName._ExpandedName=pyxb.binding.datatypes.NCName-class.html#_ExpandedName,Variable pyxb.binding.datatypes.NMTOKEN._ExpandedName=pyxb.binding.datatypes.NMTOKEN-class.html#_ExpandedName,Variable pyxb.binding.datatypes.NOTATION._ExpandedName=pyxb.binding.datatypes.NOTATION-class.html#_ExpandedName,Variable pyxb.binding.datatypes.Name._ExpandedName=pyxb.binding.datatypes.Name-class.html#_ExpandedName,Variable pyxb.binding.datatypes.QName._ExpandedName=pyxb.binding.datatypes.QName-class.html#_ExpandedName,Variable pyxb.binding.datatypes.anySimpleType._ExpandedName=pyxb.binding.datatypes.anySimpleType-class.html#_ExpandedName,Variable pyxb.binding.datatypes.anyType._ExpandedName=pyxb.binding.datatypes.anyType-class.html#_ExpandedName,Variable pyxb.binding.datatypes.anyURI._ExpandedName=pyxb.binding.datatypes.anyURI-class.html#_ExpandedName,Variable pyxb.binding.datatypes.base64Binary._ExpandedName=pyxb.binding.datatypes.base64Binary-class.html#_ExpandedName,Variable pyxb.binding.datatypes.boolean._ExpandedName=pyxb.binding.datatypes.boolean-class.html#_ExpandedName,Variable pyxb.binding.datatypes.byte._ExpandedName=pyxb.binding.datatypes.byte-class.html#_ExpandedName,Variable pyxb.binding.datatypes.date._ExpandedName=pyxb.binding.datatypes.date-class.html#_ExpandedName,Variable pyxb.binding.datatypes.dateTime._ExpandedName=pyxb.binding.datatypes.dateTime-class.html#_ExpandedName,Variable pyxb.binding.datatypes.decimal._ExpandedName=pyxb.binding.datatypes.decimal-class.html#_ExpandedName,Variable pyxb.binding.datatypes.double._ExpandedName=pyxb.binding.datatypes.double-class.html#_ExpandedName,Variable pyxb.binding.datatypes.duration._ExpandedName=pyxb.binding.datatypes.duration-class.html#_ExpandedName,Variable pyxb.binding.datatypes.float._ExpandedName=pyxb.binding.datatypes.float-class.html#_ExpandedName,Variable pyxb.binding.datatypes.gDay._ExpandedName=pyxb.binding.datatypes.gDay-class.html#_ExpandedName,Variable pyxb.binding.datatypes.gMonth._ExpandedName=pyxb.binding.datatypes.gMonth-class.html#_ExpandedName,Variable pyxb.binding.datatypes.gMonthDay._ExpandedName=pyxb.binding.datatypes.gMonthDay-class.html#_ExpandedName,Variable pyxb.binding.datatypes.gYear._ExpandedName=pyxb.binding.datatypes.gYear-class.html#_ExpandedName,Variable pyxb.binding.datatypes.gYearMonth._ExpandedName=pyxb.binding.datatypes.gYearMonth-class.html#_ExpandedName,Variable pyxb.binding.datatypes.hexBinary._ExpandedName=pyxb.binding.datatypes.hexBinary-class.html#_ExpandedName,Variable pyxb.binding.datatypes.int._ExpandedName=pyxb.binding.datatypes.int-class.html#_ExpandedName,Variable pyxb.binding.datatypes.integer._ExpandedName=pyxb.binding.datatypes.integer-class.html#_ExpandedName,Variable pyxb.binding.datatypes.language._ExpandedName=pyxb.binding.datatypes.language-class.html#_ExpandedName,Variable pyxb.binding.datatypes.long._ExpandedName=pyxb.binding.datatypes.long-class.html#_ExpandedName,Variable pyxb.binding.datatypes.negativeInteger._ExpandedName=pyxb.binding.datatypes.negativeInteger-class.html#_ExpandedName,Variable pyxb.binding.datatypes.nonNegativeInteger._ExpandedName=pyxb.binding.datatypes.nonNegativeInteger-class.html#_ExpandedName,Variable pyxb.binding.datatypes.nonPositiveInteger._ExpandedName=pyxb.binding.datatypes.nonPositiveInteger-class.html#_ExpandedName,Variable pyxb.binding.datatypes.normalizedString._ExpandedName=pyxb.binding.datatypes.normalizedString-class.html#_ExpandedName,Variable pyxb.binding.datatypes.positiveInteger._ExpandedName=pyxb.binding.datatypes.positiveInteger-class.html#_ExpandedName,Variable pyxb.binding.datatypes.short._ExpandedName=pyxb.binding.datatypes.short-class.html#_ExpandedName,Variable pyxb.binding.datatypes.string._ExpandedName=pyxb.binding.datatypes.string-class.html#_ExpandedName,Variable pyxb.binding.datatypes.time._ExpandedName=pyxb.binding.datatypes.time-class.html#_ExpandedName,Variable pyxb.binding.datatypes.token._ExpandedName=pyxb.binding.datatypes.token-class.html#_ExpandedName,Variable pyxb.binding.datatypes.unsignedByte._ExpandedName=pyxb.binding.datatypes.unsignedByte-class.html#_ExpandedName,Variable pyxb.binding.datatypes.unsignedInt._ExpandedName=pyxb.binding.datatypes.unsignedInt-class.html#_ExpandedName,Variable pyxb.binding.datatypes.unsignedLong._ExpandedName=pyxb.binding.datatypes.unsignedLong-class.html#_ExpandedName,Variable pyxb.binding.datatypes.unsignedShort._ExpandedName=pyxb.binding.datatypes.unsignedShort-class.html#_ExpandedName,Variable pyxb.binding.xml_.STD_ANON_emptyString._ExpandedName=pyxb.binding.xml_.STD_ANON_emptyString-class.html#_ExpandedName,Variable pyxb.binding.xml_.STD_ANON_lang._ExpandedName=pyxb.binding.xml_.STD_ANON_lang-class.html#_ExpandedName,Variable pyxb.binding.xml_.STD_ANON_space._ExpandedName=pyxb.binding.xml_.STD_ANON_space-class.html#_ExpandedName"><a title="pyxb.binding.basis._TypeBinding_mixin._ExpandedName
+pyxb.binding.datatypes.ENTITIES._ExpandedName
+pyxb.binding.datatypes.ENTITY._ExpandedName
+pyxb.binding.datatypes.ID._ExpandedName
+pyxb.binding.datatypes.IDREF._ExpandedName
+pyxb.binding.datatypes.IDREFS._ExpandedName
+pyxb.binding.datatypes.NCName._ExpandedName
+pyxb.binding.datatypes.NMTOKEN._ExpandedName
+pyxb.binding.datatypes.NOTATION._ExpandedName
+pyxb.binding.datatypes.Name._ExpandedName
+pyxb.binding.datatypes.QName._ExpandedName
+pyxb.binding.datatypes.anySimpleType._ExpandedName
+pyxb.binding.datatypes.anyType._ExpandedName
+pyxb.binding.datatypes.anyURI._ExpandedName
+pyxb.binding.datatypes.base64Binary._ExpandedName
+pyxb.binding.datatypes.boolean._ExpandedName
+pyxb.binding.datatypes.byte._ExpandedName
+pyxb.binding.datatypes.date._ExpandedName
+pyxb.binding.datatypes.dateTime._ExpandedName
+pyxb.binding.datatypes.decimal._ExpandedName
+pyxb.binding.datatypes.double._ExpandedName
+pyxb.binding.datatypes.duration._ExpandedName
+pyxb.binding.datatypes.float._ExpandedName
+pyxb.binding.datatypes.gDay._ExpandedName
+pyxb.binding.datatypes.gMonth._ExpandedName
+pyxb.binding.datatypes.gMonthDay._ExpandedName
+pyxb.binding.datatypes.gYear._ExpandedName
+pyxb.binding.datatypes.gYearMonth._ExpandedName
+pyxb.binding.datatypes.hexBinary._ExpandedName
+pyxb.binding.datatypes.int._ExpandedName
+pyxb.binding.datatypes.integer._ExpandedName
+pyxb.binding.datatypes.language._ExpandedName
+pyxb.binding.datatypes.long._ExpandedName
+pyxb.binding.datatypes.negativeInteger._ExpandedName
+pyxb.binding.datatypes.nonNegativeInteger._ExpandedName
+pyxb.binding.datatypes.nonPositiveInteger._ExpandedName
+pyxb.binding.datatypes.normalizedString._ExpandedName
+pyxb.binding.datatypes.positiveInteger._ExpandedName
+pyxb.binding.datatypes.short._ExpandedName
+pyxb.binding.datatypes.string._ExpandedName
+pyxb.binding.datatypes.time._ExpandedName
+pyxb.binding.datatypes.token._ExpandedName
+pyxb.binding.datatypes.unsignedByte._ExpandedName
+pyxb.binding.datatypes.unsignedInt._ExpandedName
+pyxb.binding.datatypes.unsignedLong._ExpandedName
+pyxb.binding.datatypes.unsignedShort._ExpandedName
+pyxb.binding.xml_.STD_ANON_emptyString._ExpandedName
+pyxb.binding.xml_.STD_ANON_lang._ExpandedName
+pyxb.binding.xml_.STD_ANON_space._ExpandedName" class="py-name" href="#" onclick="return doclink('link-18', '_ExpandedName', 'link-18');">_ExpandedName</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+</div><a name="L45"></a><tt class="py-lineno">45</tt>  <tt class="py-line"><tt id="link-19" class="py-name" targets="Class pyxb.binding.xml_.STD_ANON_space=pyxb.binding.xml_.STD_ANON_space-class.html"><a title="pyxb.binding.xml_.STD_ANON_space" class="py-name" href="#" onclick="return doclink('link-19', 'STD_ANON_space', 'link-19');">STD_ANON_space</a></tt><tt class="py-op">.</tt><tt id="link-20" class="py-name" targets="Variable pyxb.binding.datatypes.ENTITIES._CF_enumeration=pyxb.binding.datatypes.ENTITIES-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.IDREFS._CF_enumeration=pyxb.binding.datatypes.IDREFS-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.NMTOKENS._CF_enumeration=pyxb.binding.datatypes.NMTOKENS-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.NOTATION._CF_enumeration=pyxb.binding.datatypes.NOTATION-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.QName._CF_enumeration=pyxb.binding.datatypes.QName-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.anyURI._CF_enumeration=pyxb.binding.datatypes.anyURI-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.base64Binary._CF_enumeration=pyxb.binding.datatypes.base64Binary-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.date._CF_enumeration=pyxb.binding.datatypes.date-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.dateTime._CF_enumeration=pyxb.binding.datatypes.dateTime-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.decimal._CF_enumeration=pyxb.binding.datatypes.decimal-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.double._CF_enumeration=pyxb.binding.datatypes.double-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.duration._CF_enumeration=pyxb.binding.datatypes.duration-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.float._CF_enumeration=pyxb.binding.datatypes.float-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.gDay._CF_enumeration=pyxb.binding.datatypes.gDay-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.gMonth._CF_enumeration=pyxb.binding.datatypes.gMonth-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.gMonthDay._CF_enumeration=pyxb.binding.datatypes.gMonthDay-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.gYear._CF_enumeration=pyxb.binding.datatypes.gYear-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.gYearMonth._CF_enumeration=pyxb.binding.datatypes.gYearMonth-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.hexBinary._CF_enumeration=pyxb.binding.datatypes.hexBinary-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.string._CF_enumeration=pyxb.binding.datatypes.string-class.html#_CF_enumeration,Variable pyxb.binding.datatypes.time._CF_enumeration=pyxb.binding.datatypes.time-class.html#_CF_enumeration,Variable pyxb.binding.facets._WhiteSpace_enum._CF_enumeration=pyxb.binding.facets._WhiteSpace_enum-class.html#_CF_enumeration,Variable pyxb.binding.xml_.STD_ANON_emptyString._CF_enumeration=pyxb.binding.xml_.STD_ANON_emptyString-class.html#_CF_enumeration,Variable pyxb.binding.xml_.STD_ANON_lang._CF_enumeration=pyxb.binding.xml_.STD_ANON_lang-class.html#_CF_enumeration,Variable pyxb.binding.xml_.STD_ANON_space._CF_enumeration=pyxb.binding.xml_.STD_ANON_space-class.html#_CF_enumeration"><a title="pyxb.binding.datatypes.ENTITIES._CF_enumeration
+pyxb.binding.datatypes.IDREFS._CF_enumeration
+pyxb.binding.datatypes.NMTOKENS._CF_enumeration
+pyxb.binding.datatypes.NOTATION._CF_enumeration
+pyxb.binding.datatypes.QName._CF_enumeration
+pyxb.binding.datatypes.anyURI._CF_enumeration
+pyxb.binding.datatypes.base64Binary._CF_enumeration
+pyxb.binding.datatypes.date._CF_enumeration
+pyxb.binding.datatypes.dateTime._CF_enumeration
+pyxb.binding.datatypes.decimal._CF_enumeration
+pyxb.binding.datatypes.double._CF_enumeration
+pyxb.binding.datatypes.duration._CF_enumeration
+pyxb.binding.datatypes.float._CF_enumeration
+pyxb.binding.datatypes.gDay._CF_enumeration
+pyxb.binding.datatypes.gMonth._CF_enumeration
+pyxb.binding.datatypes.gMonthDay._CF_enumeration
+pyxb.binding.datatypes.gYear._CF_enumeration
+pyxb.binding.datatypes.gYearMonth._CF_enumeration
+pyxb.binding.datatypes.hexBinary._CF_enumeration
+pyxb.binding.datatypes.string._CF_enumeration
+pyxb.binding.datatypes.time._CF_enumeration
+pyxb.binding.facets._WhiteSpace_enum._CF_enumeration
+pyxb.binding.xml_.STD_ANON_emptyString._CF_enumeration
+pyxb.binding.xml_.STD_ANON_lang._CF_enumeration
+pyxb.binding.xml_.STD_ANON_space._CF_enumeration" class="py-name" href="#" onclick="return doclink('link-20', '_CF_enumeration', 'link-20');">_CF_enumeration</a></tt> <tt class="py-op">=</tt> <tt id="link-21" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-21', 'pyxb', 'link-0');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="pyxb.binding" class="py-name" href="#" onclick="return doclink('link-22', 'binding', 'link-2');">binding</a></tt><tt class="py-op">.</tt><tt id="link-23" class="py-name" targets="Module pyxb.binding.facets=pyxb.binding.facets-module.html,Method pyxb.xmlschema.structures.SimpleTypeDefinition.facets()=pyxb.xmlschema.structures.SimpleTypeDefinition-class.html#facets"><a title="pyxb.binding.facets
+pyxb.xmlschema.structures.SimpleTypeDefinition.facets" class="py-name" href="#" onclick="return doclink('link-23', 'facets', 'link-23');">facets</a></tt><tt class="py-op">.</tt><tt id="link-24" class="py-name" targets="Class pyxb.binding.facets.CF_enumeration=pyxb.binding.facets.CF_enumeration-class.html"><a title="pyxb.binding.facets.CF_enumeration" class="py-name" href="#" onclick="return doclink('link-24', 'CF_enumeration', 'link-24');">CF_enumeration</a></tt><tt class="py-op">(</tt><tt class="py-name">value_datatype</tt><tt class="py-op">=</tt><tt id="link-25" class="py-name"><a title="pyxb.binding.xml_.STD_ANON_space" class="py-name" href="#" onclick="return doclink('link-25', 'STD_ANON_space', 'link-19');">STD_ANON_space</a></tt><tt class="py-op">,</tt> <tt class="py-name">enum_prefix</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt> </tt>
+<a name="L46"></a><tt class="py-lineno">46</tt>  <tt class="py-line"><tt id="link-26" class="py-name"><a title="pyxb.binding.xml_.STD_ANON_space" class="py-name" href="#" onclick="return doclink('link-26', 'STD_ANON_space', 'link-19');">STD_ANON_space</a></tt><tt class="py-op">.</tt><tt id="link-27" class="py-name" targets="Variable pyxb.binding.xml_.STD_ANON_space.default=pyxb.binding.xml_.STD_ANON_space-class.html#default,Method pyxb.xmlschema.structures._ValueConstraint_mixin.default()=pyxb.xmlschema.structures._ValueConstraint_mixin-class.html#default"><a title="pyxb.binding.xml_.STD_ANON_space.default
+pyxb.xmlschema.structures._ValueConstraint_mixin.default" class="py-name" href="#" onclick="return doclink('link-27', 'default', 'link-27');">default</a></tt> <tt class="py-op">=</tt> <tt id="link-28" class="py-name"><a title="pyxb.binding.xml_.STD_ANON_space" class="py-name" href="#" onclick="return doclink('link-28', 'STD_ANON_space', 'link-19');">STD_ANON_space</a></tt><tt class="py-op">.</tt><tt id="link-29" class="py-name"><a title="pyxb.binding.datatypes.ENTITIES._CF_enumeration
+pyxb.binding.datatypes.IDREFS._CF_enumeration
+pyxb.binding.datatypes.NMTOKENS._CF_enumeration
+pyxb.binding.datatypes.NOTATION._CF_enumeration
+pyxb.binding.datatypes.QName._CF_enumeration
+pyxb.binding.datatypes.anyURI._CF_enumeration
+pyxb.binding.datatypes.base64Binary._CF_enumeration
+pyxb.binding.datatypes.date._CF_enumeration
+pyxb.binding.datatypes.dateTime._CF_enumeration
+pyxb.binding.datatypes.decimal._CF_enumeration
+pyxb.binding.datatypes.double._CF_enumeration
+pyxb.binding.datatypes.duration._CF_enumeration
+pyxb.binding.datatypes.float._CF_enumeration
+pyxb.binding.datatypes.gDay._CF_enumeration
+pyxb.binding.datatypes.gMonth._CF_enumeration
+pyxb.binding.datatypes.gMonthDay._CF_enumeration
+pyxb.binding.datatypes.gYear._CF_enumeration
+pyxb.binding.datatypes.gYearMonth._CF_enumeration
+pyxb.binding.datatypes.hexBinary._CF_enumeration
+pyxb.binding.datatypes.string._CF_enumeration
+pyxb.binding.datatypes.time._CF_enumeration
+pyxb.binding.facets._WhiteSpace_enum._CF_enumeration
+pyxb.binding.xml_.STD_ANON_emptyString._CF_enumeration
+pyxb.binding.xml_.STD_ANON_lang._CF_enumeration
+pyxb.binding.xml_.STD_ANON_space._CF_enumeration" class="py-name" href="#" onclick="return doclink('link-29', '_CF_enumeration', 'link-20');">_CF_enumeration</a></tt><tt class="py-op">.</tt><tt id="link-30" class="py-name" targets="Method pyxb.binding.facets.CF_enumeration.addEnumeration()=pyxb.binding.facets.CF_enumeration-class.html#addEnumeration"><a title="pyxb.binding.facets.CF_enumeration.addEnumeration" class="py-name" href="#" onclick="return doclink('link-30', 'addEnumeration', 'link-30');">addEnumeration</a></tt><tt class="py-op">(</tt><tt class="py-name">unicode_value</tt><tt class="py-op">=</tt><tt class="py-string">u'default'</tt><tt class="py-op">)</tt> </tt>
+<a name="L47"></a><tt class="py-lineno">47</tt>  <tt class="py-line"><tt id="link-31" class="py-name"><a title="pyxb.binding.xml_.STD_ANON_space" class="py-name" href="#" onclick="return doclink('link-31', 'STD_ANON_space', 'link-19');">STD_ANON_space</a></tt><tt class="py-op">.</tt><tt id="link-32" class="py-name" targets="Variable pyxb.binding.facets._WhiteSpace_enum.preserve=pyxb.binding.facets._WhiteSpace_enum-class.html#preserve,Variable pyxb.binding.xml_.STD_ANON_space.preserve=pyxb.binding.xml_.STD_ANON_space-class.html#preserve"><a title="pyxb.binding.facets._WhiteSpace_enum.preserve
+pyxb.binding.xml_.STD_ANON_space.preserve" class="py-name" href="#" onclick="return doclink('link-32', 'preserve', 'link-32');">preserve</a></tt> <tt class="py-op">=</tt> <tt id="link-33" class="py-name"><a title="pyxb.binding.xml_.STD_ANON_space" class="py-name" href="#" onclick="return doclink('link-33', 'STD_ANON_space', 'link-19');">STD_ANON_space</a></tt><tt class="py-op">.</tt><tt id="link-34" class="py-name"><a title="pyxb.binding.datatypes.ENTITIES._CF_enumeration
+pyxb.binding.datatypes.IDREFS._CF_enumeration
+pyxb.binding.datatypes.NMTOKENS._CF_enumeration
+pyxb.binding.datatypes.NOTATION._CF_enumeration
+pyxb.binding.datatypes.QName._CF_enumeration
+pyxb.binding.datatypes.anyURI._CF_enumeration
+pyxb.binding.datatypes.base64Binary._CF_enumeration
+pyxb.binding.datatypes.date._CF_enumeration
+pyxb.binding.datatypes.dateTime._CF_enumeration
+pyxb.binding.datatypes.decimal._CF_enumeration
+pyxb.binding.datatypes.double._CF_enumeration
+pyxb.binding.datatypes.duration._CF_enumeration
+pyxb.binding.datatypes.float._CF_enumeration
+pyxb.binding.datatypes.gDay._CF_enumeration
+pyxb.binding.datatypes.gMonth._CF_enumeration
+pyxb.binding.datatypes.gMonthDay._CF_enumeration
+pyxb.binding.datatypes.gYear._CF_enumeration
+pyxb.binding.datatypes.gYearMonth._CF_enumeration
+pyxb.binding.datatypes.hexBinary._CF_enumeration
+pyxb.binding.datatypes.string._CF_enumeration
+pyxb.binding.datatypes.time._CF_enumeration
+pyxb.binding.facets._WhiteSpace_enum._CF_enumeration
+pyxb.binding.xml_.STD_ANON_emptyString._CF_enumeration
+pyxb.binding.xml_.STD_ANON_lang._CF_enumeration
+pyxb.binding.xml_.STD_ANON_space._CF_enumeration" class="py-name" href="#" onclick="return doclink('link-34', '_CF_enumeration', 'link-20');">_CF_enumeration</a></tt><tt class="py-op">.</tt><tt id="link-35" class="py-name"><a title="pyxb.binding.facets.CF_enumeration.addEnumeration" class="py-name" href="#" onclick="return doclink('link-35', 'addEnumeration', 'link-30');">addEnumeration</a></tt><tt class="py-op">(</tt><tt class="py-name">unicode_value</tt><tt class="py-op">=</tt><tt class="py-string">u'preserve'</tt><tt class="py-op">)</tt> </tt>
+<a name="L48"></a><tt class="py-lineno">48</tt>  <tt class="py-line"><tt id="link-36" class="py-name"><a title="pyxb.binding.xml_.STD_ANON_space" class="py-name" href="#" onclick="return doclink('link-36', 'STD_ANON_space', 'link-19');">STD_ANON_space</a></tt><tt class="py-op">.</tt><tt id="link-37" class="py-name" targets="Class Method pyxb.binding.basis.simpleTypeDefinition._InitializeFacetMap()=pyxb.binding.basis.simpleTypeDefinition-class.html#_InitializeFacetMap"><a title="pyxb.binding.basis.simpleTypeDefinition._InitializeFacetMap" class="py-name" href="#" onclick="return doclink('link-37', '_InitializeFacetMap', 'link-37');">_InitializeFacetMap</a></tt><tt class="py-op">(</tt><tt id="link-38" class="py-name"><a title="pyxb.binding.xml_.STD_ANON_space" class="py-name" href="#" onclick="return doclink('link-38', 'STD_ANON_space', 'link-19');">STD_ANON_space</a></tt><tt class="py-op">.</tt><tt id="link-39" class="py-name"><a title="pyxb.binding.datatypes.ENTITIES._CF_enumeration
+pyxb.binding.datatypes.IDREFS._CF_enumeration
+pyxb.binding.datatypes.NMTOKENS._CF_enumeration
+pyxb.binding.datatypes.NOTATION._CF_enumeration
+pyxb.binding.datatypes.QName._CF_enumeration
+pyxb.binding.datatypes.anyURI._CF_enumeration
+pyxb.binding.datatypes.base64Binary._CF_enumeration
+pyxb.binding.datatypes.date._CF_enumeration
+pyxb.binding.datatypes.dateTime._CF_enumeration
+pyxb.binding.datatypes.decimal._CF_enumeration
+pyxb.binding.datatypes.double._CF_enumeration
+pyxb.binding.datatypes.duration._CF_enumeration
+pyxb.binding.datatypes.float._CF_enumeration
+pyxb.binding.datatypes.gDay._CF_enumeration
+pyxb.binding.datatypes.gMonth._CF_enumeration
+pyxb.binding.datatypes.gMonthDay._CF_enumeration
+pyxb.binding.datatypes.gYear._CF_enumeration
+pyxb.binding.datatypes.gYearMonth._CF_enumeration
+pyxb.binding.datatypes.hexBinary._CF_enumeration
+pyxb.binding.datatypes.string._CF_enumeration
+pyxb.binding.datatypes.time._CF_enumeration
+pyxb.binding.facets._WhiteSpace_enum._CF_enumeration
+pyxb.binding.xml_.STD_ANON_emptyString._CF_enumeration
+pyxb.binding.xml_.STD_ANON_lang._CF_enumeration
+pyxb.binding.xml_.STD_ANON_space._CF_enumeration" class="py-name" href="#" onclick="return doclink('link-39', '_CF_enumeration', 'link-20');">_CF_enumeration</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L49"></a><tt class="py-lineno">49</tt>  <tt class="py-line"> </tt>
+<a name="L50"></a><tt class="py-lineno">50</tt>  <tt class="py-line"><tt class="py-comment"># Atomic SimpleTypeDefinition</tt> </tt>
+<a name="STD_ANON_emptyString"></a><div id="STD_ANON_emptyString-def"><a name="L51"></a><tt class="py-lineno">51</tt> <a class="py-toggle" href="#" id="STD_ANON_emptyString-toggle" onclick="return toggle('STD_ANON_emptyString');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="pyxb.binding.xml_.STD_ANON_emptyString-class.html">STD_ANON_emptyString</a> <tt class="py-op">(</tt><tt class="py-base-class">pyxb</tt><tt class="py-op">.</tt><tt class="py-base-class">binding</tt><tt class="py-op">.</tt><tt class="py-base-class">datatypes</tt><tt class="py-op">.</tt><tt class="py-base-class">string</tt><tt class="py-op">,</tt> <tt class="py-base-class">pyxb</tt><tt class="py-op">.</tt><tt class="py-base-class">binding</tt><tt class="py-op">.</tt><tt class="py-base-class">basis</tt><tt class="py-op">.</tt><tt class="py-base-class">enumeration_mixin</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="STD_ANON_emptyString-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="STD_ANON_emptyString-expanded"><a name="L52"></a><tt class="py-lineno">52</tt>  <tt class="py-line">    <tt class="py-docstring">"""No information"""</tt> </tt>
+<a name="L53"></a><tt class="py-lineno">53</tt>  <tt class="py-line"> </tt>
+<a name="L54"></a><tt class="py-lineno">54</tt>  <tt class="py-line">    <tt id="link-40" class="py-name"><a title="pyxb.binding.basis._TypeBinding_mixin._ExpandedName
+pyxb.binding.datatypes.ENTITIES._ExpandedName
+pyxb.binding.datatypes.ENTITY._ExpandedName
+pyxb.binding.datatypes.ID._ExpandedName
+pyxb.binding.datatypes.IDREF._ExpandedName
+pyxb.binding.datatypes.IDREFS._ExpandedName
+pyxb.binding.datatypes.NCName._ExpandedName
+pyxb.binding.datatypes.NMTOKEN._ExpandedName
+pyxb.binding.datatypes.NOTATION._ExpandedName
+pyxb.binding.datatypes.Name._ExpandedName
+pyxb.binding.datatypes.QName._ExpandedName
+pyxb.binding.datatypes.anySimpleType._ExpandedName
+pyxb.binding.datatypes.anyType._ExpandedName
+pyxb.binding.datatypes.anyURI._ExpandedName
+pyxb.binding.datatypes.base64Binary._ExpandedName
+pyxb.binding.datatypes.boolean._ExpandedName
+pyxb.binding.datatypes.byte._ExpandedName
+pyxb.binding.datatypes.date._ExpandedName
+pyxb.binding.datatypes.dateTime._ExpandedName
+pyxb.binding.datatypes.decimal._ExpandedName
+pyxb.binding.datatypes.double._ExpandedName
+pyxb.binding.datatypes.duration._ExpandedName
+pyxb.binding.datatypes.float._ExpandedName
+pyxb.binding.datatypes.gDay._ExpandedName
+pyxb.binding.datatypes.gMonth._ExpandedName
+pyxb.binding.datatypes.gMonthDay._ExpandedName
+pyxb.binding.datatypes.gYear._ExpandedName
+pyxb.binding.datatypes.gYearMonth._ExpandedName
+pyxb.binding.datatypes.hexBinary._ExpandedName
+pyxb.binding.datatypes.int._ExpandedName
+pyxb.binding.datatypes.integer._ExpandedName
+pyxb.binding.datatypes.language._ExpandedName
+pyxb.binding.datatypes.long._ExpandedName
+pyxb.binding.datatypes.negativeInteger._ExpandedName
+pyxb.binding.datatypes.nonNegativeInteger._ExpandedName
+pyxb.binding.datatypes.nonPositiveInteger._ExpandedName
+pyxb.binding.datatypes.normalizedString._ExpandedName
+pyxb.binding.datatypes.positiveInteger._ExpandedName
+pyxb.binding.datatypes.short._ExpandedName
+pyxb.binding.datatypes.string._ExpandedName
+pyxb.binding.datatypes.time._ExpandedName
+pyxb.binding.datatypes.token._ExpandedName
+pyxb.binding.datatypes.unsignedByte._ExpandedName
+pyxb.binding.datatypes.unsignedInt._ExpandedName
+pyxb.binding.datatypes.unsignedLong._ExpandedName
+pyxb.binding.datatypes.unsignedShort._ExpandedName
+pyxb.binding.xml_.STD_ANON_emptyString._ExpandedName
+pyxb.binding.xml_.STD_ANON_lang._ExpandedName
+pyxb.binding.xml_.STD_ANON_space._ExpandedName" class="py-name" href="#" onclick="return doclink('link-40', '_ExpandedName', 'link-18');">_ExpandedName</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+</div><a name="L55"></a><tt class="py-lineno">55</tt>  <tt class="py-line"><tt id="link-41" class="py-name" targets="Class pyxb.binding.xml_.STD_ANON_emptyString=pyxb.binding.xml_.STD_ANON_emptyString-class.html"><a title="pyxb.binding.xml_.STD_ANON_emptyString" class="py-name" href="#" onclick="return doclink('link-41', 'STD_ANON_emptyString', 'link-41');">STD_ANON_emptyString</a></tt><tt class="py-op">.</tt><tt id="link-42" class="py-name"><a title="pyxb.binding.datatypes.ENTITIES._CF_enumeration
+pyxb.binding.datatypes.IDREFS._CF_enumeration
+pyxb.binding.datatypes.NMTOKENS._CF_enumeration
+pyxb.binding.datatypes.NOTATION._CF_enumeration
+pyxb.binding.datatypes.QName._CF_enumeration
+pyxb.binding.datatypes.anyURI._CF_enumeration
+pyxb.binding.datatypes.base64Binary._CF_enumeration
+pyxb.binding.datatypes.date._CF_enumeration
+pyxb.binding.datatypes.dateTime._CF_enumeration
+pyxb.binding.datatypes.decimal._CF_enumeration
+pyxb.binding.datatypes.double._CF_enumeration
+pyxb.binding.datatypes.duration._CF_enumeration
+pyxb.binding.datatypes.float._CF_enumeration
+pyxb.binding.datatypes.gDay._CF_enumeration
+pyxb.binding.datatypes.gMonth._CF_enumeration
+pyxb.binding.datatypes.gMonthDay._CF_enumeration
+pyxb.binding.datatypes.gYear._CF_enumeration
+pyxb.binding.datatypes.gYearMonth._CF_enumeration
+pyxb.binding.datatypes.hexBinary._CF_enumeration
+pyxb.binding.datatypes.string._CF_enumeration
+pyxb.binding.datatypes.time._CF_enumeration
+pyxb.binding.facets._WhiteSpace_enum._CF_enumeration
+pyxb.binding.xml_.STD_ANON_emptyString._CF_enumeration
+pyxb.binding.xml_.STD_ANON_lang._CF_enumeration
+pyxb.binding.xml_.STD_ANON_space._CF_enumeration" class="py-name" href="#" onclick="return doclink('link-42', '_CF_enumeration', 'link-20');">_CF_enumeration</a></tt> <tt class="py-op">=</tt> <tt id="link-43" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-43', 'pyxb', 'link-0');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-44" class="py-name"><a title="pyxb.binding" class="py-name" href="#" onclick="return doclink('link-44', 'binding', 'link-2');">binding</a></tt><tt class="py-op">.</tt><tt id="link-45" class="py-name"><a title="pyxb.binding.facets
+pyxb.xmlschema.structures.SimpleTypeDefinition.facets" class="py-name" href="#" onclick="return doclink('link-45', 'facets', 'link-23');">facets</a></tt><tt class="py-op">.</tt><tt id="link-46" class="py-name"><a title="pyxb.binding.facets.CF_enumeration" class="py-name" href="#" onclick="return doclink('link-46', 'CF_enumeration', 'link-24');">CF_enumeration</a></tt><tt class="py-op">(</tt><tt class="py-name">value_datatype</tt><tt class="py-op">=</tt><tt id="link-47" class="py-name"><a title="pyxb.binding.xml_.STD_ANON_emptyString" class="py-name" href="#" onclick="return doclink('link-47', 'STD_ANON_emptyString', 'link-41');">STD_ANON_emptyString</a></tt><tt class="py-op">,</tt> <tt class="py-name">enum_prefix</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt> </tt>
+<a name="L56"></a><tt class="py-lineno">56</tt>  <tt class="py-line"><tt id="link-48" class="py-name"><a title="pyxb.binding.xml_.STD_ANON_emptyString" class="py-name" href="#" onclick="return doclink('link-48', 'STD_ANON_emptyString', 'link-41');">STD_ANON_emptyString</a></tt><tt class="py-op">.</tt><tt id="link-49" class="py-name" targets="Variable pyxb.binding.xml_.STD_ANON_emptyString.emptyString=pyxb.binding.xml_.STD_ANON_emptyString-class.html#emptyString"><a title="pyxb.binding.xml_.STD_ANON_emptyString.emptyString" class="py-name" href="#" onclick="return doclink('link-49', 'emptyString', 'link-49');">emptyString</a></tt> <tt class="py-op">=</tt> <tt id="link-50" class="py-name"><a title="pyxb.binding.xml_.STD_ANON_emptyString" class="py-name" href="#" onclick="return doclink('link-50', 'STD_ANON_emptyString', 'link-41');">STD_ANON_emptyString</a></tt><tt class="py-op">.</tt><tt id="link-51" class="py-name"><a title="pyxb.binding.datatypes.ENTITIES._CF_enumeration
+pyxb.binding.datatypes.IDREFS._CF_enumeration
+pyxb.binding.datatypes.NMTOKENS._CF_enumeration
+pyxb.binding.datatypes.NOTATION._CF_enumeration
+pyxb.binding.datatypes.QName._CF_enumeration
+pyxb.binding.datatypes.anyURI._CF_enumeration
+pyxb.binding.datatypes.base64Binary._CF_enumeration
+pyxb.binding.datatypes.date._CF_enumeration
+pyxb.binding.datatypes.dateTime._CF_enumeration
+pyxb.binding.datatypes.decimal._CF_enumeration
+pyxb.binding.datatypes.double._CF_enumeration
+pyxb.binding.datatypes.duration._CF_enumeration
+pyxb.binding.datatypes.float._CF_enumeration
+pyxb.binding.datatypes.gDay._CF_enumeration
+pyxb.binding.datatypes.gMonth._CF_enumeration
+pyxb.binding.datatypes.gMonthDay._CF_enumeration
+pyxb.binding.datatypes.gYear._CF_enumeration
+pyxb.binding.datatypes.gYearMonth._CF_enumeration
+pyxb.binding.datatypes.hexBinary._CF_enumeration
+pyxb.binding.datatypes.string._CF_enumeration
+pyxb.binding.datatypes.time._CF_enumeration
+pyxb.binding.facets._WhiteSpace_enum._CF_enumeration
+pyxb.binding.xml_.STD_ANON_emptyString._CF_enumeration
+pyxb.binding.xml_.STD_ANON_lang._CF_enumeration
+pyxb.binding.xml_.STD_ANON_space._CF_enumeration" class="py-name" href="#" onclick="return doclink('link-51', '_CF_enumeration', 'link-20');">_CF_enumeration</a></tt><tt class="py-op">.</tt><tt id="link-52" class="py-name"><a title="pyxb.binding.facets.CF_enumeration.addEnumeration" class="py-name" href="#" onclick="return doclink('link-52', 'addEnumeration', 'link-30');">addEnumeration</a></tt><tt class="py-op">(</tt><tt class="py-name">unicode_value</tt><tt class="py-op">=</tt><tt class="py-string">u''</tt><tt class="py-op">)</tt> </tt>
+<a name="L57"></a><tt class="py-lineno">57</tt>  <tt class="py-line"><tt id="link-53" class="py-name"><a title="pyxb.binding.xml_.STD_ANON_emptyString" class="py-name" href="#" onclick="return doclink('link-53', 'STD_ANON_emptyString', 'link-41');">STD_ANON_emptyString</a></tt><tt class="py-op">.</tt><tt id="link-54" class="py-name"><a title="pyxb.binding.basis.simpleTypeDefinition._InitializeFacetMap" class="py-name" href="#" onclick="return doclink('link-54', '_InitializeFacetMap', 'link-37');">_InitializeFacetMap</a></tt><tt class="py-op">(</tt><tt id="link-55" class="py-name"><a title="pyxb.binding.xml_.STD_ANON_emptyString" class="py-name" href="#" onclick="return doclink('link-55', 'STD_ANON_emptyString', 'link-41');">STD_ANON_emptyString</a></tt><tt class="py-op">.</tt><tt id="link-56" class="py-name"><a title="pyxb.binding.datatypes.ENTITIES._CF_enumeration
+pyxb.binding.datatypes.IDREFS._CF_enumeration
+pyxb.binding.datatypes.NMTOKENS._CF_enumeration
+pyxb.binding.datatypes.NOTATION._CF_enumeration
+pyxb.binding.datatypes.QName._CF_enumeration
+pyxb.binding.datatypes.anyURI._CF_enumeration
+pyxb.binding.datatypes.base64Binary._CF_enumeration
+pyxb.binding.datatypes.date._CF_enumeration
+pyxb.binding.datatypes.dateTime._CF_enumeration
+pyxb.binding.datatypes.decimal._CF_enumeration
+pyxb.binding.datatypes.double._CF_enumeration
+pyxb.binding.datatypes.duration._CF_enumeration
+pyxb.binding.datatypes.float._CF_enumeration
+pyxb.binding.datatypes.gDay._CF_enumeration
+pyxb.binding.datatypes.gMonth._CF_enumeration
+pyxb.binding.datatypes.gMonthDay._CF_enumeration
+pyxb.binding.datatypes.gYear._CF_enumeration
+pyxb.binding.datatypes.gYearMonth._CF_enumeration
+pyxb.binding.datatypes.hexBinary._CF_enumeration
+pyxb.binding.datatypes.string._CF_enumeration
+pyxb.binding.datatypes.time._CF_enumeration
+pyxb.binding.facets._WhiteSpace_enum._CF_enumeration
+pyxb.binding.xml_.STD_ANON_emptyString._CF_enumeration
+pyxb.binding.xml_.STD_ANON_lang._CF_enumeration
+pyxb.binding.xml_.STD_ANON_space._CF_enumeration" class="py-name" href="#" onclick="return doclink('link-56', '_CF_enumeration', 'link-20');">_CF_enumeration</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L58"></a><tt class="py-lineno">58</tt>  <tt class="py-line"> </tt>
+<a name="L59"></a><tt class="py-lineno">59</tt>  <tt class="py-line"><tt class="py-comment"># Union SimpleTypeDefinition</tt> </tt>
+<a name="L60"></a><tt class="py-lineno">60</tt>  <tt class="py-line"><tt class="py-comment"># superclasses pyxb.binding.datatypes.anySimpleType</tt> </tt>
+<a name="STD_ANON_lang"></a><div id="STD_ANON_lang-def"><a name="L61"></a><tt class="py-lineno">61</tt> <a class="py-toggle" href="#" id="STD_ANON_lang-toggle" onclick="return toggle('STD_ANON_lang');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="pyxb.binding.xml_.STD_ANON_lang-class.html">STD_ANON_lang</a> <tt class="py-op">(</tt><tt class="py-base-class">pyxb</tt><tt class="py-op">.</tt><tt class="py-base-class">binding</tt><tt class="py-op">.</tt><tt class="py-base-class">basis</tt><tt class="py-op">.</tt><tt class="py-base-class">STD_union</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="STD_ANON_lang-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="STD_ANON_lang-expanded"><a name="L62"></a><tt class="py-lineno">62</tt>  <tt class="py-line">    <tt class="py-docstring">"""Simple type that is a union of pyxb.binding.datatypes.language, STD_ANON_emptyString"""</tt> </tt>
+<a name="L63"></a><tt class="py-lineno">63</tt>  <tt class="py-line"> </tt>
+<a name="L64"></a><tt class="py-lineno">64</tt>  <tt class="py-line">    <tt id="link-57" class="py-name"><a title="pyxb.binding.basis._TypeBinding_mixin._ExpandedName
+pyxb.binding.datatypes.ENTITIES._ExpandedName
+pyxb.binding.datatypes.ENTITY._ExpandedName
+pyxb.binding.datatypes.ID._ExpandedName
+pyxb.binding.datatypes.IDREF._ExpandedName
+pyxb.binding.datatypes.IDREFS._ExpandedName
+pyxb.binding.datatypes.NCName._ExpandedName
+pyxb.binding.datatypes.NMTOKEN._ExpandedName
+pyxb.binding.datatypes.NOTATION._ExpandedName
+pyxb.binding.datatypes.Name._ExpandedName
+pyxb.binding.datatypes.QName._ExpandedName
+pyxb.binding.datatypes.anySimpleType._ExpandedName
+pyxb.binding.datatypes.anyType._ExpandedName
+pyxb.binding.datatypes.anyURI._ExpandedName
+pyxb.binding.datatypes.base64Binary._ExpandedName
+pyxb.binding.datatypes.boolean._ExpandedName
+pyxb.binding.datatypes.byte._ExpandedName
+pyxb.binding.datatypes.date._ExpandedName
+pyxb.binding.datatypes.dateTime._ExpandedName
+pyxb.binding.datatypes.decimal._ExpandedName
+pyxb.binding.datatypes.double._ExpandedName
+pyxb.binding.datatypes.duration._ExpandedName
+pyxb.binding.datatypes.float._ExpandedName
+pyxb.binding.datatypes.gDay._ExpandedName
+pyxb.binding.datatypes.gMonth._ExpandedName
+pyxb.binding.datatypes.gMonthDay._ExpandedName
+pyxb.binding.datatypes.gYear._ExpandedName
+pyxb.binding.datatypes.gYearMonth._ExpandedName
+pyxb.binding.datatypes.hexBinary._ExpandedName
+pyxb.binding.datatypes.int._ExpandedName
+pyxb.binding.datatypes.integer._ExpandedName
+pyxb.binding.datatypes.language._ExpandedName
+pyxb.binding.datatypes.long._ExpandedName
+pyxb.binding.datatypes.negativeInteger._ExpandedName
+pyxb.binding.datatypes.nonNegativeInteger._ExpandedName
+pyxb.binding.datatypes.nonPositiveInteger._ExpandedName
+pyxb.binding.datatypes.normalizedString._ExpandedName
+pyxb.binding.datatypes.positiveInteger._ExpandedName
+pyxb.binding.datatypes.short._ExpandedName
+pyxb.binding.datatypes.string._ExpandedName
+pyxb.binding.datatypes.time._ExpandedName
+pyxb.binding.datatypes.token._ExpandedName
+pyxb.binding.datatypes.unsignedByte._ExpandedName
+pyxb.binding.datatypes.unsignedInt._ExpandedName
+pyxb.binding.datatypes.unsignedLong._ExpandedName
+pyxb.binding.datatypes.unsignedShort._ExpandedName
+pyxb.binding.xml_.STD_ANON_emptyString._ExpandedName
+pyxb.binding.xml_.STD_ANON_lang._ExpandedName
+pyxb.binding.xml_.STD_ANON_space._ExpandedName" class="py-name" href="#" onclick="return doclink('link-57', '_ExpandedName', 'link-18');">_ExpandedName</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L65"></a><tt class="py-lineno">65</tt>  <tt class="py-line">    <tt id="link-58" class="py-name" targets="Variable pyxb.binding.basis.STD_union._MemberTypes=pyxb.binding.basis.STD_union-class.html#_MemberTypes,Variable pyxb.binding.xml_.STD_ANON_lang._MemberTypes=pyxb.binding.xml_.STD_ANON_lang-class.html#_MemberTypes"><a title="pyxb.binding.basis.STD_union._MemberTypes
+pyxb.binding.xml_.STD_ANON_lang._MemberTypes" class="py-name" href="#" onclick="return doclink('link-58', '_MemberTypes', 'link-58');">_MemberTypes</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt> <tt id="link-59" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-59', 'pyxb', 'link-0');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-60" class="py-name"><a title="pyxb.binding" class="py-name" href="#" onclick="return doclink('link-60', 'binding', 'link-2');">binding</a></tt><tt class="py-op">.</tt><tt id="link-61" class="py-name" targets="Module pyxb.binding.datatypes=pyxb.binding.datatypes-module.html"><a title="pyxb.binding.datatypes" class="py-name" href="#" onclick="return doclink('link-61', 'datatypes', 'link-61');">datatypes</a></tt><tt class="py-op">.</tt><tt id="link-62" class="py-name" targets="Class pyxb.binding.datatypes.language=pyxb.binding.datatypes.language-class.html"><a title="pyxb.binding.datatypes.language" class="py-name" href="#" onclick="return doclink('link-62', 'language', 'link-62');">language</a></tt><tt class="py-op">,</tt> <tt id="link-63" class="py-name"><a title="pyxb.binding.xml_.STD_ANON_emptyString" class="py-name" href="#" onclick="return doclink('link-63', 'STD_ANON_emptyString', 'link-41');">STD_ANON_emptyString</a></tt><tt class="py-op">,</tt> <tt class="py-op">)</tt> </tt>
+</div><a name="L66"></a><tt class="py-lineno">66</tt>  <tt class="py-line"><tt id="link-64" class="py-name" targets="Class pyxb.binding.xml_.STD_ANON_lang=pyxb.binding.xml_.STD_ANON_lang-class.html"><a title="pyxb.binding.xml_.STD_ANON_lang" class="py-name" href="#" onclick="return doclink('link-64', 'STD_ANON_lang', 'link-64');">STD_ANON_lang</a></tt><tt class="py-op">.</tt><tt id="link-65" class="py-name"><a title="pyxb.binding.datatypes.ENTITIES._CF_enumeration
+pyxb.binding.datatypes.IDREFS._CF_enumeration
+pyxb.binding.datatypes.NMTOKENS._CF_enumeration
+pyxb.binding.datatypes.NOTATION._CF_enumeration
+pyxb.binding.datatypes.QName._CF_enumeration
+pyxb.binding.datatypes.anyURI._CF_enumeration
+pyxb.binding.datatypes.base64Binary._CF_enumeration
+pyxb.binding.datatypes.date._CF_enumeration
+pyxb.binding.datatypes.dateTime._CF_enumeration
+pyxb.binding.datatypes.decimal._CF_enumeration
+pyxb.binding.datatypes.double._CF_enumeration
+pyxb.binding.datatypes.duration._CF_enumeration
+pyxb.binding.datatypes.float._CF_enumeration
+pyxb.binding.datatypes.gDay._CF_enumeration
+pyxb.binding.datatypes.gMonth._CF_enumeration
+pyxb.binding.datatypes.gMonthDay._CF_enumeration
+pyxb.binding.datatypes.gYear._CF_enumeration
+pyxb.binding.datatypes.gYearMonth._CF_enumeration
+pyxb.binding.datatypes.hexBinary._CF_enumeration
+pyxb.binding.datatypes.string._CF_enumeration
+pyxb.binding.datatypes.time._CF_enumeration
+pyxb.binding.facets._WhiteSpace_enum._CF_enumeration
+pyxb.binding.xml_.STD_ANON_emptyString._CF_enumeration
+pyxb.binding.xml_.STD_ANON_lang._CF_enumeration
+pyxb.binding.xml_.STD_ANON_space._CF_enumeration" class="py-name" href="#" onclick="return doclink('link-65', '_CF_enumeration', 'link-20');">_CF_enumeration</a></tt> <tt class="py-op">=</tt> <tt id="link-66" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-66', 'pyxb', 'link-0');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-67" class="py-name"><a title="pyxb.binding" class="py-name" href="#" onclick="return doclink('link-67', 'binding', 'link-2');">binding</a></tt><tt class="py-op">.</tt><tt id="link-68" class="py-name"><a title="pyxb.binding.facets
+pyxb.xmlschema.structures.SimpleTypeDefinition.facets" class="py-name" href="#" onclick="return doclink('link-68', 'facets', 'link-23');">facets</a></tt><tt class="py-op">.</tt><tt id="link-69" class="py-name"><a title="pyxb.binding.facets.CF_enumeration" class="py-name" href="#" onclick="return doclink('link-69', 'CF_enumeration', 'link-24');">CF_enumeration</a></tt><tt class="py-op">(</tt><tt class="py-name">value_datatype</tt><tt class="py-op">=</tt><tt id="link-70" class="py-name"><a title="pyxb.binding.xml_.STD_ANON_lang" class="py-name" href="#" onclick="return doclink('link-70', 'STD_ANON_lang', 'link-64');">STD_ANON_lang</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L67"></a><tt class="py-lineno">67</tt>  <tt class="py-line"><tt id="link-71" class="py-name"><a title="pyxb.binding.xml_.STD_ANON_lang" class="py-name" href="#" onclick="return doclink('link-71', 'STD_ANON_lang', 'link-64');">STD_ANON_lang</a></tt><tt class="py-op">.</tt><tt id="link-72" class="py-name" targets="Variable pyxb.binding.datatypes.ENTITIES._CF_pattern=pyxb.binding.datatypes.ENTITIES-class.html#_CF_pattern,Variable pyxb.binding.datatypes.IDREFS._CF_pattern=pyxb.binding.datatypes.IDREFS-class.html#_CF_pattern,Variable pyxb.binding.datatypes.NCName._CF_pattern=pyxb.binding.datatypes.NCName-class.html#_CF_pattern,Variable pyxb.binding.datatypes.NMTOKEN._CF_pattern=pyxb.binding.datatypes.NMTOKEN-class.html#_CF_pattern,Variable pyxb.binding.datatypes.NMTOKENS._CF_pattern=pyxb.binding.datatypes.NMTOKENS-class.html#_CF_pattern,Variable pyxb.binding.datatypes.NOTATION._CF_pattern=pyxb.binding.datatypes.NOTATION-class.html#_CF_pattern,Variable pyxb.binding.datatypes.Name._CF_pattern=pyxb.binding.datatypes.Name-class.html#_CF_pattern,Variable pyxb.binding.datatypes.QName._CF_pattern=pyxb.binding.datatypes.QName-class.html#_CF_pattern,Variable pyxb.binding.datatypes.anyURI._CF_pattern=pyxb.binding.datatypes.anyURI-class.html#_CF_pattern,Variable pyxb.binding.datatypes.base64Binary._CF_pattern=pyxb.binding.datatypes.base64Binary-class.html#_CF_pattern,Variable pyxb.binding.datatypes.boolean._CF_pattern=pyxb.binding.datatypes.boolean-class.html#_CF_pattern,Variable pyxb.binding.datatypes.date._CF_pattern=pyxb.binding.datatypes.date-class.html#_CF_pattern,Variable pyxb.binding.datatypes.dateTime._CF_pattern=pyxb.binding.datatypes.dateTime-class.html#_CF_pattern,Variable pyxb.binding.datatypes.decimal._CF_pattern=pyxb.binding.datatypes.decimal-class.html#_CF_pattern,Variable pyxb.binding.datatypes.double._CF_pattern=pyxb.binding.datatypes.double-class.html#_CF_pattern,Variable pyxb.binding.datatypes.duration._CF_pattern=pyxb.binding.datatypes.duration-class.html#_CF_pattern,Variable pyxb.binding.datatypes.float._CF_pattern=pyxb.binding.datatypes.float-class.html#_CF_pattern,Variable pyxb.binding.datatypes.gDay._CF_pattern=pyxb.binding.datatypes.gDay-class.html#_CF_pattern,Variable pyxb.binding.datatypes.gMonth._CF_pattern=pyxb.binding.datatypes.gMonth-class.html#_CF_pattern,Variable pyxb.binding.datatypes.gMonthDay._CF_pattern=pyxb.binding.datatypes.gMonthDay-class.html#_CF_pattern,Variable pyxb.binding.datatypes.gYear._CF_pattern=pyxb.binding.datatypes.gYear-class.html#_CF_pattern,Variable pyxb.binding.datatypes.gYearMonth._CF_pattern=pyxb.binding.datatypes.gYearMonth-class.html#_CF_pattern,Variable pyxb.binding.datatypes.hexBinary._CF_pattern=pyxb.binding.datatypes.hexBinary-class.html#_CF_pattern,Variable pyxb.binding.datatypes.integer._CF_pattern=pyxb.binding.datatypes.integer-class.html#_CF_pattern,Variable pyxb.binding.datatypes.language._CF_pattern=pyxb.binding.datatypes.language-class.html#_CF_pattern,Variable pyxb.binding.datatypes.string._CF_pattern=pyxb.binding.datatypes.string-class.html#_CF_pattern,Variable pyxb.binding.datatypes.time._CF_pattern=pyxb.binding.datatypes.time-class.html#_CF_pattern,Variable pyxb.binding.xml_.STD_ANON_lang._CF_pattern=pyxb.binding.xml_.STD_ANON_lang-class.html#_CF_pattern"><a title="pyxb.binding.datatypes.ENTITIES._CF_pattern
+pyxb.binding.datatypes.IDREFS._CF_pattern
+pyxb.binding.datatypes.NCName._CF_pattern
+pyxb.binding.datatypes.NMTOKEN._CF_pattern
+pyxb.binding.datatypes.NMTOKENS._CF_pattern
+pyxb.binding.datatypes.NOTATION._CF_pattern
+pyxb.binding.datatypes.Name._CF_pattern
+pyxb.binding.datatypes.QName._CF_pattern
+pyxb.binding.datatypes.anyURI._CF_pattern
+pyxb.binding.datatypes.base64Binary._CF_pattern
+pyxb.binding.datatypes.boolean._CF_pattern
+pyxb.binding.datatypes.date._CF_pattern
+pyxb.binding.datatypes.dateTime._CF_pattern
+pyxb.binding.datatypes.decimal._CF_pattern
+pyxb.binding.datatypes.double._CF_pattern
+pyxb.binding.datatypes.duration._CF_pattern
+pyxb.binding.datatypes.float._CF_pattern
+pyxb.binding.datatypes.gDay._CF_pattern
+pyxb.binding.datatypes.gMonth._CF_pattern
+pyxb.binding.datatypes.gMonthDay._CF_pattern
+pyxb.binding.datatypes.gYear._CF_pattern
+pyxb.binding.datatypes.gYearMonth._CF_pattern
+pyxb.binding.datatypes.hexBinary._CF_pattern
+pyxb.binding.datatypes.integer._CF_pattern
+pyxb.binding.datatypes.language._CF_pattern
+pyxb.binding.datatypes.string._CF_pattern
+pyxb.binding.datatypes.time._CF_pattern
+pyxb.binding.xml_.STD_ANON_lang._CF_pattern" class="py-name" href="#" onclick="return doclink('link-72', '_CF_pattern', 'link-72');">_CF_pattern</a></tt> <tt class="py-op">=</tt> <tt id="link-73" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-73', 'pyxb', 'link-0');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-74" class="py-name"><a title="pyxb.binding" class="py-name" href="#" onclick="return doclink('link-74', 'binding', 'link-2');">binding</a></tt><tt class="py-op">.</tt><tt id="link-75" class="py-name"><a title="pyxb.binding.facets
+pyxb.xmlschema.structures.SimpleTypeDefinition.facets" class="py-name" href="#" onclick="return doclink('link-75', 'facets', 'link-23');">facets</a></tt><tt class="py-op">.</tt><tt id="link-76" class="py-name" targets="Class pyxb.binding.facets.CF_pattern=pyxb.binding.facets.CF_pattern-class.html"><a title="pyxb.binding.facets.CF_pattern" class="py-name" href="#" onclick="return doclink('link-76', 'CF_pattern', 'link-76');">CF_pattern</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L68"></a><tt class="py-lineno">68</tt>  <tt class="py-line"><tt id="link-77" class="py-name"><a title="pyxb.binding.xml_.STD_ANON_lang" class="py-name" href="#" onclick="return doclink('link-77', 'STD_ANON_lang', 'link-64');">STD_ANON_lang</a></tt><tt class="py-op">.</tt><tt id="link-78" class="py-name"><a title="pyxb.binding.basis.simpleTypeDefinition._InitializeFacetMap" class="py-name" href="#" onclick="return doclink('link-78', '_InitializeFacetMap', 'link-37');">_InitializeFacetMap</a></tt><tt class="py-op">(</tt><tt id="link-79" class="py-name"><a title="pyxb.binding.xml_.STD_ANON_lang" class="py-name" href="#" onclick="return doclink('link-79', 'STD_ANON_lang', 'link-64');">STD_ANON_lang</a></tt><tt class="py-op">.</tt><tt id="link-80" class="py-name"><a title="pyxb.binding.datatypes.ENTITIES._CF_enumeration
+pyxb.binding.datatypes.IDREFS._CF_enumeration
+pyxb.binding.datatypes.NMTOKENS._CF_enumeration
+pyxb.binding.datatypes.NOTATION._CF_enumeration
+pyxb.binding.datatypes.QName._CF_enumeration
+pyxb.binding.datatypes.anyURI._CF_enumeration
+pyxb.binding.datatypes.base64Binary._CF_enumeration
+pyxb.binding.datatypes.date._CF_enumeration
+pyxb.binding.datatypes.dateTime._CF_enumeration
+pyxb.binding.datatypes.decimal._CF_enumeration
+pyxb.binding.datatypes.double._CF_enumeration
+pyxb.binding.datatypes.duration._CF_enumeration
+pyxb.binding.datatypes.float._CF_enumeration
+pyxb.binding.datatypes.gDay._CF_enumeration
+pyxb.binding.datatypes.gMonth._CF_enumeration
+pyxb.binding.datatypes.gMonthDay._CF_enumeration
+pyxb.binding.datatypes.gYear._CF_enumeration
+pyxb.binding.datatypes.gYearMonth._CF_enumeration
+pyxb.binding.datatypes.hexBinary._CF_enumeration
+pyxb.binding.datatypes.string._CF_enumeration
+pyxb.binding.datatypes.time._CF_enumeration
+pyxb.binding.facets._WhiteSpace_enum._CF_enumeration
+pyxb.binding.xml_.STD_ANON_emptyString._CF_enumeration
+pyxb.binding.xml_.STD_ANON_lang._CF_enumeration
+pyxb.binding.xml_.STD_ANON_space._CF_enumeration" class="py-name" href="#" onclick="return doclink('link-80', '_CF_enumeration', 'link-20');">_CF_enumeration</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L69"></a><tt class="py-lineno">69</tt>  <tt class="py-line">   <tt id="link-81" class="py-name"><a title="pyxb.binding.xml_.STD_ANON_lang" class="py-name" href="#" onclick="return doclink('link-81', 'STD_ANON_lang', 'link-64');">STD_ANON_lang</a></tt><tt class="py-op">.</tt><tt id="link-82" class="py-name"><a title="pyxb.binding.datatypes.ENTITIES._CF_pattern
+pyxb.binding.datatypes.IDREFS._CF_pattern
+pyxb.binding.datatypes.NCName._CF_pattern
+pyxb.binding.datatypes.NMTOKEN._CF_pattern
+pyxb.binding.datatypes.NMTOKENS._CF_pattern
+pyxb.binding.datatypes.NOTATION._CF_pattern
+pyxb.binding.datatypes.Name._CF_pattern
+pyxb.binding.datatypes.QName._CF_pattern
+pyxb.binding.datatypes.anyURI._CF_pattern
+pyxb.binding.datatypes.base64Binary._CF_pattern
+pyxb.binding.datatypes.boolean._CF_pattern
+pyxb.binding.datatypes.date._CF_pattern
+pyxb.binding.datatypes.dateTime._CF_pattern
+pyxb.binding.datatypes.decimal._CF_pattern
+pyxb.binding.datatypes.double._CF_pattern
+pyxb.binding.datatypes.duration._CF_pattern
+pyxb.binding.datatypes.float._CF_pattern
+pyxb.binding.datatypes.gDay._CF_pattern
+pyxb.binding.datatypes.gMonth._CF_pattern
+pyxb.binding.datatypes.gMonthDay._CF_pattern
+pyxb.binding.datatypes.gYear._CF_pattern
+pyxb.binding.datatypes.gYearMonth._CF_pattern
+pyxb.binding.datatypes.hexBinary._CF_pattern
+pyxb.binding.datatypes.integer._CF_pattern
+pyxb.binding.datatypes.language._CF_pattern
+pyxb.binding.datatypes.string._CF_pattern
+pyxb.binding.datatypes.time._CF_pattern
+pyxb.binding.xml_.STD_ANON_lang._CF_pattern" class="py-name" href="#" onclick="return doclink('link-82', '_CF_pattern', 'link-72');">_CF_pattern</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L70"></a><tt class="py-lineno">70</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:39 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

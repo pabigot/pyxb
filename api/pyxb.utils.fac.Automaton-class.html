@@ -1,0 +1,750 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.utils.fac.Automaton</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.utils-module.html">Package&nbsp;utils</a> ::
+        <a href="pyxb.utils.fac-module.html">Module&nbsp;fac</a> ::
+        Class&nbsp;Automaton
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.utils.fac.Automaton-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== TYPE DESCRIPTION ==================== -->
+<h1 class="epydoc">type Automaton</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.utils.fac-pysrc.html#Automaton">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+object --+
+         |
+        <strong class="uidshort">Automaton</strong>
+</pre>
+
+<hr />
+<p>Representation of a Finite Automaton with Counters.</p>
+  <p>This has all the standard FAC elements, plus links to other 
+  states/automata as required to support the nested automata construct used
+  for matching unordered catenation terms.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.fac.Automaton-class.html#__get_states" class="summary-sig-name" onclick="show_private();">__get_states</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      The set of <a href="pyxb.utils.fac.State-class.html" 
+      class="link">State</a>s in the automaton.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.fac-pysrc.html#Automaton.__get_states">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.fac.Automaton-class.html#__get_counterConditions" class="summary-sig-name" onclick="show_private();">__get_counterConditions</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      The set of <a href="pyxb.utils.fac.CounterCondition-class.html" 
+      class="link">CounterCondition</a>s in the automaton.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.fac-pysrc.html#Automaton.__get_counterConditions">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__get_nullable"></a><span class="summary-sig-name">__get_nullable</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      <code>True</code> iff the automaton accepts the empty string.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.fac-pysrc.html#Automaton.__get_nullable">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.fac.Automaton-class.html#__get_initialTransitions" class="summary-sig-name" onclick="show_private();">__get_initialTransitions</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      The set of transitions that may be made to enter the automaton.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.fac-pysrc.html#Automaton.__get_initialTransitions">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.fac.Automaton-class.html#__get_containingState" class="summary-sig-name" onclick="show_private();">__get_containingState</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      The <a href="pyxb.utils.fac.State-class.html" class="link">State</a> 
+      instance for which this is a sub-automaton.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.fac-pysrc.html#Automaton.__get_containingState">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__get_finalStates"></a><span class="summary-sig-name">__get_finalStates</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      The set of <a href="pyxb.utils.fac.State-class.html" 
+      class="link">State</a> members which can terminate a match.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.fac-pysrc.html#Automaton.__get_finalStates">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.fac.Automaton-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">states</span>,
+        <span class="summary-sig-arg">counter_conditions</span>,
+        <span class="summary-sig-arg">nullable</span>,
+        <span class="summary-sig-arg">containing_state</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.fac-pysrc.html#Automaton.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="newConfiguration"></a><span class="summary-sig-name">newConfiguration</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return a new <a href="pyxb.utils.fac.Configuration-class.html" 
+      class="link">Configuration</a> instance for this automaton.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.fac-pysrc.html#Automaton.newConfiguration">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.fac.Automaton-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.fac-pysrc.html#Automaton.__str__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__states"></a><span class="summary-name">__states</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__counterConditions"></a><span class="summary-name">__counterConditions</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__nullable"></a><span class="summary-name">__nullable</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__initialTransitions"></a><span class="summary-name">__initialTransitions</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__containingState"></a><span class="summary-name">__containingState</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__finalStates"></a><span class="summary-name">__finalStates</span> = <code title="None">None</code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.fac.Automaton-class.html#states" class="summary-name">states</a><br />
+      The set of <a href="pyxb.utils.fac.State-class.html" 
+      class="link">State</a>s in the automaton.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.fac.Automaton-class.html#counterConditions" class="summary-name">counterConditions</a><br />
+      The set of <a href="pyxb.utils.fac.CounterCondition-class.html" 
+      class="link">CounterCondition</a>s in the automaton.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.fac.Automaton-class.html#nullable" class="summary-name">nullable</a><br />
+      <code>True</code> iff the automaton accepts the empty string.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.fac.Automaton-class.html#initialTransitions" class="summary-name">initialTransitions</a><br />
+      The set of transitions that may be made to enter the automaton.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.fac.Automaton-class.html#containingState" class="summary-name">containingState</a><br />
+      The <a href="pyxb.utils.fac.State-class.html" class="link">State</a> 
+      instance for which this is a sub-automaton.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.fac.Automaton-class.html#finalStates" class="summary-name">finalStates</a><br />
+      The set of <a href="pyxb.utils.fac.State-class.html" 
+      class="link">State</a> members which can terminate a match.
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__get_states"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__get_states</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.fac-pysrc.html#Automaton.__get_states">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>The set of <a href="pyxb.utils.fac.State-class.html" 
+  class="link">State</a>s in the automaton.</p>
+  <p>These correspond essentially to marked symbols in the original regular
+  expression, or <a 
+  href="pyxb.xmlschema.structures.ElementDeclaration-class.html" 
+  class="link">element declarations</a> in an XML schema.</p>
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        These are conceptually a set and are stored that way. When an <a 
+        href="pyxb.utils.fac.Automaton-class.html" 
+        class="link">Automaton</a> is constructed the incoming states 
+        should be passed as a list so the calculated initial transitions 
+        are executed in a deterministic order.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="__get_counterConditions"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__get_counterConditions</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.fac-pysrc.html#Automaton.__get_counterConditions">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>The set of <a href="pyxb.utils.fac.CounterCondition-class.html" 
+  class="link">CounterCondition</a>s in the automaton.</p>
+  <p>These are marked positions in the regular expression, or <a 
+  href="pyxb.xmlschema.structures.Particle-class.html" 
+  class="link">particles</a> in an XML schema, paired with their occurrence
+  constraints.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__get_initialTransitions"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__get_initialTransitions</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.fac-pysrc.html#Automaton.__get_initialTransitions">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>The set of transitions that may be made to enter the automaton.</p>
+  <p>These are full transitions, including chains into subautomata if an 
+  initial state represents a node with sub-automata.</p>
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        As with <a href="pyxb.utils.fac.State-class.html#transitionSet" 
+        class="link">State.transitionSet</a>, the set is represented as a 
+        list to preserve priority when resolving non-deterministic matches.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="__get_containingState"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__get_containingState</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.fac-pysrc.html#Automaton.__get_containingState">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>The <a href="pyxb.utils.fac.State-class.html" class="link">State</a> 
+  instance for which this is a sub-automaton.</p>
+  <p><code>None</code> if this is not a sub-automaton.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">states</span>,
+        <span class="sig-arg">counter_conditions</span>,
+        <span class="sig-arg">nullable</span>,
+        <span class="sig-arg">containing_state</span>=<span class="sig-default">None</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.fac-pysrc.html#Automaton.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        object.__init__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__str__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__str__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Informal representation operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.fac-pysrc.html#Automaton.__str__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        object.__str__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== PROPERTY DETAILS ==================== -->
+<a name="section-PropertyDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Property Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-PropertyDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="states"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">states</h3>
+  <p>The set of <a href="pyxb.utils.fac.State-class.html" 
+  class="link">State</a>s in the automaton.</p>
+  <p>These correspond essentially to marked symbols in the original regular
+  expression, or <a 
+  href="pyxb.xmlschema.structures.ElementDeclaration-class.html" 
+  class="link">element declarations</a> in an XML schema.</p>
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><a href="pyxb.utils.fac.Automaton-class.html#__get_states" class="summary-sig-name" onclick="show_private();">__get_states</a>(<span class="summary-sig-arg">self</span>)</span>
+        - The set of <a href="pyxb.utils.fac.State-class.html" 
+      class="link">State</a>s in the automaton.
+    </dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        These are conceptually a set and are stored that way. When an <a 
+        href="pyxb.utils.fac.Automaton-class.html" 
+        class="link">Automaton</a> is constructed the incoming states 
+        should be passed as a list so the calculated initial transitions 
+        are executed in a deterministic order.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="counterConditions"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">counterConditions</h3>
+  <p>The set of <a href="pyxb.utils.fac.CounterCondition-class.html" 
+  class="link">CounterCondition</a>s in the automaton.</p>
+  <p>These are marked positions in the regular expression, or <a 
+  href="pyxb.xmlschema.structures.Particle-class.html" 
+  class="link">particles</a> in an XML schema, paired with their occurrence
+  constraints.</p>
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><a href="pyxb.utils.fac.Automaton-class.html#__get_counterConditions" class="summary-sig-name" onclick="show_private();">__get_counterConditions</a>(<span class="summary-sig-arg">self</span>)</span>
+        - The set of <a href="pyxb.utils.fac.CounterCondition-class.html" 
+      class="link">CounterCondition</a>s in the automaton.
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="nullable"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">nullable</h3>
+  <p><code>True</code> iff the automaton accepts the empty string.</p>
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><a href="pyxb.utils.fac.Automaton-class.html#__get_nullable" class="summary-sig-name" onclick="show_private();">__get_nullable</a>(<span class="summary-sig-arg">self</span>)</span>
+        - <code>True</code> iff the automaton accepts the empty string.
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="initialTransitions"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">initialTransitions</h3>
+  <p>The set of transitions that may be made to enter the automaton.</p>
+  <p>These are full transitions, including chains into subautomata if an 
+  initial state represents a node with sub-automata.</p>
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><a href="pyxb.utils.fac.Automaton-class.html#__get_initialTransitions" class="summary-sig-name" onclick="show_private();">__get_initialTransitions</a>(<span class="summary-sig-arg">self</span>)</span>
+        - The set of transitions that may be made to enter the automaton.
+    </dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        As with <a href="pyxb.utils.fac.State-class.html#transitionSet" 
+        class="link">State.transitionSet</a>, the set is represented as a 
+        list to preserve priority when resolving non-deterministic matches.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="containingState"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">containingState</h3>
+  <p>The <a href="pyxb.utils.fac.State-class.html" class="link">State</a> 
+  instance for which this is a sub-automaton.</p>
+  <p><code>None</code> if this is not a sub-automaton.</p>
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><a href="pyxb.utils.fac.Automaton-class.html#__get_containingState" class="summary-sig-name" onclick="show_private();">__get_containingState</a>(<span class="summary-sig-arg">self</span>)</span>
+        - The <a href="pyxb.utils.fac.State-class.html" class="link">State</a> 
+      instance for which this is a sub-automaton.
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="finalStates"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">finalStates</h3>
+  <p>The set of <a href="pyxb.utils.fac.State-class.html" 
+  class="link">State</a> members which can terminate a match.</p>
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><a href="pyxb.utils.fac.Automaton-class.html#__get_finalStates" class="summary-sig-name" onclick="show_private();">__get_finalStates</a>(<span class="summary-sig-arg">self</span>)</span>
+        - The set of <a href="pyxb.utils.fac.State-class.html" 
+      class="link">State</a> members which can terminate a match.
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:37 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

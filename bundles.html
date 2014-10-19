@@ -1,0 +1,915 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Examples of Supported Schema &mdash; PyXB 1.2.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.2.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyXB 1.2.3 documentation" href="index.html" />
+    <link rel="up" title="Overview" href="overview.html" />
+    <link rel="next" title="Limitations" href="limitations.html" />
+    <link rel="prev" title="How to use it" href="overview_how.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="limitations.html" title="Limitations"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="overview_how.html" title="How to use it"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+          <li><a href="overview.html" accesskey="U">Overview</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="examples-of-supported-schema">
+<span id="bundles"></span><h1>Examples of Supported Schema<a class="headerlink" href="#examples-of-supported-schema" title="Permalink to this headline">¶</a></h1>
+<p>PyXB comes with pre-defined <em>bundles</em> which aggregate related namespaces
+into pre-generated bindings that allow you to use them without having to
+generate and manage them yourself.  These bundles also demonstrate the
+complexity of schema that PyXB is prepared to handle.  Not all namespaces
+have been fully tested, but they are expected to function correctly.</p>
+<p>Although the generating scripts and infrastructure are part of PyXB proper,
+not all these bundles may have been pre-built in your PyXB distribution.
+See <a class="reference internal" href="#generating-bundled-bindings">Generating Bundled Bindings</a> for details on building these bundles.</p>
+<div class="section" id="common">
+<span id="bundle-common"></span><h2>common<a class="headerlink" href="#common" title="Permalink to this headline">¶</a></h2>
+<p>The following namespaces are available in support of general XML use:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="39%" />
+<col width="61%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Binding Module</th>
+<th class="head">Namespace</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.common.xhtml1</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.w3.org/1999/xhtml</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.common.xlink</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.w3.org/1999/xlink</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.common.xsd_hfp</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.w3.org/2001/XMLSchema-hasFacetAndProperty</span></tt></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="ws">
+<span id="bundle-wssplat"></span><h2>WS-*<a class="headerlink" href="#ws" title="Permalink to this headline">¶</a></h2>
+<p>The following namespaces are available in support of web service
+development:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="30%" />
+<col width="70%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Binding Module</th>
+<th class="head">Namespace</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.bpws</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.xmlsoap.org/ws/2003/03/business-process/</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.ds</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.w3.org/2000/09/xmldsig#</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.httpbind</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.xmlsoap.org/wsdl/http/</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.mimebind</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.xmlsoap.org/wsdl/mime/</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.soap11</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.xmlsoap.org/soap/envelope/</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.soap12</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.w3.org/2003/05/soap-envelope</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.soapbind11</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.xmlsoap.org/wsdl/soap/</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.soapbind12</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.xmlsoap.org/wsdl/soap12/</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.soapenc</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.xmlsoap.org/soap/encoding/</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.whttp</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.w3.org/ns/wsdl/http</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wsa</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.w3.org/2005/08/addressing</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wsam</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.w3.org/2007/02/addressing/metadata</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wscoor</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://docs.oasis-open.org/ws-tx/wscoor/2006/06</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wsdl11</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.xmlsoap.org/wsdl/</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wsdl20</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.w3.org/ns/wsdl</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wsdli</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.w3.org/ns/wsdl-instance</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wsdlx</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.w3.org/ns/wsdl-extensions</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wsnt</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://docs.oasis-open.org/wsn/b-2</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wsoap</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.w3.org/ns/wsdl/soap</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wsp200607</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.w3.org/2006/07/ws-policy</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wsp</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.w3.org/ns/ws-policy</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wsrf_bf</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://docs.oasis-open.org/wsrf/bf-2</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wsrf_br</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://docs.oasis-open.org/wsn/br-2</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wsrm</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://docs.oasis-open.org/ws-rx/wsrm/200702</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wsse</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wstop</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://docs.oasis-open.org/wsn/t-1</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wsu</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.xenc</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.w3.org/2001/04/xmlenc#</span></tt></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="saml">
+<span id="bundle-saml20"></span><h2>SAML<a class="headerlink" href="#saml" title="Permalink to this headline">¶</a></h2>
+<p>The following namespaces are available in support of the <a class="reference external" href="http://saml.xml.org/about-saml">Security Assertion
+Markup Language</a>:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="39%" />
+<col width="61%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Binding Module</th>
+<th class="head">Namespace</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.saml20.assertion</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">urn:oasis:names:tc:SAML:2.0:assertion</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.saml20.dce</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">urn:oasis:names:tc:SAML:2.0:profiles:attribute:DCE</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.saml20.ecp</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">urn:oasis:names:tc:SAML:2.0:profiles:SSO:ecp</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.saml20.metadata</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">urn:oasis:names:tc:SAML:2.0:metadata</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.saml20.protocol</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">urn:oasis:names:tc:SAML:2.0:protocol</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.saml20.x500</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">urn:oasis:names:tc:SAML:2.0:profiles:attribute:X500</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.saml20.xacml</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">urn:oasis:names:tc:SAML:2.0:profiles:attribute:XACML</span></tt></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="dublin-core">
+<span id="bundle-dc"></span><h2>Dublin Core<a class="headerlink" href="#dublin-core" title="Permalink to this headline">¶</a></h2>
+<p>The following namespaces are available in support of the <a class="reference external" href="http://dublincore.org/">Dublin Core(R)
+Metadata Initiative</a>.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="39%" />
+<col width="61%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Binding Module</th>
+<th class="head">Namespace</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.dc.dc</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.org/dc/elements/1.1/</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.dc.dcmitype</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.org/dc/dcmitype/</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.dc.dcterms</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.org/dc/terms/</span></tt></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="ecma-376-open-office-xml">
+<span id="bundle-ecma376"></span><h2>ECMA-376 (Open Office XML)<a class="headerlink" href="#ecma-376-open-office-xml" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://www.ecma-international.org/publications/standards/Ecma-376.htm">ECMA 376</a>
+aka &#8220;Office Open XML&#8221; aka &#8220;ISO/IEC 29500&#8221; is a standard for XML-based office
+software suite documents, including Microsoft Office 2007 and 2010.</p>
+<p>This bundle is not populated in the distributed versions of PyXB because it
+requires some 250MB of space to hold the schemas, generated bindings, and
+archive files.  To build it, set <tt class="docutils literal"><span class="pre">PYXB_ROOT</span></tt> environment variable to the
+absolute path of the unpacked PyXB distribution (the directory containing
+<tt class="file docutils literal"><span class="pre">setup.py</span></tt>) and run these commands:</p>
+<div class="highlight-python"><pre>cd ${PYXB_ROOT}
+pyxb/bundles/ecma376/scripts/genbind</pre>
+</div>
+<p>This will download the schemas from OGC and generate bindings for both sets
+of namespaces below.</p>
+<p>Note that there are two incompatible schema sets which share namespaces.
+Import only one.  If you wish to extend the classes in these namespaces,
+ensure your <tt class="docutils literal"><span class="pre">PYXB_ARCHIVE_PATH</span></tt> includes only the one you intend to
+extend.</p>
+<div class="section" id="ecma-376-1st-edition-2006">
+<h3>ECMA-376 1st Edition (2006)<a class="headerlink" href="#ecma-376-1st-edition-2006" title="Permalink to this headline">¶</a></h3>
+<p>The first edition of ECMA-376 was a transitional version leading to ISO/IEC
+29500, but is not compatible with that standard.  It may be needed for older
+documents, including those processed by Microsoft Office 2007.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="47%" />
+<col width="53%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Binding Module</th>
+<th class="head">Namespace</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.dml.audioVideo</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/drawingml/2006/main</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.dml.chartDrawing</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/drawingml/2006/chartDrawing</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.dml.chart</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/drawingml/2006/chart</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.dml.compatibility</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/drawingml/2006/compatibility</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.dml.diagramColorTransform</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/drawingml/2006/diagram</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.dml.lockedCanvas</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/drawingml/2006/lockedCanvas</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.dml.picture</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/drawingml/2006/picture</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.dml.spreadsheetDrawing</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.dml.wordprocessingDrawing</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.opc.contentTypes</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/package/2006/content-types</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.opc.coreProperties</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/package/2006/metadata/core-properties</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.opc.digSig</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/package/2006/digital-signature</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.opc.relationships</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/package/2006/relationships</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.pml.animationInfo</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/presentationml/2006/main</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.shared.additionalCharacteristics</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/officeDocument/2006/characteristics</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.shared.bibliography</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/officeDocument/2006/bibliography</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.shared.customXmlDataProperties</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/officeDocument/2006/customXml</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.shared.customXmlSchemaProperties</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/schemaLibrary/2006/main</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.shared.documentPropertiesCustom</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/officeDocument/2006/custom-properties</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.shared.documentPropertiesExtended</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/officeDocument/2006/extended-properties</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.shared.documentPropertiesVariantTypes</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.shared.math</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/officeDocument/2006/math</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.shared.relationshipReference</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/officeDocument/2006/relationships</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.sml.autoFilter</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/spreadsheetml/2006/main</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.vml.main</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">urn:schemas-microsoft-com:vml</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.vml.officeDrawing</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">urn:schemas-microsoft-com:office:office</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.vml.presentationDrawing</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">urn:schemas-microsoft-com:office:powerpoint</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.vml.spreadsheetDrawing</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">urn:schemas-microsoft-com:office:excel</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.vml.wordprocessingDrawing</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">urn:schemas-microsoft-com:office:word</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2006.wml</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/wordprocessingml/2006/main</span></tt></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="ecma-376-2e-3e-4e-2008">
+<h3>ECMA-376 2e/3e/4e (2008)<a class="headerlink" href="#ecma-376-2e-3e-4e-2008" title="Permalink to this headline">¶</a></h3>
+<p>The ISO/IEC 29500:2008 version has distinct transitional and strict
+hierarchies.  Use one or the other.  The packaging schema are shared between
+these versions, and in fact appear to be unchanged from the 2006 schema
+except for comments and other whitespace in the schema documents.  The
+various editions contain changes intended to increase conformance to ISO/IEC
+29500:2008 and the bundle script is configured to build the 4th edition
+(December 2012).</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="51%" />
+<col width="49%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Binding Module</th>
+<th class="head">Namespace</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.opc.contentTypes</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/package/2006/content-types</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.opc.coreProperties</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/package/2006/metadata/core-properties</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.opc.digSig</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/package/2006/digital-signature</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.opc.relationships</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/package/2006/relationships</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.dml.chartDrawing</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/drawingml/chartDrawing</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.dml.chart</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/drawingml/chart</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.dml.diagram</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/drawingml/diagram</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.dml.lockedCanvas</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/drawingml/lockedCanvas</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.dml.main</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/drawingml/main</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.dml.picture</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/drawingml/picture</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.dml.spreadsheetDrawing</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/drawingml/spreadsheetDrawing</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.dml.wordprocessingDrawing</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.pml</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/presentationml/main</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.shared.additionalCharacteristics</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/officeDocument/characteristics</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.shared.bibliography</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/officeDocument/bibliography</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.shared.commonSimpleTypes</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/officeDocument/sharedTypes</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.shared.customXmlDataProperties</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/officeDocument/customXml</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.shared.customXmlSchemaProperties</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/schemaLibrary/main</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.shared.documentPropertiesCustom</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/officeDocument/customProperties</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.shared.documentPropertiesExtended</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/officeDocument/extendedProperties</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.shared.documentPropertiesVariantTypes</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/officeDocument/docPropsVTypes</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.shared.math</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/officeDocument/math</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.shared.relationshipReference</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/officeDocument/relationships</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.sml</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/spreadsheetml/main</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.strict.wml</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.oclc.org/ooxml/wordprocessingml/main</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.dml.chartDrawing</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/drawingml/2006/chartDrawing</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.dml.chart</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/drawingml/2006/chart</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.dml.diagram</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/drawingml/2006/diagram</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.dml.lockedCanvas</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/drawingml/2006/lockedCanvas</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.dml.main</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/drawingml/2006/main</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.dml.picture</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/drawingml/2006/picture</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.dml.spreadsheetDrawing</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.dml.wordprocessingDrawing</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.pml</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/presentationml/2006/main</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.shared.additionalCharacteristics</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/officeDocument/2006/characteristics</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.shared.bibliography</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/officeDocument/2006/bibliography</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.shared.commonSimpleTypes</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.shared.customXmlDataProperties</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/officeDocument/2006/customXml</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.shared.customXmlSchemaProperties</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/schemaLibrary/2006/main</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.shared.documentPropertiesCustom</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/officeDocument/2006/custom-properties</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.shared.documentPropertiesExtended</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/officeDocument/2006/extended-properties</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.shared.documentPropertiesVariantTypes</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.shared.math</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/officeDocument/2006/math</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.shared.relationshipReference</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/officeDocument/2006/relationships</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.sml</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/spreadsheetml/2006/main</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.vml.main</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">urn:schemas-microsoft-com:vml</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.vml.officeDrawing</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">urn:schemas-microsoft-com:office:office</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.vml.presentationDrawing</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">urn:schemas-microsoft-com:office:powerpoint</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.vml.spreadsheetDrawing</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">urn:schemas-microsoft-com:office:excel</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.vml.wordprocessingDrawing</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">urn:schemas-microsoft-com:office:word</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.ecma376.v2008.transitional.wml</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/wordprocessingml/2006/main</span></tt></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="opengis">
+<span id="bundle-opengis"></span><h2>OpenGIS<a class="headerlink" href="#opengis" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As of PyXB 1.2.0, this bundle supports the version of the OGC Schema that
+use the W3C XLink 1.1 instead of the older OGC XLink schema.  See
+<a class="reference external" href="http://www.opengeospatial.org/blog/1597">http://www.opengeospatial.org/blog/1597</a> for more information about this
+change.</p>
+</div>
+<p>The following namespaces are available in support of <a class="reference external" href="http://www.opengeospatial.org/standards">Open Geospatial
+Consortium</a> Geographic
+Information System processing.  Note that several of these namespaces are
+&#8220;private&#8221; bindings generated because the OGC definitions include their own
+schema for use local to another schema.  The modules corresponding to these
+namespace uses begin with an underscore, and should generally not be used in
+other contexts.</p>
+<p>This bundle is not populated in the distributed versions of PyXB because it
+requires some 168MB of space to hold the schemas, generated bindings, and
+archive files.  To build it, set <tt class="docutils literal"><span class="pre">PYXB_ROOT</span></tt> environment variable to the
+absolute path of the unpacked PyXB distribution (the directory containing
+<tt class="file docutils literal"><span class="pre">setup.py</span></tt>) and run these commands:</p>
+<div class="highlight-python"><pre>cd ${PYXB_ROOT}
+pyxb/bundles/opengis/scripts/genbind
+python setup.py install</pre>
+</div>
+<p>This will download the schemas from OGC, generate bindings for the
+namespaces below, and (re-)install PyXB including the new bindings.  Other
+namespaces are available and can be added by modifying the <tt class="docutils literal"><span class="pre">genbind</span></tt>
+script and re-running the commands above.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="45%" />
+<col width="55%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Binding Module</th>
+<th class="head">Namespace</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis._ogc</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/ogc</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.atom</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.w3.org/2005/Atom</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.citygml.appearance</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/citygml/appearance/1.0</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.citygml.base</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/citygml/1.0</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.citygml.building</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/citygml/building/1.0</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.citygml.cityFurniture</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/citygml/cityfurniture/1.0</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.citygml.cityObjectGroup</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/citygml/cityobjectgroup/1.0</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.citygml.generics</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/citygml/generics/1.0</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.citygml.landUse</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/citygml/landuse/1.0</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.citygml.relief</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/citygml/relief/1.0</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.citygml.texturedSurface</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/citygml/texturedsurface/1.0</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.citygml.transportation</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/citygml/transportation/1.0</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.citygml.vegetation</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/citygml/vegetation/1.0</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.citygml.waterBody</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/citygml/waterbody/1.0</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.csw_2_0_2</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/cat/csw/2.0.2</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.csw_dc</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.org/dc/elements/1.1/</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.csw_dct</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://purl.org/dc/terms/</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.fes_2_0</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/fes/2.0</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.filter</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/ogc</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.gml_3_2</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/gml/3.2</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.gml_3_3.ce</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/gml/3.3/ce</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.gml_3_3.exr</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/gml/3.3/exr</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.gml_3_3.lr</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/gml/3.3/lr</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.gml_3_3.lro</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/gml/3.3/lro</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.gml_3_3.lrov</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/gml/3.3/lrov</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.gml_3_3.lrtr</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/gml/3.3/lrtr</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.gml_3_3.rgrid</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/gml/3.3/rgrid</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.gml_3_3.tin</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/gml/3.3/tin</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.gml_3_3.xbt</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/gml/3.3/xbt</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.gml</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/gml</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.gmlsf</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/gmlsf</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.ic_ism_2_1</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">urn:us:gov:ic:ism:v2</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.iso19139.20070417.gco</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.isotc211.org/2005/gco</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.iso19139.20070417.gmd</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.isotc211.org/2005/gmd</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.iso19139.20070417.gmx</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.isotc211.org/2005/gmx</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.iso19139.20070417.gsr</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.isotc211.org/2005/gsr</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.iso19139.20070417.gss</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.isotc211.org/2005/gss</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.iso19139.20070417.gts</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.isotc211.org/2005/gts</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.misc.xAL</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">urn:oasis:names:tc:ciq:xsdschema:xAL:2.0</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.misc.xlinks</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.w3.org/1999/xlink</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.ogckml22</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/kml/2.2</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.om_1_0</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/om/1.0</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.om_2_0</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/om/2.0</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.ows_1_1</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/ows/1.1</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.ows_2_0</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/ows/2.0</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.ows</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/ows</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.sampling_1_0</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/sampling/1.0</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.sensorML_1_0_1</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/sensorML/1.0.1</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.smil20</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.w3.org/2001/SMIL20/</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.smil20lang</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.w3.org/2001/SMIL20/Language</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.sos_1_0</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/sos/1.0</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.sos_2_0</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/sos/2.0</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.swe_1_0_0</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/swe/1.0</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.swe_1_0_1</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/swe/1.0.1</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.swe_2_0</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/swe/2.0</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.swes_2_0</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/swes/2.0</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.tml</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/tml</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.wcs_1_1</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/wcs/1.1</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">pyxb.bundles.opengis.wfs</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://www.opengis.net/wfs</span></tt></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="layout-of-a-bundle-directory">
+<span id="bundle-layout"></span><h3>Layout of a Bundle Directory<a class="headerlink" href="#layout-of-a-bundle-directory" title="Permalink to this headline">¶</a></h3>
+<p>The <tt class="docutils literal"><span class="pre">pyxb/bundles</span></tt> directory contains groups of bindings for related
+schema.  These groups are called &#8220;bundles&#8221;, and each subdirectory represents
+a particular bundle.</p>
+<p>With a bundle directory, the following are expected:</p>
+<ul class="simple">
+<li>A <tt class="docutils literal"><span class="pre">scripts</span></tt> directory, containing an executable <tt class="docutils literal"><span class="pre">genbind</span></tt> which
+retrieves the schema and invokes <tt class="docutils literal"><span class="pre">pyxbgen</span></tt> to build the bindings</li>
+<li>A <tt class="docutils literal"><span class="pre">schemas</span></tt> directory, into which the <tt class="docutils literal"><span class="pre">genbind</span></tt> script stores the
+schemas that were used to build the bindings</li>
+<li>The Python module files for namespace modules.  Normally these are
+<a class="reference internal" href="userref_pyxbgen.html#customized-bindings"><em>customization wrappers</em></a></li>
+<li>A <tt class="docutils literal"><span class="pre">raw</span></tt> subdirectory, into which the generated bindings are placed.
+This directory is normally removed and recreated as a consequence of
+running genbind; don&#8217;t expect anything in it to be persistent.</li>
+<li>An <tt class="docutils literal"><span class="pre">examples</span></tt> directory, with programs that show how to use the
+capabilities in the bundle</li>
+<li>A <tt class="docutils literal"><span class="pre">tests</span></tt> directory which validates customizations</li>
+</ul>
+</div>
+<div class="section" id="generating-bundled-bindings">
+<h3>Generating Bundled Bindings<a class="headerlink" href="#generating-bundled-bindings" title="Permalink to this headline">¶</a></h3>
+<p>To create the support infrastructure for a particular bundle, set the
+<tt class="docutils literal"><span class="pre">PYXB_ROOT</span></tt> environment variable to the root of an unpacked PyXB
+distribution and run the <tt class="docutils literal"><span class="pre">scripts/genbind</span></tt> script in the bundle root.  For
+example:</p>
+<div class="highlight-python"><pre>cd ${PYXB_ROOT}
+pyxb/bundles/wssplat/scripts/genbind</pre>
+</div>
+<p>will invoke the <em class="manpage">wget(1)</em> program to retrieve the XML schema for a
+variety of namespaces related to web services and then generate bindings and
+archive files for them.</p>
+<p>Generating bundles should be a one-time action for each release of PyXB.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Some servers, including <a class="reference external" href="http://www.w3.org">http://www.w3.org</a>, enforce an artificial delay in
+retrieving schema documents in order to encourage systems to use cached
+local copies.  The <tt class="file docutils literal"><span class="pre">genbind</span></tt> infrastructure will cache the schemas
+it downloads, but running the generation scripts for the <a class="reference internal" href="#common">common</a>
+bundle, and possibly others, may result in errors if the caches are
+removed and the scripts run too frequently.</p>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Examples of Supported Schema</a><ul>
+<li><a class="reference internal" href="#common">common</a></li>
+<li><a class="reference internal" href="#ws">WS-*</a></li>
+<li><a class="reference internal" href="#saml">SAML</a></li>
+<li><a class="reference internal" href="#dublin-core">Dublin Core</a></li>
+<li><a class="reference internal" href="#ecma-376-open-office-xml">ECMA-376 (Open Office XML)</a><ul>
+<li><a class="reference internal" href="#ecma-376-1st-edition-2006">ECMA-376 1st Edition (2006)</a></li>
+<li><a class="reference internal" href="#ecma-376-2e-3e-4e-2008">ECMA-376 2e/3e/4e (2008)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#opengis">OpenGIS</a><ul>
+<li><a class="reference internal" href="#layout-of-a-bundle-directory">Layout of a Bundle Directory</a></li>
+<li><a class="reference internal" href="#generating-bundled-bindings">Generating Bundled Bindings</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="overview_how.html"
+                        title="previous chapter">How to use it</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="limitations.html"
+                        title="next chapter">Limitations</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/bundles.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="limitations.html" title="Limitations"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="overview_how.html" title="How to use it"
+             >previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+          <li><a href="overview.html" >Overview</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009-2013, Peter A. Bigot.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.utils.activestate</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.utils-module.html">Package&nbsp;utils</a> ::
+        Module&nbsp;activestate
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.utils.activestate-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="pyxb.utils.activestate-module.html">Module pyxb.utils.activestate</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># -*- coding: utf-8 -*-</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-comment"># This file contains code adopted from http://code.activestate.com/recipes/.</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-comment"># Copyright and licensing information is associated with each incorporated</tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-comment"># recipe.  At this time, all code is licensed under PSF.</tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-comment"># http://code.activestate.com/recipes/363841/</tt> </tt>
+<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-comment"># by Lars Tiede, derivative from:</tt> </tt>
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-comment"># http://code.activestate.com/recipes/52257/</tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-comment"># by Paul Prescod</tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-comment"># Licensed under PSF</tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"><tt class="py-comment"># No changes</tt> </tt>
+<a name="detectXMLEncoding"></a><div id="detectXMLEncoding-def"><a name="L12"></a><tt class="py-lineno">12</tt> <a class="py-toggle" href="#" id="detectXMLEncoding-toggle" onclick="return toggle('detectXMLEncoding');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb.utils.activestate-module.html#detectXMLEncoding">detectXMLEncoding</a><tt class="py-op">(</tt><tt class="py-param">fp</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="detectXMLEncoding-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="detectXMLEncoding-expanded"><a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line">    <tt class="py-docstring">""" Attempts to detect the character encoding of the xml file</tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"><tt class="py-docstring">    given by a file object fp. fp must not be a codec wrapped file</tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"><tt class="py-docstring">    object!</tt> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"><tt class="py-docstring">    The return value can be:</tt> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"><tt class="py-docstring">        - if detection of the BOM succeeds, the codec name of the</tt> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line"><tt class="py-docstring">        corresponding unicode charset is returned</tt> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line"><tt class="py-docstring">        - if BOM detection fails, the xml declaration is searched for</tt> </tt>
+<a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line"><tt class="py-docstring">        the encoding attribute and its value returned. the "&lt;"</tt> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line"><tt class="py-docstring">        character has to be the very first in the file then (it's xml</tt> </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line"><tt class="py-docstring">        standard after all).</tt> </tt>
+<a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line"><tt class="py-docstring">        - if BOM and xml declaration fail, None is returned. According</tt> </tt>
+<a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line"><tt class="py-docstring">        to xml 1.0 it should be utf_8 then, but it wasn't detected by</tt> </tt>
+<a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line"><tt class="py-docstring">        the means offered here. at least one can be pretty sure that a</tt> </tt>
+<a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line"><tt class="py-docstring">        character coding including most of ASCII is used :-/</tt> </tt>
+<a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line">    <tt class="py-comment">### detection using BOM</tt> </tt>
+<a name="L32"></a><tt class="py-lineno">32</tt>  <tt class="py-line"> </tt>
+<a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line">    <tt class="py-comment">## the BOMs we know, by their pattern</tt> </tt>
+<a name="L34"></a><tt class="py-lineno">34</tt>  <tt class="py-line">    <tt class="py-name">bomDict</tt><tt class="py-op">=</tt><tt class="py-op">{</tt> <tt class="py-comment"># bytepattern : name</tt> </tt>
+<a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line">             <tt class="py-op">(</tt><tt class="py-number">0x00</tt><tt class="py-op">,</tt> <tt class="py-number">0x00</tt><tt class="py-op">,</tt> <tt class="py-number">0xFE</tt><tt class="py-op">,</tt> <tt class="py-number">0xFF</tt><tt class="py-op">)</tt> <tt class="py-op">:</tt> <tt class="py-string">"utf_32_be"</tt><tt class="py-op">,</tt> </tt>
+<a name="L36"></a><tt class="py-lineno">36</tt>  <tt class="py-line">             <tt class="py-op">(</tt><tt class="py-number">0xFF</tt><tt class="py-op">,</tt> <tt class="py-number">0xFE</tt><tt class="py-op">,</tt> <tt class="py-number">0x00</tt><tt class="py-op">,</tt> <tt class="py-number">0x00</tt><tt class="py-op">)</tt> <tt class="py-op">:</tt> <tt class="py-string">"utf_32_le"</tt><tt class="py-op">,</tt> </tt>
+<a name="L37"></a><tt class="py-lineno">37</tt>  <tt class="py-line">             <tt class="py-op">(</tt><tt class="py-number">0xFE</tt><tt class="py-op">,</tt> <tt class="py-number">0xFF</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt> <tt class="py-op">:</tt> <tt class="py-string">"utf_16_be"</tt><tt class="py-op">,</tt> </tt>
+<a name="L38"></a><tt class="py-lineno">38</tt>  <tt class="py-line">             <tt class="py-op">(</tt><tt class="py-number">0xFF</tt><tt class="py-op">,</tt> <tt class="py-number">0xFE</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt> <tt class="py-op">:</tt> <tt class="py-string">"utf_16_le"</tt><tt class="py-op">,</tt> </tt>
+<a name="L39"></a><tt class="py-lineno">39</tt>  <tt class="py-line">             <tt class="py-op">(</tt><tt class="py-number">0xEF</tt><tt class="py-op">,</tt> <tt class="py-number">0xBB</tt><tt class="py-op">,</tt> <tt class="py-number">0xBF</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt> <tt class="py-op">:</tt> <tt class="py-string">"utf_8"</tt><tt class="py-op">,</tt> </tt>
+<a name="L40"></a><tt class="py-lineno">40</tt>  <tt class="py-line">            <tt class="py-op">}</tt> </tt>
+<a name="L41"></a><tt class="py-lineno">41</tt>  <tt class="py-line"> </tt>
+<a name="L42"></a><tt class="py-lineno">42</tt>  <tt class="py-line">    <tt class="py-comment">## go to beginning of file and get the first 4 bytes</tt> </tt>
+<a name="L43"></a><tt class="py-lineno">43</tt>  <tt class="py-line">    <tt class="py-name">oldFP</tt> <tt class="py-op">=</tt> <tt class="py-name">fp</tt><tt class="py-op">.</tt><tt class="py-name">tell</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L44"></a><tt class="py-lineno">44</tt>  <tt class="py-line">    <tt class="py-name">fp</tt><tt class="py-op">.</tt><tt class="py-name">seek</tt><tt class="py-op">(</tt><tt class="py-number">0</tt><tt class="py-op">)</tt> </tt>
+<a name="L45"></a><tt class="py-lineno">45</tt>  <tt class="py-line">    <tt class="py-op">(</tt><tt class="py-name">byte1</tt><tt class="py-op">,</tt> <tt class="py-name">byte2</tt><tt class="py-op">,</tt> <tt class="py-name">byte3</tt><tt class="py-op">,</tt> <tt class="py-name">byte4</tt><tt class="py-op">)</tt> <tt class="py-op">=</tt> <tt class="py-name">tuple</tt><tt class="py-op">(</tt><tt class="py-name">map</tt><tt class="py-op">(</tt><tt class="py-name">ord</tt><tt class="py-op">,</tt> <tt class="py-name">fp</tt><tt class="py-op">.</tt><tt class="py-name">read</tt><tt class="py-op">(</tt><tt class="py-number">4</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L46"></a><tt class="py-lineno">46</tt>  <tt class="py-line"> </tt>
+<a name="L47"></a><tt class="py-lineno">47</tt>  <tt class="py-line">    <tt class="py-comment">## try bom detection using 4 bytes, 3 bytes, or 2 bytes</tt> </tt>
+<a name="L48"></a><tt class="py-lineno">48</tt>  <tt class="py-line">    <tt class="py-name">bomDetection</tt> <tt class="py-op">=</tt> <tt class="py-name">bomDict</tt><tt class="py-op">.</tt><tt class="py-name">get</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">byte1</tt><tt class="py-op">,</tt> <tt class="py-name">byte2</tt><tt class="py-op">,</tt> <tt class="py-name">byte3</tt><tt class="py-op">,</tt> <tt class="py-name">byte4</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L49"></a><tt class="py-lineno">49</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">bomDetection</tt> <tt class="py-op">:</tt> </tt>
+<a name="L50"></a><tt class="py-lineno">50</tt>  <tt class="py-line">        <tt class="py-name">bomDetection</tt> <tt class="py-op">=</tt> <tt class="py-name">bomDict</tt><tt class="py-op">.</tt><tt class="py-name">get</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">byte1</tt><tt class="py-op">,</tt> <tt class="py-name">byte2</tt><tt class="py-op">,</tt> <tt class="py-name">byte3</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L51"></a><tt class="py-lineno">51</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">bomDetection</tt> <tt class="py-op">:</tt> </tt>
+<a name="L52"></a><tt class="py-lineno">52</tt>  <tt class="py-line">            <tt class="py-name">bomDetection</tt> <tt class="py-op">=</tt> <tt class="py-name">bomDict</tt><tt class="py-op">.</tt><tt class="py-name">get</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">byte1</tt><tt class="py-op">,</tt> <tt class="py-name">byte2</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L53"></a><tt class="py-lineno">53</tt>  <tt class="py-line"> </tt>
+<a name="L54"></a><tt class="py-lineno">54</tt>  <tt class="py-line">    <tt class="py-comment">## if BOM detected, we're done :-)</tt> </tt>
+<a name="L55"></a><tt class="py-lineno">55</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">bomDetection</tt> <tt class="py-op">:</tt> </tt>
+<a name="L56"></a><tt class="py-lineno">56</tt>  <tt class="py-line">        <tt class="py-name">fp</tt><tt class="py-op">.</tt><tt class="py-name">seek</tt><tt class="py-op">(</tt><tt class="py-name">oldFP</tt><tt class="py-op">)</tt> </tt>
+<a name="L57"></a><tt class="py-lineno">57</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">bomDetection</tt> </tt>
+<a name="L58"></a><tt class="py-lineno">58</tt>  <tt class="py-line"> </tt>
+<a name="L59"></a><tt class="py-lineno">59</tt>  <tt class="py-line"> </tt>
+<a name="L60"></a><tt class="py-lineno">60</tt>  <tt class="py-line">    <tt class="py-comment">## still here? BOM detection failed.</tt> </tt>
+<a name="L61"></a><tt class="py-lineno">61</tt>  <tt class="py-line">    <tt class="py-comment">##  now that BOM detection has failed we assume one byte character</tt> </tt>
+<a name="L62"></a><tt class="py-lineno">62</tt>  <tt class="py-line">    <tt class="py-comment">##  encoding behaving ASCII - of course one could think of nice</tt> </tt>
+<a name="L63"></a><tt class="py-lineno">63</tt>  <tt class="py-line">    <tt class="py-comment">##  algorithms further investigating on that matter, but I won't for now.</tt> </tt>
+<a name="L64"></a><tt class="py-lineno">64</tt>  <tt class="py-line"> </tt>
+<a name="L65"></a><tt class="py-lineno">65</tt>  <tt class="py-line"> </tt>
+<a name="L66"></a><tt class="py-lineno">66</tt>  <tt class="py-line">    <tt class="py-comment">### search xml declaration for encoding attribute</tt> </tt>
+<a name="L67"></a><tt class="py-lineno">67</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt class="py-name">re</tt> </tt>
+<a name="L68"></a><tt class="py-lineno">68</tt>  <tt class="py-line"> </tt>
+<a name="L69"></a><tt class="py-lineno">69</tt>  <tt class="py-line">    <tt class="py-comment">## assume xml declaration fits into the first 2 KB (*cough*)</tt> </tt>
+<a name="L70"></a><tt class="py-lineno">70</tt>  <tt class="py-line">    <tt class="py-name">fp</tt><tt class="py-op">.</tt><tt class="py-name">seek</tt><tt class="py-op">(</tt><tt class="py-number">0</tt><tt class="py-op">)</tt> </tt>
+<a name="L71"></a><tt class="py-lineno">71</tt>  <tt class="py-line">    <tt class="py-name">buffer</tt> <tt class="py-op">=</tt> <tt class="py-name">fp</tt><tt class="py-op">.</tt><tt class="py-name">read</tt><tt class="py-op">(</tt><tt class="py-number">2048</tt><tt class="py-op">)</tt> </tt>
+<a name="L72"></a><tt class="py-lineno">72</tt>  <tt class="py-line"> </tt>
+<a name="L73"></a><tt class="py-lineno">73</tt>  <tt class="py-line">    <tt class="py-comment">## set up regular expression</tt> </tt>
+<a name="L74"></a><tt class="py-lineno">74</tt>  <tt class="py-line">    <tt class="py-name">xmlDeclPattern</tt> <tt class="py-op">=</tt> <tt class="py-string">r"""</tt> </tt>
+<a name="L75"></a><tt class="py-lineno">75</tt>  <tt class="py-line"><tt class="py-string">    ^&lt;\?xml             # w/o BOM, xmldecl starts with &lt;?xml at the first byte</tt> </tt>
+<a name="L76"></a><tt class="py-lineno">76</tt>  <tt class="py-line"><tt class="py-string">    .+?                 # some chars (version info), matched minimal</tt> </tt>
+<a name="L77"></a><tt class="py-lineno">77</tt>  <tt class="py-line"><tt class="py-string">    encoding=           # encoding attribute begins</tt> </tt>
+<a name="L78"></a><tt class="py-lineno">78</tt>  <tt class="py-line"><tt class="py-string">    ["']                # attribute start delimiter</tt> </tt>
+<a name="L79"></a><tt class="py-lineno">79</tt>  <tt class="py-line"><tt class="py-string">    (?P&lt;encstr&gt;         # what's matched in the brackets will be named encstr</tt> </tt>
+<a name="L80"></a><tt class="py-lineno">80</tt>  <tt class="py-line"><tt class="py-string">     [^"']+              # every character not delimiter (not overly exact!)</tt> </tt>
+<a name="L81"></a><tt class="py-lineno">81</tt>  <tt class="py-line"><tt class="py-string">    )                   # closes the brackets pair for the named group</tt> </tt>
+<a name="L82"></a><tt class="py-lineno">82</tt>  <tt class="py-line"><tt class="py-string">    ["']                # attribute end delimiter</tt> </tt>
+<a name="L83"></a><tt class="py-lineno">83</tt>  <tt class="py-line"><tt class="py-string">    .*?                 # some chars optionally (standalone decl or whitespace)</tt> </tt>
+<a name="L84"></a><tt class="py-lineno">84</tt>  <tt class="py-line"><tt class="py-string">    \?&gt;                 # xmldecl end</tt> </tt>
+<a name="L85"></a><tt class="py-lineno">85</tt>  <tt class="py-line"><tt class="py-string">    """</tt> </tt>
+<a name="L86"></a><tt class="py-lineno">86</tt>  <tt class="py-line"> </tt>
+<a name="L87"></a><tt class="py-lineno">87</tt>  <tt class="py-line">    <tt class="py-name">xmlDeclRE</tt> <tt class="py-op">=</tt> <tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">compile</tt><tt class="py-op">(</tt><tt class="py-name">xmlDeclPattern</tt><tt class="py-op">,</tt> <tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">VERBOSE</tt><tt class="py-op">)</tt> </tt>
+<a name="L88"></a><tt class="py-lineno">88</tt>  <tt class="py-line"> </tt>
+<a name="L89"></a><tt class="py-lineno">89</tt>  <tt class="py-line">    <tt class="py-comment">## search and extract encoding string</tt> </tt>
+<a name="L90"></a><tt class="py-lineno">90</tt>  <tt class="py-line">    <tt id="link-0" class="py-name" targets="Method pyxb.binding.content.ElementUse.match()=pyxb.binding.content.ElementUse-class.html#match,Method pyxb.binding.content.WildcardUse.match()=pyxb.binding.content.WildcardUse-class.html#match,Method pyxb.namespace.archive._SchemaOrigin.match()=pyxb.namespace.archive._SchemaOrigin-class.html#match,Method pyxb.utils.fac.State.match()=pyxb.utils.fac.State-class.html#match,Method pyxb.utils.fac.SymbolMatch_mixin.match()=pyxb.utils.fac.SymbolMatch_mixin-class.html#match"><a title="pyxb.binding.content.ElementUse.match
+pyxb.binding.content.WildcardUse.match
+pyxb.namespace.archive._SchemaOrigin.match
+pyxb.utils.fac.State.match
+pyxb.utils.fac.SymbolMatch_mixin.match" class="py-name" href="#" onclick="return doclink('link-0', 'match', 'link-0');">match</a></tt> <tt class="py-op">=</tt> <tt class="py-name">xmlDeclRE</tt><tt class="py-op">.</tt><tt class="py-name">search</tt><tt class="py-op">(</tt><tt class="py-name">buffer</tt><tt class="py-op">)</tt> </tt>
+<a name="L91"></a><tt class="py-lineno">91</tt>  <tt class="py-line">    <tt class="py-name">fp</tt><tt class="py-op">.</tt><tt class="py-name">seek</tt><tt class="py-op">(</tt><tt class="py-name">oldFP</tt><tt class="py-op">)</tt> </tt>
+<a name="L92"></a><tt class="py-lineno">92</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt id="link-1" class="py-name"><a title="pyxb.binding.content.ElementUse.match
+pyxb.binding.content.WildcardUse.match
+pyxb.namespace.archive._SchemaOrigin.match
+pyxb.utils.fac.State.match
+pyxb.utils.fac.SymbolMatch_mixin.match" class="py-name" href="#" onclick="return doclink('link-1', 'match', 'link-0');">match</a></tt> <tt class="py-op">:</tt> </tt>
+<a name="L93"></a><tt class="py-lineno">93</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-2" class="py-name"><a title="pyxb.binding.content.ElementUse.match
+pyxb.binding.content.WildcardUse.match
+pyxb.namespace.archive._SchemaOrigin.match
+pyxb.utils.fac.State.match
+pyxb.utils.fac.SymbolMatch_mixin.match" class="py-name" href="#" onclick="return doclink('link-2', 'match', 'link-0');">match</a></tt><tt class="py-op">.</tt><tt class="py-name">group</tt><tt class="py-op">(</tt><tt class="py-string">"encstr"</tt><tt class="py-op">)</tt> </tt>
+<a name="L94"></a><tt class="py-lineno">94</tt>  <tt class="py-line">    <tt class="py-keyword">else</tt> <tt class="py-op">:</tt> </tt>
+<a name="L95"></a><tt class="py-lineno">95</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">None</tt> </tt>
+</div><a name="L96"></a><tt class="py-lineno">96</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:38 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

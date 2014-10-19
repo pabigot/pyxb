@@ -1,0 +1,614 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.utils.saxutils</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.utils-module.html">Package&nbsp;utils</a> ::
+        Module&nbsp;saxutils
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.utils.saxutils-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module saxutils</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.utils.saxutils-pysrc.html">source&nbsp;code</a></span></p>
+<p>This module contains support for processing XML using a SAX 
+  parser.</p>
+  <p>In particular, it provides a <a 
+  href="pyxb.utils.saxutils.BaseSAXHandler-class.html" class="link">base 
+  content handler class</a> that maintains namespace context and element 
+  state in a stack; and a <a 
+  href="pyxb.utils.saxutils.SAXElementState-class.html" class="link">base 
+  element state class</a> which records the location of the element in the 
+  stream.  These classes are extended for specific parsing needs (e.g., <a 
+  href="pyxb.binding.saxer-module.html" 
+  class="link">pyxb.binding.saxer</a>).</p>
+
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Classes</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Classes"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.saxutils.TracingSAXHandler-class.html" class="summary-name">TracingSAXHandler</a><br />
+      A SAX handler class which prints each method invocation.
+    </td>
+  </tr>
+<tr class="private">
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.saxutils._NoopSAXHandler-class.html" class="summary-name" onclick="show_private();">_NoopSAXHandler</a><br />
+      A SAX handler class which doesn't do anything.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.saxutils.SAXInformationItem-class.html" class="summary-name">SAXInformationItem</a><br />
+      Class used to capture an item discovered in the body of an element.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.saxutils.SAXElementState-class.html" class="summary-name">SAXElementState</a><br />
+      State corresponding to processing a given element with the SAX 
+        model.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.saxutils.BaseSAXHandler-class.html" class="summary-name">BaseSAXHandler</a><br />
+      A SAX handler class that maintains a stack of enclosing elements 
+        and manages namespace declarations.
+    </td>
+  </tr>
+<tr class="private">
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.saxutils._EntityResolver-class.html" class="summary-name" onclick="show_private();">_EntityResolver</a><br />
+      Dummy used to prevent the SAX parser from crashing when it sees 
+        processing instructions that we don't care about.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.saxutils.BaseSAXHandler-class.html" class="summary-name">Handler</a><br />
+      A SAX handler class that maintains a stack of enclosing elements 
+        and manages namespace declarations.
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.saxutils-module.html#SetCreateParserModules" class="summary-sig-name">SetCreateParserModules</a>(<span class="summary-sig-arg">create_parser_modules</span>)</span><br />
+      Provide list of modules to be used when creating parsers.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.saxutils-pysrc.html#SetCreateParserModules">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.saxutils-module.html#make_parser" class="summary-sig-name">make_parser</a>(<span class="summary-sig-arg">**kw</span>)</span><br />
+      Extend <code>xml.sax.make_parser</code> to configure the parser the 
+      way we need it:</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.saxutils-pysrc.html#make_parser">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Variables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_log"></a><span class="summary-name">_log</span> = <code title="logging.getLogger(__name__)">logging.getLogger(__name__)</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_CreateParserModules"></a><span class="summary-name">_CreateParserModules</span> = <code title="[]"><code class="variable-group">[</code><code class="variable-group">]</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="xml_file"></a><span class="summary-name">xml_file</span> = <code title="sys.argv [1]">sys.argv [1]</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="xmld"></a><span class="summary-name">xmld</span> = <code title="open(xml_file, 'rb').read()">open(xml_file, 'rb').read()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="dt1"></a><span class="summary-name">dt1</span> = <code title="time.time()">time.time()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="dt2"></a><span class="summary-name">dt2</span> = <code title="time.time()">time.time()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="dom"></a><span class="summary-name">dom</span> = <code title="xml.dom.minidom.parse(io.BytesIO(xmld))">xml.dom.minidom.parse(io.BytesIO(xmld))</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="dt3"></a><span class="summary-name">dt3</span> = <code title="time.time()">time.time()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="snt1"></a><span class="summary-name">snt1</span> = <code title="time.time()">time.time()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="snt2"></a><span class="summary-name">snt2</span> = <code title="time.time()">time.time()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="snt3"></a><span class="summary-name">snt3</span> = <code title="time.time()">time.time()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="sbt1"></a><span class="summary-name">sbt1</span> = <code title="time.time()">time.time()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="saxer"></a><span class="summary-name">saxer</span> = <code title="make_parser(content_handler= BaseSAXHandler())">make_parser(content_handler= BaseSAXHandler())</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="sbt2"></a><span class="summary-name">sbt2</span> = <code title="time.time()">time.time()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="sbt3"></a><span class="summary-name">sbt3</span> = <code title="time.time()">time.time()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="pdt1"></a><span class="summary-name">pdt1</span> = <code title="time.time()">time.time()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.saxutils-module.html#sdomer" class="summary-name">sdomer</a> = <code title="make_parser(content_handler_constructor= saxdom._DOMSAXHandler)">make_parser(content_handler_constructor= saxdom._DOMS<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="h"></a><span class="summary-name">h</span> = <code title="sdomer.getContentHandler()">sdomer.getContentHandler()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="pdt2"></a><span class="summary-name">pdt2</span> = <code title="time.time()">time.time()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="pdt3"></a><span class="summary-name">pdt3</span> = <code title="time.time()">time.time()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="lst1"></a><span class="summary-name">lst1</span> = <code title="time.time()">time.time()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="lst2"></a><span class="summary-name">lst2</span> = <code title="time.time()">time.time()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="lsh"></a><span class="summary-name">lsh</span> = <code title="Handler()">Handler()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="lst3"></a><span class="summary-name">lst3</span> = <code title="time.time()">time.time()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="ldt1"></a><span class="summary-name">ldt1</span> = <code title="time.time()">time.time()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="tree"></a><span class="summary-name">tree</span> = <code title="lxml.etree.fromstring(xmld)">lxml.etree.fromstring(xmld)</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="ldt2"></a><span class="summary-name">ldt2</span> = <code title="time.time()">time.time()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="ldh"></a><span class="summary-name">ldh</span> = <code title="xml.dom.pulldom.SAX2DOM()">xml.dom.pulldom.SAX2DOM()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="ldt3"></a><span class="summary-name">ldt3</span> = <code title="time.time()">time.time()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'pyxb.utils'"><code class="variable-quote">'</code><code class="variable-string">pyxb.utils</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTION DETAILS ==================== -->
+<a name="section-FunctionDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Function Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-FunctionDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="SetCreateParserModules"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">SetCreateParserModules</span>(<span class="sig-arg">create_parser_modules</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.saxutils-pysrc.html#SetCreateParserModules">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Provide list of modules to be used when creating parsers.</p>
+  <p><code>xml.sax.make_parser()</code> takes as a parameter an optional 
+  list of modules which allow customization of the parser to be used.  
+  Certain parsers have better support for Unicode than others.</p>
+  <p>As an example, providing <code>[&quot;drv_libxml2&quot;]</code> causes
+  the libxml2 parser to be used.</p>
+  <p>The default behavior if this function is not called, or if it is 
+  called with an empty list or <code>None</code>, is to provide no specific
+  modules, which will result in the system default parser (probably 
+  expat).</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>create_parser_modules</code></strong> - an iterable list of names of modules that provide a 
+          <code>create_parser</code> function.  Pass <code>None</code> to 
+          reset to the system default.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="make_parser"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">make_parser</span>(<span class="sig-arg">**kw</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.saxutils-pysrc.html#make_parser">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Extend <code>xml.sax.make_parser</code> to configure the parser the 
+  way we need it:</p>
+  <ul>
+    <li>
+      <code>feature_namespaces</code> is set to <code>True</code> so we 
+      process xmlns directives properly
+    </li>
+    <li>
+      <code>feature_namespace_prefixes</code> is set to <code>False</code> 
+      so we don't get prefixes encoded into our names (probably redundant 
+      with the above but still...)
+    </li>
+  </ul>
+  <p>All keywords not documented here (and <code>fallback_namespace</code>,
+  which is) are passed to the <code>content_handler_constructor</code> if 
+  that must be invoked.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>content_handler</code></strong> (<code>xml.sax.handler.ContentHandler</code>) - The content handler instance for the parser to use.  If not 
+          provided, an instance of <code>content_handler_constructor</code>
+          is created and used.</li>
+        <li><strong class="pname"><code>content_handler_constructor</code></strong> - A callable which produces an appropriate instance of (a subclass 
+          of) <a href="pyxb.utils.saxutils.BaseSAXHandler-class.html" 
+          class="link">BaseSAXHandler</a>.  The default is <a 
+          href="pyxb.utils.saxutils.BaseSAXHandler-class.html" 
+          class="link">BaseSAXHandler</a>.</li>
+        <li><strong class="pname"><code>fallback_namespace</code></strong> (<a href="pyxb.namespace.Namespace-class.html" 
+          class="link">pyxb.namespace.Namespace</a>) - The namespace to use for lookups of unqualified names in absent 
+          namespaces; see <a href="pyxb.namespace.ExpandedName-class.html" 
+          class="link">pyxb.namespace.ExpandedName</a>.  This keyword is 
+          not used by this function, but is passed to the 
+          <code>content_handler_constructor</code>.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== VARIABLES DETAILS ==================== -->
+<a name="section-VariablesDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-VariablesDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="sdomer"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">sdomer</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+make_parser(content_handler_constructor= saxdom._DOMSAXHandler)
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:36 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

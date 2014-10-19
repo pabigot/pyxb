@@ -1,0 +1,1397 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.utils.utility</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.utils-module.html">Package&nbsp;utils</a> ::
+        Module&nbsp;utility
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.utils.utility-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module utility</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.utils.utility-pysrc.html">source&nbsp;code</a></span></p>
+<p>Utility functions and classes.</p>
+
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Classes</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Classes"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.utility._DeconflictSymbols_mixin-class.html" class="summary-name" onclick="show_private();">_DeconflictSymbols_mixin</a><br />
+      Mix-in used to deconflict public symbols in classes that may be 
+        inherited by generated binding classes.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.utility.Graph-class.html" class="summary-name">Graph</a><br />
+      Represent a directed graph with arbitrary objects as nodes.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.utility.UniqueIdentifier-class.html" class="summary-name">UniqueIdentifier</a><br />
+      Records a unique identifier, generally associated with a binding 
+        generation action.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.utility.UTCOffsetTimeZone-class.html" class="summary-name">UTCOffsetTimeZone</a><br />
+      A <code>datetime.tzinfo</code> subclass that helps deal with UTC 
+        conversions in an ISO8601 world.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.utility.LocalTimeZone-class.html" class="summary-name">LocalTimeZone</a><br />
+      A <code>datetime.tzinfo</code> subclass for the local time zone.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.utility.PrivateTransient_mixin-class.html" class="summary-name">PrivateTransient_mixin</a><br />
+      Emulate the <b>transient</b> keyword from Java for private member 
+        variables.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.utility.Location-class.html" class="summary-name">Location</a>
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.utility.Locatable_mixin-class.html" class="summary-name">Locatable_mixin</a>
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility-module.html#BackfillComparisons" class="summary-sig-name">BackfillComparisons</a>(<span class="summary-sig-arg">cls</span>)</span><br />
+      Class decorator that fills in missing ordering methods.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#BackfillComparisons">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility-module.html#IteratedCompareMixed" class="summary-sig-name">IteratedCompareMixed</a>(<span class="summary-sig-arg">lhs</span>,
+        <span class="summary-sig-arg">rhs</span>)</span><br />
+      Tuple comparison that permits <code>None</code> as lower than any 
+      value, and defines other cross-type comparison.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#IteratedCompareMixed">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>str</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility-module.html#QuotedEscaped" class="summary-sig-name">QuotedEscaped</a>(<span class="summary-sig-arg">s</span>)</span><br />
+      Convert a string into a literal value that can be used in Python 
+      source.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#QuotedEscaped">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility-module.html#_DefaultXMLIdentifierToPython" class="summary-sig-name" onclick="show_private();">_DefaultXMLIdentifierToPython</a>(<span class="summary-sig-arg">identifier</span>)</span><br />
+      Default implementation for _XMLIdentifierToPython</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#_DefaultXMLIdentifierToPython">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>unicode</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility-module.html#_SetXMLIdentifierToPython" class="summary-sig-name" onclick="show_private();">_SetXMLIdentifierToPython</a>(<span class="summary-sig-arg">xml_identifier_to_python</span>)</span><br />
+      Configure a callable <a 
+      href="pyxb.utils.utility-module.html#MakeIdentifier" 
+      class="link">MakeIdentifier</a> uses to pre-process an XM 
+      Lidentifier.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#_SetXMLIdentifierToPython">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility-module.html#_XMLIdentifierToPython" class="summary-sig-name" onclick="show_private();">_XMLIdentifierToPython</a>(<span class="summary-sig-arg">identifier</span>)</span><br />
+      Default implementation for _XMLIdentifierToPython</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#_DefaultXMLIdentifierToPython">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>str</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility-module.html#MakeIdentifier" class="summary-sig-name">MakeIdentifier</a>(<span class="summary-sig-arg">s</span>,
+        <span class="summary-sig-arg">camel_case</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Convert a string into something suitable to be a Python identifier.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#MakeIdentifier">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>str</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility-module.html#DeconflictKeyword" class="summary-sig-name">DeconflictKeyword</a>(<span class="summary-sig-arg">s</span>,
+        <span class="summary-sig-arg">aux_keywords</span>=<span class="summary-sig-default"><code class="variable-group">frozenset([</code><code class="variable-group">])</code></span>)</span><br />
+      If the provided string <code>s</code> matches a Python language 
+      keyword, append an underscore to distinguish them.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#DeconflictKeyword">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>str</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility-module.html#MakeUnique" class="summary-sig-name">MakeUnique</a>(<span class="summary-sig-arg">s</span>,
+        <span class="summary-sig-arg">in_use</span>)</span><br />
+      Return an identifier based on <code>s</code> that is not in the given
+      set.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#MakeUnique">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>str</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility-module.html#PrepareIdentifier" class="summary-sig-name">PrepareIdentifier</a>(<span class="summary-sig-arg">s</span>,
+        <span class="summary-sig-arg">in_use</span>,
+        <span class="summary-sig-arg">aux_keywords</span>=<span class="summary-sig-default"><code class="variable-group">frozenset([</code><code class="variable-group">])</code></span>,
+        <span class="summary-sig-arg">private</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">protected</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Combine everything required to create a unique identifier.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#PrepareIdentifier">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>str</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility-module.html#NormalizeWhitespace" class="summary-sig-name">NormalizeWhitespace</a>(<span class="summary-sig-arg">text</span>,
+        <span class="summary-sig-arg">preserve</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">replace</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">collapse</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Normalize the given string.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#NormalizeWhitespace">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="SetLocationPrefixRewriteMap"></a><span class="summary-sig-name">SetLocationPrefixRewriteMap</span>(<span class="summary-sig-arg">prefix_map</span>)</span><br />
+      Set the map that is used to by <a 
+      href="pyxb.utils.utility-module.html#NormalizeLocation" 
+      class="link">NormalizeLocation</a> to rewrite URI prefixes.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#SetLocationPrefixRewriteMap">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility-module.html#NormalizeLocation" class="summary-sig-name">NormalizeLocation</a>(<span class="summary-sig-arg">uri</span>,
+        <span class="summary-sig-arg">parent_uri</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">prefix_map</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Normalize a URI against an optional parent_uri in the way that is 
+      done for <code>schemaLocation</code> attribute values.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#NormalizeLocation">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility-module.html#DataFromURI" class="summary-sig-name">DataFromURI</a>(<span class="summary-sig-arg">uri</span>,
+        <span class="summary-sig-arg">archive_directory</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Retrieve the contents of the uri as raw data.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#DataFromURI">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility-module.html#OpenOrCreate" class="summary-sig-name">OpenOrCreate</a>(<span class="summary-sig-arg">file_name</span>,
+        <span class="summary-sig-arg">tag</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">preserve_contents</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Return a file object used to write binary data into the given file.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#OpenOrCreate">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility-module.html#HashForText" class="summary-sig-name">HashForText</a>(<span class="summary-sig-arg">text</span>)</span><br />
+      Calculate a cryptographic hash of the given string.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#HashForText">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>str</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility-module.html#_NewUUIDString" class="summary-sig-name" onclick="show_private();">_NewUUIDString</a>()</span><br />
+      Obtain a UUID using the best available method.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#_NewUUIDString">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility-module.html#GetMatchingFiles" class="summary-sig-name">GetMatchingFiles</a>(<span class="summary-sig-arg">path</span>,
+        <span class="summary-sig-arg">pattern</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">default_path_wildcard</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">default_path</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">prefix_pattern</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">prefix_substituend</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Provide a list of absolute paths to files present in any of a set of 
+      directories and meeting certain criteria.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#GetMatchingFiles">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Variables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_log"></a><span class="summary-name">_log</span> = <code title="logging.getLogger(__name__)">logging.getLogger(__name__)</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_UnderscoreSubstitute_re"></a><span class="summary-name">_UnderscoreSubstitute_re</span> = <code title="re.compile(r'[- \.]')">re.compile(r'<code class="re-group">[</code>- \.<code class="re-group">]</code>')</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_NonIdentifier_re"></a><span class="summary-name">_NonIdentifier_re</span> = <code title="re.compile(r'[^a-zA-Z0-9_]')">re.compile(r'<code class="re-group">[</code><code class="re-op">^</code>a<code class="re-op">-</code>zA<code class="re-op">-</code>Z0<code class="re-op">-</code>9_<code class="re-group">]</code>')</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_PrefixUnderscore_re"></a><span class="summary-name">_PrefixUnderscore_re</span> = <code title="re.compile(r'^_+')">re.compile(r'^_<code class="re-op">+</code>')</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_PrefixDigit_re"></a><span class="summary-name">_PrefixDigit_re</span> = <code title="re.compile(r'^\d+')">re.compile(r'^\d<code class="re-op">+</code>')</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_CamelCase_re"></a><span class="summary-name">_CamelCase_re</span> = <code title="re.compile(r'_\w')">re.compile(r'_\w')</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.utility-module.html#_PythonKeywords" class="summary-name" onclick="show_private();">_PythonKeywords</a> = <code title="frozenset(['and',
+           'as',
+           'assert',
+           'break',
+           'class',
+           'continue',
+           'def',
+           'del',
+..."><code class="variable-group">frozenset([</code><code class="variable-quote">'</code><code class="variable-string">and</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">as</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">assert</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">break</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-ellipsis">...</code></code><br />
+      Python keywords.
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.utility-module.html#_PythonBuiltInConstants" class="summary-name" onclick="show_private();">_PythonBuiltInConstants</a> = <code title="frozenset(['Ellipsis',
+           'False',
+           'None',
+           'NotImplemented',
+           'True',
+           '__debug__',
+           'set'])"><code class="variable-group">frozenset([</code><code class="variable-quote">'</code><code class="variable-string">Ellipsis</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">False</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Non</code><code class="variable-ellipsis">...</code></code><br />
+      Other symbols that aren't keywords but that can't be used.
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.utility-module.html#_Keywords" class="summary-name" onclick="show_private();">_Keywords</a> = <code title="frozenset(['Ellipsis',
+           'False',
+           'None',
+           'NotImplemented',
+           'True',
+           '__debug__',
+           'and',
+           'as',
+..."><code class="variable-group">frozenset([</code><code class="variable-quote">'</code><code class="variable-string">Ellipsis</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">False</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">None</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">NotImplem</code><code class="variable-ellipsis">...</code></code><br />
+      The keywords reserved for Python, derived from <a 
+      href="pyxb.utils.utility-module.html#_PythonKeywords" class="link" 
+      onclick="show_private();">_PythonKeywords</a> and <a 
+      href="pyxb.utils.utility-module.html#_PythonBuiltInConstants" 
+      class="link" onclick="show_private();">_PythonBuiltInConstants</a>.
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__TabCRLF_re"></a><span class="summary-name">__TabCRLF_re</span> = <code title="re.compile(r'[\t\n\r]')">re.compile(r'<code class="re-group">[</code>\t\n\r<code class="re-group">]</code>')</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__MultiSpace_re"></a><span class="summary-name">__MultiSpace_re</span> = <code title="re.compile(r' +')">re.compile(r' <code class="re-op">+</code>')</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="LocationPrefixRewriteMap_"></a><span class="summary-name">LocationPrefixRewriteMap_</span> = <code title="{}"><code class="variable-group">{</code><code class="variable-group">}</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__HaveUUID"></a><span class="summary-name">__HaveUUID</span> = <code title="True">True</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'pyxb.utils'"><code class="variable-quote">'</code><code class="variable-string">pyxb.utils</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTION DETAILS ==================== -->
+<a name="section-FunctionDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Function Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-FunctionDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="BackfillComparisons"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">BackfillComparisons</span>(<span class="sig-arg">cls</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#BackfillComparisons">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Class decorator that fills in missing ordering methods.</p>
+  <p>Concept derived from Python 2.7.5 functools.total_ordering, but this 
+  version requires that __eq__ and __lt__ be provided, and unconditionally 
+  overrides __ne__, __gt__, __le__, and __ge__ with the derived 
+  versions.</p>
+  <p>This is still necessary in Python 3 because in Python 3 the comparison
+  x &gt;= y is done by the __ge__ inherited from object, which does not 
+  handle the case where x and y are not the same type even if the 
+  underlying y &lt; x would convert x to be compatible.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="IteratedCompareMixed"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">IteratedCompareMixed</span>(<span class="sig-arg">lhs</span>,
+        <span class="sig-arg">rhs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#IteratedCompareMixed">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Tuple comparison that permits <code>None</code> as lower than any 
+  value, and defines other cross-type comparison.</p>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd>-1 if lhs &lt; rhs, 0 if lhs == rhs, 1 if lhs &gt; rhs.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="QuotedEscaped"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">QuotedEscaped</span>(<span class="sig-arg">s</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#QuotedEscaped">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Convert a string into a literal value that can be used in Python 
+  source.</p>
+  <p>This just calls <code>repr</code>.  No point in getting all complex 
+  when the language already gives us what we need.</p>
+  <dl class="fields">
+    <dt>Returns: <code>str</code></dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_DefaultXMLIdentifierToPython"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_DefaultXMLIdentifierToPython</span>(<span class="sig-arg">identifier</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#_DefaultXMLIdentifierToPython">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Default implementation for _XMLIdentifierToPython</p>
+  <p>For historical reasons, this converts the identifier from a str to 
+  unicode in the system default encoding.  This should have no practical 
+  effect.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>identifier</code></strong> - some XML identifier</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd><code>unicode(identifier)</code></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_SetXMLIdentifierToPython"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_SetXMLIdentifierToPython</span>(<span class="sig-arg">xml_identifier_to_python</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#_SetXMLIdentifierToPython">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Configure a callable <a 
+  href="pyxb.utils.utility-module.html#MakeIdentifier" 
+  class="link">MakeIdentifier</a> uses to pre-process an XM 
+  Lidentifier.</p>
+  <p>In Python3, identifiers can be full Unicode tokens, but in Python2, 
+  all identifiers must be ASCII characters.  <a 
+  href="pyxb.utils.utility-module.html#MakeIdentifier" 
+  class="link">MakeIdentifier</a> enforces this by removing all characters 
+  that are not valid within an identifier.</p>
+  <p>In some cases, an application generating bindings may be able to 
+  transliterate Unicode code points that are not valid Python identifier 
+  characters into something else.  This callable can be assigned to perform
+  that translation before the invalid characters are stripped.</p>
+  <p>It is not the responsibility of this callable to do anything other 
+  than replace whatever characters it wishes to.  All transformations 
+  performed by <a href="pyxb.utils.utility-module.html#MakeIdentifier" 
+  class="link">MakeIdentifier</a> will still be applied, to ensure the 
+  output is in fact a legal identifier.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>xml_identifier_to_python</code></strong> - A callable that takes a string and returns a Unicode, possibly 
+          with non-identifier characters replaced by other characters.  
+          Pass <code>None</code> to reset to the default implementation, 
+          which is <a 
+          href="pyxb.utils.utility-module.html#_DefaultXMLIdentifierToPython"
+          class="link" 
+          onclick="show_private();">_DefaultXMLIdentifierToPython</a>.</li>
+    </ul></dd>
+    <dt>Returns: <code>unicode</code></dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_XMLIdentifierToPython"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_XMLIdentifierToPython</span>(<span class="sig-arg">identifier</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#_DefaultXMLIdentifierToPython">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Default implementation for _XMLIdentifierToPython</p>
+  <p>For historical reasons, this converts the identifier from a str to 
+  unicode in the system default encoding.  This should have no practical 
+  effect.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>identifier</code></strong> - some XML identifier</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd><code>unicode(identifier)</code></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="MakeIdentifier"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">MakeIdentifier</span>(<span class="sig-arg">s</span>,
+        <span class="sig-arg">camel_case</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#MakeIdentifier">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Convert a string into something suitable to be a Python 
+  identifier.</p>
+  <p>The string is processed by <a 
+  href="pyxb.utils.utility-module.html#_DefaultXMLIdentifierToPython" 
+  class="link" onclick="show_private();">_XMLIdentifierToPython</a>.  
+  Following this, dashes, spaces, and periods are replaced by underscores, 
+  and characters not permitted in Python identifiers are stripped. 
+  Furthermore, any leading underscores are removed.  If the result begins 
+  with a digit, the character 'n' is prepended.  If the result is the empty
+  string, the string 'emptyString' is substituted.</p>
+  <p>No check is made for <a 
+  href="pyxb.utils.utility-module.html#DeconflictKeyword" 
+  class="link">conflicts with keywords</a>.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>camel_case</code></strong> - If <code>True</code>, any underscore in the result string that is
+          immediately followed by an alphanumeric is replaced by the 
+          capitalized version of that alphanumeric.  Thus, 'one_or_two' 
+          becomes 'oneOrTwo'.  If <code>False</code> (default), has no 
+          effect.</li>
+    </ul></dd>
+    <dt>Returns: <code>str</code></dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="DeconflictKeyword"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">DeconflictKeyword</span>(<span class="sig-arg">s</span>,
+        <span class="sig-arg">aux_keywords</span>=<span class="sig-default"><code class="variable-group">frozenset([</code><code class="variable-group">])</code></span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#DeconflictKeyword">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>If the provided string <code>s</code> matches a Python language 
+  keyword, append an underscore to distinguish them.</p>
+  <p>See also <a href="pyxb.utils.utility-module.html#MakeUnique" 
+  class="link">MakeUnique</a>.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>s</code></strong> - string to be deconflicted</li>
+        <li><strong class="pname"><code>aux_keywords</code></strong> - optional iterable of additional strings that should be treated as
+          keywords.</li>
+    </ul></dd>
+    <dt>Returns: <code>str</code></dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="MakeUnique"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">MakeUnique</span>(<span class="sig-arg">s</span>,
+        <span class="sig-arg">in_use</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#MakeUnique">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return an identifier based on <code>s</code> that is not in the given 
+  set.</p>
+  <p>The returned identifier is made unique by appending an underscore and,
+  if necessary, a serial number.</p>
+  <p>The order is : <code>x</code>, <code>x_</code>, <code>x_2</code>, 
+  <code>x_3</code>, ...</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>in_use</code></strong> - The set of identifiers already in use in the relevant scope.  
+          <code>in_use</code> is updated to contain the returned 
+          identifier.</li>
+    </ul></dd>
+    <dt>Returns: <code>str</code></dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="PrepareIdentifier"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">PrepareIdentifier</span>(<span class="sig-arg">s</span>,
+        <span class="sig-arg">in_use</span>,
+        <span class="sig-arg">aux_keywords</span>=<span class="sig-default"><code class="variable-group">frozenset([</code><code class="variable-group">])</code></span>,
+        <span class="sig-arg">private</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">protected</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#PrepareIdentifier">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Combine everything required to create a unique identifier.</p>
+  <p>Leading and trailing underscores are stripped from all 
+  identifiers.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>in_use</code></strong> - the set of already used identifiers.  Upon return from this 
+          function, it is updated to include the returned identifier.</li>
+        <li><strong class="pname"><code>aux_keywords</code></strong> - an optional set of additional symbols that are illegal in the 
+          given context; use this to prevent conflicts with known method 
+          names.</li>
+        <li><strong class="pname"><code>private</code></strong> - if <code>False</code> (default), all leading underscores are 
+          stripped, guaranteeing the identifier will not be private.  If 
+          <code>True</code>, the returned identifier has two leading 
+          underscores, making it a private variable within a Python class.</li>
+        <li><strong class="pname"><code>protected</code></strong> - as for <code>private</code>, but uses only one underscore.</li>
+    </ul></dd>
+    <dt>Returns: <code>str</code></dt>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        Only module-level identifiers should be treated as protected.  The 
+        class-level <a 
+        href="pyxb.utils.utility._DeconflictSymbols_mixin-class.html" 
+        class="link" onclick="show_private();">_DeconflictSymbols_mixin</a>
+        infrastructure does not include protected symbols.  All class and 
+        instance members beginning with a single underscore are reserved 
+        for the PyXB infrastructure.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="NormalizeWhitespace"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">NormalizeWhitespace</span>(<span class="sig-arg">text</span>,
+        <span class="sig-arg">preserve</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">replace</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">collapse</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#NormalizeWhitespace">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Normalize the given string.</p>
+  <p>Exactly one of the <code>preserve</code>, <code>replace</code>, and 
+  <code>collapse</code> keyword parameters must be assigned the value 
+  <code>True</code> by the caller.</p>
+  <ul>
+    <li>
+      <code>preserve</code>: the text is returned unchanged.
+    </li>
+    <li>
+      <code>replace</code>: all tabs, newlines, and carriage returns are 
+      replaced with ASCII spaces.
+    </li>
+    <li>
+      <code>collapse</code>: the <code>replace</code> normalization is 
+      done, then sequences of two or more spaces are replaced by a single 
+      space.
+    </li>
+  </ul>
+  <p>See the <a href="http://www.w3.org/TR/xmlschema-2/#rf-whiteSpace" 
+  target="_top">whiteSpace facet</a>.</p>
+  <dl class="fields">
+    <dt>Returns: <code>str</code></dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="NormalizeLocation"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">NormalizeLocation</span>(<span class="sig-arg">uri</span>,
+        <span class="sig-arg">parent_uri</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">prefix_map</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#NormalizeLocation">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Normalize a URI against an optional parent_uri in the way that is done
+  for <code>schemaLocation</code> attribute values.</p>
+  <p>If no URI schema is present, this will normalize a file system 
+  path.</p>
+  <p>Optionally, the resulting absolute URI can subsequently be rewritten 
+  to replace specified prefix strings with alternative strings, e.g. to 
+  convert a remote URI to a local repository.  This rewriting is done after
+  the conversion to an absolute URI, but before normalizing file system 
+  URIs.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>uri</code></strong> - The URI to normalize.  If <code>None</code>, function returns 
+          <code>None</code></li>
+        <li><strong class="pname"><code>parent_uri</code></strong> - The base URI against which normalization is done, if 
+          <code>uri</code> is a relative URI.</li>
+        <li><strong class="pname"><code>prefix_map</code></strong> - A map used to rewrite URI prefixes.  If <code>None</code>, the 
+          value defaults to that stored by <a 
+          href="pyxb.utils.utility-module.html#SetLocationPrefixRewriteMap"
+          class="link">SetLocationPrefixRewriteMap</a>.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="DataFromURI"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">DataFromURI</span>(<span class="sig-arg">uri</span>,
+        <span class="sig-arg">archive_directory</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#DataFromURI">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Retrieve the contents of the uri as raw data.</p>
+  <p>If the uri does not include a scheme (e.g., <code>http:</code>), it is
+  assumed to be a file path on the local system.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="OpenOrCreate"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">OpenOrCreate</span>(<span class="sig-arg">file_name</span>,
+        <span class="sig-arg">tag</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">preserve_contents</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#OpenOrCreate">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return a file object used to write binary data into the given 
+  file.</p>
+  <p>Use the <code>tag</code> keyword to preserve the contents of existing 
+  files that are not supposed to be overwritten.</p>
+  <p>To get a writable file but leaving any existing contents in place, set
+  the <code>preserve_contents</code> keyword to <code>True</code>.  
+  Normally, existing file contents are erased.</p>
+  <p>The returned file pointer is positioned at the end of the file.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>tag</code></strong> - If not <code>None</code> and the file already exists, absence of 
+          the given value in the first 4096 bytes of the file (decoded as 
+          UTF-8) causes an <code>IOError</code> to be raised with 
+          <code>errno</code> set to <code>EEXIST</code>.  I.e., only files 
+          with this value in the first 4KB will be returned for writing.</li>
+        <li><strong class="pname"><code>preserve_contents</code></strong> - This value controls whether existing contents of the file will be
+          erased (<code>False</code>, default) or left in place 
+          (<code>True</code>).</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="HashForText"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">HashForText</span>(<span class="sig-arg">text</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#HashForText">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Calculate a cryptographic hash of the given string.</p>
+  <p>For example, this is used to verify that a given module file contains 
+  bindings from a previous generation run for the same namespace.  See <a 
+  href="pyxb.utils.utility-module.html#OpenOrCreate" 
+  class="link">OpenOrCreate</a>.  If the text is in Unicode, the hash is 
+  calculated on the UTF-8 encoding of the text.</p>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd>A <code>str</code>, generally a sequence of hexadecimal 
+          &quot;digit&quot;s.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_NewUUIDString"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_NewUUIDString</span>()</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#_NewUUIDString">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Obtain a UUID using the best available method.  On a version of python
+  that does not incorporate the <code>uuid</code> class, this creates a 
+  string combining the current date and time (to the second) with a random 
+  number.</p>
+  <dl class="fields">
+    <dt>Returns: <code>str</code></dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="GetMatchingFiles"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">GetMatchingFiles</span>(<span class="sig-arg">path</span>,
+        <span class="sig-arg">pattern</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">default_path_wildcard</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">default_path</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">prefix_pattern</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">prefix_substituend</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#GetMatchingFiles">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Provide a list of absolute paths to files present in any of a set of 
+  directories and meeting certain criteria.</p>
+  <p>This is used, for example, to locate namespace archive files within 
+  the archive path specified by the user.  One could use:</p>
+<pre class="literalblock">
+ files = GetMatchingFiles('&amp;bundles//:+',
+                          pattern=re.compile('.*\.wxs$'),
+                          default_path_wildcard='+',
+                          default_path='/usr/local/pyxb/nsarchives',
+                          prefix_pattern='&amp;',
+                          prefix_substituend='/opt/pyxb')
+</pre>
+  <p>to obtain all files that can be recursively found within 
+  <code>/opt/pyxb/bundles</code>, or non-recursively within 
+  <code>/usr/local/pyxb/nsarchives</code>.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>path</code></strong> - A list of directories in which the search should be performed.  
+          The entries are separated by os.pathsep, which is a colon on 
+          POSIX platforms and a semi-colon on Windows.  If a path entry 
+          ends with <code>//</code> regardless of platform, the suffix 
+          <code>//</code> is stripped and any directory beneath the path is
+          scanned as well, recursively.</li>
+        <li><strong class="pname"><code>pattern</code></strong> - Optional regular expression object used to determine whether a 
+          given directory entry should be returned.  If left as 
+          <code>None</code>, all directory entries will be returned.</li>
+        <li><strong class="pname"><code>default_path_wildcard</code></strong> - An optional string which, if present as a single directory in the
+          path, is replaced by the value of <code>default-path</code>.</li>
+        <li><strong class="pname"><code>default_path</code></strong> - A system-defined directory which can be restored to the path by 
+          placing the <code>default_path_wildcard</code> in the 
+          <code>path</code>.</li>
+        <li><strong class="pname"><code>prefix_pattern</code></strong> - An optional string which, if present at the start of a path 
+          element, is replaced by the value of 
+          <code>prefix_substituend</code>.</li>
+        <li><strong class="pname"><code>prefix_substituend</code></strong> - A system-defined string (path prefix) which can be combined with 
+          the user-provided path information to identify a file or 
+          subdirectory within an installation-specific area.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== VARIABLES DETAILS ==================== -->
+<a name="section-VariablesDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-VariablesDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="_PythonKeywords"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">_PythonKeywords</h3>
+  <p>Python keywords.  Note that types like int and float are not 
+  keywords.</p>
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>See Also:</strong>
+        <a 
+        href="http://docs.python.org/reference/lexical_analysis.html#keywords"
+        
+        target="_top">http://docs.python.org/reference/lexical_analysis.html#keywords</a>.
+      </p>
+</div>  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">frozenset([</code><code class="variable-quote">'</code><code class="variable-string">and</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">as</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">assert</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">break</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">class</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">continue</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">def</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">del</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_PythonBuiltInConstants"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">_PythonBuiltInConstants</h3>
+  <p>Other symbols that aren't keywords but that can't be used.</p>
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>See Also:</strong>
+        <a href="http://docs.python.org/library/constants.html" 
+        target="_top">http://docs.python.org/library/constants.html</a>.
+      </p>
+</div>  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">frozenset([</code><code class="variable-quote">'</code><code class="variable-string">Ellipsis</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">False</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">None</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">NotImplemented</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">True</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">__debug__</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">set</code><code class="variable-quote">'</code><code class="variable-group">])</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_Keywords"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">_Keywords</h3>
+  <p>The keywords reserved for Python, derived from <a 
+  href="pyxb.utils.utility-module.html#_PythonKeywords" class="link" 
+  onclick="show_private();">_PythonKeywords</a> and <a 
+  href="pyxb.utils.utility-module.html#_PythonBuiltInConstants" 
+  class="link" onclick="show_private();">_PythonBuiltInConstants</a>.</p>
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">frozenset([</code><code class="variable-quote">'</code><code class="variable-string">Ellipsis</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">False</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">None</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">NotImplemented</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">True</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">__debug__</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">and</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+           <code class="variable-quote">'</code><code class="variable-string">as</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:36 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

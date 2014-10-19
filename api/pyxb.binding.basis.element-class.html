@@ -1,0 +1,1263 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.binding.basis.element</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.binding-module.html">Package&nbsp;binding</a> ::
+        <a href="pyxb.binding.basis-module.html">Module&nbsp;basis</a> ::
+        Class&nbsp;element
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.binding.basis.element-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== TYPE DESCRIPTION ==================== -->
+<h1 class="epydoc">type element</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+                            object --+    
+                                     |    
+<a href="pyxb.utils.utility._DeconflictSymbols_mixin-class.html" onclick="show_private();">utils.utility._DeconflictSymbols_mixin</a> --+
+                                         |
+                        object --+       |
+                                 |       |
+                           <a href="pyxb.cscRoot-class.html">cscRoot</a> --+   |
+                                     |   |
+                  <a href="pyxb.binding.basis._DynamicCreate_mixin-class.html" onclick="show_private();">_DynamicCreate_mixin</a> --+
+                                         |
+                                        <strong class="uidshort">element</strong>
+</pre>
+
+<hr />
+<p>Class that represents a schema element within a binding.</p>
+  <p>This gets a little confusing.  Within a schema, the <a 
+  href="pyxb.xmlschema.structures.ElementDeclaration-class.html" 
+  class="link">pyxb.xmlschema.structures.ElementDeclaration</a> type 
+  represents an <a 
+  href="http://www.w3.org/TR/xmlschema-1/#cElement_Declarations" 
+  target="_top">element declaration</a>. Those declarations may be global 
+  (have a name that is visible in the namespace), or local (have a name 
+  that is visible only within a complex type definition).  Further, local 
+  (but not global) declarations may have a reference to a global 
+  declaration (which might be in a different namespace).</p>
+  <p>Within a PyXB binding, the element declarations from the original 
+  complex type definition that have the same <a 
+  href="http://www.w3.org/TR/1999/REC-xml-names-19990114/#dt-qname" 
+  target="_top">QName</a> (after deconflicting the <a 
+  href="http://www.w3.org/TR/1999/REC-xml-names-19990114/#NT-LocalPart" 
+  target="_top">LocalPart</a>) are associated with an attribute in the 
+  class for the complex type.  Each of these attributes is defined via a <a
+  href="pyxb.binding.content.ElementDeclaration-class.html" 
+  class="link">pyxb.binding.content.ElementDeclaration</a> which provides 
+  the mechanism by which the binding holds values associated with that 
+  element.</p>
+  <p>Furthermore, in the FAC-based content model each schema element 
+  declaration is associated with an <a 
+  href="pyxb.binding.content.ElementUse-class.html" 
+  class="link">ElementUse</a> instance to locate the point in the schema 
+  where content came from.  Instances that refer to the same schema element
+  declaration share the same underlying <a 
+  href="pyxb.binding.content.ElementDeclaration-class.html" 
+  class="link">pyxb.binding.content.ElementDeclaration</a>.</p>
+  <p>This element isn't any of those elements.  This element is the type 
+  used for an attribute which associates the name of a element with data 
+  required to represent it, all within a particular scope (a module for 
+  global scope, the binding class for a complex type definition for local 
+  scope).  From the perspective of a PyXB user they look almost like a 
+  class, in that you can call them to create instances of the underlying 
+  complex type.</p>
+  <p>Global and local elements are represented by instances of this 
+  class.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="name"></a><span class="summary-sig-name">name</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      The expanded name of the element within its scope.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.name">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="typeDefinition"></a><span class="summary-sig-name">typeDefinition</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      The <a href="pyxb.binding.basis._TypeBinding_mixin-class.html" 
+      class="link" onclick="show_private();">_TypeBinding_mixin</a> 
+      subclass for values of this element.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.typeDefinition">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="xsdLocation"></a><span class="summary-sig-name">xsdLocation</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      The <a href="pyxb.utils.utility.Location-class.html" 
+      class="link">pyxb.utils.utility.Location</a> where the element 
+      appears in the schema.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.xsdLocation">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.element-class.html#scope" class="summary-sig-name">scope</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      The scope of the element.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.scope">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="nillable"></a><span class="summary-sig-name">nillable</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Indicate whether values matching this element can have <a 
+      href="http://www.w3.org/TR/xmlschema-1/#xsi_nil" 
+      target="_top">nil</a> set.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.nillable">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="abstract"></a><span class="summary-sig-name">abstract</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Indicate whether this element is abstract (must use substitution 
+      group members for matches).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.abstract">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="documentation"></a><span class="summary-sig-name">documentation</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Contents of any documentation annotation in the definition.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.documentation">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.element-class.html#defaultValue" class="summary-sig-name">defaultValue</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      The default value of the element.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.defaultValue">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="fixed"></a><span class="summary-sig-name">fixed</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      <code>True</code> if the element content cannot be changed</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.fixed">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.element-class.html#substitutionGroup" class="summary-sig-name">substitutionGroup</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      The <a href="pyxb.binding.basis.element-class.html" 
+      class="link">element</a> instance to whose substitution group this 
+      element belongs.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.substitutionGroup">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_setSubstitutionGroup"></a><span class="summary-sig-name">_setSubstitutionGroup</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">substitution_group</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element._setSubstitutionGroup">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="findSubstituendDecl"></a><span class="summary-sig-name">findSubstituendDecl</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">ctd_class</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.findSubstituendDecl">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.element-class.html#_real_substitutesFor" class="summary-sig-name" onclick="show_private();">_real_substitutesFor</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span><br />
+      Determine whether an instance of this element can substitute for the 
+      other element.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element._real_substitutesFor">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="substitutesFor"></a><span class="summary-sig-name">substitutesFor</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span><br />
+      Stub replaced by _real_substitutesFor when element supports 
+      substitution groups.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.substitutesFor">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.element-class.html#memberElement" class="summary-sig-name">memberElement</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span><br />
+      Return a reference to the element instance used for the given name 
+      within this element.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.memberElement">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.element-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>,
+        <span class="summary-sig-arg">type_definition</span>,
+        <span class="summary-sig-arg">scope</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">nillable</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">abstract</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">unicode_default</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">fixed</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">substitution_group</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">documentation</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">location</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Create a new element binding.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.element-class.html#__call__" class="summary-sig-name">__call__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kw</span>)</span><br />
+      Invoke the Factory method on the type associated with this element.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.__call__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.element-class.html#compatibleValue" class="summary-sig-name">compatibleValue</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">value</span>,
+        <span class="summary-sig-arg">**kw</span>)</span><br />
+      Return a variant of the value that is compatible with this element.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.compatibleValue">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.element-class.html#elementForName" class="summary-sig-name">elementForName</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span><br />
+      Return the element that should be used if this element binding is 
+      permitted and an element with the given name is encountered.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.elementForName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.element-class.html#createFromDOM" class="summary-sig-name">createFromDOM</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">node</span>,
+        <span class="summary-sig-arg">fallback_namespace</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">**kw</span>)</span><br />
+      Create an instance of this element using a DOM node as the source of 
+      its content.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.createFromDOM">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.element-class.html#_createFromDOM" class="summary-sig-name" onclick="show_private();">_createFromDOM</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">node</span>,
+        <span class="summary-sig-arg">expanded_name</span>,
+        <span class="summary-sig-arg">**kw</span>)</span><br />
+      Create an instance from a DOM node given the name of an element.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element._createFromDOM">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.element-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.__str__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_description"></a><span class="summary-sig-name">_description</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name_only</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">user_documentation</span>=<span class="summary-sig-default">True</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element._description">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.element-class.html#CreateDOMBinding" class="summary-sig-name">CreateDOMBinding</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">node</span>,
+        <span class="summary-sig-arg">element_binding</span>,
+        <span class="summary-sig-arg">**kw</span>)</span><br />
+      Create a binding from a DOM node.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.CreateDOMBinding">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.element-class.html#AnyCreateFromDOM" class="summary-sig-name">AnyCreateFromDOM</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">node</span>,
+        <span class="summary-sig-arg">fallback_namespace</span>)</span><br />
+      Create an instance of an element from a DOM node.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.AnyCreateFromDOM">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html" onclick="show_private();">_DynamicCreate_mixin</a></code></b> (private):
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_AlternativeConstructor" onclick="show_private();">_AlternativeConstructor</a></code>,
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_DynamicCreate" onclick="show_private();">_DynamicCreate</a></code>,
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_DynamicCreate_mixin__AlternativeConstructorAttribute" onclick="show_private();">_DynamicCreate_mixin__AlternativeConstructorAttribute</a></code>,
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_DynamicCreate_mixin__SupersedingClassAttribute" onclick="show_private();">_DynamicCreate_mixin__SupersedingClassAttribute</a></code>,
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_SetAlternativeConstructor" onclick="show_private();">_SetAlternativeConstructor</a></code>,
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_SetSupersedingClass" onclick="show_private();">_SetSupersedingClass</a></code>,
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_SupersedingClass" onclick="show_private();">_SupersedingClass</a></code>
+      </p></div>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__name"></a><span class="summary-name">__name</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__typeDefinition"></a><span class="summary-name">__typeDefinition</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__xsdLocation"></a><span class="summary-name">__xsdLocation</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__scope"></a><span class="summary-name">__scope</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__nillable"></a><span class="summary-name">__nillable</span> = <code title="False">False</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__abstract"></a><span class="summary-name">__abstract</span> = <code title="False">False</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__documentation"></a><span class="summary-name">__documentation</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__defaultValue"></a><span class="summary-name">__defaultValue</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__fixed"></a><span class="summary-name">__fixed</span> = <code title="False">False</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__substitutionGroup"></a><span class="summary-name">__substitutionGroup</span> = <code title="None">None</code>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.utils.utility._DeconflictSymbols_mixin-class.html" onclick="show_private();">utils.utility._DeconflictSymbols_mixin</a></code></b> (private):
+      <code><a href="pyxb.utils.utility._DeconflictSymbols_mixin-class.html#_ReservedSymbols" onclick="show_private();">_ReservedSymbols</a></code>
+      </p></div>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="scope"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">scope</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.scope">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>The scope of the element.  This is either <code>None</code>, 
+  representing a top-level element, or an instance of 
+  <code>complexTypeDefinition</code> for local elements.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="defaultValue"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">defaultValue</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.defaultValue">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>The default value of the element.</p>
+  <p><code>None</code> if the element has no default value.</p>
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        A non-<code>None</code> value is always an instance of a simple 
+        type, even if the element has complex content.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="substitutionGroup"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">substitutionGroup</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.substitutionGroup">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>The <a href="pyxb.binding.basis.element-class.html" 
+  class="link">element</a> instance to whose substitution group this 
+  element belongs.  <code>None</code> if this element is not part of a 
+  substitution group.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="_real_substitutesFor"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_real_substitutesFor</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">other</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element._real_substitutesFor">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Determine whether an instance of this element can substitute for the 
+  other element.</p>
+  <p>See <a 
+  href="http://www.w3.org/TR/xmlschema-1/#cos-equiv-derived-ok-rec" 
+  target="_top">Substitution Group OK</a>.</p>
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>To Do:</strong>
+        Do something about blocking constraints.  This ignores them, as does 
+    everything leading to this point.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="memberElement"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">memberElement</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.memberElement">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return a reference to the element instance used for the given name 
+  within this element.</p>
+  <p>The type for this element must be a complex type definition.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>,
+        <span class="sig-arg">type_definition</span>,
+        <span class="sig-arg">scope</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">nillable</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">abstract</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">unicode_default</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">fixed</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">substitution_group</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">documentation</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">location</span>=<span class="sig-default">None</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Create a new element binding.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="pyxb.cscRoot-class.html#__init__">cscRoot.__init__</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__call__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__call__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kw</span>)</span>
+    <br /><em class="fname">(Call operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.__call__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Invoke the Factory method on the type associated with this 
+  element.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>_dom_node</code></strong> - This keyword is removed.  If present, it must be 
+          <code>None</code>.</li>
+    </ul></dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="pyxb.exceptions_.AbstractElementError-class.html">pyxb.AbstractElementError</a></strong></code> - This element is abstract and no DOM node was provided.</li>
+    </ul></dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        Other keywords are passed to <a 
+        href="pyxb.binding.basis._TypeBinding_mixin-class.html#Factory" 
+        class="link">_TypeBinding_mixin.Factory</a>.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="compatibleValue"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">compatibleValue</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">value</span>,
+        <span class="sig-arg">**kw</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.compatibleValue">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return a variant of the value that is compatible with this 
+  element.</p>
+  <p>This mostly defers to <a 
+  href="pyxb.binding.basis._TypeBinding_mixin-class.html#_CompatibleValue" 
+  class="link" 
+  onclick="show_private();">_TypeBinding_mixin._CompatibleValue</a>.</p>
+  <dl class="fields">
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="pyxb.exceptions_.SimpleTypeValueError-class.html">pyxb.SimpleTypeValueError</a></strong></code> - if the value is not both type-consistent and value-consistent with 
+        the element's type.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="CreateDOMBinding"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">CreateDOMBinding</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">node</span>,
+        <span class="sig-arg">element_binding</span>,
+        <span class="sig-arg">**kw</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.CreateDOMBinding">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Create a binding from a DOM node.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>node</code></strong> - The DOM node</li>
+        <li><strong class="pname"><code>element_binding</code></strong> - An instance of <a href="pyxb.binding.basis.element-class.html" 
+          class="link">element</a> that would normally be used to determine
+          the type of the binding.  The actual type of object returned is 
+          determined by the type definition associated with the 
+          <code>element_binding</code> and the value of any <a 
+          href="http://www.w3.org/TR/xmlschema-1/#xsi_type" 
+          target="_top">xsi:type</a> attribute found in <code>node</code>, 
+          modulated by <a 
+          href="pyxb.namespace.builtin._XMLSchema_instance-class.html#_InterpretTypeAttribute"
+          class="link" 
+          onclick="show_private();">XSI._InterpretTypeAttribute</a>.</li>
+        <li><strong class="pname"><code>_fallback_namespace</code></strong> - The namespace to use as the namespace for the node, if the node 
+          name is unqualified.  This should be an absent namespace.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>A binding for the DOM node.</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="pyxb.exceptions_.UnrecognizedDOMRootNodeError-class.html">pyxb.UnrecognizedDOMRootNodeError</a></strong></code> - if no underlying element or type for the node can be identified.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="AnyCreateFromDOM"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">AnyCreateFromDOM</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">node</span>,
+        <span class="sig-arg">fallback_namespace</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.AnyCreateFromDOM">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Create an instance of an element from a DOM node.</p>
+  <p>This method does minimal processing of <code>node</code> and delegates
+  to <a href="pyxb.binding.basis.element-class.html#CreateDOMBinding" 
+  class="link">CreateDOMBinding</a>.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>node</code></strong> - An <code>xml.dom.Node</code> representing a root element.  If the
+          node is a document, that document's root node will be 
+          substituted. The name of the node is extracted as the name of the
+          element to be created, and the node and the name are passed to <a
+          href="pyxb.binding.basis.element-class.html#CreateDOMBinding" 
+          class="link">CreateDOMBinding</a>.</li>
+        <li><strong class="pname"><code>fallback_namespace</code></strong> - The value to pass as <code>_fallback_namespace</code> to <a 
+          href="pyxb.binding.basis.element-class.html#CreateDOMBinding" 
+          class="link">CreateDOMBinding</a></li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>As with <a 
+          href="pyxb.binding.basis.element-class.html#CreateDOMBinding" 
+          class="link">CreateDOMBinding</a></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="elementForName"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">elementForName</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.elementForName">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the element that should be used if this element binding is 
+  permitted and an element with the given name is encountered.</p>
+  <p>Normally, the incoming name matches the name of this binding, and 
+  <code>self</code> is returned.  If the incoming name is different, it is 
+  expected to be the name of a global element which is within this 
+  element's substitution group.  In that case, the binding corresponding to
+  the named element is return.</p>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd>An instance of <a href="pyxb.binding.basis.element-class.html" 
+          class="link">element</a>, or <code>None</code> if no element with
+          the given name can be found.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="createFromDOM"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">createFromDOM</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">node</span>,
+        <span class="sig-arg">fallback_namespace</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">**kw</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.createFromDOM">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Create an instance of this element using a DOM node as the source of 
+  its content.</p>
+  <p>This method does minimal processing of <code>node</code> and delegates
+  to <a href="pyxb.binding.basis.element-class.html#_createFromDOM" 
+  class="link" onclick="show_private();">_createFromDOM</a>.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>node</code></strong> - An <code>xml.dom.Node</code> representing a root element.  If the
+          node is a document, that document's root node will be 
+          substituted. The name of the node is extracted as the name of the
+          element to be created, and the node and the name are passed to <a
+          href="pyxb.binding.basis.element-class.html#_createFromDOM" 
+          class="link" onclick="show_private();">_createFromDOM</a></li>
+        <li><strong class="pname"><code>fallback_namespace</code></strong> - Used as default for <code>_fallback_namespace</code> in call to 
+          <a href="pyxb.binding.basis.element-class.html#_createFromDOM" 
+          class="link" onclick="show_private();">_createFromDOM</a></li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>As with <a 
+          href="pyxb.binding.basis.element-class.html#_createFromDOM" 
+          class="link" onclick="show_private();">_createFromDOM</a></dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        Keyword parameters are passed to <a 
+        href="pyxb.binding.basis.element-class.html#CreateDOMBinding" 
+        class="link">CreateDOMBinding</a>.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="_createFromDOM"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_createFromDOM</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">node</span>,
+        <span class="sig-arg">expanded_name</span>,
+        <span class="sig-arg">**kw</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element._createFromDOM">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Create an instance from a DOM node given the name of an element.</p>
+  <p>This method does minimal processing of <code>node</code> and 
+  <code>expanded_name</code> and delegates to <a 
+  href="pyxb.binding.basis.element-class.html#CreateDOMBinding" 
+  class="link">CreateDOMBinding</a>.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>node</code></strong> - An <code>xml.dom.Node</code> representing a root element.  If the
+          node is a document, that document's root node will be 
+          substituted. The value is passed to <a 
+          href="pyxb.binding.basis.element-class.html#CreateDOMBinding" 
+          class="link">CreateDOMBinding</a>.</li>
+        <li><strong class="pname"><code>expanded_name</code></strong> - The expanded name of the element to be used for content.  This is
+          passed to <a 
+          href="pyxb.binding.basis.element-class.html#elementForName" 
+          class="link">elementForName</a> to obtain the binding that is 
+          passed to <a 
+          href="pyxb.binding.basis.element-class.html#CreateDOMBinding" 
+          class="link">CreateDOMBinding</a>, superseding any identification
+          that might be inferred from <code>node</code>.  If no name is 
+          available, use <a 
+          href="pyxb.binding.basis.element-class.html#createFromDOM" 
+          class="link">createFromDOM</a>.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>As with <a 
+          href="pyxb.binding.basis.element-class.html#CreateDOMBinding" 
+          class="link">CreateDOMBinding</a>.</dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        Keyword parameters are passed to <a 
+        href="pyxb.binding.basis.element-class.html#CreateDOMBinding" 
+        class="link">CreateDOMBinding</a>.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="__str__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__str__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Informal representation operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#element.__str__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        object.__str__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:36 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+.. PyXB documentation master file
+
+.. Sphinx standard indentations
+   # with overline, for parts
+   * with overline, for chapters
+   =, for sections
+   -, for subsections
+   ^, for subsubsections
+   ", for paragraphs
+
+.. role:: namespace(literal)
+
+################################
+PyXB: Python XML Schema Bindings
+################################
+
+PyXB ("pixbee") is a pure `Python <http://www.python.org>`_ package that
+generates Python source code for classes that correspond to data structures
+defined by `XMLSchema <http://www.w3.org/XML/Schema>`_.  The generated classes
+support bi-directional conversion between `XML <http://www.w3.org/XML/>`_
+documents and Python objects.  In concept it is similar to `JAXB
+<http://en.wikipedia.org/wiki/JAXB>`_ for Java and `CodeSynthesis XSD
+<http://www.codesynthesis.com/products/xsd/>`_ for C++.  A
+:ref:`thirty_sec_example` is at the bottom of this page.  Step-by-step
+examples are in :ref:`userReference`.
+
+************
+Getting Help
+************
+
+PyXB is distributed on `SourceForge <http://sourceforge.net/projects/pyxb>`_.
+
+For support, consult the `Help Forum
+<https://sourceforge.net/projects/pyxb/forums/forum/956708>`_, or subscribe to
+and email the `mailing list
+<https://sourceforge.net/mailarchive/forum.php?forum_name=pyxb-users>`_.
+
+To file a bug report or see the status of defects reported against the current
+release, visit the `Trac database <http://sourceforge.net/apps/trac/pyxb/>`_.
+
+For a history of releases, see :ref:`releases`.
+
+********
+Contents
+********
+.. toctree::
+   :maxdepth: 2
+
+   overview
+   examples
+   releases
+   architecture
+   userref_index
+   maintref
+
+.. _thirty_sec_example:
+
+*********************
+Thirty Second Example
+*********************
+
+An example of a program using PyXB to interact with a `web service
+<http://wiki.cdyne.com/wiki/index.php?title=CDYNE_Weather>`_ using an
+automatically-generated module.  First, retrieve the WSDL and generate the
+bindings::
+
+ llc[837]$  pyxbgen \
+       --wsdl-location=http://wsf.cdyne.com/WeatherWS/Weather.asmx?WSDL \
+       --module=weather \
+       --write-for-customization
+ Retrieving WSDL from http://wsf.cdyne.com/WeatherWS/Weather.asmx?WSDL
+ WARNING:pyxb.binding.basis:Unable to convert DOM node {http://www.w3.org/2001/XMLSchema}schema at Weather.asmx?WSDL[4:4] to binding
+ PS urn:uuid:029825d0-a6a3-11e2-a410-c8600024e903
+ WARNING:pyxb.binding.generate:Complex type {http://ws.cdyne.com/WeatherWS/}ArrayOfWeatherDescription renamed to ArrayOfWeatherDescription_
+ WARNING:pyxb.binding.generate:Complex type {http://ws.cdyne.com/WeatherWS/}ForecastReturn renamed to ForecastReturn_
+ WARNING:pyxb.binding.generate:Complex type {http://ws.cdyne.com/WeatherWS/}WeatherReturn renamed to WeatherReturn_
+ Python for http://ws.cdyne.com/WeatherWS/ requires 1 modules
+
+Then write a program that uses them:
+
+.. literalinclude:: ../examples/weather/client_get.py
+
+And run it::
+
+ llc[838]$ python client_get.py
+ Weather forecast for Saint Paul, MN:
+  Friday, March 22 2013: Partly Cloudy, from 8 to 31
+  Saturday, March 23 2013: Partly Cloudy, from 17 to 34
+  Sunday, March 24 2013: Mostly Cloudy, from 21 to 34
+  Monday, March 25 2013: Partly Cloudy, from 21 to 33
+  Tuesday, March 26 2013: Partly Cloudy, from 21 to 34
+  Wednesday, March 27 2013: Partly Cloudy, from 19 to 36
+  Thursday, March 28 2013: Partly Cloudy, from 20 to 36
+
+That's it.
+
+******************
+Indices and tables
+******************
+
+* :ref:`genindex`
+* :ref:`search`
+
+.. ignored
+   ## Local Variables:
+   ## fill-column:78
+   ## indent-tabs-mode:nil
+   ## End:

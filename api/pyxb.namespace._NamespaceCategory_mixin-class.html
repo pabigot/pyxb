@@ -1,0 +1,705 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.namespace._NamespaceCategory_mixin</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.namespace-module.html">Package&nbsp;namespace</a> ::
+        Class&nbsp;_NamespaceCategory_mixin
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.namespace._NamespaceCategory_mixin-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== TYPE DESCRIPTION ==================== -->
+<h1 class="epydoc">type _NamespaceCategory_mixin</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+object --+    
+         |    
+   <a href="pyxb.cscRoot-class.html">cscRoot</a> --+
+             |
+            <strong class="uidshort">_NamespaceCategory_mixin</strong>
+</pre>
+
+<dl><dt>Known Subclasses:</dt>
+<dd>
+      <ul class="subclass-list">
+<li><a href="pyxb.namespace.Namespace-class.html">Namespace</a></li>  </ul>
+</dd></dl>
+
+<hr />
+<p>Mix-in that aggregates those aspects of XMLNamespaces that hold 
+  references to categories of named objects.</p>
+  <p>Arbitrary groups of named objects, each requiring unique names within 
+  themselves, can be saved.  Unless configured otherwise, the Namespace 
+  instance is extended with accessors that provide direct access to 
+  individual category maps.  The name of the method is the category name 
+  with a suffix of &quot;s&quot;; e.g., if a category 
+  &quot;typeDefinition&quot; exists, it can be accessed from the namespace 
+  using the syntax <code>ns.typeDefinitions()</code>.</p>
+  <p>Note that the returned value from the accessor is a live reference to 
+  the category map; changes made to the map are reflected in the 
+  namespace.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.namespace._NamespaceCategory_mixin-class.html#_reset" class="summary-sig-name" onclick="show_private();">_reset</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      CSC extension to reset fields of a Namespace.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin._reset">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="categories"></a><span class="summary-sig-name">categories</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      The list of individual categories held in this namespace.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin.categories">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_categoryMap"></a><span class="summary-sig-name">_categoryMap</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the whole map from categories to named objects.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin._categoryMap">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="categoryMap"></a><span class="summary-sig-name">categoryMap</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">category</span>)</span><br />
+      Map from local names to NamedObjectMap instances for the given 
+      category.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin.categoryMap">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__defineCategoryAccessors"></a><span class="summary-sig-name">__defineCategoryAccessors</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Define public methods on the Namespace which provide access to 
+      individual NamedObjectMaps based on their category.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin.__defineCategoryAccessors">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.namespace._NamespaceCategory_mixin-class.html#configureCategories" class="summary-sig-name">configureCategories</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">categories</span>)</span><br />
+      Ensure there is a map for each of the given categories.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin.configureCategories">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.namespace._NamespaceCategory_mixin-class.html#addCategoryObject" class="summary-sig-name">addCategoryObject</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">category</span>,
+        <span class="summary-sig-arg">local_name</span>,
+        <span class="summary-sig-arg">named_object</span>)</span><br />
+      Allow access to the named_object by looking up the local_name in the 
+      given category.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin.addCategoryObject">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.namespace._NamespaceCategory_mixin-class.html#replaceCategoryObject" class="summary-sig-name">replaceCategoryObject</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">category</span>,
+        <span class="summary-sig-arg">local_name</span>,
+        <span class="summary-sig-arg">old_object</span>,
+        <span class="summary-sig-arg">new_object</span>)</span><br />
+      Replace the referenced object in the category.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin.replaceCategoryObject">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.namespace._NamespaceCategory_mixin-class.html#_replaceComponent_csc" class="summary-sig-name" onclick="show_private();">_replaceComponent_csc</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">existing_def</span>,
+        <span class="summary-sig-arg">replacement_def</span>)</span><br />
+      Replace a component definition where present in the category maps.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin._replaceComponent_csc">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__checkCategoriesEmpty"></a><span class="summary-sig-name">__checkCategoriesEmpty</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin.__checkCategoriesEmpty">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_namedObjects"></a><span class="summary-sig-name">_namedObjects</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin._namedObjects">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.namespace._NamespaceCategory_mixin-class.html#_loadNamedObjects" class="summary-sig-name" onclick="show_private();">_loadNamedObjects</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">category_map</span>)</span><br />
+      Add the named objects from the given map into the set held by this 
+      namespace.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin._loadNamedObjects">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.namespace._NamespaceCategory_mixin-class.html#hasSchemaComponents" class="summary-sig-name">hasSchemaComponents</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return <code>True</code> iff schema components have been associated 
+      with this namespace.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin.hasSchemaComponents">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.namespace._NamespaceCategory_mixin-class.html#_associateOrigins" class="summary-sig-name" onclick="show_private();">_associateOrigins</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">module_record</span>)</span><br />
+      Add links from <a 
+      href="pyxb.namespace.archive._ObjectOrigin-class.html" class="link" 
+      onclick="show_private();">pyxb.namespace.archive._ObjectOrigin</a> 
+      instances.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin._associateOrigins">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_NamespaceCategory_mixin__checkCategoriesEmpty"></a><span class="summary-sig-name">_NamespaceCategory_mixin__checkCategoriesEmpty</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin._NamespaceCategory_mixin__checkCategoriesEmpty">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_NamespaceCategory_mixin__defineCategoryAccessors"></a><span class="summary-sig-name">_NamespaceCategory_mixin__defineCategoryAccessors</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Define public methods on the Namespace which provide access to 
+      individual NamedObjectMaps based on their category.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin._NamespaceCategory_mixin__defineCategoryAccessors">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.cscRoot-class.html">cscRoot</a></code></b>:
+      <code><a href="pyxb.cscRoot-class.html#__init__">__init__</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__categoryMap"></a><span class="summary-name">__categoryMap</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_NamespaceCategory_mixin__categoryMap"></a><span class="summary-name">_NamespaceCategory_mixin__categoryMap</span> = <code title="None">None</code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="_reset"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_reset</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin._reset">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>CSC extension to reset fields of a Namespace.</p>
+  <p>This one handles category-related data.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="configureCategories"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">configureCategories</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">categories</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin.configureCategories">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Ensure there is a map for each of the given categories.</p>
+  <p>Category configuration <a 
+  href="pyxb.namespace.archive._NamespaceArchivable_mixin-class.html#isActive"
+  class="link">activates</a> a namespace.</p>
+  <p>Existing maps are not affected.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="addCategoryObject"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">addCategoryObject</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">category</span>,
+        <span class="sig-arg">local_name</span>,
+        <span class="sig-arg">named_object</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin.addCategoryObject">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Allow access to the named_object by looking up the local_name in the 
+  given category.</p>
+  <p>Raises pyxb.NamespaceUniquenessError if an object with the same name 
+  already exists in the category.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="replaceCategoryObject"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">replaceCategoryObject</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">category</span>,
+        <span class="sig-arg">local_name</span>,
+        <span class="sig-arg">old_object</span>,
+        <span class="sig-arg">new_object</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin.replaceCategoryObject">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Replace the referenced object in the category.</p>
+  <p>The new object will be added only if the old_object matches the 
+  current entry for local_name in the category.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="_replaceComponent_csc"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_replaceComponent_csc</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">existing_def</span>,
+        <span class="sig-arg">replacement_def</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin._replaceComponent_csc">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Replace a component definition where present in the category maps.</p>
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        This is a high-cost operation, as every item in every category map 
+        must be examined to see whether its value field matches 
+        <code>existing_def</code>.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="_loadNamedObjects"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_loadNamedObjects</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">category_map</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin._loadNamedObjects">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Add the named objects from the given map into the set held by this 
+  namespace. It is an error to name something which is already present.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="hasSchemaComponents"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">hasSchemaComponents</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin.hasSchemaComponents">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return <code>True</code> iff schema components have been associated 
+  with this namespace.</p>
+  <p>This only checks whether the corresponding categories have been added,
+  not whether there are any entries in those categories.  It is useful for 
+  identifying namespaces that were incorporated through a declaration but 
+  never actually referenced.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="_associateOrigins"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_associateOrigins</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">module_record</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.namespace-pysrc.html#_NamespaceCategory_mixin._associateOrigins">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Add links from <a 
+  href="pyxb.namespace.archive._ObjectOrigin-class.html" class="link" 
+  onclick="show_private();">pyxb.namespace.archive._ObjectOrigin</a> 
+  instances.</p>
+  <p>For any resolvable item in this namespace from an origin managed by 
+  the module_record, ensure that item can be found via a lookup through 
+  that origin.</p>
+  <p>This allows these items to be found when a single namespace comprises 
+  items translated from different schema at different times using archives 
+  to maintain consistency.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:37 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

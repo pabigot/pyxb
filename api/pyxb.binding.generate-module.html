@@ -1,0 +1,673 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.binding.generate</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.binding-module.html">Package&nbsp;binding</a> ::
+        Module&nbsp;generate
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.binding.generate-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module generate</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.binding.generate-pysrc.html">source&nbsp;code</a></span></p>
+<p>The really ugly code that generates the Python bindings.  This whole 
+  thing is going to be refactored once customized generation makes it to 
+  the top of the task queue.</p>
+
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Classes</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Classes"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.generate.ReferenceLiteral-class.html" class="summary-name">ReferenceLiteral</a><br />
+      Base class for something that requires fairly complex activity in 
+        order to generate its literal value.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.generate.ReferenceFacetMember-class.html" class="summary-name">ReferenceFacetMember</a>
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.generate.ReferenceWildcard-class.html" class="summary-name">ReferenceWildcard</a>
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.generate.ReferenceSchemaComponent-class.html" class="summary-name">ReferenceSchemaComponent</a>
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.generate.ReferenceNamespace-class.html" class="summary-name">ReferenceNamespace</a>
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.generate.ReferenceExpandedName-class.html" class="summary-name">ReferenceExpandedName</a>
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.generate.ReferenceFacet-class.html" class="summary-name">ReferenceFacet</a>
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.generate.ReferenceEnumerationMember-class.html" class="summary-name">ReferenceEnumerationMember</a>
+    </td>
+  </tr>
+<tr class="private">
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.generate._CTDAuxData-class.html" class="summary-name" onclick="show_private();">_CTDAuxData</a><br />
+      Helper class holding information need in both preparation and 
+        generation.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.generate.BindingIO-class.html" class="summary-name">BindingIO</a>
+    </td>
+  </tr>
+<tr class="private">
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.generate._ModuleNaming_mixin-class.html" class="summary-name" onclick="show_private();">_ModuleNaming_mixin</a>
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.generate.NamespaceModule-class.html" class="summary-name">NamespaceModule</a><br />
+      This class represents a Python module that holds all the 
+        declarations belonging to a specific namespace.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.generate.NamespaceGroupModule-class.html" class="summary-name">NamespaceGroupModule</a><br />
+      This class represents a Python module that holds all the 
+        declarations belonging to a set of namespaces which have 
+        interdependencies.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.generate.Generator-class.html" class="summary-name">Generator</a><br />
+      Configuration and data for a single binding-generation action.
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="PrefixModule"></a><span class="summary-sig-name">PrefixModule</span>(<span class="summary-sig-arg">value</span>,
+        <span class="summary-sig-arg">text</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.generate-pysrc.html#PrefixModule">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="pythonLiteral"></a><span class="summary-sig-name">pythonLiteral</span>(<span class="summary-sig-arg">value</span>,
+        <span class="summary-sig-arg">**kw</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.generate-pysrc.html#pythonLiteral">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_GenerateAutomaton"></a><span class="summary-sig-name">_GenerateAutomaton</span>(<span class="summary-sig-arg">automaton</span>,
+        <span class="summary-sig-arg">template_map</span>,
+        <span class="summary-sig-arg">containing_state</span>,
+        <span class="summary-sig-arg">lines</span>,
+        <span class="summary-sig-arg">**kw</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.generate-pysrc.html#_GenerateAutomaton">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="GenerateAutomaton"></a><span class="summary-sig-name">GenerateAutomaton</span>(<span class="summary-sig-arg">ctd</span>,
+        <span class="summary-sig-arg">**kw</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.generate-pysrc.html#GenerateAutomaton">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_useEnumerationTags"></a><span class="summary-sig-name">_useEnumerationTags</span>(<span class="summary-sig-arg">td</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.generate-pysrc.html#_useEnumerationTags">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="GenerateFacets"></a><span class="summary-sig-name">GenerateFacets</span>(<span class="summary-sig-arg">td</span>,
+        <span class="summary-sig-arg">generator</span>,
+        <span class="summary-sig-arg">**kw</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.generate-pysrc.html#GenerateFacets">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_VCAppendAuxInit"></a><span class="summary-sig-name">_VCAppendAuxInit</span>(<span class="summary-sig-arg">vc_source</span>,
+        <span class="summary-sig-arg">aux_init</span>,
+        <span class="summary-sig-arg">binding_module</span>,
+        <span class="summary-sig-arg">kw</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.generate-pysrc.html#_VCAppendAuxInit">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="GenerateSTD"></a><span class="summary-sig-name">GenerateSTD</span>(<span class="summary-sig-arg">std</span>,
+        <span class="summary-sig-arg">generator</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.generate-pysrc.html#GenerateSTD">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="elementDeclarationMap"></a><span class="summary-sig-name">elementDeclarationMap</span>(<span class="summary-sig-arg">ed</span>,
+        <span class="summary-sig-arg">binding_module</span>,
+        <span class="summary-sig-arg">**kw</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.generate-pysrc.html#elementDeclarationMap">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.generate-module.html#BuildTermTree" class="summary-sig-name">BuildTermTree</a>(<span class="summary-sig-arg">node</span>)</span><br />
+      Construct a <a href="pyxb.utils.fac.Node-class.html" class="link">FAC
+      term tree</a> for a <a 
+      href="pyxb.xmlschema.structures.Particle-class.html" 
+      class="link">particle</a>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.generate-pysrc.html#BuildTermTree">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.generate-module.html#BuildPluralityData" class="summary-sig-name">BuildPluralityData</a>(<span class="summary-sig-arg">term_tree</span>)</span><br />
+      Walk a term tree to determine which element declarations may appear 
+      multiple times.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.generate-pysrc.html#BuildPluralityData">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="GenerateCTD"></a><span class="summary-sig-name">GenerateCTD</span>(<span class="summary-sig-arg">ctd</span>,
+        <span class="summary-sig-arg">generator</span>,
+        <span class="summary-sig-arg">**kw</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.generate-pysrc.html#GenerateCTD">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="GenerateED"></a><span class="summary-sig-name">GenerateED</span>(<span class="summary-sig-arg">ed</span>,
+        <span class="summary-sig-arg">generator</span>,
+        <span class="summary-sig-arg">**kw</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.generate-pysrc.html#GenerateED">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_PrepareSimpleTypeDefinition"></a><span class="summary-sig-name">_PrepareSimpleTypeDefinition</span>(<span class="summary-sig-arg">std</span>,
+        <span class="summary-sig-arg">generator</span>,
+        <span class="summary-sig-arg">nsm</span>,
+        <span class="summary-sig-arg">module_context</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.generate-pysrc.html#_PrepareSimpleTypeDefinition">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_PrepareComplexTypeDefinition"></a><span class="summary-sig-name">_PrepareComplexTypeDefinition</span>(<span class="summary-sig-arg">ctd</span>,
+        <span class="summary-sig-arg">generator</span>,
+        <span class="summary-sig-arg">nsm</span>,
+        <span class="summary-sig-arg">module_context</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.generate-pysrc.html#_PrepareComplexTypeDefinition">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_SetNameWithAccessors"></a><span class="summary-sig-name">_SetNameWithAccessors</span>(<span class="summary-sig-arg">component</span>,
+        <span class="summary-sig-arg">container</span>,
+        <span class="summary-sig-arg">is_plural</span>,
+        <span class="summary-sig-arg">binding_module</span>,
+        <span class="summary-sig-arg">nsm</span>,
+        <span class="summary-sig-arg">kw</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.generate-pysrc.html#_SetNameWithAccessors">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="GeneratePython"></a><span class="summary-sig-name">GeneratePython</span>(<span class="summary-sig-arg">schema_location</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">schema_text</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">namespace</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">module_prefix_elts</span>=<span class="summary-sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
+        <span class="summary-sig-arg">**kw</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.generate-pysrc.html#GeneratePython">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Variables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_log"></a><span class="summary-name">_log</span> = <code title="logging.getLogger(__name__)">logging.getLogger(__name__)</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'pyxb.binding'"><code class="variable-quote">'</code><code class="variable-string">pyxb.binding</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTION DETAILS ==================== -->
+<a name="section-FunctionDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Function Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-FunctionDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="BuildTermTree"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">BuildTermTree</span>(<span class="sig-arg">node</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.generate-pysrc.html#BuildTermTree">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Construct a <a href="pyxb.utils.fac.Node-class.html" class="link">FAC 
+  term tree</a> for a <a 
+  href="pyxb.xmlschema.structures.Particle-class.html" 
+  class="link">particle</a>.</p>
+  <p>This translates the XML schema content model of particles, model 
+  groups, element declarations, and wildcards into a tree expressing the 
+  corresponding content as a regular expression with numerical 
+  constraints.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>node</code></strong> - An instance of <a 
+          href="pyxb.xmlschema.structures.Particle-class.html" 
+          class="link">xs.structures.Particle</a></li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>An instance of <a href="pyxb.utils.fac.Node-class.html" 
+          class="link">pyxb.utils.fac.Node</a></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="BuildPluralityData"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">BuildPluralityData</span>(<span class="sig-arg">term_tree</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.generate-pysrc.html#BuildPluralityData">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Walk a term tree to determine which element declarations may appear 
+  multiple times.</p>
+  <p>The bindings need to use a list for any Python attribute corresponding
+  to an element declaration that can occur multiple times in the content 
+  model.  The number of occurrences is determined by the occurrence 
+  constraints on parent particles and the compositors of containing model 
+  groups.  All this information is available in the term tree used for the 
+  content model automaton.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>term_tree</code></strong> - A <a href="pyxb.utils.fac.Node-class.html" class="link">FAC term 
+          tree</a> representing the content model for a complex data type.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>Plurality data, as a pair <code>(singles, multiples)</code> where
+          <code>singles</code> is a set of base <a 
+          href="pyxb.xmlschema.structures.ElementDeclaration-class.html" 
+          class="link">element declarations</a> that are known to occur at 
+          least once and at most once in a region of the content, and 
+          <code>multiples</code> is a similar set of declarations that are 
+          known to potentially occur more than once.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:36 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

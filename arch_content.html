@@ -1,0 +1,284 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Content Model &mdash; PyXB 1.2.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.2.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyXB 1.2.3 documentation" href="index.html" />
+    <link rel="up" title="Architecture" href="architecture.html" />
+    <link rel="next" title="User Reference" href="userref_index.html" />
+    <link rel="prev" title="Binding Model" href="arch_binding.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="userref_index.html" title="User Reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="arch_binding.html" title="Binding Model"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+          <li><a href="architecture.html" accesskey="U">Architecture</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="content-model">
+<span id="contentmodel"></span><h1>Content Model<a class="headerlink" href="#content-model" title="Permalink to this headline">¶</a></h1>
+<p>PyXB&#8217;s content model is used to complete the link between the
+<a class="reference internal" href="arch_component.html#componentmodel"><em>Component Model</em></a> and the <a class="reference internal" href="arch_binding.html#bindingmodel"><em>Binding Model</em></a>.  These classes are the
+ones that:</p>
+<ul class="simple">
+<li>determine what Python class attribute is used to store which XML
+element or attribute;</li>
+<li>distinguish those elements that can occur at most once from those that
+require an aggregation; and</li>
+<li>ensure that the ordering and occurrence constraints imposed by the XML
+<a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#Model_Groups">model group</a> are
+satisfied, when XML is converted to Python instances and vice-versa.</li>
+</ul>
+<div class="section" id="associating-xml-and-python-objects">
+<h2>Associating XML and Python Objects<a class="headerlink" href="#associating-xml-and-python-objects" title="Permalink to this headline">¶</a></h2>
+<p>Most of the classes involved in the content model are in the
+<a class="reference external" href="api/pyxb.binding.content-module.html">pyxb.binding.content</a> module.  The relations among these classes are
+displayed in the following diagram.</p>
+<img alt="_images/ContentModel.jpg" id="cd-contentmodel" src="_images/ContentModel.jpg" />
+<p>In the standard code generation template, both element and attribute values
+are stored in Python class fields.  As noted in
+<a class="reference internal" href="arch_binding.html#binding-deconflictingnames"><em>Deconflicting Names</em></a> it is necessary to ensure an attribute and
+an element which have the same name in their containing complex type have
+distinct names in the Python class corresponding to that type.  Use
+information for each of these is maintained in the type class.  This use
+information comprises:</p>
+<ul class="simple">
+<li>the original <a class="reference external" href="api/pyxb.binding.content.AttributeUse-class.html#name">name</a> of the element/attribute in the XML</li>
+<li>its <a class="reference external" href="api/pyxb.binding.content.AttributeUse-class.html#id">deconflicted name</a> in Python</li>
+<li>the private name by which the value is stored in the Python instance dictionary</li>
+</ul>
+<p>Other information is specific to the type of use.  The
+<a class="reference external" href="api/pyxb.binding.basis.complexTypeDefinition-class.html">complexTypeDefinition</a> retains maps from the
+component&#8217;s name the attribute use or element use instance corresponding to
+the component&#8217;s use.</p>
+<div class="section" id="attribute-uses">
+<span id="attributeuse"></span><h3>Attribute Uses<a class="headerlink" href="#attribute-uses" title="Permalink to this headline">¶</a></h3>
+<p>The information associated with an <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#cAttributeUse">attribute use</a> is recorded in an
+<a class="reference external" href="api/pyxb.binding.content.AttributeUse-class.html">AttributeUse</a> instance.  This class provides:</p>
+<ul class="simple">
+<li>The <a class="reference external" href="api/pyxb.binding.content.AttributeUse-class.html#name">name</a> of the
+attribute</li>
+<li>The <a class="reference external" href="api/pyxb.binding.content.AttributeUse-class.html#defaultValue">default value</a> of
+the attribute</li>
+<li>Whether the attribute value is <a class="reference external" href="api/pyxb.binding.content.AttributeUse-class.html#fixed">fixed</a></li>
+<li>Whether the <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#cAttributeUse">attribute use</a> is
+<a class="reference external" href="api/pyxb.binding.content.AttributeUse-class.html#required">required</a>
+or <a class="reference external" href="api/pyxb.binding.content.AttributeUse-class.html#prohibited">prohibited</a></li>
+<li>The <a class="reference external" href="api/pyxb.binding.content.AttributeUse-class.html#dataType">type</a> of the
+attribute, as a subclass of <a class="reference external" href="api/pyxb.binding.basis.simpleTypeDefinition-class.html">simpleTypeDefinition</a></li>
+<li>Methods to <a class="reference external" href="api/pyxb.binding.content.AttributeUse-class.html#value">read</a>, <a class="reference external" href="api/pyxb.binding.content.AttributeUse-class.html#set">set</a>, and <a class="reference external" href="api/pyxb.binding.content.AttributeUse-class.html#reset">reset</a> the value of the attribute in a
+given binding instance.</li>
+</ul>
+<p>A <a class="reference external" href="api/pyxb.binding.basis.complexTypeDefinition-class.html#_AttributeMap">map</a> is used
+to map from expanded names to AttributeUse instances.  This map is defined
+within the class definition itself.</p>
+</div>
+<div class="section" id="element-uses">
+<span id="elementuse"></span><h3>Element Uses<a class="headerlink" href="#element-uses" title="Permalink to this headline">¶</a></h3>
+<p>The element analog to an attribute use is an <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#cElement_Declarations">element declaration</a>, and the
+corresponding information is stored in a
+<a class="reference external" href="api/pyxb.binding.content.ElementDeclaration-class.html">ElementDeclaration</a> instance.  This class provides:</p>
+<ul class="simple">
+<li>The <a class="reference external" href="api/pyxb.binding.content.ElementDeclaration-class.html#elementBinding">element binding</a>
+that defines the properties of the referenced element, including its type</li>
+<li>Whether the use allows <a class="reference external" href="api/pyxb.binding.content.ElementDeclaration-class.html#isPlural">multiple occurrences</a></li>
+<li>The <a class="reference external" href="api/pyxb.binding.content.ElementDeclaration-class.html#defaultValue">default value</a> of
+the element.  Currently this is either C{None} or an empty list, depending
+on <a class="reference external" href="api/pyxb.binding.content.ElementDeclaration-class.html#isPlural">ElementDeclaration.isPlural</a></li>
+<li>Methods to <a class="reference external" href="api/pyxb.binding.content.ElementDeclaration-class.html#value">read</a>, <a class="reference external" href="api/pyxb.binding.content.ElementDeclaration-class.html#set">set</a>, <a class="reference external" href="api/pyxb.binding.content.ElementDeclaration-class.html#append">append to</a> (only for plural elements), and
+<a class="reference external" href="api/pyxb.binding.content.ElementDeclaration-class.html#reset">reset</a> the value of the
+element in a given binding instance</li>
+<li>The <a class="reference external" href="api/pyxb.binding.content.ElementDeclaration-class.html#setOrAppend">setOrAppend</a> method,
+which is most commonly used to provide new content to a value</li>
+</ul>
+<p>A <a class="reference external" href="api/pyxb.binding.basis.complexTypeDefinition-class.html#_ElementMap">map</a> is used to
+map from expanded names to ElementDeclaration instances.  This map is defined
+within the class definition itself.  As mentioned before, when the same
+element name appears at multiple places within the element content the uses
+are collapsed into a single attribute on the complex type; thus the map is to
+the <a class="reference external" href="api/pyxb.binding.content.ElementDeclaration-class.html">ElementDeclaration</a>, not
+the <a class="reference external" href="api/pyxb.binding.content.ElementUse-class.html">ElementUse</a>.</p>
+</div>
+</div>
+<div class="section" id="validating-the-content-model">
+<span id="validating-content"></span><h2>Validating the Content Model<a class="headerlink" href="#validating-the-content-model" title="Permalink to this headline">¶</a></h2>
+<p>As of <a class="reference internal" href="releases.html#pyxb-1-2-0"><em>PyXB 1.2.0</em></a>, content validation is performed using
+the <strong>Finite Automata with Counters (FAC)</strong> data structure, as described in
+<a class="reference external" href="http://bora.uib.no/handle/1956/3628">Regular Expressions with Numerical Constraints and Automata with Counters</a>, <a class="reference external" href="http://www.ii.uib.no/~dagh/">Dag Hovland</a>, Lecture Notes in Computer Science, 2009,
+Volume 5684, Theoretical Aspects of Computing - ICTAC 2009, Pages 231-245.</p>
+<p>This structure allows accurate validation of occurrence and order constraints
+without the complexity of the original back-tracking validation solution from
+<a class="reference internal" href="releases.html#pyxb-1-1-1"><em>PyXB 1.1.1</em></a> and earlier.  It also avoids the
+<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/112">incorrect rejection of valid documents</a> that (rarely) occurred
+with the greedy algorithm introduced in <a class="reference internal" href="releases.html#pyxb-1-1-2"><em>PyXB 1.1.2</em></a>.
+Conversion to this data structure also enabled the distinction between
+<a class="reference external" href="api/pyxb.binding.content.ElementDeclaration-class.html">element declaration</a> and
+<a class="reference external" href="api/pyxb.binding.content.ElementUse-class.html">element use</a> nodes, allowing
+diagnostics to trace back to the element references in context.</p>
+<p>The data structures for the automaton and the configuration structure
+that represents a processing automaton are:</p>
+<img alt="_images/FACAutomaton.jpg" src="_images/FACAutomaton.jpg" />
+<p>The implementation in PyXB is generally follows the description in the ICTAC
+2009 paper.  Calculation of first/follow sets has been enhanced to support
+term trees with more than two children per node.  In addition, support for
+unordered catenation as required for the <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#element-all">&#8220;all&#8221; model group</a> is implemented by a state
+that maintains a distinct sub-automaton for each alternative, requiring a
+layered approach where executon of an automaton is suspended until the
+subordinate automaton has accepted and a transition out of it is encountered.</p>
+<p>For more information on the implementation, please see the <a class="reference external" href="api/pyxb.utils.fac-module.html">FAC module</a>.  This module has been written to be independent of PyXB
+infrastructure, and may be re-used in other code in accordance with the
+<a class="reference internal" href="legal.html#pyxb-license"><em>PyXB license</em></a>.</p>
+<div class="section" id="fac-and-the-pyxb-content-model">
+<h3>FAC and the PyXB Content Model<a class="headerlink" href="#fac-and-the-pyxb-content-model" title="Permalink to this headline">¶</a></h3>
+<p>As depicted in the <a class="reference internal" href="#cd-contentmodel"><em>Content Model class diagram</em></a> each
+complex type binding class has a <a class="reference external" href="api/pyxb.utils.fac.Automaton-class.html">_Automaton</a>
+which encodes the content model of the type as a Finite Automaton with
+Counters.  This representation models the occurrence constraints and
+sub-element orders, referencing the specific element and wildcard uses as they
+appear in the schema.  Each instance of a complex binding supports an
+<a class="reference external" href="api/pyxb.binding.content.AutomatonConfiguration-class.html">AutomatonConfiguration</a>
+that is used to validate the binding content against the model.</p>
+<p>An <a class="reference external" href="api/pyxb.binding.content.ElementUse-class.html">ElementUse</a> instance is provided as
+the metadata for automaton states that correspond an element declaration in the
+schema.  Similarly, a <a class="reference external" href="api/pyxb.binding.content.WildcardUse-class.html">WildcardUse</a>
+instance is used as the metadata for automaton states that correspond to an
+instance of the <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#Wildcards">xs:any</a>
+wildcard schema component.  Validation in the automaton delegates through the
+<a class="reference external" href="api/pyxb.utils.fac.SymbolMatch_mixin-class.html">SymbolMatch_mixin</a> interface to see
+whether content in the form of a complex type binding instance is conformant
+to the restrictions on symbols associated with a particular state.</p>
+<p>When parsing, a transition taken results in the storage of the consumed symbol
+into the appropriate element attribute or wildcard list in the binding
+instance.  In many cases, the transition from one state to a next is uniquely
+determined by the content; as long as this condition holds, the
+<a class="reference external" href="api/pyxb.binding.content.AutomatonConfiguration-class.html">AutomatonConfiguration</a>
+instance retains a single underlying <a class="reference external" href="api/pyxb.utils.fac.Configuration-class.html">FAC Configuration</a> representing the current state.</p>
+<p>To generate the XML corresponding to a binding instance, the element and
+wildcard content of the instance are loaded into a Python dictionary, keyed by
+the <a class="reference external" href="api/pyxb.binding.content.ElementDeclaration-class.html">ElementDeclaration</a>.
+These subordinate elements are appended to a list of child nodes as
+transitions that recognize them are encountered.  As of <a class="reference internal" href="releases.html#pyxb-1-2-0"><em>PyXB 1.2.0</em></a> the first legal transition in the order imposed by the schema is
+taken, and there is no provision for influencing the order in the generated
+document when multiple orderings are valid.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Content Model</a><ul>
+<li><a class="reference internal" href="#associating-xml-and-python-objects">Associating XML and Python Objects</a><ul>
+<li><a class="reference internal" href="#attribute-uses">Attribute Uses</a></li>
+<li><a class="reference internal" href="#element-uses">Element Uses</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#validating-the-content-model">Validating the Content Model</a><ul>
+<li><a class="reference internal" href="#fac-and-the-pyxb-content-model">FAC and the PyXB Content Model</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="arch_binding.html"
+                        title="previous chapter">Binding Model</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="userref_index.html"
+                        title="next chapter">User Reference</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/arch_content.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="userref_index.html" title="User Reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="arch_binding.html" title="Binding Model"
+             >previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+          <li><a href="architecture.html" >Architecture</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009-2013, Peter A. Bigot.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

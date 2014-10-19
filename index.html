@@ -1,0 +1,253 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>PyXB: Python XML Schema Bindings &mdash; PyXB 1.2.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.2.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyXB 1.2.3 documentation" href="#" />
+    <link rel="next" title="Overview" href="overview.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="overview.html" title="Overview"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">PyXB 1.2.3 documentation</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="pyxb-python-xml-schema-bindings">
+<h1>PyXB: Python XML Schema Bindings<a class="headerlink" href="#pyxb-python-xml-schema-bindings" title="Permalink to this headline">¶</a></h1>
+<p>PyXB (&#8220;pixbee&#8221;) is a pure <a class="reference external" href="http://www.python.org">Python</a> package that
+generates Python source code for classes that correspond to data structures
+defined by <a class="reference external" href="http://www.w3.org/XML/Schema">XMLSchema</a>.  The generated classes
+support bi-directional conversion between <a class="reference external" href="http://www.w3.org/XML/">XML</a>
+documents and Python objects.  In concept it is similar to <a class="reference external" href="http://en.wikipedia.org/wiki/JAXB">JAXB</a> for Java and <a class="reference external" href="http://www.codesynthesis.com/products/xsd/">CodeSynthesis XSD</a> for C++.  A
+<a class="reference internal" href="#thirty-sec-example"><em>Thirty Second Example</em></a> is at the bottom of this page.  Step-by-step
+examples are in <a class="reference internal" href="userref_index.html#userreference"><em>User Reference</em></a>.</p>
+<div class="section" id="getting-help">
+<h2>Getting Help<a class="headerlink" href="#getting-help" title="Permalink to this headline">¶</a></h2>
+<p>PyXB is distributed on <a class="reference external" href="http://sourceforge.net/projects/pyxb">SourceForge</a>.</p>
+<p>For support, consult the <a class="reference external" href="https://sourceforge.net/projects/pyxb/forums/forum/956708">Help Forum</a>, or subscribe to
+and email the <a class="reference external" href="https://sourceforge.net/mailarchive/forum.php?forum_name=pyxb-users">mailing list</a>.</p>
+<p>To file a bug report or see the status of defects reported against the current
+release, visit the <a class="reference external" href="http://sourceforge.net/apps/trac/pyxb/">Trac database</a>.</p>
+<p>For a history of releases, see <a class="reference internal" href="releases.html#releases"><em>Release History</em></a>.</p>
+</div>
+<div class="section" id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="overview_what.html">What Is PyXB?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview_how.html">How to use it</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bundles.html">Examples of Supported Schema</a></li>
+<li class="toctree-l2"><a class="reference internal" href="limitations.html">Limitations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="legal.html">License and Disclaimers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vision.html">PyXB Vision</a></li>
+<li class="toctree-l2"><a class="reference internal" href="related.html">Related Packages</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#dictionary-aonaware">Dictionary (Aonaware)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#simple-weather-cdyne">Simple Weather (CDyne)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#professional-weather-national-digital-forecast-data">Professional Weather (National Digital Forecast Data)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#television-schedules-tribune-media-services">Television Schedules (Tribune Media Services)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#address-to-latitude-longitude-http-geocoder-us">Address-To-Latitude/Longitude (http://geocoder.us)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#opengis-http-www-opengeospatial-org">OpenGIS (http://www.opengeospatial.org)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release History</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="releases.html#x">1.2.x</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releases.html#id4">1.1.x</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releases.html#x-stable">1.0.x (Stable)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releases.html#x-beta">0.7.x (Beta)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releases.html#id8">0.5.x (Beta)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releases.html#id9">0.4.x (Stable)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releases.html#id10">0.2.x (Stable)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="arch_namespaces.html">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="arch_component.html">Component Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="arch_binding.html">Binding Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="arch_content.html">Content Model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="userref_index.html">User Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="userref_pyxbgen.html">Generating Binding Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userref_usebind.html">Using Binding Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userref_validating.html">Debugging Validation Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxbgen_cli.html"><tt class="docutils literal"><span class="pre">pyxbgen</span></tt> Command Line Options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="maintref.html">Maintainer Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="maintref.html#the-api">The API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maintref.html#git-repository">Git Repository</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maintref.html#coding-practices">Coding Practices</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="thirty-second-example">
+<span id="thirty-sec-example"></span><h2>Thirty Second Example<a class="headerlink" href="#thirty-second-example" title="Permalink to this headline">¶</a></h2>
+<p>An example of a program using PyXB to interact with a <a class="reference external" href="http://wiki.cdyne.com/wiki/index.php?title=CDYNE_Weather">web service</a> using an
+automatically-generated module.  First, retrieve the WSDL and generate the
+bindings:</p>
+<div class="highlight-python"><pre>llc[837]$  pyxbgen \
+      --wsdl-location=http://wsf.cdyne.com/WeatherWS/Weather.asmx?WSDL \
+      --module=weather \
+      --write-for-customization
+Retrieving WSDL from http://wsf.cdyne.com/WeatherWS/Weather.asmx?WSDL
+WARNING:pyxb.binding.basis:Unable to convert DOM node {http://www.w3.org/2001/XMLSchema}schema at Weather.asmx?WSDL[4:4] to binding
+PS urn:uuid:029825d0-a6a3-11e2-a410-c8600024e903
+WARNING:pyxb.binding.generate:Complex type {http://ws.cdyne.com/WeatherWS/}ArrayOfWeatherDescription renamed to ArrayOfWeatherDescription_
+WARNING:pyxb.binding.generate:Complex type {http://ws.cdyne.com/WeatherWS/}ForecastReturn renamed to ForecastReturn_
+WARNING:pyxb.binding.generate:Complex type {http://ws.cdyne.com/WeatherWS/}WeatherReturn renamed to WeatherReturn_
+Python for http://ws.cdyne.com/WeatherWS/ requires 1 modules</pre>
+</div>
+<p>Then write a program that uses them:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">urllib2</span>
+<span class="kn">import</span> <span class="nn">weather</span>   <span class="c"># Bindings generated by PyXB</span>
+<span class="kn">import</span> <span class="nn">pyxb.utils.domutils</span> <span class="kn">as</span> <span class="nn">domutils</span>
+
+<span class="n">uri</span> <span class="o">=</span> <span class="s">&#39;http://wsf.cdyne.com/WeatherWS/Weather.asmx/GetCityForecastByZIP?ZIP=55113&#39;</span>
+<span class="n">xml</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">doc</span> <span class="o">=</span> <span class="n">domutils</span><span class="o">.</span><span class="n">StringToDOM</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+<span class="n">fc_return</span> <span class="o">=</span> <span class="n">weather</span><span class="o">.</span><span class="n">CreateFromDOM</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">documentElement</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">fc_return</span><span class="o">.</span><span class="n">Success</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Weather forecast for </span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">:&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fc_return</span><span class="o">.</span><span class="n">City</span><span class="p">,</span> <span class="n">fc_return</span><span class="o">.</span><span class="n">State</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">fc</span> <span class="ow">in</span> <span class="n">fc_return</span><span class="o">.</span><span class="n">ForecastResult</span><span class="o">.</span><span class="n">Forecast</span><span class="p">:</span>
+        <span class="n">when</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%A, %B </span><span class="si">%d</span><span class="s"> %Y&#39;</span><span class="p">,</span> <span class="n">fc</span><span class="o">.</span><span class="n">Date</span><span class="o">.</span><span class="n">timetuple</span><span class="p">())</span>
+        <span class="n">outlook</span> <span class="o">=</span> <span class="n">fc</span><span class="o">.</span><span class="n">Desciption</span> <span class="c"># typos in WSDL left unchanged</span>
+        <span class="n">low</span> <span class="o">=</span> <span class="n">fc</span><span class="o">.</span><span class="n">Temperatures</span><span class="o">.</span><span class="n">MorningLow</span>
+        <span class="n">high</span> <span class="o">=</span> <span class="n">fc</span><span class="o">.</span><span class="n">Temperatures</span><span class="o">.</span><span class="n">DaytimeHigh</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;  </span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">, from </span><span class="si">%s</span><span class="s"> to </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">when</span><span class="p">,</span> <span class="n">outlook</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>And run it:</p>
+<div class="highlight-python"><pre>llc[838]$ python client_get.py
+Weather forecast for Saint Paul, MN:
+ Friday, March 22 2013: Partly Cloudy, from 8 to 31
+ Saturday, March 23 2013: Partly Cloudy, from 17 to 34
+ Sunday, March 24 2013: Mostly Cloudy, from 21 to 34
+ Monday, March 25 2013: Partly Cloudy, from 21 to 33
+ Tuesday, March 26 2013: Partly Cloudy, from 21 to 34
+ Wednesday, March 27 2013: Partly Cloudy, from 19 to 36
+ Thursday, March 28 2013: Partly Cloudy, from 20 to 36</pre>
+</div>
+<p>That&#8217;s it.</p>
+</div>
+<div class="section" id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">PyXB: Python XML Schema Bindings</a><ul>
+<li><a class="reference internal" href="#getting-help">Getting Help</a></li>
+<li><a class="reference internal" href="#contents">Contents</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#thirty-second-example">Thirty Second Example</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="overview.html"
+                        title="next chapter">Overview</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="overview.html" title="Overview"
+             >next</a> |</li>
+        <li><a href="#">PyXB 1.2.3 documentation</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009-2013, Peter A. Bigot.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

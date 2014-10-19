@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.namespace.utility</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.namespace-module.html">Package&nbsp;namespace</a> ::
+        Module&nbsp;utility
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.namespace.utility-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="pyxb.namespace.utility-module.html">Module pyxb.namespace.utility</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># -*- coding: utf-8 -*-</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-comment"># Copyright 2009-2013, Peter A. Bigot</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-comment"># Licensed under the Apache License, Version 2.0 (the "License"); you may</tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-comment"># not use this file except in compliance with the License. You may obtain a</tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-comment"># copy of the License at:</tt> </tt>
+<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-comment">#            http://www.apache.org/licenses/LICENSE-2.0</tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-comment"># Unless required by applicable law or agreed to in writing, software</tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"><tt class="py-comment"># distributed under the License is distributed on an "AS IS" BASIS, WITHOUT</tt> </tt>
+<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"><tt class="py-comment"># WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</tt> </tt>
+<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line"><tt class="py-comment"># License for the specific language governing permissions and limitations</tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"><tt class="py-comment"># under the License.</tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"><tt class="py-docstring">"""Utility functions related to U{XML Namespaces&lt;http://www.w3.org/TR/2006/REC-xml-names-20060816/index.html&gt;}."""</tt> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-0" class="py-name" targets="Package pyxb=pyxb-module.html"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-0', 'pyxb', 'link-0');">pyxb</a></tt> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-1" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-1', 'pyxb', 'link-0');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Method pyxb.binding.generate.NamespaceModule.namespace()=pyxb.binding.generate.NamespaceModule-class.html#namespace,Method pyxb.exceptions_.NamespaceError.namespace()=pyxb.exceptions_.NamespaceError-class.html#namespace,Method pyxb.exceptions_.SchemaUniquenessError.namespace()=pyxb.exceptions_.SchemaUniquenessError-class.html#namespace,Package pyxb.namespace=pyxb.namespace-module.html,Method pyxb.namespace.ExpandedName.namespace()=pyxb.namespace.ExpandedName-class.html#namespace,Method pyxb.namespace.NamedObjectMap.namespace()=pyxb.namespace.NamedObjectMap-class.html#namespace,Method pyxb.namespace.archive.ModuleRecord.namespace()=pyxb.namespace.archive.ModuleRecord-class.html#namespace,Method pyxb.namespace.archive._ObjectOrigin.namespace()=pyxb.namespace.archive._ObjectOrigin-class.html#namespace,Method pyxb.xmlschema.structures._ImportElementInformationItem.namespace()=pyxb.xmlschema.structures._ImportElementInformationItem-class.html#namespace,Method pyxb.xmlschema.structures._PickledAnonymousReference.namespace()=pyxb.xmlschema.structures._PickledAnonymousReference-class.html#namespace"><a title="pyxb.binding.generate.NamespaceModule.namespace
+pyxb.exceptions_.NamespaceError.namespace
+pyxb.exceptions_.SchemaUniquenessError.namespace
+pyxb.namespace
+pyxb.namespace.ExpandedName.namespace
+pyxb.namespace.NamedObjectMap.namespace
+pyxb.namespace.archive.ModuleRecord.namespace
+pyxb.namespace.archive._ObjectOrigin.namespace
+pyxb.xmlschema.structures._ImportElementInformationItem.namespace
+pyxb.xmlschema.structures._PickledAnonymousReference.namespace" class="py-name" href="#" onclick="return doclink('link-2', 'namespace', 'link-2');">namespace</a></tt> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">logging</tt> </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line"> </tt>
+<a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line"><tt id="link-3" class="py-name" targets="Variable pyxb._log=pyxb-module.html#_log,Variable pyxb.binding.basis._log=pyxb.binding.basis-module.html#_log,Variable pyxb.binding.content._log=pyxb.binding.content-module.html#_log,Variable pyxb.binding.datatypes._log=pyxb.binding.datatypes-module.html#_log,Variable pyxb.binding.facets._log=pyxb.binding.facets-module.html#_log,Variable pyxb.binding.generate._log=pyxb.binding.generate-module.html#_log,Variable pyxb.binding.saxer._log=pyxb.binding.saxer-module.html#_log,Variable pyxb.namespace._log=pyxb.namespace-module.html#_log,Variable pyxb.namespace.archive._log=pyxb.namespace.archive-module.html#_log,Variable pyxb.namespace.builtin._log=pyxb.namespace.builtin-module.html#_log,Variable pyxb.namespace.resolution._log=pyxb.namespace.resolution-module.html#_log,Variable pyxb.namespace.utility._log=pyxb.namespace.utility-module.html#_log,Variable pyxb.utils.domutils._log=pyxb.utils.domutils-module.html#_log,Variable pyxb.utils.saxdom._log=pyxb.utils.saxdom-module.html#_log,Variable pyxb.utils.saxutils._log=pyxb.utils.saxutils-module.html#_log,Variable pyxb.utils.unicode._log=pyxb.utils.unicode-module.html#_log,Variable pyxb.utils.utility._log=pyxb.utils.utility-module.html#_log,Variable pyxb.utils.xmlre._log=pyxb.utils.xmlre-module.html#_log,Variable pyxb.xmlschema.structures._log=pyxb.xmlschema.structures-module.html#_log"><a title="pyxb._log
+pyxb.binding.basis._log
+pyxb.binding.content._log
+pyxb.binding.datatypes._log
+pyxb.binding.facets._log
+pyxb.binding.generate._log
+pyxb.binding.saxer._log
+pyxb.namespace._log
+pyxb.namespace.archive._log
+pyxb.namespace.builtin._log
+pyxb.namespace.resolution._log
+pyxb.namespace.utility._log
+pyxb.utils.domutils._log
+pyxb.utils.saxdom._log
+pyxb.utils.saxutils._log
+pyxb.utils.unicode._log
+pyxb.utils.utility._log
+pyxb.utils.xmlre._log
+pyxb.xmlschema.structures._log" class="py-name" href="#" onclick="return doclink('link-3', '_log', 'link-3');">_log</a></tt> <tt class="py-op">=</tt> <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">getLogger</tt><tt class="py-op">(</tt><tt class="py-name">__name__</tt><tt class="py-op">)</tt> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line"> </tt>
+<a name="NamespaceInstance"></a><div id="NamespaceInstance-def"><a name="L24"></a><tt class="py-lineno">24</tt> <a class="py-toggle" href="#" id="NamespaceInstance-toggle" onclick="return toggle('NamespaceInstance');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb.namespace.utility-module.html#NamespaceInstance">NamespaceInstance</a> <tt class="py-op">(</tt><tt class="py-param">namespace</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="NamespaceInstance-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="NamespaceInstance-expanded"><a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line">    <tt class="py-docstring">"""Get a namespace instance for the given namespace.</tt> </tt>
+<a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line"><tt class="py-docstring">    This is used when it is unclear whether the namespace is specified by URI</tt> </tt>
+<a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line"><tt class="py-docstring">    or by instance or by any other mechanism we might dream up in the</tt> </tt>
+<a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line"><tt class="py-docstring">    future."""</tt> </tt>
+<a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt id="link-4" class="py-name"><a title="pyxb.binding.generate.NamespaceModule.namespace
+pyxb.exceptions_.NamespaceError.namespace
+pyxb.exceptions_.SchemaUniquenessError.namespace
+pyxb.namespace
+pyxb.namespace.ExpandedName.namespace
+pyxb.namespace.NamedObjectMap.namespace
+pyxb.namespace.archive.ModuleRecord.namespace
+pyxb.namespace.archive._ObjectOrigin.namespace
+pyxb.xmlschema.structures._ImportElementInformationItem.namespace
+pyxb.xmlschema.structures._PickledAnonymousReference.namespace" class="py-name" href="#" onclick="return doclink('link-4', 'namespace', 'link-2');">namespace</a></tt><tt class="py-op">,</tt> <tt id="link-5" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-5', 'pyxb', 'link-0');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-6" class="py-name"><a title="pyxb.binding.generate.NamespaceModule.namespace
+pyxb.exceptions_.NamespaceError.namespace
+pyxb.exceptions_.SchemaUniquenessError.namespace
+pyxb.namespace
+pyxb.namespace.ExpandedName.namespace
+pyxb.namespace.NamedObjectMap.namespace
+pyxb.namespace.archive.ModuleRecord.namespace
+pyxb.namespace.archive._ObjectOrigin.namespace
+pyxb.xmlschema.structures._ImportElementInformationItem.namespace
+pyxb.xmlschema.structures._PickledAnonymousReference.namespace" class="py-name" href="#" onclick="return doclink('link-6', 'namespace', 'link-2');">namespace</a></tt><tt class="py-op">.</tt><tt id="link-7" class="py-name" targets="Variable pyxb.binding.xml_.Namespace=pyxb.binding.xml_-module.html#Namespace,Class pyxb.namespace.Namespace=pyxb.namespace.Namespace-class.html"><a title="pyxb.binding.xml_.Namespace
+pyxb.namespace.Namespace" class="py-name" href="#" onclick="return doclink('link-7', 'Namespace', 'link-7');">Namespace</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-8" class="py-name"><a title="pyxb.binding.generate.NamespaceModule.namespace
+pyxb.exceptions_.NamespaceError.namespace
+pyxb.exceptions_.SchemaUniquenessError.namespace
+pyxb.namespace
+pyxb.namespace.ExpandedName.namespace
+pyxb.namespace.NamedObjectMap.namespace
+pyxb.namespace.archive.ModuleRecord.namespace
+pyxb.namespace.archive._ObjectOrigin.namespace
+pyxb.xmlschema.structures._ImportElementInformationItem.namespace
+pyxb.xmlschema.structures._PickledAnonymousReference.namespace" class="py-name" href="#" onclick="return doclink('link-8', 'namespace', 'link-2');">namespace</a></tt> </tt>
+<a name="L32"></a><tt class="py-lineno">32</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt id="link-9" class="py-name"><a title="pyxb.binding.generate.NamespaceModule.namespace
+pyxb.exceptions_.NamespaceError.namespace
+pyxb.exceptions_.SchemaUniquenessError.namespace
+pyxb.namespace
+pyxb.namespace.ExpandedName.namespace
+pyxb.namespace.NamedObjectMap.namespace
+pyxb.namespace.archive.ModuleRecord.namespace
+pyxb.namespace.archive._ObjectOrigin.namespace
+pyxb.xmlschema.structures._ImportElementInformationItem.namespace
+pyxb.xmlschema.structures._PickledAnonymousReference.namespace" class="py-name" href="#" onclick="return doclink('link-9', 'namespace', 'link-2');">namespace</a></tt><tt class="py-op">,</tt> <tt class="py-name">basestring</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-10" class="py-name" targets="Function pyxb.namespace.utility.NamespaceForURI()=pyxb.namespace.utility-module.html#NamespaceForURI"><a title="pyxb.namespace.utility.NamespaceForURI" class="py-name" href="#" onclick="return doclink('link-10', 'NamespaceForURI', 'link-10');">NamespaceForURI</a></tt><tt class="py-op">(</tt><tt id="link-11" class="py-name"><a title="pyxb.binding.generate.NamespaceModule.namespace
+pyxb.exceptions_.NamespaceError.namespace
+pyxb.exceptions_.SchemaUniquenessError.namespace
+pyxb.namespace
+pyxb.namespace.ExpandedName.namespace
+pyxb.namespace.NamedObjectMap.namespace
+pyxb.namespace.archive.ModuleRecord.namespace
+pyxb.namespace.archive._ObjectOrigin.namespace
+pyxb.xmlschema.structures._ImportElementInformationItem.namespace
+pyxb.xmlschema.structures._PickledAnonymousReference.namespace" class="py-name" href="#" onclick="return doclink('link-11', 'namespace', 'link-2');">namespace</a></tt><tt class="py-op">,</tt> <tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+<a name="L34"></a><tt class="py-lineno">34</tt>  <tt class="py-line">    <tt class="py-keyword">raise</tt> <tt id="link-12" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-12', 'pyxb', 'link-0');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-13" class="py-name" targets="Class pyxb.exceptions_.LogicError=pyxb.exceptions_.LogicError-class.html"><a title="pyxb.exceptions_.LogicError" class="py-name" href="#" onclick="return doclink('link-13', 'LogicError', 'link-13');">LogicError</a></tt><tt class="py-op">(</tt><tt class="py-string">'Cannot identify namespace from value of type %s'</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt id="link-14" class="py-name" targets="Variable pyxb.exceptions_.AbstractInstantiationError.type=pyxb.exceptions_.AbstractInstantiationError-class.html#type,Variable pyxb.exceptions_.AttributeValidationError.type=pyxb.exceptions_.AttributeValidationError-class.html#type,Variable pyxb.exceptions_.SimpleFacetValueError.type=pyxb.exceptions_.SimpleFacetValueError-class.html#type,Variable pyxb.exceptions_.SimpleTypeValueError.type=pyxb.exceptions_.SimpleTypeValueError-class.html#type,Variable pyxb.namespace.builtin._XMLSchema_instance.type=pyxb.namespace.builtin._XMLSchema_instance-class.html#type"><a title="pyxb.exceptions_.AbstractInstantiationError.type
+pyxb.exceptions_.AttributeValidationError.type
+pyxb.exceptions_.SimpleFacetValueError.type
+pyxb.exceptions_.SimpleTypeValueError.type
+pyxb.namespace.builtin._XMLSchema_instance.type" class="py-name" href="#" onclick="return doclink('link-14', 'type', 'link-14');">type</a></tt><tt class="py-op">(</tt><tt id="link-15" class="py-name"><a title="pyxb.binding.generate.NamespaceModule.namespace
+pyxb.exceptions_.NamespaceError.namespace
+pyxb.exceptions_.SchemaUniquenessError.namespace
+pyxb.namespace
+pyxb.namespace.ExpandedName.namespace
+pyxb.namespace.NamedObjectMap.namespace
+pyxb.namespace.archive.ModuleRecord.namespace
+pyxb.namespace.archive._ObjectOrigin.namespace
+pyxb.xmlschema.structures._ImportElementInformationItem.namespace
+pyxb.xmlschema.structures._PickledAnonymousReference.namespace" class="py-name" href="#" onclick="return doclink('link-15', 'namespace', 'link-2');">namespace</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line"> </tt>
+<a name="NamespaceForURI"></a><div id="NamespaceForURI-def"><a name="L36"></a><tt class="py-lineno">36</tt> <a class="py-toggle" href="#" id="NamespaceForURI-toggle" onclick="return toggle('NamespaceForURI');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb.namespace.utility-module.html#NamespaceForURI">NamespaceForURI</a> <tt class="py-op">(</tt><tt class="py-param">uri</tt><tt class="py-op">,</tt> <tt class="py-param">create_if_missing</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="NamespaceForURI-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="NamespaceForURI-expanded"><a name="L37"></a><tt class="py-lineno">37</tt>  <tt class="py-line">    <tt class="py-docstring">"""Given a URI, provide the L{Namespace} instance corresponding to it.</tt> </tt>
+<a name="L38"></a><tt class="py-lineno">38</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L39"></a><tt class="py-lineno">39</tt>  <tt class="py-line"><tt class="py-docstring">    This can only be used to lookup or create real namespaces.  To create</tt> </tt>
+<a name="L40"></a><tt class="py-lineno">40</tt>  <tt class="py-line"><tt class="py-docstring">    absent namespaces, use L{CreateAbsentNamespace}.</tt> </tt>
+<a name="L41"></a><tt class="py-lineno">41</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L42"></a><tt class="py-lineno">42</tt>  <tt class="py-line"><tt class="py-docstring">    @param uri: The URI that identifies the namespace</tt> </tt>
+<a name="L43"></a><tt class="py-lineno">43</tt>  <tt class="py-line"><tt class="py-docstring">    @type uri: A non-empty C{str} or C{unicode} string</tt> </tt>
+<a name="L44"></a><tt class="py-lineno">44</tt>  <tt class="py-line"><tt class="py-docstring">    @keyword create_if_missing: If C{True}, a namespace for the given URI is</tt> </tt>
+<a name="L45"></a><tt class="py-lineno">45</tt>  <tt class="py-line"><tt class="py-docstring">    created if one has not already been registered.  Default is C{False}.</tt> </tt>
+<a name="L46"></a><tt class="py-lineno">46</tt>  <tt class="py-line"><tt class="py-docstring">    @type create_if_missing: C{bool}</tt> </tt>
+<a name="L47"></a><tt class="py-lineno">47</tt>  <tt class="py-line"><tt class="py-docstring">    @return: The Namespace corresponding to C{uri}, if available</tt> </tt>
+<a name="L48"></a><tt class="py-lineno">48</tt>  <tt class="py-line"><tt class="py-docstring">    @rtype: L{Namespace} or C{None}</tt> </tt>
+<a name="L49"></a><tt class="py-lineno">49</tt>  <tt class="py-line"><tt class="py-docstring">    @raise pyxb.LogicError: The uri is not a non-empty string</tt> </tt>
+<a name="L50"></a><tt class="py-lineno">50</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L51"></a><tt class="py-lineno">51</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt id="link-16" class="py-name" targets="Method pyxb.namespace.Namespace.uri()=pyxb.namespace.Namespace-class.html#uri"><a title="pyxb.namespace.Namespace.uri" class="py-name" href="#" onclick="return doclink('link-16', 'uri', 'link-16');">uri</a></tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt class="py-name">str</tt><tt class="py-op">,</tt> <tt id="link-17" class="py-name" targets="Module pyxb.utils.unicode=pyxb.utils.unicode-module.html"><a title="pyxb.utils.unicode" class="py-name" href="#" onclick="return doclink('link-17', 'unicode', 'link-17');">unicode</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L52"></a><tt class="py-lineno">52</tt>  <tt class="py-line">        <tt class="py-keyword">raise</tt> <tt id="link-18" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-18', 'pyxb', 'link-0');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-19" class="py-name"><a title="pyxb.exceptions_.LogicError" class="py-name" href="#" onclick="return doclink('link-19', 'LogicError', 'link-13');">LogicError</a></tt><tt class="py-op">(</tt><tt class="py-string">'Cannot lookup absent namespaces'</tt><tt class="py-op">)</tt> </tt>
+<a name="L53"></a><tt class="py-lineno">53</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-number">0</tt> <tt class="py-op">==</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt id="link-20" class="py-name"><a title="pyxb.namespace.Namespace.uri" class="py-name" href="#" onclick="return doclink('link-20', 'uri', 'link-16');">uri</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L54"></a><tt class="py-lineno">54</tt>  <tt class="py-line">        <tt class="py-keyword">raise</tt> <tt id="link-21" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-21', 'pyxb', 'link-0');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="pyxb.exceptions_.LogicError" class="py-name" href="#" onclick="return doclink('link-22', 'LogicError', 'link-13');">LogicError</a></tt><tt class="py-op">(</tt><tt class="py-string">'Namespace URIs must not be empty strings'</tt><tt class="py-op">)</tt> </tt>
+<a name="L55"></a><tt class="py-lineno">55</tt>  <tt class="py-line">    <tt class="py-name">rv</tt> <tt class="py-op">=</tt> <tt id="link-23" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-23', 'pyxb', 'link-0');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-24" class="py-name"><a title="pyxb.binding.generate.NamespaceModule.namespace
+pyxb.exceptions_.NamespaceError.namespace
+pyxb.exceptions_.SchemaUniquenessError.namespace
+pyxb.namespace
+pyxb.namespace.ExpandedName.namespace
+pyxb.namespace.NamedObjectMap.namespace
+pyxb.namespace.archive.ModuleRecord.namespace
+pyxb.namespace.archive._ObjectOrigin.namespace
+pyxb.xmlschema.structures._ImportElementInformationItem.namespace
+pyxb.xmlschema.structures._PickledAnonymousReference.namespace" class="py-name" href="#" onclick="return doclink('link-24', 'namespace', 'link-2');">namespace</a></tt><tt class="py-op">.</tt><tt id="link-25" class="py-name"><a title="pyxb.binding.xml_.Namespace
+pyxb.namespace.Namespace" class="py-name" href="#" onclick="return doclink('link-25', 'Namespace', 'link-7');">Namespace</a></tt><tt class="py-op">.</tt><tt id="link-26" class="py-name" targets="Class Method pyxb.namespace.Namespace._NamespaceForURI()=pyxb.namespace.Namespace-class.html#_NamespaceForURI"><a title="pyxb.namespace.Namespace._NamespaceForURI" class="py-name" href="#" onclick="return doclink('link-26', '_NamespaceForURI', 'link-26');">_NamespaceForURI</a></tt><tt class="py-op">(</tt><tt id="link-27" class="py-name"><a title="pyxb.namespace.Namespace.uri" class="py-name" href="#" onclick="return doclink('link-27', 'uri', 'link-16');">uri</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L56"></a><tt class="py-lineno">56</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-op">(</tt><tt class="py-name">rv</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt> <tt class="py-keyword">and</tt> <tt class="py-name">create_if_missing</tt><tt class="py-op">:</tt> </tt>
+<a name="L57"></a><tt class="py-lineno">57</tt>  <tt class="py-line">        <tt class="py-name">rv</tt> <tt class="py-op">=</tt> <tt id="link-28" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-28', 'pyxb', 'link-0');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-29" class="py-name"><a title="pyxb.binding.generate.NamespaceModule.namespace
+pyxb.exceptions_.NamespaceError.namespace
+pyxb.exceptions_.SchemaUniquenessError.namespace
+pyxb.namespace
+pyxb.namespace.ExpandedName.namespace
+pyxb.namespace.NamedObjectMap.namespace
+pyxb.namespace.archive.ModuleRecord.namespace
+pyxb.namespace.archive._ObjectOrigin.namespace
+pyxb.xmlschema.structures._ImportElementInformationItem.namespace
+pyxb.xmlschema.structures._PickledAnonymousReference.namespace" class="py-name" href="#" onclick="return doclink('link-29', 'namespace', 'link-2');">namespace</a></tt><tt class="py-op">.</tt><tt id="link-30" class="py-name"><a title="pyxb.binding.xml_.Namespace
+pyxb.namespace.Namespace" class="py-name" href="#" onclick="return doclink('link-30', 'Namespace', 'link-7');">Namespace</a></tt><tt class="py-op">(</tt><tt id="link-31" class="py-name"><a title="pyxb.namespace.Namespace.uri" class="py-name" href="#" onclick="return doclink('link-31', 'uri', 'link-16');">uri</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L58"></a><tt class="py-lineno">58</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">rv</tt> </tt>
+</div><a name="L59"></a><tt class="py-lineno">59</tt>  <tt class="py-line"> </tt>
+<a name="CreateAbsentNamespace"></a><div id="CreateAbsentNamespace-def"><a name="L60"></a><tt class="py-lineno">60</tt> <a class="py-toggle" href="#" id="CreateAbsentNamespace-toggle" onclick="return toggle('CreateAbsentNamespace');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb.namespace.utility-module.html#CreateAbsentNamespace">CreateAbsentNamespace</a> <tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="CreateAbsentNamespace-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="CreateAbsentNamespace-expanded"><a name="L61"></a><tt class="py-lineno">61</tt>  <tt class="py-line">    <tt class="py-docstring">"""Create an absent namespace.</tt> </tt>
+<a name="L62"></a><tt class="py-lineno">62</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L63"></a><tt class="py-lineno">63</tt>  <tt class="py-line"><tt class="py-docstring">    Use this when you need a namespace for declarations in a schema with no</tt> </tt>
+<a name="L64"></a><tt class="py-lineno">64</tt>  <tt class="py-line"><tt class="py-docstring">    target namespace.  Absent namespaces are not stored in the infrastructure;</tt> </tt>
+<a name="L65"></a><tt class="py-lineno">65</tt>  <tt class="py-line"><tt class="py-docstring">    it is your responsibility to hold on to the reference you get from this,</tt> </tt>
+<a name="L66"></a><tt class="py-lineno">66</tt>  <tt class="py-line"><tt class="py-docstring">    because you won't be able to look it up."""</tt> </tt>
+<a name="L67"></a><tt class="py-lineno">67</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt id="link-32" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-32', 'pyxb', 'link-0');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-33" class="py-name"><a title="pyxb.binding.generate.NamespaceModule.namespace
+pyxb.exceptions_.NamespaceError.namespace
+pyxb.exceptions_.SchemaUniquenessError.namespace
+pyxb.namespace
+pyxb.namespace.ExpandedName.namespace
+pyxb.namespace.NamedObjectMap.namespace
+pyxb.namespace.archive.ModuleRecord.namespace
+pyxb.namespace.archive._ObjectOrigin.namespace
+pyxb.xmlschema.structures._ImportElementInformationItem.namespace
+pyxb.xmlschema.structures._PickledAnonymousReference.namespace" class="py-name" href="#" onclick="return doclink('link-33', 'namespace', 'link-2');">namespace</a></tt><tt class="py-op">.</tt><tt id="link-34" class="py-name"><a title="pyxb.binding.xml_.Namespace
+pyxb.namespace.Namespace" class="py-name" href="#" onclick="return doclink('link-34', 'Namespace', 'link-7');">Namespace</a></tt><tt class="py-op">.</tt><tt id="link-35" class="py-name" targets="Class Method pyxb.namespace.Namespace.CreateAbsentNamespace()=pyxb.namespace.Namespace-class.html#CreateAbsentNamespace,Function pyxb.namespace.utility.CreateAbsentNamespace()=pyxb.namespace.utility-module.html#CreateAbsentNamespace"><a title="pyxb.namespace.Namespace.CreateAbsentNamespace
+pyxb.namespace.utility.CreateAbsentNamespace" class="py-name" href="#" onclick="return doclink('link-35', 'CreateAbsentNamespace', 'link-35');">CreateAbsentNamespace</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L68"></a><tt class="py-lineno">68</tt>  <tt class="py-line"> </tt>
+<a name="AvailableNamespaces"></a><div id="AvailableNamespaces-def"><a name="L69"></a><tt class="py-lineno">69</tt> <a class="py-toggle" href="#" id="AvailableNamespaces-toggle" onclick="return toggle('AvailableNamespaces');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb.namespace.utility-module.html#AvailableNamespaces">AvailableNamespaces</a> <tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="AvailableNamespaces-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="AvailableNamespaces-expanded"><a name="L70"></a><tt class="py-lineno">70</tt>  <tt class="py-line">    <tt class="py-docstring">"""Return the complete set of Namespace instances known to the system."""</tt> </tt>
+<a name="L71"></a><tt class="py-lineno">71</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt id="link-36" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-36', 'pyxb', 'link-0');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-37" class="py-name"><a title="pyxb.binding.generate.NamespaceModule.namespace
+pyxb.exceptions_.NamespaceError.namespace
+pyxb.exceptions_.SchemaUniquenessError.namespace
+pyxb.namespace
+pyxb.namespace.ExpandedName.namespace
+pyxb.namespace.NamedObjectMap.namespace
+pyxb.namespace.archive.ModuleRecord.namespace
+pyxb.namespace.archive._ObjectOrigin.namespace
+pyxb.xmlschema.structures._ImportElementInformationItem.namespace
+pyxb.xmlschema.structures._PickledAnonymousReference.namespace" class="py-name" href="#" onclick="return doclink('link-37', 'namespace', 'link-2');">namespace</a></tt><tt class="py-op">.</tt><tt id="link-38" class="py-name"><a title="pyxb.binding.xml_.Namespace
+pyxb.namespace.Namespace" class="py-name" href="#" onclick="return doclink('link-38', 'Namespace', 'link-7');">Namespace</a></tt><tt class="py-op">.</tt><tt id="link-39" class="py-name" targets="Class Method pyxb.namespace.Namespace.AvailableNamespaces()=pyxb.namespace.Namespace-class.html#AvailableNamespaces,Function pyxb.namespace.utility.AvailableNamespaces()=pyxb.namespace.utility-module.html#AvailableNamespaces"><a title="pyxb.namespace.Namespace.AvailableNamespaces
+pyxb.namespace.utility.AvailableNamespaces" class="py-name" href="#" onclick="return doclink('link-39', 'AvailableNamespaces', 'link-39');">AvailableNamespaces</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L72"></a><tt class="py-lineno">72</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:39 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

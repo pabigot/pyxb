@@ -1,0 +1,152 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>What Is PyXB? &mdash; PyXB 1.2.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.2.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyXB 1.2.3 documentation" href="index.html" />
+    <link rel="up" title="Overview" href="overview.html" />
+    <link rel="next" title="How to use it" href="overview_how.html" />
+    <link rel="prev" title="Overview" href="overview.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="overview_how.html" title="How to use it"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Overview"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+          <li><a href="overview.html" accesskey="U">Overview</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="what-is-pyxb">
+<h1>What Is PyXB?<a class="headerlink" href="#what-is-pyxb" title="Permalink to this headline">¶</a></h1>
+<p>PyXB is a pure <a class="reference external" href="http://www.python.org">Python</a> package that generates
+Python code for classes that correspond to data structures defined by
+<a class="reference external" href="http://www.w3.org/XML/Schema">XMLSchema</a>.  In concept it is similar to
+<a class="reference external" href="http://en.wikipedia.org/wiki/JAXB">JAXB</a> for Java and <a class="reference external" href="http://www.codesynthesis.com/products/xsd/">CodeSynthesis XSD</a> for C++.</p>
+<p>The major goals of PyXB are:</p>
+<ul class="simple">
+<li>Provide a generated Python interface that is &#8220;Pythonic&#8221;, meaning similar
+to one that would have been hand-written:<ul>
+<li>Attributes and elements are Python properties, with name conflicts
+resolved in favor of elements</li>
+<li>Elements with maxOccurs larger than 1 are stored as Python lists</li>
+<li>Bindings for type extensions inherit from the binding for the base type</li>
+<li>Enumeration constraints are exposed as class (constant) variables</li>
+</ul>
+</li>
+<li>Support bi-directional conversion (document to Python and back)</li>
+<li>Allow easy customization of the generated bindings to provide
+functionality along with content</li>
+<li>Support all XMLSchema features that are in common use, including:<ul>
+<li>complex content models (nested all/choice/sequence)</li>
+<li>cross-namespace dependencies</li>
+<li>include and import directives</li>
+<li>constraints on simple types</li>
+</ul>
+</li>
+<li>Validate the documents against their schema</li>
+</ul>
+<p>Secondary goals, some of which have been achieved in the current release, are
+listed in <a class="reference internal" href="vision.html#pyxb-vision"><em>PyXB Vision</em></a>.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="overview.html"
+                        title="previous chapter">Overview</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="overview_how.html"
+                        title="next chapter">How to use it</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/overview_what.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="overview_how.html" title="How to use it"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Overview"
+             >previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+          <li><a href="overview.html" >Overview</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009-2013, Peter A. Bigot.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,703 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.binding.content.AutomatonConfiguration</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.binding-module.html">Package&nbsp;binding</a> ::
+        <a href="pyxb.binding.content-module.html">Module&nbsp;content</a> ::
+        Class&nbsp;AutomatonConfiguration
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.binding.content.AutomatonConfiguration-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== TYPE DESCRIPTION ==================== -->
+<h1 class="epydoc">type AutomatonConfiguration</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+object --+
+         |
+        <strong class="uidshort">AutomatonConfiguration</strong>
+</pre>
+
+<hr />
+<p>State for a <a href="pyxb.utils.fac.Automaton-class.html" 
+  class="link">pyxb.utils.fac.Automaton</a> monitoring content for an 
+  incrementally constructed complex type binding instance.</p>
+
+<hr />
+<div class="fields">      <p><strong>Warning:</strong>
+        This is not an implementation of <a 
+        href="pyxb.utils.fac.Configuration_ABC-class.html" 
+        class="link">pyxb.utils.fac.Configuration_ABC</a> because we need 
+        the <a 
+        href="pyxb.binding.content.AutomatonConfiguration-class.html#step" 
+        class="link">step</a> function to return a different type of value.
+      </p>
+</div><!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.content.AutomatonConfiguration-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">instance</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.content.AutomatonConfiguration-class.html#reset" class="summary-sig-name">reset</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Reset the automaton to its initial state.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.reset">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.content.AutomatonConfiguration-class.html#nondeterminismCount" class="summary-sig-name">nondeterminismCount</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the number of pending configurations.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.nondeterminismCount">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.content.AutomatonConfiguration-class.html#step" class="summary-sig-name">step</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">value</span>,
+        <span class="summary-sig-arg">element_decl</span>)</span><br />
+      Attempt a transition from the current state.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.step">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.content.AutomatonConfiguration-class.html#resolveNondeterminism" class="summary-sig-name">resolveNondeterminism</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">prefer_accepting</span>=<span class="summary-sig-default">True</span>)</span><br />
+      Resolve any non-determinism in the automaton state.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.resolveNondeterminism">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.content.AutomatonConfiguration-class.html#acceptableContent" class="summary-sig-name">acceptableContent</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the sequence of acceptable symbols at this state.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.acceptableContent">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.content.AutomatonConfiguration-class.html#isAccepting" class="summary-sig-name">isAccepting</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">raise_if_rejecting</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Return <code>True</code> iff the automaton is in an accepting state.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.isAccepting">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.content.AutomatonConfiguration-class.html#_diagnoseIncompleteContent" class="summary-sig-name" onclick="show_private();">_diagnoseIncompleteContent</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">symbols</span>,
+        <span class="summary-sig-arg">symbol_set</span>)</span><br />
+      Check for incomplete content.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration._diagnoseIncompleteContent">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="diagnoseIncompleteContent"></a><span class="summary-sig-name">diagnoseIncompleteContent</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Generate the exception explaining why the content is incomplete.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.diagnoseIncompleteContent">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__resetPreferredSequence"></a><span class="summary-sig-name">__resetPreferredSequence</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">instance</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.__resetPreferredSequence">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__discardPreferredSequence"></a><span class="summary-sig-name">__discardPreferredSequence</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">preferred_sequence</span>,
+        <span class="summary-sig-arg">pi</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Extract non-element content from the sequence and return 
+      <code>None</code>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.__discardPreferredSequence">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__processPreferredSequence"></a><span class="summary-sig-name">__processPreferredSequence</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">preferred_sequence</span>,
+        <span class="summary-sig-arg">symbol_set</span>,
+        <span class="summary-sig-arg">vc</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.__processPreferredSequence">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.content.AutomatonConfiguration-class.html#sequencedChildren" class="summary-sig-name">sequencedChildren</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Implement <a 
+      href="pyxb.binding.basis.complexTypeDefinition-class.html#_validatedChildren"
+      class="link" 
+      onclick="show_private();">pyxb.binding.basis.complexTypeDefinition._validatedChildren</a>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.sequencedChildren">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__instance"></a><span class="summary-name">__instance</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__cfg"></a><span class="summary-name">__cfg</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__multi"></a><span class="summary-name">__multi</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__preferredSequenceIndex"></a><span class="summary-name">__preferredSequenceIndex</span> = <code title="0">0</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__preferredPendingSymbol"></a><span class="summary-name">__preferredPendingSymbol</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__pendingNonElementContent"></a><span class="summary-name">__pendingNonElementContent</span> = <code title="None">None</code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">instance</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        object.__init__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="reset"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">reset</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.reset">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Reset the automaton to its initial state.</p>
+  <p>Subsequent transitions are expected based on candidate content to be 
+  supplied through the <a 
+  href="pyxb.binding.content.AutomatonConfiguration-class.html#step" 
+  class="link">step</a> method.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="nondeterminismCount"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">nondeterminismCount</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.nondeterminismCount">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the number of pending configurations.</p>
+  <p>The automaton is deterministic if exactly one configuration is 
+  available.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="step"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">step</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">value</span>,
+        <span class="sig-arg">element_decl</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.step">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Attempt a transition from the current state.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>value</code></strong> - the content to be supplied.  For success the value must be 
+          consistent with the recorded symbol (element or wildcard 
+          declaration) for a transition from the current automaton state.</li>
+        <li><strong class="pname"><code>element_decl</code></strong> - optional <a 
+          href="pyxb.binding.content.ElementDeclaration-class.html" 
+          class="link">pyxb.binding.content.ElementDeclaration</a> that is 
+          the preferred symbol for the transition.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>the cardinal number of successful transitions from the current 
+          configuration based on the parameters.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="resolveNondeterminism"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">resolveNondeterminism</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">prefer_accepting</span>=<span class="sig-default">True</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.resolveNondeterminism">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Resolve any non-determinism in the automaton state.</p>
+  <p>If the automaton has reached a single configuration (was 
+  deterministic), this does nothing.</p>
+  <p>If multiple candidate configurations are available, the best one is 
+  selected and applied, updating the binding instance with the pending 
+  content.</p>
+  <p>&quot;Best&quot; in this case is determined by optionally eliminating 
+  configurations that are not accepting, then selecting the path where the 
+  initial transition sorts highest using the binding sort key (based on 
+  position in the original schema).</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>prefer_accepting</code></strong> - eliminate non-accepting paths if any accepting path is present.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="acceptableContent"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">acceptableContent</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.acceptableContent">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the sequence of acceptable symbols at this state.</p>
+  <p>The list comprises the <a 
+  href="pyxb.binding.content.ElementUse-class.html" 
+  class="link">pyxb.binding.content.ElementUse</a> and <a 
+  href="pyxb.binding.content.WildcardUse-class.html" 
+  class="link">pyxb.binding.content.WildcardUse</a> instances that are used
+  to validate proposed symbols, in preferred order.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="isAccepting"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">isAccepting</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">raise_if_rejecting</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.isAccepting">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return <code>True</code> iff the automaton is in an accepting 
+  state.</p>
+  <p>If the automaton has unresolved nondeterminism, it is resolved first, 
+  preferring accepting states.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="_diagnoseIncompleteContent"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_diagnoseIncompleteContent</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">symbols</span>,
+        <span class="sig-arg">symbol_set</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration._diagnoseIncompleteContent">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Check for incomplete content.</p>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd>the topmost configuration (if accepting)</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="pyxb.exceptions_.IncompleteElementContentError-class.html">pyxb.IncompleteElementContentError</a></strong></code> - if a non-accepting state is found</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="sequencedChildren"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">sequencedChildren</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.content-pysrc.html#AutomatonConfiguration.sequencedChildren">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Implement <a 
+  href="pyxb.binding.basis.complexTypeDefinition-class.html#_validatedChildren"
+  class="link" 
+  onclick="show_private();">pyxb.binding.basis.complexTypeDefinition._validatedChildren</a>.</p>
+  <p>Go there for the interface.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:36 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.xmlschema.structures._AttributeWildcard_mixin</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.xmlschema-module.html">Package&nbsp;xmlschema</a> ::
+        <a href="pyxb.xmlschema.structures-module.html">Module&nbsp;structures</a> ::
+        Class&nbsp;_AttributeWildcard_mixin
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.xmlschema.structures._AttributeWildcard_mixin-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== TYPE DESCRIPTION ==================== -->
+<h1 class="epydoc">type _AttributeWildcard_mixin</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_AttributeWildcard_mixin">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+object --+    
+         |    
+   <a href="pyxb.cscRoot-class.html">cscRoot</a> --+
+             |
+            <strong class="uidshort">_AttributeWildcard_mixin</strong>
+</pre>
+
+<dl><dt>Known Subclasses:</dt>
+<dd>
+      <ul class="subclass-list">
+<li><a href="pyxb.xmlschema.structures.AttributeGroupDefinition-class.html">AttributeGroupDefinition</a></li><li>, <a href="pyxb.xmlschema.structures.ComplexTypeDefinition-class.html">ComplexTypeDefinition</a></li>  </ul>
+</dd></dl>
+
+<hr />
+<p>Support for components that accept attribute wildcards.</p>
+  <p>That is <a 
+  href="pyxb.xmlschema.structures.AttributeGroupDefinition-class.html" 
+  class="link">AttributeGroupDefinition</a> and <a 
+  href="pyxb.xmlschema.structures.ComplexTypeDefinition-class.html" 
+  class="link">ComplexTypeDefinition</a>.  The calculations of the 
+  appropriate wildcard are sufficiently complex that they need to be 
+  abstracted out to a mix-in class.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="attributeWildcard"></a><span class="summary-sig-name">attributeWildcard</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the <a href="pyxb.xmlschema.structures.Wildcard-class.html" 
+      class="link">Wildcard</a> component associated with attributes of 
+      this instance, or <code>None</code> if attribute wildcards are not 
+      present in the instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_AttributeWildcard_mixin.attributeWildcard">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_setAttributeWildcard"></a><span class="summary-sig-name">_setAttributeWildcard</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">attribute_wildcard</span>)</span><br />
+      Set the attribute wildcard property for this instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_AttributeWildcard_mixin._setAttributeWildcard">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.xmlschema.structures._AttributeWildcard_mixin-class.html#_attributeRelevantChildren" class="summary-sig-name" onclick="show_private();">_attributeRelevantChildren</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">node_list</span>)</span><br />
+      Return the nodes that are relevant for attribute processing.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_AttributeWildcard_mixin._attributeRelevantChildren">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.cscRoot-class.html">cscRoot</a></code></b>:
+      <code><a href="pyxb.cscRoot-class.html#__init__">__init__</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.xmlschema.structures._AttributeWildcard_mixin-class.html#CompleteWildcard" class="summary-sig-name">CompleteWildcard</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">namespace_context</span>,
+        <span class="summary-sig-arg">attribute_groups</span>,
+        <span class="summary-sig-arg">local_wildcard</span>)</span><br />
+      Implement the algorithm as described the <a 
+      href="http://www.w3.org/TR/xmlschema-1/#declare-type" 
+      target="_top">specification</a>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_AttributeWildcard_mixin.CompleteWildcard">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__attributeWildcard"></a><span class="summary-name">__attributeWildcard</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_AttributeWildcard_mixin__attributeWildcard"></a><span class="summary-name">_AttributeWildcard_mixin__attributeWildcard</span> = <code title="None">None</code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="_attributeRelevantChildren"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_attributeRelevantChildren</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">node_list</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_AttributeWildcard_mixin._attributeRelevantChildren">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the nodes that are relevant for attribute processing.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>node_list</code></strong> - A sequence of nodes found in a definition content information 
+          item.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>A tuple <code>( attributes, attributeGroups, 
+          attributeWildcard)</code> where <code>attributes</code> is the 
+          subsequence of <code>node_list</code> that are XMLSchema 
+          <code>attribute</code> nodes; <code>attributeGroups</code> is 
+          analogous; and <code>attributeWildcard</code> is a single DOM 
+          node with XMLSchema name <code>anyAttribute</code> (or 
+          <code>None</code>, if no such node is present in the list).</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="pyxb.exceptions_.SchemaValidationError-class.html">pyxb.SchemaValidationError</a></strong></code> - An <code>attributeGroup</code> node is present but does not have 
+        the required <code>ref</code> attribute.</li>
+        <li><code><strong class='fraise'><a href="pyxb.exceptions_.SchemaValidationError-class.html">pyxb.SchemaValidationError</a></strong></code> - Multiple <code>anyAttribute</code> nodes are identified.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="CompleteWildcard"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">CompleteWildcard</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">namespace_context</span>,
+        <span class="sig-arg">attribute_groups</span>,
+        <span class="sig-arg">local_wildcard</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_AttributeWildcard_mixin.CompleteWildcard">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Implement the algorithm as described the <a 
+  href="http://www.w3.org/TR/xmlschema-1/#declare-type" 
+  target="_top">specification</a>.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>namespace_context</code></strong> - The <a 
+          href="pyxb.namespace.resolution.NamespaceContext-class.html" 
+          class="link">pyxb.namespace.NamespaceContext</a> to be associated
+          with any created <a 
+          href="pyxb.xmlschema.structures.Wildcard-class.html" 
+          class="link">Wildcard</a> instance</li>
+        <li><strong class="pname"><code>attribute_groups</code></strong> - A list of <a 
+          href="pyxb.xmlschema.structures.AttributeGroupDefinition-class.html"
+          class="link">AttributeGroupDefinition</a> instances</li>
+        <li><strong class="pname"><code>local_wildcard</code></strong> - A <a href="pyxb.xmlschema.structures.Wildcard-class.html" 
+          class="link">Wildcard</a> instance computed from a relevant 
+          XMLSchema <code>anyAttribute</code> element, or <code>None</code>
+          if no attribute wildcard is relevant</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:38 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

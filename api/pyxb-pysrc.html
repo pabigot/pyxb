@@ -1,0 +1,1099 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th bgcolor="#70b0f0" class="navbar-select"
+          >&nbsp;&nbsp;&nbsp;Home&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        Package&nbsp;pyxb
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="pyxb-module.html">Package pyxb</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># -*- coding: utf-8 -*-</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-docstring">"""PyXB stands for Python U{W3C XML</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-docstring">Schema&lt;http://www.w3.org/XML/Schema&gt;} Bindings, and is pronounced</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-docstring">"pixbee".  It enables translation between XML instance documents and</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-docstring">Python objects following rules specified by an XML Schema document.</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-docstring">This is the top-level entrypoint to the PyXB system.  Importing this</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-docstring">gets you all the L{exceptions&lt;pyxb.exceptions_.PyXBException&gt;}, and</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-docstring">L{pyxb.namespace}.  For more functionality, delve into these</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-docstring">submodules:</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-docstring"> - L{pyxb.xmlschema} Module holding the</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-docstring">   L{structures&lt;pyxb.xmlschema.structures&gt;} that convert XMLSchema</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-docstring">   from a DOM model to a Python class model based on the XMLSchema</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-docstring">   components.  Use this when you need to operate on the component</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-docstring">   model.</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-docstring"> - L{pyxb.binding} Module used to generate the bindings and at runtime</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-docstring">   to support the generated bindings.  Use this if you need to use the</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-docstring">   binding model or content model.</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-docstring"> - L{pyxb.utils} Common utilities used in parsing, generating, and</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-docstring">   executing.  The submodules must be imported separately.</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">logging</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"><tt id="link-0" class="py-name" targets="Variable pyxb._log=pyxb-module.html#_log,Variable pyxb.binding.basis._log=pyxb.binding.basis-module.html#_log,Variable pyxb.binding.content._log=pyxb.binding.content-module.html#_log,Variable pyxb.binding.datatypes._log=pyxb.binding.datatypes-module.html#_log,Variable pyxb.binding.facets._log=pyxb.binding.facets-module.html#_log,Variable pyxb.binding.generate._log=pyxb.binding.generate-module.html#_log,Variable pyxb.binding.saxer._log=pyxb.binding.saxer-module.html#_log,Variable pyxb.namespace._log=pyxb.namespace-module.html#_log,Variable pyxb.namespace.archive._log=pyxb.namespace.archive-module.html#_log,Variable pyxb.namespace.builtin._log=pyxb.namespace.builtin-module.html#_log,Variable pyxb.namespace.resolution._log=pyxb.namespace.resolution-module.html#_log,Variable pyxb.namespace.utility._log=pyxb.namespace.utility-module.html#_log,Variable pyxb.utils.domutils._log=pyxb.utils.domutils-module.html#_log,Variable pyxb.utils.saxdom._log=pyxb.utils.saxdom-module.html#_log,Variable pyxb.utils.saxutils._log=pyxb.utils.saxutils-module.html#_log,Variable pyxb.utils.unicode._log=pyxb.utils.unicode-module.html#_log,Variable pyxb.utils.utility._log=pyxb.utils.utility-module.html#_log,Variable pyxb.utils.xmlre._log=pyxb.utils.xmlre-module.html#_log,Variable pyxb.xmlschema.structures._log=pyxb.xmlschema.structures-module.html#_log"><a title="pyxb._log
+pyxb.binding.basis._log
+pyxb.binding.content._log
+pyxb.binding.datatypes._log
+pyxb.binding.facets._log
+pyxb.binding.generate._log
+pyxb.binding.saxer._log
+pyxb.namespace._log
+pyxb.namespace.archive._log
+pyxb.namespace.builtin._log
+pyxb.namespace.resolution._log
+pyxb.namespace.utility._log
+pyxb.utils.domutils._log
+pyxb.utils.saxdom._log
+pyxb.utils.saxutils._log
+pyxb.utils.unicode._log
+pyxb.utils.utility._log
+pyxb.utils.xmlre._log
+pyxb.xmlschema.structures._log" class="py-name" href="#" onclick="return doclink('link-0', '_log', 'link-0');">_log</a></tt> <tt class="py-op">=</tt> <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">getLogger</tt><tt class="py-op">(</tt><tt class="py-name">__name__</tt><tt class="py-op">)</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"> </tt>
+<a name="cscRoot"></a><div id="cscRoot-def"><a name="L32"></a><tt class="py-lineno"> 32</tt> <a class="py-toggle" href="#" id="cscRoot-toggle" onclick="return toggle('cscRoot');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="pyxb.cscRoot-class.html">cscRoot</a> <tt class="py-op">(</tt><tt class="py-base-class">object</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="cscRoot-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="cscRoot-expanded"><a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line">    <tt class="py-docstring">"""This little bundle of joy exists because in Python 2.6 it</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"><tt class="py-docstring">    became an error to invoke C{object.__init__} with parameters (unless</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"><tt class="py-docstring">    you also override C{__new__}, in which case it's only a warning.</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt class="py-docstring">    Whatever.).  Since I'm bloody not going to check in every class</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"><tt class="py-docstring">    whether C{super(Myclass,self)} refers to C{object} (even if I could</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"><tt class="py-docstring">    figure out how to do that, 'cuz the obvious solutions don't work),</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"><tt class="py-docstring">    we'll just make this thing the root of all U{cooperative super</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"><tt class="py-docstring">    calling&lt;http://www.geocities.com/foetsch/python/new_style_classes.htm#super&gt;}</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line"><tt class="py-docstring">    hierarchies.  The standard syntax in PyXB for this pattern is::</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"><tt class="py-docstring">      def method_csc (self, *args, **kw):</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"><tt class="py-docstring">        self_fn = lambda *_args, **_kw: self</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"><tt class="py-docstring">        super_fn = getattr(super(ThisClass, self), 'method_csc', self_fn)</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"><tt class="py-docstring">        return super_fn(*args, **kw)</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"> </tt>
+<a name="cscRoot.__init__"></a><div id="cscRoot.__init__-def"><a name="L50"></a><tt class="py-lineno"> 50</tt> <a class="py-toggle" href="#" id="cscRoot.__init__-toggle" onclick="return toggle('cscRoot.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb.cscRoot-class.html#__init__">__init__</a> <tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-op">*</tt><tt class="py-param">args</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-param">kw</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="cscRoot.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="cscRoot.__init__-expanded"><a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">        <tt class="py-comment"># Oh gross.  If this class descends from list (and probably dict), we</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line">        <tt class="py-comment"># get here when object is *not* our direct superclass.  In that case,</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">        <tt class="py-comment"># we have to pass the arguments on up, or the strings don't get</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">        <tt class="py-comment"># created right.  Below is the only way I've figured out to detect the</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">        <tt class="py-comment"># situation.</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">        <tt class="py-comment">#</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">        <tt class="py-comment"># Note that we might also get here if you mix-in a class that used</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">        <tt class="py-comment"># object as a parent instead of cscRoot.  Don't do that.  Printing the</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">        <tt class="py-comment"># mro() is a decent way of identifying the problem.</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">issubclass</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__class__</tt><tt class="py-op">.</tt><tt class="py-name">mro</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">[</tt><tt class="py-op">-</tt><tt class="py-number">2</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-op">(</tt> <tt class="py-name">list</tt><tt class="py-op">,</tt> <tt class="py-name">dict</tt> <tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">            <tt class="py-name">super</tt><tt class="py-op">(</tt><tt id="link-1" class="py-name" targets="Class pyxb.cscRoot=pyxb.cscRoot-class.html"><a title="pyxb.cscRoot" class="py-name" href="#" onclick="return doclink('link-1', 'cscRoot', 'link-1');">cscRoot</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Method pyxb.BIND.__init__()=pyxb.BIND-class.html#__init__,Method pyxb.binding.basis.ElementContent.__init__()=pyxb.binding.basis.ElementContent-class.html#__init__,Method pyxb.binding.basis.NonElementContent.__init__()=pyxb.binding.basis.NonElementContent-class.html#__init__,Method pyxb.binding.basis.STD_union.__init__()=pyxb.binding.basis.STD_union-class.html#__init__,Method pyxb.binding.basis._Content.__init__()=pyxb.binding.basis._Content-class.html#__init__,Method pyxb.binding.basis._TypeBinding_mixin.__init__()=pyxb.binding.basis._TypeBinding_mixin-class.html#__init__,Method pyxb.binding.basis.complexTypeDefinition.__init__()=pyxb.binding.basis.complexTypeDefinition-class.html#__init__,Method pyxb.binding.basis.element.__init__()=pyxb.binding.basis.element-class.html#__init__,Method pyxb.binding.basis.simpleTypeDefinition.__init__()=pyxb.binding.basis.simpleTypeDefinition-class.html#__init__,Method pyxb.binding.content.AttributeUse.__init__()=pyxb.binding.content.AttributeUse-class.html#__init__,Method pyxb.binding.content.AutomatonConfiguration.__init__()=pyxb.binding.content.AutomatonConfiguration-class.html#__init__,Method pyxb.binding.content.ElementDeclaration.__init__()=pyxb.binding.content.ElementDeclaration-class.html#__init__,Method pyxb.binding.content.ElementUse.__init__()=pyxb.binding.content.ElementUse-class.html#__init__,Method pyxb.binding.content.Wildcard.__init__()=pyxb.binding.content.Wildcard-class.html#__init__,Method pyxb.binding.content.WildcardUse.__init__()=pyxb.binding.content.WildcardUse-class.html#__init__,Method pyxb.binding.content._FACSymbol.__init__()=pyxb.binding.content._FACSymbol-class.html#__init__,Method pyxb.binding.content._PluralBinding.__init__()=pyxb.binding.content._PluralBinding-class.html#__init__,Method pyxb.binding.facets.CF_enumeration.__init__()=pyxb.binding.facets.CF_enumeration-class.html#__init__,Method pyxb.binding.facets.CF_pattern.__init__()=pyxb.binding.facets.CF_pattern-class.html#__init__,Method pyxb.binding.facets.ConstrainingFacet.__init__()=pyxb.binding.facets.ConstrainingFacet-class.html#__init__,Method pyxb.binding.facets.FF_cardinality.__init__()=pyxb.binding.facets.FF_cardinality-class.html#__init__,Method pyxb.binding.facets.FF_ordered.__init__()=pyxb.binding.facets.FF_ordered-class.html#__init__,Method pyxb.binding.facets.Facet.__init__()=pyxb.binding.facets.Facet-class.html#__init__,Method pyxb.binding.facets._EnumerationElement.__init__()=pyxb.binding.facets._EnumerationElement-class.html#__init__,Method pyxb.binding.facets._PatternElement.__init__()=pyxb.binding.facets._PatternElement-class.html#__init__,Method pyxb.binding.generate.BindingIO.__init__()=pyxb.binding.generate.BindingIO-class.html#__init__,Method pyxb.binding.generate.Generator.__init__()=pyxb.binding.generate.Generator-class.html#__init__,Method pyxb.binding.generate.NamespaceGroupModule.__init__()=pyxb.binding.generate.NamespaceGroupModule-class.html#__init__,Method pyxb.binding.generate.NamespaceModule.__init__()=pyxb.binding.generate.NamespaceModule-class.html#__init__,Method pyxb.binding.generate.ReferenceEnumerationMember.__init__()=pyxb.binding.generate.ReferenceEnumerationMember-class.html#__init__,Method pyxb.binding.generate.ReferenceExpandedName.__init__()=pyxb.binding.generate.ReferenceExpandedName-class.html#__init__,Method pyxb.binding.generate.ReferenceFacet.__init__()=pyxb.binding.generate.ReferenceFacet-class.html#__init__,Method pyxb.binding.generate.ReferenceFacetMember.__init__()=pyxb.binding.generate.ReferenceFacetMember-class.html#__init__,Method pyxb.binding.generate.ReferenceLiteral.__init__()=pyxb.binding.generate.ReferenceLiteral-class.html#__init__,Method pyxb.binding.generate.ReferenceNamespace.__init__()=pyxb.binding.generate.ReferenceNamespace-class.html#__init__,Method pyxb.binding.generate.ReferenceSchemaComponent.__init__()=pyxb.binding.generate.ReferenceSchemaComponent-class.html#__init__,Method pyxb.binding.generate.ReferenceWildcard.__init__()=pyxb.binding.generate.ReferenceWildcard-class.html#__init__,Method pyxb.binding.generate._CTDAuxData.__init__()=pyxb.binding.generate._CTDAuxData-class.html#__init__,Method pyxb.binding.generate._ModuleNaming_mixin.__init__()=pyxb.binding.generate._ModuleNaming_mixin-class.html#__init__,Method pyxb.binding.saxer.PyXBSAXHandler.__init__()=pyxb.binding.saxer.PyXBSAXHandler-class.html#__init__,Method pyxb.binding.saxer._SAXElementState.__init__()=pyxb.binding.saxer._SAXElementState-class.html#__init__,Method pyxb.cscRoot.__init__()=pyxb.cscRoot-class.html#__init__,Method pyxb.exceptions_.AbstractElementError.__init__()=pyxb.exceptions_.AbstractElementError-class.html#__init__,Method pyxb.exceptions_.AbstractInstantiationError.__init__()=pyxb.exceptions_.AbstractInstantiationError-class.html#__init__,Method pyxb.exceptions_.AttributeOnSimpleTypeError.__init__()=pyxb.exceptions_.AttributeOnSimpleTypeError-class.html#__init__,Method pyxb.exceptions_.AttributeValidationError.__init__()=pyxb.exceptions_.AttributeValidationError-class.html#__init__,Method pyxb.exceptions_.BatchElementContentError.__init__()=pyxb.exceptions_.BatchElementContentError-class.html#__init__,Method pyxb.exceptions_.ContentInNilInstanceError.__init__()=pyxb.exceptions_.ContentInNilInstanceError-class.html#__init__,Method pyxb.exceptions_.ElementChangeError.__init__()=pyxb.exceptions_.ElementChangeError-class.html#__init__,Method pyxb.exceptions_.ExtraSimpleContentError.__init__()=pyxb.exceptions_.ExtraSimpleContentError-class.html#__init__,Method pyxb.exceptions_.IncrementalElementContentError.__init__()=pyxb.exceptions_.IncrementalElementContentError-class.html#__init__,Method pyxb.exceptions_.InvalidPreferredElementContentError.__init__()=pyxb.exceptions_.InvalidPreferredElementContentError-class.html#__init__,Method pyxb.exceptions_.MixedContentError.__init__()=pyxb.exceptions_.MixedContentError-class.html#__init__,Method pyxb.exceptions_.NamespaceError.__init__()=pyxb.exceptions_.NamespaceError-class.html#__init__,Method pyxb.exceptions_.NoNillableSupportError.__init__()=pyxb.exceptions_.NoNillableSupportError-class.html#__init__,Method pyxb.exceptions_.NonElementValidationError.__init__()=pyxb.exceptions_.NonElementValidationError-class.html#__init__,Method pyxb.exceptions_.NonPluralAppendError.__init__()=pyxb.exceptions_.NonPluralAppendError-class.html#__init__,Method pyxb.exceptions_.NotComplexContentError.__init__()=pyxb.exceptions_.NotComplexContentError-class.html#__init__,Method pyxb.exceptions_.NotSimpleContentError.__init__()=pyxb.exceptions_.NotSimpleContentError-class.html#__init__,Method pyxb.exceptions_.OrphanElementContentError.__init__()=pyxb.exceptions_.OrphanElementContentError-class.html#__init__,Method pyxb.exceptions_.PyXBException.__init__()=pyxb.exceptions_.PyXBException-class.html#__init__,Method pyxb.exceptions_.ReservedNameError.__init__()=pyxb.exceptions_.ReservedNameError-class.html#__init__,Method pyxb.exceptions_.SchemaUniquenessError.__init__()=pyxb.exceptions_.SchemaUniquenessError-class.html#__init__,Method pyxb.exceptions_.SimpleContentAbsentError.__init__()=pyxb.exceptions_.SimpleContentAbsentError-class.html#__init__,Method pyxb.exceptions_.SimpleFacetValueError.__init__()=pyxb.exceptions_.SimpleFacetValueError-class.html#__init__,Method pyxb.exceptions_.SimpleTypeValueError.__init__()=pyxb.exceptions_.SimpleTypeValueError-class.html#__init__,Method pyxb.exceptions_.StructuralBadDocumentError.__init__()=pyxb.exceptions_.StructuralBadDocumentError-class.html#__init__,Method pyxb.exceptions_.UnboundElementError.__init__()=pyxb.exceptions_.UnboundElementError-class.html#__init__,Method pyxb.exceptions_.UnprocessedKeywordContentError.__init__()=pyxb.exceptions_.UnprocessedKeywordContentError-class.html#__init__,Method pyxb.exceptions_.UnrecognizedDOMRootNodeError.__init__()=pyxb.exceptions_.UnrecognizedDOMRootNodeError-class.html#__init__,Method pyxb.namespace.ExpandedName.__init__()=pyxb.namespace.ExpandedName-class.html#__init__,Method pyxb.namespace.NamedObjectMap.__init__()=pyxb.namespace.NamedObjectMap-class.html#__init__,Method pyxb.namespace.Namespace.__init__()=pyxb.namespace.Namespace-class.html#__init__,Method pyxb.namespace.archive.ModuleRecord.__init__()=pyxb.namespace.archive.ModuleRecord-class.html#__init__,Method pyxb.namespace.archive.NamespaceArchive.__init__()=pyxb.namespace.archive.NamespaceArchive-class.html#__init__,Method pyxb.namespace.archive.NamespaceDependencies.__init__()=pyxb.namespace.archive.NamespaceDependencies-class.html#__init__,Method pyxb.namespace.archive._NamespaceArchivable_mixin.__init__()=pyxb.namespace.archive._NamespaceArchivable_mixin-class.html#__init__,Method pyxb.namespace.archive._ObjectOrigin.__init__()=pyxb.namespace.archive._ObjectOrigin-class.html#__init__,Method pyxb.namespace.archive._SchemaOrigin.__init__()=pyxb.namespace.archive._SchemaOrigin-class.html#__init__,Method pyxb.namespace.builtin._XMLSchema_instance.__init__()=pyxb.namespace.builtin._XMLSchema_instance-class.html#__init__,Method pyxb.namespace.resolution.NamespaceContext.__init__()=pyxb.namespace.resolution.NamespaceContext-class.html#__init__,Method pyxb.utils.domutils.BindingDOMSupport.__init__()=pyxb.utils.domutils.BindingDOMSupport-class.html#__init__,Method pyxb.utils.domutils._BDSNamespaceSupport.__init__()=pyxb.utils.domutils._BDSNamespaceSupport-class.html#__init__,Method pyxb.utils.fac.All.__init__()=pyxb.utils.fac.All-class.html#__init__,Method pyxb.utils.fac.Automaton.__init__()=pyxb.utils.fac.Automaton-class.html#__init__,Method pyxb.utils.fac.AutomatonStepError.__init__()=pyxb.utils.fac.AutomatonStepError-class.html#__init__,Method pyxb.utils.fac.Choice.__init__()=pyxb.utils.fac.Choice-class.html#__init__,Method pyxb.utils.fac.Configuration.__init__()=pyxb.utils.fac.Configuration-class.html#__init__,Method pyxb.utils.fac.CounterCondition.__init__()=pyxb.utils.fac.CounterCondition-class.html#__init__,Method pyxb.utils.fac.InvalidTermTreeError.__init__()=pyxb.utils.fac.InvalidTermTreeError-class.html#__init__,Method pyxb.utils.fac.MultiConfiguration.__init__()=pyxb.utils.fac.MultiConfiguration-class.html#__init__,Method pyxb.utils.fac.MultiTermNode.__init__()=pyxb.utils.fac.MultiTermNode-class.html#__init__,Method pyxb.utils.fac.Node.__init__()=pyxb.utils.fac.Node-class.html#__init__,Method pyxb.utils.fac.NumericalConstraint.__init__()=pyxb.utils.fac.NumericalConstraint-class.html#__init__,Method pyxb.utils.fac.Sequence.__init__()=pyxb.utils.fac.Sequence-class.html#__init__,Method pyxb.utils.fac.State.__init__()=pyxb.utils.fac.State-class.html#__init__,Method pyxb.utils.fac.Symbol.__init__()=pyxb.utils.fac.Symbol-class.html#__init__,Method pyxb.utils.fac.Transition.__init__()=pyxb.utils.fac.Transition-class.html#__init__,Method pyxb.utils.fac.UpdateApplicationError.__init__()=pyxb.utils.fac.UpdateApplicationError-class.html#__init__,Method pyxb.utils.fac.UpdateInstruction.__init__()=pyxb.utils.fac.UpdateInstruction-class.html#__init__,Method pyxb.utils.saxdom.Attr.__init__()=pyxb.utils.saxdom.Attr-class.html#__init__,Method pyxb.utils.saxdom.Comment.__init__()=pyxb.utils.saxdom.Comment-class.html#__init__,Method pyxb.utils.saxdom.Document.__init__()=pyxb.utils.saxdom.Document-class.html#__init__,Method pyxb.utils.saxdom.Element.__init__()=pyxb.utils.saxdom.Element-class.html#__init__,Method pyxb.utils.saxdom.NamedNodeMap.__init__()=pyxb.utils.saxdom.NamedNodeMap-class.html#__init__,Method pyxb.utils.saxdom.Node.__init__()=pyxb.utils.saxdom.Node-class.html#__init__,Method pyxb.utils.saxdom.Text.__init__()=pyxb.utils.saxdom.Text-class.html#__init__,Method pyxb.utils.saxutils.BaseSAXHandler.__init__()=pyxb.utils.saxutils.BaseSAXHandler-class.html#__init__,Method pyxb.utils.saxutils.SAXElementState.__init__()=pyxb.utils.saxutils.SAXElementState-class.html#__init__,Method pyxb.utils.saxutils.SAXInformationItem.__init__()=pyxb.utils.saxutils.SAXInformationItem-class.html#__init__,Method pyxb.utils.unicode.CodePointSet.__init__()=pyxb.utils.unicode.CodePointSet-class.html#__init__,Method pyxb.utils.utility.Graph.__init__()=pyxb.utils.utility.Graph-class.html#__init__,Method pyxb.utils.utility.Locatable_mixin.__init__()=pyxb.utils.utility.Locatable_mixin-class.html#__init__,Method pyxb.utils.utility.Location.__init__()=pyxb.utils.utility.Location-class.html#__init__,Method pyxb.utils.utility.UTCOffsetTimeZone.__init__()=pyxb.utils.utility.UTCOffsetTimeZone-class.html#__init__,Method pyxb.utils.utility.UniqueIdentifier.__init__()=pyxb.utils.utility.UniqueIdentifier-class.html#__init__,Method pyxb.utils.xmlre.RegularExpressionError.__init__()=pyxb.utils.xmlre.RegularExpressionError-class.html#__init__,Method pyxb.xmlschema.structures.Annotation.__init__()=pyxb.xmlschema.structures.Annotation-class.html#__init__,Method pyxb.xmlschema.structures.AttributeDeclaration.__init__()=pyxb.xmlschema.structures.AttributeDeclaration-class.html#__init__,Method pyxb.xmlschema.structures.AttributeGroupDefinition.__init__()=pyxb.xmlschema.structures.AttributeGroupDefinition-class.html#__init__,Method pyxb.xmlschema.structures.AttributeUse.__init__()=pyxb.xmlschema.structures.AttributeUse-class.html#__init__,Method pyxb.xmlschema.structures.ComplexTypeDefinition.__init__()=pyxb.xmlschema.structures.ComplexTypeDefinition-class.html#__init__,Method pyxb.xmlschema.structures.ElementDeclaration.__init__()=pyxb.xmlschema.structures.ElementDeclaration-class.html#__init__,Method pyxb.xmlschema.structures.ModelGroup.__init__()=pyxb.xmlschema.structures.ModelGroup-class.html#__init__,Method pyxb.xmlschema.structures.Particle.__init__()=pyxb.xmlschema.structures.Particle-class.html#__init__,Method pyxb.xmlschema.structures.Schema.__init__()=pyxb.xmlschema.structures.Schema-class.html#__init__,Method pyxb.xmlschema.structures.SimpleTypeDefinition.__init__()=pyxb.xmlschema.structures.SimpleTypeDefinition-class.html#__init__,Method pyxb.xmlschema.structures.Wildcard.__init__()=pyxb.xmlschema.structures.Wildcard-class.html#__init__,Method pyxb.xmlschema.structures._Annotated_mixin.__init__()=pyxb.xmlschema.structures._Annotated_mixin-class.html#__init__,Method pyxb.xmlschema.structures._ImportElementInformationItem.__init__()=pyxb.xmlschema.structures._ImportElementInformationItem-class.html#__init__,Method pyxb.xmlschema.structures._NamedComponent_mixin.__init__()=pyxb.xmlschema.structures._NamedComponent_mixin-class.html#__init__,Method pyxb.xmlschema.structures._PickledAnonymousReference.__init__()=pyxb.xmlschema.structures._PickledAnonymousReference-class.html#__init__,Method pyxb.xmlschema.structures._SchemaComponent_mixin.__init__()=pyxb.xmlschema.structures._SchemaComponent_mixin-class.html#__init__"><a title="pyxb.BIND.__init__
+pyxb.binding.basis.ElementContent.__init__
+pyxb.binding.basis.NonElementContent.__init__
+pyxb.binding.basis.STD_union.__init__
+pyxb.binding.basis._Content.__init__
+pyxb.binding.basis._TypeBinding_mixin.__init__
+pyxb.binding.basis.complexTypeDefinition.__init__
+pyxb.binding.basis.element.__init__
+pyxb.binding.basis.simpleTypeDefinition.__init__
+pyxb.binding.content.AttributeUse.__init__
+pyxb.binding.content.AutomatonConfiguration.__init__
+pyxb.binding.content.ElementDeclaration.__init__
+pyxb.binding.content.ElementUse.__init__
+pyxb.binding.content.Wildcard.__init__
+pyxb.binding.content.WildcardUse.__init__
+pyxb.binding.content._FACSymbol.__init__
+pyxb.binding.content._PluralBinding.__init__
+pyxb.binding.facets.CF_enumeration.__init__
+pyxb.binding.facets.CF_pattern.__init__
+pyxb.binding.facets.ConstrainingFacet.__init__
+pyxb.binding.facets.FF_cardinality.__init__
+pyxb.binding.facets.FF_ordered.__init__
+pyxb.binding.facets.Facet.__init__
+pyxb.binding.facets._EnumerationElement.__init__
+pyxb.binding.facets._PatternElement.__init__
+pyxb.binding.generate.BindingIO.__init__
+pyxb.binding.generate.Generator.__init__
+pyxb.binding.generate.NamespaceGroupModule.__init__
+pyxb.binding.generate.NamespaceModule.__init__
+pyxb.binding.generate.ReferenceEnumerationMember.__init__
+pyxb.binding.generate.ReferenceExpandedName.__init__
+pyxb.binding.generate.ReferenceFacet.__init__
+pyxb.binding.generate.ReferenceFacetMember.__init__
+pyxb.binding.generate.ReferenceLiteral.__init__
+pyxb.binding.generate.ReferenceNamespace.__init__
+pyxb.binding.generate.ReferenceSchemaComponent.__init__
+pyxb.binding.generate.ReferenceWildcard.__init__
+pyxb.binding.generate._CTDAuxData.__init__
+pyxb.binding.generate._ModuleNaming_mixin.__init__
+pyxb.binding.saxer.PyXBSAXHandler.__init__
+pyxb.binding.saxer._SAXElementState.__init__
+pyxb.cscRoot.__init__
+pyxb.exceptions_.AbstractElementError.__init__
+pyxb.exceptions_.AbstractInstantiationError.__init__
+pyxb.exceptions_.AttributeOnSimpleTypeError.__init__
+pyxb.exceptions_.AttributeValidationError.__init__
+pyxb.exceptions_.BatchElementContentError.__init__
+pyxb.exceptions_.ContentInNilInstanceError.__init__
+pyxb.exceptions_.ElementChangeError.__init__
+pyxb.exceptions_.ExtraSimpleContentError.__init__
+pyxb.exceptions_.IncrementalElementContentError.__init__
+pyxb.exceptions_.InvalidPreferredElementContentError.__init__
+pyxb.exceptions_.MixedContentError.__init__
+pyxb.exceptions_.NamespaceError.__init__
+pyxb.exceptions_.NoNillableSupportError.__init__
+pyxb.exceptions_.NonElementValidationError.__init__
+pyxb.exceptions_.NonPluralAppendError.__init__
+pyxb.exceptions_.NotComplexContentError.__init__
+pyxb.exceptions_.NotSimpleContentError.__init__
+pyxb.exceptions_.OrphanElementContentError.__init__
+pyxb.exceptions_.PyXBException.__init__
+pyxb.exceptions_.ReservedNameError.__init__
+pyxb.exceptions_.SchemaUniquenessError.__init__
+pyxb.exceptions_.SimpleContentAbsentError.__init__
+pyxb.exceptions_.SimpleFacetValueError.__init__
+pyxb.exceptions_.SimpleTypeValueError.__init__
+pyxb.exceptions_.StructuralBadDocumentError.__init__
+pyxb.exceptions_.UnboundElementError.__init__
+pyxb.exceptions_.UnprocessedKeywordContentError.__init__
+pyxb.exceptions_.UnrecognizedDOMRootNodeError.__init__
+pyxb.namespace.ExpandedName.__init__
+pyxb.namespace.NamedObjectMap.__init__
+pyxb.namespace.Namespace.__init__
+pyxb.namespace.archive.ModuleRecord.__init__
+pyxb.namespace.archive.NamespaceArchive.__init__
+pyxb.namespace.archive.NamespaceDependencies.__init__
+pyxb.namespace.archive._NamespaceArchivable_mixin.__init__
+pyxb.namespace.archive._ObjectOrigin.__init__
+pyxb.namespace.archive._SchemaOrigin.__init__
+pyxb.namespace.builtin._XMLSchema_instance.__init__
+pyxb.namespace.resolution.NamespaceContext.__init__
+pyxb.utils.domutils.BindingDOMSupport.__init__
+pyxb.utils.domutils._BDSNamespaceSupport.__init__
+pyxb.utils.fac.All.__init__
+pyxb.utils.fac.Automaton.__init__
+pyxb.utils.fac.AutomatonStepError.__init__
+pyxb.utils.fac.Choice.__init__
+pyxb.utils.fac.Configuration.__init__
+pyxb.utils.fac.CounterCondition.__init__
+pyxb.utils.fac.InvalidTermTreeError.__init__
+pyxb.utils.fac.MultiConfiguration.__init__
+pyxb.utils.fac.MultiTermNode.__init__
+pyxb.utils.fac.Node.__init__
+pyxb.utils.fac.NumericalConstraint.__init__
+pyxb.utils.fac.Sequence.__init__
+pyxb.utils.fac.State.__init__
+pyxb.utils.fac.Symbol.__init__
+pyxb.utils.fac.Transition.__init__
+pyxb.utils.fac.UpdateApplicationError.__init__
+pyxb.utils.fac.UpdateInstruction.__init__
+pyxb.utils.saxdom.Attr.__init__
+pyxb.utils.saxdom.Comment.__init__
+pyxb.utils.saxdom.Document.__init__
+pyxb.utils.saxdom.Element.__init__
+pyxb.utils.saxdom.NamedNodeMap.__init__
+pyxb.utils.saxdom.Node.__init__
+pyxb.utils.saxdom.Text.__init__
+pyxb.utils.saxutils.BaseSAXHandler.__init__
+pyxb.utils.saxutils.SAXElementState.__init__
+pyxb.utils.saxutils.SAXInformationItem.__init__
+pyxb.utils.unicode.CodePointSet.__init__
+pyxb.utils.utility.Graph.__init__
+pyxb.utils.utility.Locatable_mixin.__init__
+pyxb.utils.utility.Location.__init__
+pyxb.utils.utility.UTCOffsetTimeZone.__init__
+pyxb.utils.utility.UniqueIdentifier.__init__
+pyxb.utils.xmlre.RegularExpressionError.__init__
+pyxb.xmlschema.structures.Annotation.__init__
+pyxb.xmlschema.structures.AttributeDeclaration.__init__
+pyxb.xmlschema.structures.AttributeGroupDefinition.__init__
+pyxb.xmlschema.structures.AttributeUse.__init__
+pyxb.xmlschema.structures.ComplexTypeDefinition.__init__
+pyxb.xmlschema.structures.ElementDeclaration.__init__
+pyxb.xmlschema.structures.ModelGroup.__init__
+pyxb.xmlschema.structures.Particle.__init__
+pyxb.xmlschema.structures.Schema.__init__
+pyxb.xmlschema.structures.SimpleTypeDefinition.__init__
+pyxb.xmlschema.structures.Wildcard.__init__
+pyxb.xmlschema.structures._Annotated_mixin.__init__
+pyxb.xmlschema.structures._ImportElementInformationItem.__init__
+pyxb.xmlschema.structures._NamedComponent_mixin.__init__
+pyxb.xmlschema.structures._PickledAnonymousReference.__init__
+pyxb.xmlschema.structures._SchemaComponent_mixin.__init__" class="py-name" href="#" onclick="return doclink('link-2', '__init__', 'link-2');">__init__</a></tt><tt class="py-op">(</tt><tt class="py-op">*</tt><tt class="py-name">args</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line"> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"><tt class="py-name">__version__</tt> <tt class="py-op">=</tt> <tt class="py-string">'1.2.3'</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line"><tt class="py-string">"""The version of PyXB"""</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line"> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"><tt id="link-3" class="py-name" targets="Variable pyxb.__url__=pyxb-module.html#__url__"><a title="pyxb.__url__" class="py-name" href="#" onclick="return doclink('link-3', '__url__', 'link-3');">__url__</a></tt> <tt class="py-op">=</tt> <tt class="py-string">'http://pyxb.sourceforge.net'</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line"><tt class="py-string">"""The URL for PyXB's homepage"""</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line"> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line"><tt class="py-name">__license__</tt> <tt class="py-op">=</tt> <tt class="py-string">'Apache License 2.0'</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line"> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line"><tt class="py-comment"># Bring in the exception hierarchy</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-op">.</tt><tt id="link-4" class="py-name" targets="Module pyxb.exceptions_=pyxb.exceptions_-module.html"><a title="pyxb.exceptions_" class="py-name" href="#" onclick="return doclink('link-4', 'exceptions_', 'link-4');">exceptions_</a></tt> <tt class="py-keyword">import</tt> <tt class="py-op">*</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line"> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line"><tt class="py-comment"># Bring in namespace stuff</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-op">.</tt> <tt class="py-keyword">import</tt> <tt id="link-5" class="py-name" targets="Method pyxb.binding.generate.NamespaceModule.namespace()=pyxb.binding.generate.NamespaceModule-class.html#namespace,Method pyxb.exceptions_.NamespaceError.namespace()=pyxb.exceptions_.NamespaceError-class.html#namespace,Method pyxb.exceptions_.SchemaUniquenessError.namespace()=pyxb.exceptions_.SchemaUniquenessError-class.html#namespace,Package pyxb.namespace=pyxb.namespace-module.html,Method pyxb.namespace.ExpandedName.namespace()=pyxb.namespace.ExpandedName-class.html#namespace,Method pyxb.namespace.NamedObjectMap.namespace()=pyxb.namespace.NamedObjectMap-class.html#namespace,Method pyxb.namespace.archive.ModuleRecord.namespace()=pyxb.namespace.archive.ModuleRecord-class.html#namespace,Method pyxb.namespace.archive._ObjectOrigin.namespace()=pyxb.namespace.archive._ObjectOrigin-class.html#namespace,Method pyxb.xmlschema.structures._ImportElementInformationItem.namespace()=pyxb.xmlschema.structures._ImportElementInformationItem-class.html#namespace,Method pyxb.xmlschema.structures._PickledAnonymousReference.namespace()=pyxb.xmlschema.structures._PickledAnonymousReference-class.html#namespace"><a title="pyxb.binding.generate.NamespaceModule.namespace
+pyxb.exceptions_.NamespaceError.namespace
+pyxb.exceptions_.SchemaUniquenessError.namespace
+pyxb.namespace
+pyxb.namespace.ExpandedName.namespace
+pyxb.namespace.NamedObjectMap.namespace
+pyxb.namespace.archive.ModuleRecord.namespace
+pyxb.namespace.archive._ObjectOrigin.namespace
+pyxb.xmlschema.structures._ImportElementInformationItem.namespace
+pyxb.xmlschema.structures._PickledAnonymousReference.namespace" class="py-name" href="#" onclick="return doclink('link-5', 'namespace', 'link-5');">namespace</a></tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line"> </tt>
+<a name="BIND"></a><div id="BIND-def"><a name="L77"></a><tt class="py-lineno"> 77</tt> <a class="py-toggle" href="#" id="BIND-toggle" onclick="return toggle('BIND');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="pyxb.BIND-class.html">BIND</a> <tt class="py-op">(</tt><tt class="py-base-class">object</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BIND-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="BIND-expanded"><a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">    <tt class="py-docstring">"""Bundle data for automated binding generation.</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line"><tt class="py-docstring">    Instances of this class capture positional and keyword arguments that are</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line"><tt class="py-docstring">    used to create binding instances based on context.  For example, if C{w}</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line"><tt class="py-docstring">    is an instance of a complex type whose C{option} element is declared to be</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"><tt class="py-docstring">    an anonymous class with simple content of type integer and an attribute of</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line"><tt class="py-docstring">    C{units}, a correct assignment to that element could be achieved with::</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line"><tt class="py-docstring">      w.option = BIND(54, units="m")</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">    <tt id="link-6" class="py-name" targets="Variable pyxb.BIND.__args=pyxb.BIND-class.html#__args"><a title="pyxb.BIND.__args" class="py-name" href="#" onclick="return doclink('link-6', '__args', 'link-6');">__args</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">    <tt id="link-7" class="py-name" targets="Variable pyxb.BIND.__kw=pyxb.BIND-class.html#__kw"><a title="pyxb.BIND.__kw" class="py-name" href="#" onclick="return doclink('link-7', '__kw', 'link-7');">__kw</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line"> </tt>
+<a name="BIND.__init__"></a><div id="BIND.__init__-def"><a name="L92"></a><tt class="py-lineno"> 92</tt> <a class="py-toggle" href="#" id="BIND.__init__-toggle" onclick="return toggle('BIND.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb.BIND-class.html#__init__">__init__</a> <tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-op">*</tt><tt class="py-param">args</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-param">kw</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BIND.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="BIND.__init__-expanded"><a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">        <tt class="py-docstring">"""Cache parameters for subsequent binding creation.</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line"><tt class="py-docstring">        Invoke just as you would the factory for a binding class."""</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-8" class="py-name"><a title="pyxb.BIND.__args" class="py-name" href="#" onclick="return doclink('link-8', '__args', 'link-6');">__args</a></tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-9" class="py-name"><a title="pyxb.BIND.__kw" class="py-name" href="#" onclick="return doclink('link-9', '__kw', 'link-7');">__kw</a></tt> <tt class="py-op">=</tt> <tt class="py-name">kw</tt> </tt>
+</div><a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line"> </tt>
+<a name="BIND.createInstance"></a><div id="BIND.createInstance-def"><a name="L98"></a><tt class="py-lineno"> 98</tt> <a class="py-toggle" href="#" id="BIND.createInstance-toggle" onclick="return toggle('BIND.createInstance');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb.BIND-class.html#createInstance">createInstance</a> <tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">factory</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-param">kw</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BIND.createInstance-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="BIND.createInstance-expanded"><a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">        <tt class="py-docstring">"""Invoke the given factory method.</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line"><tt class="py-docstring">        Position arguments to the factory are those cached in this instance.</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"><tt class="py-docstring">        Keyword arguments are the ones on the command line, updated from the</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line"><tt class="py-docstring">        ones in this instance."""</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">        <tt class="py-name">kw</tt><tt class="py-op">.</tt><tt id="link-10" class="py-name" targets="Method pyxb.namespace.archive.NamespaceArchive.update()=pyxb.namespace.archive.NamespaceArchive-class.html#update"><a title="pyxb.namespace.archive.NamespaceArchive.update" class="py-name" href="#" onclick="return doclink('link-10', 'update', 'link-10');">update</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-11" class="py-name"><a title="pyxb.BIND.__kw" class="py-name" href="#" onclick="return doclink('link-11', '__kw', 'link-7');">__kw</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">factory</tt><tt class="py-op">(</tt><tt class="py-op">*</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-12" class="py-name"><a title="pyxb.BIND.__args" class="py-name" href="#" onclick="return doclink('link-12', '__args', 'link-6');">__args</a></tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-name">kw</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line"> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line"> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line"><tt id="link-13" class="py-name" targets="Variable pyxb.XMLStyle_minidom=pyxb-module.html#XMLStyle_minidom"><a title="pyxb.XMLStyle_minidom" class="py-name" href="#" onclick="return doclink('link-13', 'XMLStyle_minidom', 'link-13');">XMLStyle_minidom</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line"><tt class="py-string">"""Use xml.dom.minidom for XML processing.  This is the fastest, but does not</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line"><tt class="py-string">provide location information.  It produces DOM instances."""</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line"> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line"><tt id="link-14" class="py-name" targets="Variable pyxb.XMLStyle_saxdom=pyxb-module.html#XMLStyle_saxdom"><a title="pyxb.XMLStyle_saxdom" class="py-name" href="#" onclick="return doclink('link-14', 'XMLStyle_saxdom', 'link-14');">XMLStyle_saxdom</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line"><tt class="py-string">"""Use pyxb.utils.saxdom for XML processing.  This is the slowest, but both</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line"><tt class="py-string">provides location information and generates a DOM instance."""</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line"> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line"><tt id="link-15" class="py-name" targets="Variable pyxb.XMLStyle_saxer=pyxb-module.html#XMLStyle_saxer"><a title="pyxb.XMLStyle_saxer" class="py-name" href="#" onclick="return doclink('link-15', 'XMLStyle_saxer', 'link-15');">XMLStyle_saxer</a></tt> <tt class="py-op">=</tt> <tt class="py-number">2</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line"><tt class="py-string">"""Use pyxb.binding.saxer when converting documents to binding instances.</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line"><tt class="py-string">This style supports location information in the bindings.  It produces binding</tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line"><tt class="py-string">instances directly, without going through a DOM stage, so is faster than</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line"><tt class="py-string">XMLStyle_saxdom.  However, since the pyxb.xmlschema.structures classes require</tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line"><tt class="py-string">a DOM model, XMLStyle_saxdom will be used for pyxb.utils.domutils.StringToDOM</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line"><tt class="py-string">if this style is selected."""</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line"> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line"><tt id="link-16" class="py-name" targets="Variable pyxb._XMLStyle=pyxb-module.html#_XMLStyle"><a title="pyxb._XMLStyle" class="py-name" href="#" onclick="return doclink('link-16', '_XMLStyle', 'link-16');">_XMLStyle</a></tt> <tt class="py-op">=</tt> <tt id="link-17" class="py-name"><a title="pyxb.XMLStyle_saxer" class="py-name" href="#" onclick="return doclink('link-17', 'XMLStyle_saxer', 'link-15');">XMLStyle_saxer</a></tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line"><tt class="py-string">"""The current XML processing style."""</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line"> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line"><tt id="link-18" class="py-name" targets="Variable pyxb._XMLStyleMap=pyxb-module.html#_XMLStyleMap"><a title="pyxb._XMLStyleMap" class="py-name" href="#" onclick="return doclink('link-18', '_XMLStyleMap', 'link-18');">_XMLStyleMap</a></tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt> <tt class="py-string">'minidom'</tt> <tt class="py-op">:</tt> <tt id="link-19" class="py-name"><a title="pyxb.XMLStyle_minidom" class="py-name" href="#" onclick="return doclink('link-19', 'XMLStyle_minidom', 'link-13');">XMLStyle_minidom</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">                 <tt class="py-string">'saxdom'</tt> <tt class="py-op">:</tt> <tt id="link-20" class="py-name"><a title="pyxb.XMLStyle_saxdom" class="py-name" href="#" onclick="return doclink('link-20', 'XMLStyle_saxdom', 'link-14');">XMLStyle_saxdom</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">                 <tt class="py-string">'saxer'</tt> <tt class="py-op">:</tt> <tt id="link-21" class="py-name"><a title="pyxb.XMLStyle_saxer" class="py-name" href="#" onclick="return doclink('link-21', 'XMLStyle_saxer', 'link-15');">XMLStyle_saxer</a></tt> <tt class="py-op">}</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line"><tt id="link-22" class="py-name" targets="Variable pyxb._XMLStyleMapReverse=pyxb-module.html#_XMLStyleMapReverse"><a title="pyxb._XMLStyleMapReverse" class="py-name" href="#" onclick="return doclink('link-22', '_XMLStyleMapReverse', 'link-22');">_XMLStyleMapReverse</a></tt> <tt class="py-op">=</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-op">[</tt> <tt class="py-op">(</tt><tt id="link-23" class="py-name" targets="Variable pyxb._v=pyxb-module.html#_v"><a title="pyxb._v" class="py-name" href="#" onclick="return doclink('link-23', '_v', 'link-23');">_v</a></tt><tt class="py-op">,</tt> <tt id="link-24" class="py-name" targets="Variable pyxb._k=pyxb-module.html#_k"><a title="pyxb._k" class="py-name" href="#" onclick="return doclink('link-24', '_k', 'link-24');">_k</a></tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt class="py-op">(</tt><tt id="link-25" class="py-name"><a title="pyxb._k" class="py-name" href="#" onclick="return doclink('link-25', '_k', 'link-24');">_k</a></tt><tt class="py-op">,</tt> <tt id="link-26" class="py-name"><a title="pyxb._v" class="py-name" href="#" onclick="return doclink('link-26', '_v', 'link-23');">_v</a></tt><tt class="py-op">)</tt> <tt class="py-keyword">in</tt> <tt id="link-27" class="py-name"><a title="pyxb._XMLStyleMap" class="py-name" href="#" onclick="return doclink('link-27', '_XMLStyleMap', 'link-18');">_XMLStyleMap</a></tt><tt class="py-op">.</tt><tt id="link-28" class="py-name" targets="Class Method pyxb.binding.basis.enumeration_mixin.iteritems()=pyxb.binding.basis.enumeration_mixin-class.html#iteritems,Method pyxb.binding.facets._CollectionFacet_mixin.iteritems()=pyxb.binding.facets._CollectionFacet_mixin-class.html#iteritems"><a title="pyxb.binding.basis.enumeration_mixin.iteritems
+pyxb.binding.facets._CollectionFacet_mixin.iteritems" class="py-name" href="#" onclick="return doclink('link-28', 'iteritems', 'link-28');">iteritems</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line"> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line"><tt id="link-29" class="py-name" targets="Variable pyxb._XMLStyle_envvar=pyxb-module.html#_XMLStyle_envvar"><a title="pyxb._XMLStyle_envvar" class="py-name" href="#" onclick="return doclink('link-29', '_XMLStyle_envvar', 'link-29');">_XMLStyle_envvar</a></tt> <tt class="py-op">=</tt> <tt class="py-string">'PYXB_XML_STYLE'</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line"> </tt>
+<a name="_SetXMLStyle"></a><div id="_SetXMLStyle-def"><a name="L134"></a><tt class="py-lineno">134</tt> <a class="py-toggle" href="#" id="_SetXMLStyle-toggle" onclick="return toggle('_SetXMLStyle');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb-module.html#_SetXMLStyle">_SetXMLStyle</a> <tt class="py-op">(</tt><tt class="py-param">style</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="_SetXMLStyle-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="_SetXMLStyle-expanded"><a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">    <tt class="py-docstring">"""Set the interface used to parse XML content.</tt> </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line"><tt class="py-docstring">    This can be invoked within code.  The system default of L{XMLStyle_saxer}</tt> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line"><tt class="py-docstring">    can also be overridden at runtime by setting the environment variable</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line"><tt class="py-docstring">    C{PYXB_XML_STYLE} to one of C{minidom}, C{saxdom}, or C{saxer}.</tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line"><tt class="py-docstring">    @param style: One of L{XMLStyle_minidom}, L{XMLStyle_saxdom},</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line"><tt class="py-docstring">    L{XMLStyle_saxer}.  If not provided, the system default is used.</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line">    <tt class="py-keyword">global</tt> <tt id="link-30" class="py-name"><a title="pyxb._XMLStyle" class="py-name" href="#" onclick="return doclink('link-30', '_XMLStyle', 'link-16');">_XMLStyle</a></tt> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">style</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line">        <tt class="py-keyword">import</tt> <tt class="py-name">os</tt> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line">        <tt class="py-name">style_name</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">environ</tt><tt class="py-op">.</tt><tt class="py-name">get</tt><tt class="py-op">(</tt><tt id="link-31" class="py-name"><a title="pyxb._XMLStyle_envvar" class="py-name" href="#" onclick="return doclink('link-31', '_XMLStyle_envvar', 'link-29');">_XMLStyle_envvar</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">style_name</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line">            <tt class="py-name">style_name</tt> <tt class="py-op">=</tt> <tt class="py-string">'saxer'</tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">        <tt class="py-name">style</tt> <tt class="py-op">=</tt> <tt id="link-32" class="py-name"><a title="pyxb._XMLStyleMap" class="py-name" href="#" onclick="return doclink('link-32', '_XMLStyleMap', 'link-18');">_XMLStyleMap</a></tt><tt class="py-op">.</tt><tt class="py-name">get</tt><tt class="py-op">(</tt><tt class="py-name">style_name</tt><tt class="py-op">)</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">style</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt id="link-33" class="py-name" targets="Class pyxb.exceptions_.PyXBException=pyxb.exceptions_.PyXBException-class.html"><a title="pyxb.exceptions_.PyXBException" class="py-name" href="#" onclick="return doclink('link-33', 'PyXBException', 'link-33');">PyXBException</a></tt><tt class="py-op">(</tt><tt class="py-string">'Bad value "%s" for %s'</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">style_name</tt><tt class="py-op">,</tt> <tt id="link-34" class="py-name"><a title="pyxb._XMLStyle_envvar" class="py-name" href="#" onclick="return doclink('link-34', '_XMLStyle_envvar', 'link-29');">_XMLStyle_envvar</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt id="link-35" class="py-name"><a title="pyxb._XMLStyleMapReverse" class="py-name" href="#" onclick="return doclink('link-35', '_XMLStyleMapReverse', 'link-22');">_XMLStyleMapReverse</a></tt><tt class="py-op">.</tt><tt class="py-name">get</tt><tt class="py-op">(</tt><tt class="py-name">style</tt><tt class="py-op">)</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line">        <tt class="py-keyword">raise</tt> <tt id="link-36" class="py-name"><a title="pyxb.exceptions_.PyXBException" class="py-name" href="#" onclick="return doclink('link-36', 'PyXBException', 'link-33');">PyXBException</a></tt><tt class="py-op">(</tt><tt class="py-string">'Bad value %s for _SetXMLStyle'</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">style</tt><tt class="py-op">,</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line">    <tt id="link-37" class="py-name"><a title="pyxb._XMLStyle" class="py-name" href="#" onclick="return doclink('link-37', '_XMLStyle', 'link-16');">_XMLStyle</a></tt> <tt class="py-op">=</tt> <tt class="py-name">style</tt> </tt>
+</div><a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line"> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line"><tt id="link-38" class="py-name" targets="Function pyxb._SetXMLStyle()=pyxb-module.html#_SetXMLStyle"><a title="pyxb._SetXMLStyle" class="py-name" href="#" onclick="return doclink('link-38', '_SetXMLStyle', 'link-38');">_SetXMLStyle</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line"> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line"><tt class="py-comment"># Global flag that we can use to determine whether optimization is active in</tt> </tt>
+<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line"><tt class="py-comment"># this session.  There may be cases where we can bypass methods that just</tt> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line"><tt class="py-comment"># check for things we don't care about in an optimized context</tt> </tt>
+<a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line"><tt id="link-39" class="py-name" targets="Variable pyxb._OptimizationActive=pyxb-module.html#_OptimizationActive"><a title="pyxb._OptimizationActive" class="py-name" href="#" onclick="return doclink('link-39', '_OptimizationActive', 'link-39');">_OptimizationActive</a></tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line"><tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line">    <tt class="py-keyword">assert</tt> <tt class="py-name">False</tt> </tt>
+<a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line">    <tt id="link-40" class="py-name"><a title="pyxb._OptimizationActive" class="py-name" href="#" onclick="return doclink('link-40', '_OptimizationActive', 'link-39');">_OptimizationActive</a></tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line"><tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line">    <tt class="py-keyword">pass</tt> </tt>
+<a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line"> </tt>
+<a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line"><tt id="link-41" class="py-name" targets="Variable pyxb._CorruptionDetectionEnabled=pyxb-module.html#_CorruptionDetectionEnabled"><a title="pyxb._CorruptionDetectionEnabled" class="py-name" href="#" onclick="return doclink('link-41', '_CorruptionDetectionEnabled', 'link-41');">_CorruptionDetectionEnabled</a></tt> <tt class="py-op">=</tt> <tt class="py-keyword">not</tt> <tt id="link-42" class="py-name"><a title="pyxb._OptimizationActive" class="py-name" href="#" onclick="return doclink('link-42', '_OptimizationActive', 'link-39');">_OptimizationActive</a></tt> </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line"><tt class="py-string">"""If C{True}, blocks attempts to assign to attributes that are reserved for</tt> </tt>
+<a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line"><tt class="py-string">PyXB methods.</tt> </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line"><tt class="py-string">Applies only at compilation time; dynamic changes are ignored.</tt> </tt>
+<a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line"><tt class="py-string">"""</tt> </tt>
+<a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line"> </tt>
+<a name="ValidationConfig"></a><div id="ValidationConfig-def"><a name="L176"></a><tt class="py-lineno">176</tt> <a class="py-toggle" href="#" id="ValidationConfig-toggle" onclick="return toggle('ValidationConfig');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="pyxb.ValidationConfig-class.html">ValidationConfig</a> <tt class="py-op">(</tt><tt class="py-base-class">object</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ValidationConfig-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="ValidationConfig-expanded"><a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line">    <tt class="py-docstring">"""Class holding configuration related to validation.</tt> </tt>
+<a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line"><tt class="py-docstring">    L{pyxb.GlobalValidationConfig} is available to influence validation in all</tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line"><tt class="py-docstring">    contexts.  Each binding class has a reference to an instance of this</tt> </tt>
+<a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line"><tt class="py-docstring">    class, which can be inspected using</tt> </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line"><tt class="py-docstring">    L{pyxb.binding.basis._TypeBinding_mixin._GetValidationConfig} and changed</tt> </tt>
+<a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line"><tt class="py-docstring">    using L{pyxb.binding.basis._TypeBinding_mixin._SetValidationConfig}.  Each</tt> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line"><tt class="py-docstring">    binding instance has a reference inherited from its class which can be</tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line"><tt class="py-docstring">    inspected using L{pyxb.binding.basis._TypeBinding_mixin._validationConfig}</tt> </tt>
+<a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line"><tt class="py-docstring">    and changed using</tt> </tt>
+<a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line"><tt class="py-docstring">    L{pyxb.binding.basis._TypeBinding_mixin._setValidationConfig}.</tt> </tt>
+<a name="L188"></a><tt class="py-lineno">188</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line"><tt class="py-docstring">    This allows fine control on a per class and per-instance basis.</tt> </tt>
+<a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line"><tt class="py-docstring">    L{forBinding} replaces L{RequireValidWhenParsing}.</tt> </tt>
+<a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line"><tt class="py-docstring">    L{forDocument} replaces L{RequireValidWhenGenerating}.</tt> </tt>
+<a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line"><tt class="py-docstring">    L{contentInfluencesGeneration}, L{orphanElementInContent}, and</tt> </tt>
+<a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line"><tt class="py-docstring">    L{invalidElementInContent} control how</tt> </tt>
+<a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line"><tt class="py-docstring">    L{pyxb.binding.basis.complexTypeDefinition.orderedContent} affects</tt> </tt>
+<a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line"><tt class="py-docstring">    generated documents.</tt> </tt>
+<a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L200"></a><tt class="py-lineno">200</tt>  <tt class="py-line"> </tt>
+<a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line">    <tt id="link-43" class="py-name" targets="Variable pyxb.ValidationConfig.__forBinding=pyxb.ValidationConfig-class.html#__forBinding"><a title="pyxb.ValidationConfig.__forBinding" class="py-name" href="#" onclick="return doclink('link-43', '__forBinding', 'link-43');">__forBinding</a></tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="ValidationConfig._getForBinding"></a><div id="ValidationConfig._getForBinding-def"><a name="L202"></a><tt class="py-lineno">202</tt> <a class="py-toggle" href="#" id="ValidationConfig._getForBinding-toggle" onclick="return toggle('ValidationConfig._getForBinding');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb.ValidationConfig-class.html#_getForBinding">_getForBinding</a> <tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ValidationConfig._getForBinding-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ValidationConfig._getForBinding-expanded"><a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line">        <tt class="py-docstring">"""C{True} iff validation should be performed when manipulating a</tt> </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line"><tt class="py-docstring">        binding instance.</tt> </tt>
+<a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line"><tt class="py-docstring">        This includes parsing a document or DOM tree, using a binding instance</tt> </tt>
+<a name="L207"></a><tt class="py-lineno">207</tt>  <tt class="py-line"><tt class="py-docstring">        class constructor, or assigning to an element or attribute field of a</tt> </tt>
+<a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line"><tt class="py-docstring">        binding instance."""</tt> </tt>
+<a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-44" class="py-name"><a title="pyxb.ValidationConfig.__forBinding" class="py-name" href="#" onclick="return doclink('link-44', '__forBinding', 'link-43');">__forBinding</a></tt> </tt>
+</div><a name="ValidationConfig._setForBinding"></a><div id="ValidationConfig._setForBinding-def"><a name="L210"></a><tt class="py-lineno">210</tt> <a class="py-toggle" href="#" id="ValidationConfig._setForBinding-toggle" onclick="return toggle('ValidationConfig._setForBinding');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb.ValidationConfig-class.html#_setForBinding">_setForBinding</a> <tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">value</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ValidationConfig._setForBinding-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ValidationConfig._setForBinding-expanded"><a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line">        <tt class="py-docstring">"""Configure whether validation should be performed when manipulating</tt> </tt>
+<a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line"><tt class="py-docstring">        a binding instance."""</tt> </tt>
+<a name="L213"></a><tt class="py-lineno">213</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt id="link-45" class="py-name" targets="Variable pyxb.binding.basis._Content.value=pyxb.binding.basis._Content-class.html#value,Method pyxb.binding.basis.complexTypeDefinition.value()=pyxb.binding.basis.complexTypeDefinition-class.html#value,Method pyxb.binding.content.AttributeUse.value()=pyxb.binding.content.AttributeUse-class.html#value,Method pyxb.binding.content.ElementDeclaration.value()=pyxb.binding.content.ElementDeclaration-class.html#value,Method pyxb.binding.facets.Facet.value()=pyxb.binding.facets.Facet-class.html#value,Method pyxb.binding.facets._EnumerationElement.value()=pyxb.binding.facets._EnumerationElement-class.html#value,Variable pyxb.exceptions_.AbstractElementError.value=pyxb.exceptions_.AbstractElementError-class.html#value,Variable pyxb.exceptions_.AttributeOnSimpleTypeError.value=pyxb.exceptions_.AttributeOnSimpleTypeError-class.html#value,Variable pyxb.exceptions_.ElementChangeError.value=pyxb.exceptions_.ElementChangeError-class.html#value,Variable pyxb.exceptions_.ExtraSimpleContentError.value=pyxb.exceptions_.ExtraSimpleContentError-class.html#value,Variable pyxb.exceptions_.IncrementalElementContentError.value=pyxb.exceptions_.IncrementalElementContentError-class.html#value,Variable pyxb.exceptions_.MixedContentError.value=pyxb.exceptions_.MixedContentError-class.html#value,Variable pyxb.exceptions_.NonPluralAppendError.value=pyxb.exceptions_.NonPluralAppendError-class.html#value,Variable pyxb.exceptions_.SimpleFacetValueError.value=pyxb.exceptions_.SimpleFacetValueError-class.html#value,Variable pyxb.exceptions_.SimpleTypeValueError.value=pyxb.exceptions_.SimpleTypeValueError-class.html#value,Variable pyxb.utils.saxdom.Node.value=pyxb.utils.saxdom.Node-class.html#value"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-45', 'value', 'link-45');">value</a></tt><tt class="py-op">,</tt> <tt class="py-name">bool</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L214"></a><tt class="py-lineno">214</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">TypeError</tt><tt class="py-op">(</tt><tt id="link-46" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-46', 'value', 'link-45');">value</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-47" class="py-name"><a title="pyxb.ValidationConfig.__forBinding" class="py-name" href="#" onclick="return doclink('link-47', '__forBinding', 'link-43');">__forBinding</a></tt> <tt class="py-op">=</tt> <tt id="link-48" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-48', 'value', 'link-45');">value</a></tt> </tt>
+<a name="L216"></a><tt class="py-lineno">216</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-49" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-49', 'value', 'link-45');">value</a></tt> </tt>
+</div><a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line">    <tt id="link-50" class="py-name" targets="Variable pyxb.ValidationConfig.forBinding=pyxb.ValidationConfig-class.html#forBinding"><a title="pyxb.ValidationConfig.forBinding" class="py-name" href="#" onclick="return doclink('link-50', 'forBinding', 'link-50');">forBinding</a></tt> <tt class="py-op">=</tt> <tt class="py-name">property</tt><tt class="py-op">(</tt><tt id="link-51" class="py-name" targets="Method pyxb.ValidationConfig._getForBinding()=pyxb.ValidationConfig-class.html#_getForBinding"><a title="pyxb.ValidationConfig._getForBinding" class="py-name" href="#" onclick="return doclink('link-51', '_getForBinding', 'link-51');">_getForBinding</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line"> </tt>
+<a name="L219"></a><tt class="py-lineno">219</tt>  <tt class="py-line">    <tt id="link-52" class="py-name" targets="Variable pyxb.ValidationConfig.__forDocument=pyxb.ValidationConfig-class.html#__forDocument"><a title="pyxb.ValidationConfig.__forDocument" class="py-name" href="#" onclick="return doclink('link-52', '__forDocument', 'link-52');">__forDocument</a></tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="ValidationConfig._getForDocument"></a><div id="ValidationConfig._getForDocument-def"><a name="L220"></a><tt class="py-lineno">220</tt> <a class="py-toggle" href="#" id="ValidationConfig._getForDocument-toggle" onclick="return toggle('ValidationConfig._getForDocument');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb.ValidationConfig-class.html#_getForDocument">_getForDocument</a> <tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ValidationConfig._getForDocument-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ValidationConfig._getForDocument-expanded"><a name="L221"></a><tt class="py-lineno">221</tt>  <tt class="py-line">        <tt class="py-docstring">"""C{True} iff validation should be performed when creating a document</tt> </tt>
+<a name="L222"></a><tt class="py-lineno">222</tt>  <tt class="py-line"><tt class="py-docstring">        from a binding instance.</tt> </tt>
+<a name="L223"></a><tt class="py-lineno">223</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L224"></a><tt class="py-lineno">224</tt>  <tt class="py-line"><tt class="py-docstring">        This applies at invocation of</tt> </tt>
+<a name="L225"></a><tt class="py-lineno">225</tt>  <tt class="py-line"><tt class="py-docstring">        L{toDOM()&lt;pyxb.binding.basis._TypeBinding_mixin.toDOM&gt;}.</tt> </tt>
+<a name="L226"></a><tt class="py-lineno">226</tt>  <tt class="py-line"><tt class="py-docstring">        L{toxml()&lt;pyxb.binding.basis._TypeBinding_mixin.toDOM&gt;} invokes C{toDOM()}."""</tt> </tt>
+<a name="L227"></a><tt class="py-lineno">227</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-53" class="py-name"><a title="pyxb.ValidationConfig.__forDocument" class="py-name" href="#" onclick="return doclink('link-53', '__forDocument', 'link-52');">__forDocument</a></tt> </tt>
+</div><a name="ValidationConfig._setForDocument"></a><div id="ValidationConfig._setForDocument-def"><a name="L228"></a><tt class="py-lineno">228</tt> <a class="py-toggle" href="#" id="ValidationConfig._setForDocument-toggle" onclick="return toggle('ValidationConfig._setForDocument');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb.ValidationConfig-class.html#_setForDocument">_setForDocument</a> <tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">value</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ValidationConfig._setForDocument-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ValidationConfig._setForDocument-expanded"><a name="L229"></a><tt class="py-lineno">229</tt>  <tt class="py-line">        <tt class="py-docstring">"""Configure whether validation should be performed when generating</tt> </tt>
+<a name="L230"></a><tt class="py-lineno">230</tt>  <tt class="py-line"><tt class="py-docstring">        a document from a binding instance."""</tt> </tt>
+<a name="L231"></a><tt class="py-lineno">231</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt id="link-54" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-54', 'value', 'link-45');">value</a></tt><tt class="py-op">,</tt> <tt class="py-name">bool</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L232"></a><tt class="py-lineno">232</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">TypeError</tt><tt class="py-op">(</tt><tt id="link-55" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-55', 'value', 'link-45');">value</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L233"></a><tt class="py-lineno">233</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-56" class="py-name"><a title="pyxb.ValidationConfig.__forDocument" class="py-name" href="#" onclick="return doclink('link-56', '__forDocument', 'link-52');">__forDocument</a></tt> <tt class="py-op">=</tt> <tt id="link-57" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-57', 'value', 'link-45');">value</a></tt> </tt>
+<a name="L234"></a><tt class="py-lineno">234</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-58" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-58', 'value', 'link-45');">value</a></tt> </tt>
+</div><a name="L235"></a><tt class="py-lineno">235</tt>  <tt class="py-line">    <tt id="link-59" class="py-name" targets="Variable pyxb.ValidationConfig.forDocument=pyxb.ValidationConfig-class.html#forDocument"><a title="pyxb.ValidationConfig.forDocument" class="py-name" href="#" onclick="return doclink('link-59', 'forDocument', 'link-59');">forDocument</a></tt> <tt class="py-op">=</tt> <tt class="py-name">property</tt><tt class="py-op">(</tt><tt id="link-60" class="py-name" targets="Method pyxb.ValidationConfig._getForDocument()=pyxb.ValidationConfig-class.html#_getForDocument"><a title="pyxb.ValidationConfig._getForDocument" class="py-name" href="#" onclick="return doclink('link-60', '_getForDocument', 'link-60');">_getForDocument</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L236"></a><tt class="py-lineno">236</tt>  <tt class="py-line"> </tt>
+<a name="L237"></a><tt class="py-lineno">237</tt>  <tt class="py-line">    <tt id="link-61" class="py-name" targets="Variable pyxb.ValidationConfig.ALWAYS=pyxb.ValidationConfig-class.html#ALWAYS"><a title="pyxb.ValidationConfig.ALWAYS" class="py-name" href="#" onclick="return doclink('link-61', 'ALWAYS', 'link-61');">ALWAYS</a></tt> <tt class="py-op">=</tt> <tt class="py-op">-</tt><tt class="py-number">1</tt> </tt>
+<a name="L238"></a><tt class="py-lineno">238</tt>  <tt class="py-line">    <tt class="py-string">"""Always do it."""</tt> </tt>
+<a name="L239"></a><tt class="py-lineno">239</tt>  <tt class="py-line"> </tt>
+<a name="L240"></a><tt class="py-lineno">240</tt>  <tt class="py-line">    <tt id="link-62" class="py-name" targets="Variable pyxb.ValidationConfig.NEVER=pyxb.ValidationConfig-class.html#NEVER"><a title="pyxb.ValidationConfig.NEVER" class="py-name" href="#" onclick="return doclink('link-62', 'NEVER', 'link-62');">NEVER</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L241"></a><tt class="py-lineno">241</tt>  <tt class="py-line">    <tt class="py-string">"""Never do it."""</tt> </tt>
+<a name="L242"></a><tt class="py-lineno">242</tt>  <tt class="py-line"> </tt>
+<a name="L243"></a><tt class="py-lineno">243</tt>  <tt class="py-line">    <tt id="link-63" class="py-name" targets="Variable pyxb.ValidationConfig.IGNORE_ONCE=pyxb.ValidationConfig-class.html#IGNORE_ONCE"><a title="pyxb.ValidationConfig.IGNORE_ONCE" class="py-name" href="#" onclick="return doclink('link-63', 'IGNORE_ONCE', 'link-63');">IGNORE_ONCE</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L244"></a><tt class="py-lineno">244</tt>  <tt class="py-line">    <tt class="py-string">"""If an error occurs ignore it and continue with the next one.  (E.g., if</tt> </tt>
+<a name="L245"></a><tt class="py-lineno">245</tt>  <tt class="py-line"><tt class="py-string">    an element in a content list fails skip it and continue with the next</tt> </tt>
+<a name="L246"></a><tt class="py-lineno">246</tt>  <tt class="py-line"><tt class="py-string">    element in the list.)"""</tt> </tt>
+<a name="L247"></a><tt class="py-lineno">247</tt>  <tt class="py-line"> </tt>
+<a name="L248"></a><tt class="py-lineno">248</tt>  <tt class="py-line">    <tt id="link-64" class="py-name" targets="Variable pyxb.ValidationConfig.GIVE_UP=pyxb.ValidationConfig-class.html#GIVE_UP"><a title="pyxb.ValidationConfig.GIVE_UP" class="py-name" href="#" onclick="return doclink('link-64', 'GIVE_UP', 'link-64');">GIVE_UP</a></tt> <tt class="py-op">=</tt> <tt class="py-number">2</tt> </tt>
+<a name="L249"></a><tt class="py-lineno">249</tt>  <tt class="py-line">    <tt class="py-string">"""If an error occurs ignore it and stop using whatever provided the cause</tt> </tt>
+<a name="L250"></a><tt class="py-lineno">250</tt>  <tt class="py-line"><tt class="py-string">    of the error.  (E.g., if an element in a content list fails stop</tt> </tt>
+<a name="L251"></a><tt class="py-lineno">251</tt>  <tt class="py-line"><tt class="py-string">    processing the content list and execute as though it was absent)."""</tt> </tt>
+<a name="L252"></a><tt class="py-lineno">252</tt>  <tt class="py-line"> </tt>
+<a name="L253"></a><tt class="py-lineno">253</tt>  <tt class="py-line">    <tt id="link-65" class="py-name" targets="Variable pyxb.ValidationConfig.RAISE_EXCEPTION=pyxb.ValidationConfig-class.html#RAISE_EXCEPTION"><a title="pyxb.ValidationConfig.RAISE_EXCEPTION" class="py-name" href="#" onclick="return doclink('link-65', 'RAISE_EXCEPTION', 'link-65');">RAISE_EXCEPTION</a></tt> <tt class="py-op">=</tt> <tt class="py-number">3</tt> </tt>
+<a name="L254"></a><tt class="py-lineno">254</tt>  <tt class="py-line">    <tt class="py-string">"""If an error occurs, raise an exception."""</tt> </tt>
+<a name="L255"></a><tt class="py-lineno">255</tt>  <tt class="py-line"> </tt>
+<a name="L256"></a><tt class="py-lineno">256</tt>  <tt class="py-line">    <tt id="link-66" class="py-name" targets="Variable pyxb.ValidationConfig.MIXED_ONLY=pyxb.ValidationConfig-class.html#MIXED_ONLY"><a title="pyxb.ValidationConfig.MIXED_ONLY" class="py-name" href="#" onclick="return doclink('link-66', 'MIXED_ONLY', 'link-66');">MIXED_ONLY</a></tt> <tt class="py-op">=</tt> <tt class="py-number">4</tt> </tt>
+<a name="L257"></a><tt class="py-lineno">257</tt>  <tt class="py-line">    <tt class="py-string">"""Only when content type is mixed."""</tt> </tt>
+<a name="L258"></a><tt class="py-lineno">258</tt>  <tt class="py-line"> </tt>
+<a name="L259"></a><tt class="py-lineno">259</tt>  <tt class="py-line">    <tt id="link-67" class="py-name" targets="Variable pyxb.ValidationConfig.__contentInfluencesGeneration=pyxb.ValidationConfig-class.html#__contentInfluencesGeneration"><a title="pyxb.ValidationConfig.__contentInfluencesGeneration" class="py-name" href="#" onclick="return doclink('link-67', '__contentInfluencesGeneration', 'link-67');">__contentInfluencesGeneration</a></tt> <tt class="py-op">=</tt> <tt id="link-68" class="py-name"><a title="pyxb.ValidationConfig.MIXED_ONLY" class="py-name" href="#" onclick="return doclink('link-68', 'MIXED_ONLY', 'link-66');">MIXED_ONLY</a></tt> </tt>
+<a name="ValidationConfig.__getContentInfluencesGeneration"></a><div id="ValidationConfig.__getContentInfluencesGeneration-def"><a name="L260"></a><tt class="py-lineno">260</tt> <a class="py-toggle" href="#" id="ValidationConfig.__getContentInfluencesGeneration-toggle" onclick="return toggle('ValidationConfig.__getContentInfluencesGeneration');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb.ValidationConfig-class.html#__getContentInfluencesGeneration">__getContentInfluencesGeneration</a> <tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ValidationConfig.__getContentInfluencesGeneration-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ValidationConfig.__getContentInfluencesGeneration-expanded"><a name="L261"></a><tt class="py-lineno">261</tt>  <tt class="py-line">        <tt class="py-docstring">"""Determine whether complex type content influences element order in</tt> </tt>
+<a name="L262"></a><tt class="py-lineno">262</tt>  <tt class="py-line"><tt class="py-docstring">        document generation.</tt> </tt>
+<a name="L263"></a><tt class="py-lineno">263</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L264"></a><tt class="py-lineno">264</tt>  <tt class="py-line"><tt class="py-docstring">        The value is one of L{ALWAYS}, L{NEVER}, L{MIXED_ONLY} (default)."""</tt> </tt>
+<a name="L265"></a><tt class="py-lineno">265</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-69" class="py-name"><a title="pyxb.ValidationConfig.__contentInfluencesGeneration" class="py-name" href="#" onclick="return doclink('link-69', '__contentInfluencesGeneration', 'link-67');">__contentInfluencesGeneration</a></tt> </tt>
+</div><a name="ValidationConfig._setContentInfluencesGeneration"></a><div id="ValidationConfig._setContentInfluencesGeneration-def"><a name="L266"></a><tt class="py-lineno">266</tt> <a class="py-toggle" href="#" id="ValidationConfig._setContentInfluencesGeneration-toggle" onclick="return toggle('ValidationConfig._setContentInfluencesGeneration');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb.ValidationConfig-class.html#_setContentInfluencesGeneration">_setContentInfluencesGeneration</a> <tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">value</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ValidationConfig._setContentInfluencesGeneration-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ValidationConfig._setContentInfluencesGeneration-expanded"><a name="L267"></a><tt class="py-lineno">267</tt>  <tt class="py-line">        <tt class="py-docstring">"""Set the value of L{contentInfluencesGeneration}."""</tt> </tt>
+<a name="L268"></a><tt class="py-lineno">268</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-op">(</tt><tt id="link-70" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-70', 'value', 'link-45');">value</a></tt> <tt class="py-keyword">in</tt> <tt class="py-op">(</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-71" class="py-name"><a title="pyxb.ValidationConfig.ALWAYS" class="py-name" href="#" onclick="return doclink('link-71', 'ALWAYS', 'link-61');">ALWAYS</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-72" class="py-name"><a title="pyxb.ValidationConfig.NEVER" class="py-name" href="#" onclick="return doclink('link-72', 'NEVER', 'link-62');">NEVER</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-73" class="py-name"><a title="pyxb.ValidationConfig.MIXED_ONLY" class="py-name" href="#" onclick="return doclink('link-73', 'MIXED_ONLY', 'link-66');">MIXED_ONLY</a></tt> <tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L269"></a><tt class="py-lineno">269</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">ValueError</tt><tt class="py-op">(</tt><tt id="link-74" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-74', 'value', 'link-45');">value</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L270"></a><tt class="py-lineno">270</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-75" class="py-name"><a title="pyxb.ValidationConfig.__contentInfluencesGeneration" class="py-name" href="#" onclick="return doclink('link-75', '__contentInfluencesGeneration', 'link-67');">__contentInfluencesGeneration</a></tt> <tt class="py-op">=</tt> <tt id="link-76" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-76', 'value', 'link-45');">value</a></tt> </tt>
+</div><a name="L271"></a><tt class="py-lineno">271</tt>  <tt class="py-line">    <tt id="link-77" class="py-name" targets="Variable pyxb.ValidationConfig.contentInfluencesGeneration=pyxb.ValidationConfig-class.html#contentInfluencesGeneration"><a title="pyxb.ValidationConfig.contentInfluencesGeneration" class="py-name" href="#" onclick="return doclink('link-77', 'contentInfluencesGeneration', 'link-77');">contentInfluencesGeneration</a></tt> <tt class="py-op">=</tt> <tt class="py-name">property</tt><tt class="py-op">(</tt><tt id="link-78" class="py-name" targets="Method pyxb.ValidationConfig.__getContentInfluencesGeneration()=pyxb.ValidationConfig-class.html#__getContentInfluencesGeneration"><a title="pyxb.ValidationConfig.__getContentInfluencesGeneration" class="py-name" href="#" onclick="return doclink('link-78', '__getContentInfluencesGeneration', 'link-78');">__getContentInfluencesGeneration</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L272"></a><tt class="py-lineno">272</tt>  <tt class="py-line"> </tt>
+<a name="L273"></a><tt class="py-lineno">273</tt>  <tt class="py-line">    <tt id="link-79" class="py-name" targets="Variable pyxb.ValidationConfig.__orphanElementInContent=pyxb.ValidationConfig-class.html#__orphanElementInContent"><a title="pyxb.ValidationConfig.__orphanElementInContent" class="py-name" href="#" onclick="return doclink('link-79', '__orphanElementInContent', 'link-79');">__orphanElementInContent</a></tt> <tt class="py-op">=</tt> <tt id="link-80" class="py-name"><a title="pyxb.ValidationConfig.IGNORE_ONCE" class="py-name" href="#" onclick="return doclink('link-80', 'IGNORE_ONCE', 'link-63');">IGNORE_ONCE</a></tt> </tt>
+<a name="ValidationConfig.__getOrphanElementInContent"></a><div id="ValidationConfig.__getOrphanElementInContent-def"><a name="L274"></a><tt class="py-lineno">274</tt> <a class="py-toggle" href="#" id="ValidationConfig.__getOrphanElementInContent-toggle" onclick="return toggle('ValidationConfig.__getOrphanElementInContent');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb.ValidationConfig-class.html#__getOrphanElementInContent">__getOrphanElementInContent</a> <tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ValidationConfig.__getOrphanElementInContent-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ValidationConfig.__getOrphanElementInContent-expanded"><a name="L275"></a><tt class="py-lineno">275</tt>  <tt class="py-line">        <tt class="py-docstring">"""How to handle unrecognized elements in content lists.</tt> </tt>
+<a name="L276"></a><tt class="py-lineno">276</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L277"></a><tt class="py-lineno">277</tt>  <tt class="py-line"><tt class="py-docstring">        This is used when consulting a complex type instance content list to</tt> </tt>
+<a name="L278"></a><tt class="py-lineno">278</tt>  <tt class="py-line"><tt class="py-docstring">        influence the generation of documents from a binding instance.</tt> </tt>
+<a name="L279"></a><tt class="py-lineno">279</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L280"></a><tt class="py-lineno">280</tt>  <tt class="py-line"><tt class="py-docstring">        The value is one of L{IGNORE_ONCE} (default), L{GIVE_UP},</tt> </tt>
+<a name="L281"></a><tt class="py-lineno">281</tt>  <tt class="py-line"><tt class="py-docstring">        L{RAISE_EXCEPTION}."""</tt> </tt>
+<a name="L282"></a><tt class="py-lineno">282</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-81" class="py-name"><a title="pyxb.ValidationConfig.__orphanElementInContent" class="py-name" href="#" onclick="return doclink('link-81', '__orphanElementInContent', 'link-79');">__orphanElementInContent</a></tt> </tt>
+</div><a name="ValidationConfig._setOrphanElementInContent"></a><div id="ValidationConfig._setOrphanElementInContent-def"><a name="L283"></a><tt class="py-lineno">283</tt> <a class="py-toggle" href="#" id="ValidationConfig._setOrphanElementInContent-toggle" onclick="return toggle('ValidationConfig._setOrphanElementInContent');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb.ValidationConfig-class.html#_setOrphanElementInContent">_setOrphanElementInContent</a> <tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">value</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ValidationConfig._setOrphanElementInContent-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ValidationConfig._setOrphanElementInContent-expanded"><a name="L284"></a><tt class="py-lineno">284</tt>  <tt class="py-line">        <tt class="py-docstring">"""Set the value of L{orphanElementInContent}."""</tt> </tt>
+<a name="L285"></a><tt class="py-lineno">285</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-op">(</tt><tt id="link-82" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-82', 'value', 'link-45');">value</a></tt> <tt class="py-keyword">in</tt> <tt class="py-op">(</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-83" class="py-name"><a title="pyxb.ValidationConfig.IGNORE_ONCE" class="py-name" href="#" onclick="return doclink('link-83', 'IGNORE_ONCE', 'link-63');">IGNORE_ONCE</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-84" class="py-name"><a title="pyxb.ValidationConfig.GIVE_UP" class="py-name" href="#" onclick="return doclink('link-84', 'GIVE_UP', 'link-64');">GIVE_UP</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-85" class="py-name"><a title="pyxb.ValidationConfig.RAISE_EXCEPTION" class="py-name" href="#" onclick="return doclink('link-85', 'RAISE_EXCEPTION', 'link-65');">RAISE_EXCEPTION</a></tt> <tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L286"></a><tt class="py-lineno">286</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">ValueError</tt><tt class="py-op">(</tt><tt id="link-86" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-86', 'value', 'link-45');">value</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L287"></a><tt class="py-lineno">287</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-87" class="py-name"><a title="pyxb.ValidationConfig.__orphanElementInContent" class="py-name" href="#" onclick="return doclink('link-87', '__orphanElementInContent', 'link-79');">__orphanElementInContent</a></tt> <tt class="py-op">=</tt> <tt id="link-88" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-88', 'value', 'link-45');">value</a></tt> </tt>
+</div><a name="L288"></a><tt class="py-lineno">288</tt>  <tt class="py-line">    <tt id="link-89" class="py-name" targets="Variable pyxb.ValidationConfig.orphanElementInContent=pyxb.ValidationConfig-class.html#orphanElementInContent"><a title="pyxb.ValidationConfig.orphanElementInContent" class="py-name" href="#" onclick="return doclink('link-89', 'orphanElementInContent', 'link-89');">orphanElementInContent</a></tt> <tt class="py-op">=</tt> <tt class="py-name">property</tt><tt class="py-op">(</tt><tt id="link-90" class="py-name" targets="Method pyxb.ValidationConfig.__getOrphanElementInContent()=pyxb.ValidationConfig-class.html#__getOrphanElementInContent"><a title="pyxb.ValidationConfig.__getOrphanElementInContent" class="py-name" href="#" onclick="return doclink('link-90', '__getOrphanElementInContent', 'link-90');">__getOrphanElementInContent</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L289"></a><tt class="py-lineno">289</tt>  <tt class="py-line"> </tt>
+<a name="L290"></a><tt class="py-lineno">290</tt>  <tt class="py-line">    <tt id="link-91" class="py-name" targets="Variable pyxb.ValidationConfig.__invalidElementInContent=pyxb.ValidationConfig-class.html#__invalidElementInContent"><a title="pyxb.ValidationConfig.__invalidElementInContent" class="py-name" href="#" onclick="return doclink('link-91', '__invalidElementInContent', 'link-91');">__invalidElementInContent</a></tt> <tt class="py-op">=</tt> <tt id="link-92" class="py-name"><a title="pyxb.ValidationConfig.IGNORE_ONCE" class="py-name" href="#" onclick="return doclink('link-92', 'IGNORE_ONCE', 'link-63');">IGNORE_ONCE</a></tt> </tt>
+<a name="ValidationConfig.__getInvalidElementInContent"></a><div id="ValidationConfig.__getInvalidElementInContent-def"><a name="L291"></a><tt class="py-lineno">291</tt> <a class="py-toggle" href="#" id="ValidationConfig.__getInvalidElementInContent-toggle" onclick="return toggle('ValidationConfig.__getInvalidElementInContent');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb.ValidationConfig-class.html#__getInvalidElementInContent">__getInvalidElementInContent</a> <tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ValidationConfig.__getInvalidElementInContent-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ValidationConfig.__getInvalidElementInContent-expanded"><a name="L292"></a><tt class="py-lineno">292</tt>  <tt class="py-line">        <tt class="py-docstring">"""How to handle invalid elements in content lists.</tt> </tt>
+<a name="L293"></a><tt class="py-lineno">293</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L294"></a><tt class="py-lineno">294</tt>  <tt class="py-line"><tt class="py-docstring">        The value is one of L{IGNORE_ONCE} (default), L{GIVE_UP},</tt> </tt>
+<a name="L295"></a><tt class="py-lineno">295</tt>  <tt class="py-line"><tt class="py-docstring">        L{RAISE_EXCEPTION}."""</tt> </tt>
+<a name="L296"></a><tt class="py-lineno">296</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-93" class="py-name"><a title="pyxb.ValidationConfig.__invalidElementInContent" class="py-name" href="#" onclick="return doclink('link-93', '__invalidElementInContent', 'link-91');">__invalidElementInContent</a></tt> </tt>
+</div><a name="ValidationConfig._setInvalidElementInContent"></a><div id="ValidationConfig._setInvalidElementInContent-def"><a name="L297"></a><tt class="py-lineno">297</tt> <a class="py-toggle" href="#" id="ValidationConfig._setInvalidElementInContent-toggle" onclick="return toggle('ValidationConfig._setInvalidElementInContent');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb.ValidationConfig-class.html#_setInvalidElementInContent">_setInvalidElementInContent</a> <tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">value</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ValidationConfig._setInvalidElementInContent-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ValidationConfig._setInvalidElementInContent-expanded"><a name="L298"></a><tt class="py-lineno">298</tt>  <tt class="py-line">        <tt class="py-docstring">"""Set the value of L{invalidElementInContent}."""</tt> </tt>
+<a name="L299"></a><tt class="py-lineno">299</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-op">(</tt><tt id="link-94" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-94', 'value', 'link-45');">value</a></tt> <tt class="py-keyword">in</tt> <tt class="py-op">(</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-95" class="py-name"><a title="pyxb.ValidationConfig.IGNORE_ONCE" class="py-name" href="#" onclick="return doclink('link-95', 'IGNORE_ONCE', 'link-63');">IGNORE_ONCE</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-96" class="py-name"><a title="pyxb.ValidationConfig.GIVE_UP" class="py-name" href="#" onclick="return doclink('link-96', 'GIVE_UP', 'link-64');">GIVE_UP</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-97" class="py-name"><a title="pyxb.ValidationConfig.RAISE_EXCEPTION" class="py-name" href="#" onclick="return doclink('link-97', 'RAISE_EXCEPTION', 'link-65');">RAISE_EXCEPTION</a></tt> <tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L300"></a><tt class="py-lineno">300</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">ValueError</tt><tt class="py-op">(</tt><tt id="link-98" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-98', 'value', 'link-45');">value</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L301"></a><tt class="py-lineno">301</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-99" class="py-name"><a title="pyxb.ValidationConfig.__invalidElementInContent" class="py-name" href="#" onclick="return doclink('link-99', '__invalidElementInContent', 'link-91');">__invalidElementInContent</a></tt> <tt class="py-op">=</tt> <tt id="link-100" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-100', 'value', 'link-45');">value</a></tt> </tt>
+</div><a name="L302"></a><tt class="py-lineno">302</tt>  <tt class="py-line">    <tt id="link-101" class="py-name" targets="Variable pyxb.ValidationConfig.invalidElementInContent=pyxb.ValidationConfig-class.html#invalidElementInContent"><a title="pyxb.ValidationConfig.invalidElementInContent" class="py-name" href="#" onclick="return doclink('link-101', 'invalidElementInContent', 'link-101');">invalidElementInContent</a></tt> <tt class="py-op">=</tt> <tt class="py-name">property</tt><tt class="py-op">(</tt><tt id="link-102" class="py-name" targets="Method pyxb.ValidationConfig.__getInvalidElementInContent()=pyxb.ValidationConfig-class.html#__getInvalidElementInContent"><a title="pyxb.ValidationConfig.__getInvalidElementInContent" class="py-name" href="#" onclick="return doclink('link-102', '__getInvalidElementInContent', 'link-102');">__getInvalidElementInContent</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L303"></a><tt class="py-lineno">303</tt>  <tt class="py-line"> </tt>
+<a name="ValidationConfig.copy"></a><div id="ValidationConfig.copy-def"><a name="L304"></a><tt class="py-lineno">304</tt> <a class="py-toggle" href="#" id="ValidationConfig.copy-toggle" onclick="return toggle('ValidationConfig.copy');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb.ValidationConfig-class.html#copy">copy</a> <tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ValidationConfig.copy-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ValidationConfig.copy-expanded"><a name="L305"></a><tt class="py-lineno">305</tt>  <tt class="py-line">        <tt class="py-docstring">"""Make a copy of this instance.</tt> </tt>
+<a name="L306"></a><tt class="py-lineno">306</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L307"></a><tt class="py-lineno">307</tt>  <tt class="py-line"><tt class="py-docstring">        Use this to get a starting point when you need to customize validation</tt> </tt>
+<a name="L308"></a><tt class="py-lineno">308</tt>  <tt class="py-line"><tt class="py-docstring">        on a per-instance/per-class basis."""</tt> </tt>
+<a name="L309"></a><tt class="py-lineno">309</tt>  <tt class="py-line">        <tt class="py-keyword">import</tt> <tt id="link-103" class="py-name" targets="Method pyxb.ValidationConfig.copy()=pyxb.ValidationConfig-class.html#copy"><a title="pyxb.ValidationConfig.copy" class="py-name" href="#" onclick="return doclink('link-103', 'copy', 'link-103');">copy</a></tt> </tt>
+<a name="L310"></a><tt class="py-lineno">310</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-104" class="py-name"><a title="pyxb.ValidationConfig.copy" class="py-name" href="#" onclick="return doclink('link-104', 'copy', 'link-103');">copy</a></tt><tt class="py-op">.</tt><tt id="link-105" class="py-name"><a title="pyxb.ValidationConfig.copy" class="py-name" href="#" onclick="return doclink('link-105', 'copy', 'link-103');">copy</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L311"></a><tt class="py-lineno">311</tt>  <tt class="py-line"> </tt>
+<a name="L312"></a><tt class="py-lineno">312</tt>  <tt class="py-line"><tt id="link-106" class="py-name" targets="Variable pyxb.GlobalValidationConfig=pyxb-module.html#GlobalValidationConfig"><a title="pyxb.GlobalValidationConfig" class="py-name" href="#" onclick="return doclink('link-106', 'GlobalValidationConfig', 'link-106');">GlobalValidationConfig</a></tt> <tt class="py-op">=</tt> <tt id="link-107" class="py-name" targets="Class pyxb.ValidationConfig=pyxb.ValidationConfig-class.html"><a title="pyxb.ValidationConfig" class="py-name" href="#" onclick="return doclink('link-107', 'ValidationConfig', 'link-107');">ValidationConfig</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L313"></a><tt class="py-lineno">313</tt>  <tt class="py-line"> </tt>
+<a name="L314"></a><tt class="py-lineno">314</tt>  <tt class="py-line"><tt id="link-108" class="py-name" targets="Variable pyxb._GenerationRequiresValid=pyxb-module.html#_GenerationRequiresValid"><a title="pyxb._GenerationRequiresValid" class="py-name" href="#" onclick="return doclink('link-108', '_GenerationRequiresValid', 'link-108');">_GenerationRequiresValid</a></tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L315"></a><tt class="py-lineno">315</tt>  <tt class="py-line"><tt class="py-string">"""Legacy flag; prefer L{forDocument&lt;ValidationConfig.forDocument&gt;} in L{GlobalValidationConfig}."""</tt> </tt>
+<a name="L316"></a><tt class="py-lineno">316</tt>  <tt class="py-line"> </tt>
+<a name="RequireValidWhenGenerating"></a><div id="RequireValidWhenGenerating-def"><a name="L317"></a><tt class="py-lineno">317</tt> <a class="py-toggle" href="#" id="RequireValidWhenGenerating-toggle" onclick="return toggle('RequireValidWhenGenerating');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb-module.html#RequireValidWhenGenerating">RequireValidWhenGenerating</a> <tt class="py-op">(</tt><tt class="py-param">value</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="RequireValidWhenGenerating-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="RequireValidWhenGenerating-expanded"><a name="L318"></a><tt class="py-lineno">318</tt>  <tt class="py-line">    <tt class="py-docstring">"""Query or set a flag that controls validation checking in XML generation.</tt> </tt>
+<a name="L319"></a><tt class="py-lineno">319</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L320"></a><tt class="py-lineno">320</tt>  <tt class="py-line"><tt class="py-docstring">    Normally any attempts to convert a binding instance to a DOM or XML</tt> </tt>
+<a name="L321"></a><tt class="py-lineno">321</tt>  <tt class="py-line"><tt class="py-docstring">    representation requires that the binding validate against the content</tt> </tt>
+<a name="L322"></a><tt class="py-lineno">322</tt>  <tt class="py-line"><tt class="py-docstring">    model, since only in this way can the content be generated in the correct</tt> </tt>
+<a name="L323"></a><tt class="py-lineno">323</tt>  <tt class="py-line"><tt class="py-docstring">    order.  In some cases it may be necessary or useful to generate a document</tt> </tt>
+<a name="L324"></a><tt class="py-lineno">324</tt>  <tt class="py-line"><tt class="py-docstring">    from a binding that is incomplete.  If validation is not required, the</tt> </tt>
+<a name="L325"></a><tt class="py-lineno">325</tt>  <tt class="py-line"><tt class="py-docstring">    generated documents may not validate even if the content validates,</tt> </tt>
+<a name="L326"></a><tt class="py-lineno">326</tt>  <tt class="py-line"><tt class="py-docstring">    because ordering constraints will be ignored.</tt> </tt>
+<a name="L327"></a><tt class="py-lineno">327</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L328"></a><tt class="py-lineno">328</tt>  <tt class="py-line"><tt class="py-docstring">    @keyword value: If absent or C{None}, no change is made; otherwise, this</tt> </tt>
+<a name="L329"></a><tt class="py-lineno">329</tt>  <tt class="py-line"><tt class="py-docstring">    enables (C{True}) or disables (C{False}) the requirement that instances</tt> </tt>
+<a name="L330"></a><tt class="py-lineno">330</tt>  <tt class="py-line"><tt class="py-docstring">    validate before being converted to XML.</tt> </tt>
+<a name="L331"></a><tt class="py-lineno">331</tt>  <tt class="py-line"><tt class="py-docstring">    @type value: C{bool}</tt> </tt>
+<a name="L332"></a><tt class="py-lineno">332</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L333"></a><tt class="py-lineno">333</tt>  <tt class="py-line"><tt class="py-docstring">    @return: C{True} iff attempts to generate XML for a binding that does not</tt> </tt>
+<a name="L334"></a><tt class="py-lineno">334</tt>  <tt class="py-line"><tt class="py-docstring">    validate should raise an exception.  """</tt> </tt>
+<a name="L335"></a><tt class="py-lineno">335</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt id="link-109" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-109', 'value', 'link-45');">value</a></tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L336"></a><tt class="py-lineno">336</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-110" class="py-name"><a title="pyxb.GlobalValidationConfig" class="py-name" href="#" onclick="return doclink('link-110', 'GlobalValidationConfig', 'link-106');">GlobalValidationConfig</a></tt><tt class="py-op">.</tt><tt id="link-111" class="py-name"><a title="pyxb.ValidationConfig.forDocument" class="py-name" href="#" onclick="return doclink('link-111', 'forDocument', 'link-59');">forDocument</a></tt> </tt>
+<a name="L337"></a><tt class="py-lineno">337</tt>  <tt class="py-line">    <tt class="py-keyword">global</tt> <tt id="link-112" class="py-name"><a title="pyxb._GenerationRequiresValid" class="py-name" href="#" onclick="return doclink('link-112', '_GenerationRequiresValid', 'link-108');">_GenerationRequiresValid</a></tt> </tt>
+<a name="L338"></a><tt class="py-lineno">338</tt>  <tt class="py-line">    <tt id="link-113" class="py-name"><a title="pyxb._GenerationRequiresValid" class="py-name" href="#" onclick="return doclink('link-113', '_GenerationRequiresValid', 'link-108');">_GenerationRequiresValid</a></tt> <tt class="py-op">=</tt> <tt id="link-114" class="py-name"><a title="pyxb.GlobalValidationConfig" class="py-name" href="#" onclick="return doclink('link-114', 'GlobalValidationConfig', 'link-106');">GlobalValidationConfig</a></tt><tt class="py-op">.</tt><tt id="link-115" class="py-name" targets="Method pyxb.ValidationConfig._setForDocument()=pyxb.ValidationConfig-class.html#_setForDocument"><a title="pyxb.ValidationConfig._setForDocument" class="py-name" href="#" onclick="return doclink('link-115', '_setForDocument', 'link-115');">_setForDocument</a></tt><tt class="py-op">(</tt><tt id="link-116" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-116', 'value', 'link-45');">value</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L339"></a><tt class="py-lineno">339</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt id="link-117" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-117', 'value', 'link-45');">value</a></tt> </tt>
+</div><a name="L340"></a><tt class="py-lineno">340</tt>  <tt class="py-line"> </tt>
+<a name="L341"></a><tt class="py-lineno">341</tt>  <tt class="py-line"><tt id="link-118" class="py-name" targets="Variable pyxb._ParsingRequiresValid=pyxb-module.html#_ParsingRequiresValid"><a title="pyxb._ParsingRequiresValid" class="py-name" href="#" onclick="return doclink('link-118', '_ParsingRequiresValid', 'link-118');">_ParsingRequiresValid</a></tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L342"></a><tt class="py-lineno">342</tt>  <tt class="py-line"><tt class="py-string">"""Legacy flag; prefer L{forBinding&lt;ValidationConfig.forBinding&gt;} in L{GlobalValidationConfig}."""</tt> </tt>
+<a name="RequireValidWhenParsing"></a><div id="RequireValidWhenParsing-def"><a name="L343"></a><tt class="py-lineno">343</tt> <a class="py-toggle" href="#" id="RequireValidWhenParsing-toggle" onclick="return toggle('RequireValidWhenParsing');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb-module.html#RequireValidWhenParsing">RequireValidWhenParsing</a> <tt class="py-op">(</tt><tt class="py-param">value</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="RequireValidWhenParsing-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="RequireValidWhenParsing-expanded"><a name="L344"></a><tt class="py-lineno">344</tt>  <tt class="py-line">    <tt class="py-docstring">"""Query or set a flag that controls validation checking in XML parsing.</tt> </tt>
+<a name="L345"></a><tt class="py-lineno">345</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L346"></a><tt class="py-lineno">346</tt>  <tt class="py-line"><tt class="py-docstring">    Normally any attempts to convert XML to a binding instance to a binding</tt> </tt>
+<a name="L347"></a><tt class="py-lineno">347</tt>  <tt class="py-line"><tt class="py-docstring">    instance requires that the document validate against the content model.</tt> </tt>
+<a name="L348"></a><tt class="py-lineno">348</tt>  <tt class="py-line"><tt class="py-docstring">    In some cases it may be necessary or useful to process a document that is</tt> </tt>
+<a name="L349"></a><tt class="py-lineno">349</tt>  <tt class="py-line"><tt class="py-docstring">    incomplete.  If validation is not required, the generated documents may</tt> </tt>
+<a name="L350"></a><tt class="py-lineno">350</tt>  <tt class="py-line"><tt class="py-docstring">    not validate even if the content validates, because ordering constraints</tt> </tt>
+<a name="L351"></a><tt class="py-lineno">351</tt>  <tt class="py-line"><tt class="py-docstring">    will be ignored.</tt> </tt>
+<a name="L352"></a><tt class="py-lineno">352</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L353"></a><tt class="py-lineno">353</tt>  <tt class="py-line"><tt class="py-docstring">    @keyword value: If absent or C{None}, no change is made; otherwise, this</tt> </tt>
+<a name="L354"></a><tt class="py-lineno">354</tt>  <tt class="py-line"><tt class="py-docstring">    enables (C{True}) or disables (C{False}) the requirement that documents</tt> </tt>
+<a name="L355"></a><tt class="py-lineno">355</tt>  <tt class="py-line"><tt class="py-docstring">    validate when being converted to bindings.</tt> </tt>
+<a name="L356"></a><tt class="py-lineno">356</tt>  <tt class="py-line"><tt class="py-docstring">    @type value: C{bool}</tt> </tt>
+<a name="L357"></a><tt class="py-lineno">357</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L358"></a><tt class="py-lineno">358</tt>  <tt class="py-line"><tt class="py-docstring">    @return: C{True} iff attempts to generate bindings for a document that</tt> </tt>
+<a name="L359"></a><tt class="py-lineno">359</tt>  <tt class="py-line"><tt class="py-docstring">    does not validate should raise an exception."""</tt> </tt>
+<a name="L360"></a><tt class="py-lineno">360</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt id="link-119" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-119', 'value', 'link-45');">value</a></tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L361"></a><tt class="py-lineno">361</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-120" class="py-name"><a title="pyxb.GlobalValidationConfig" class="py-name" href="#" onclick="return doclink('link-120', 'GlobalValidationConfig', 'link-106');">GlobalValidationConfig</a></tt><tt class="py-op">.</tt><tt id="link-121" class="py-name"><a title="pyxb.ValidationConfig.forBinding" class="py-name" href="#" onclick="return doclink('link-121', 'forBinding', 'link-50');">forBinding</a></tt> </tt>
+<a name="L362"></a><tt class="py-lineno">362</tt>  <tt class="py-line">    <tt class="py-keyword">global</tt> <tt id="link-122" class="py-name"><a title="pyxb._ParsingRequiresValid" class="py-name" href="#" onclick="return doclink('link-122', '_ParsingRequiresValid', 'link-118');">_ParsingRequiresValid</a></tt> </tt>
+<a name="L363"></a><tt class="py-lineno">363</tt>  <tt class="py-line">    <tt id="link-123" class="py-name"><a title="pyxb._ParsingRequiresValid" class="py-name" href="#" onclick="return doclink('link-123', '_ParsingRequiresValid', 'link-118');">_ParsingRequiresValid</a></tt> <tt class="py-op">=</tt> <tt id="link-124" class="py-name"><a title="pyxb.GlobalValidationConfig" class="py-name" href="#" onclick="return doclink('link-124', 'GlobalValidationConfig', 'link-106');">GlobalValidationConfig</a></tt><tt class="py-op">.</tt><tt id="link-125" class="py-name" targets="Method pyxb.ValidationConfig._setForBinding()=pyxb.ValidationConfig-class.html#_setForBinding"><a title="pyxb.ValidationConfig._setForBinding" class="py-name" href="#" onclick="return doclink('link-125', '_setForBinding', 'link-125');">_setForBinding</a></tt><tt class="py-op">(</tt><tt id="link-126" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-126', 'value', 'link-45');">value</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L364"></a><tt class="py-lineno">364</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt id="link-127" class="py-name"><a title="pyxb._ParsingRequiresValid" class="py-name" href="#" onclick="return doclink('link-127', '_ParsingRequiresValid', 'link-118');">_ParsingRequiresValid</a></tt> </tt>
+</div><a name="L365"></a><tt class="py-lineno">365</tt>  <tt class="py-line"> </tt>
+<a name="L366"></a><tt class="py-lineno">366</tt>  <tt class="py-line"><tt id="link-128" class="py-name" targets="Variable pyxb._PreserveInputTimeZone=pyxb-module.html#_PreserveInputTimeZone"><a title="pyxb._PreserveInputTimeZone" class="py-name" href="#" onclick="return doclink('link-128', '_PreserveInputTimeZone', 'link-128');">_PreserveInputTimeZone</a></tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="PreserveInputTimeZone"></a><div id="PreserveInputTimeZone-def"><a name="L367"></a><tt class="py-lineno">367</tt> <a class="py-toggle" href="#" id="PreserveInputTimeZone-toggle" onclick="return toggle('PreserveInputTimeZone');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb-module.html#PreserveInputTimeZone">PreserveInputTimeZone</a> <tt class="py-op">(</tt><tt class="py-param">value</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PreserveInputTimeZone-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="PreserveInputTimeZone-expanded"><a name="L368"></a><tt class="py-lineno">368</tt>  <tt class="py-line">    <tt class="py-docstring">"""Control whether time values are converted to UTC during input.</tt> </tt>
+<a name="L369"></a><tt class="py-lineno">369</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L370"></a><tt class="py-lineno">370</tt>  <tt class="py-line"><tt class="py-docstring">    The U{specification &lt;http://www.w3.org/TR/xmlschema-2/#dateTime&gt;} makes</tt> </tt>
+<a name="L371"></a><tt class="py-lineno">371</tt>  <tt class="py-line"><tt class="py-docstring">    clear that timezoned times are in UTC and that times in other timezones</tt> </tt>
+<a name="L372"></a><tt class="py-lineno">372</tt>  <tt class="py-line"><tt class="py-docstring">    are to be translated to UTC when converted from literal to value form.</tt> </tt>
+<a name="L373"></a><tt class="py-lineno">373</tt>  <tt class="py-line"><tt class="py-docstring">    Provide an option to bypass this step, so the input timezone is preserved.</tt> </tt>
+<a name="L374"></a><tt class="py-lineno">374</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L375"></a><tt class="py-lineno">375</tt>  <tt class="py-line"><tt class="py-docstring">    @note: Naive processing of unnormalized times--i.e., ignoring the</tt> </tt>
+<a name="L376"></a><tt class="py-lineno">376</tt>  <tt class="py-line"><tt class="py-docstring">    C{tzinfo} field--may result in errors."""</tt> </tt>
+<a name="L377"></a><tt class="py-lineno">377</tt>  <tt class="py-line">    <tt class="py-keyword">global</tt> <tt id="link-129" class="py-name"><a title="pyxb._PreserveInputTimeZone" class="py-name" href="#" onclick="return doclink('link-129', '_PreserveInputTimeZone', 'link-128');">_PreserveInputTimeZone</a></tt> </tt>
+<a name="L378"></a><tt class="py-lineno">378</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt id="link-130" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-130', 'value', 'link-45');">value</a></tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L379"></a><tt class="py-lineno">379</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-131" class="py-name"><a title="pyxb._PreserveInputTimeZone" class="py-name" href="#" onclick="return doclink('link-131', '_PreserveInputTimeZone', 'link-128');">_PreserveInputTimeZone</a></tt> </tt>
+<a name="L380"></a><tt class="py-lineno">380</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt id="link-132" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-132', 'value', 'link-45');">value</a></tt><tt class="py-op">,</tt> <tt class="py-name">bool</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L381"></a><tt class="py-lineno">381</tt>  <tt class="py-line">        <tt class="py-keyword">raise</tt> <tt class="py-name">TypeError</tt><tt class="py-op">(</tt><tt id="link-133" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-133', 'value', 'link-45');">value</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L382"></a><tt class="py-lineno">382</tt>  <tt class="py-line">    <tt id="link-134" class="py-name"><a title="pyxb._PreserveInputTimeZone" class="py-name" href="#" onclick="return doclink('link-134', '_PreserveInputTimeZone', 'link-128');">_PreserveInputTimeZone</a></tt> <tt class="py-op">=</tt> <tt id="link-135" class="py-name"><a title="pyxb.binding.basis._Content.value
+pyxb.binding.basis.complexTypeDefinition.value
+pyxb.binding.content.AttributeUse.value
+pyxb.binding.content.ElementDeclaration.value
+pyxb.binding.facets.Facet.value
+pyxb.binding.facets._EnumerationElement.value
+pyxb.exceptions_.AbstractElementError.value
+pyxb.exceptions_.AttributeOnSimpleTypeError.value
+pyxb.exceptions_.ElementChangeError.value
+pyxb.exceptions_.ExtraSimpleContentError.value
+pyxb.exceptions_.IncrementalElementContentError.value
+pyxb.exceptions_.MixedContentError.value
+pyxb.exceptions_.NonPluralAppendError.value
+pyxb.exceptions_.SimpleFacetValueError.value
+pyxb.exceptions_.SimpleTypeValueError.value
+pyxb.utils.saxdom.Node.value" class="py-name" href="#" onclick="return doclink('link-135', 'value', 'link-45');">value</a></tt> </tt>
+<a name="L383"></a><tt class="py-lineno">383</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt id="link-136" class="py-name"><a title="pyxb._PreserveInputTimeZone" class="py-name" href="#" onclick="return doclink('link-136', '_PreserveInputTimeZone', 'link-128');">_PreserveInputTimeZone</a></tt> </tt>
+</div><a name="L384"></a><tt class="py-lineno">384</tt>  <tt class="py-line"> </tt>
+<a name="L385"></a><tt class="py-lineno">385</tt>  <tt class="py-line"><tt id="link-137" class="py-name" targets="Variable pyxb._OutputEncoding=pyxb-module.html#_OutputEncoding"><a title="pyxb._OutputEncoding" class="py-name" href="#" onclick="return doclink('link-137', '_OutputEncoding', 'link-137');">_OutputEncoding</a></tt> <tt class="py-op">=</tt> <tt class="py-string">'utf-8'</tt> </tt>
+<a name="L386"></a><tt class="py-lineno">386</tt>  <tt class="py-line"><tt class="py-string">"""Default unicode encoding to use when creating output.</tt> </tt>
+<a name="L387"></a><tt class="py-lineno">387</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L388"></a><tt class="py-lineno">388</tt>  <tt class="py-line"><tt class="py-string">Material being written to an XML parser is not output."""</tt> </tt>
+<a name="L389"></a><tt class="py-lineno">389</tt>  <tt class="py-line"> </tt>
+<a name="L390"></a><tt class="py-lineno">390</tt>  <tt class="py-line"><tt id="link-138" class="py-name" targets="Variable pyxb._InputEncoding=pyxb-module.html#_InputEncoding"><a title="pyxb._InputEncoding" class="py-name" href="#" onclick="return doclink('link-138', '_InputEncoding', 'link-138');">_InputEncoding</a></tt> <tt class="py-op">=</tt> <tt class="py-string">'utf-8'</tt> </tt>
+<a name="L391"></a><tt class="py-lineno">391</tt>  <tt class="py-line"><tt class="py-string">"""Default unicode encoding to assume when decoding input.</tt> </tt>
+<a name="L392"></a><tt class="py-lineno">392</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L393"></a><tt class="py-lineno">393</tt>  <tt class="py-line"><tt class="py-string">Material being written to an XML parser is treated as input."""</tt> </tt>
+<a name="L394"></a><tt class="py-lineno">394</tt>  <tt class="py-line"> </tt>
+<a name="NonElementContent"></a><div id="NonElementContent-def"><a name="L395"></a><tt class="py-lineno">395</tt> <a class="py-toggle" href="#" id="NonElementContent-toggle" onclick="return toggle('NonElementContent');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="pyxb-module.html#NonElementContent">NonElementContent</a> <tt class="py-op">(</tt><tt class="py-param">instance</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="NonElementContent-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="NonElementContent-expanded"><a name="L396"></a><tt class="py-lineno">396</tt>  <tt class="py-line">    <tt class="py-docstring">"""Return an iterator producing the non-element content of the provided instance.</tt> </tt>
+<a name="L397"></a><tt class="py-lineno">397</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L398"></a><tt class="py-lineno">398</tt>  <tt class="py-line"><tt class="py-docstring">    The catenated text of the non-element content of an instance can</tt> </tt>
+<a name="L399"></a><tt class="py-lineno">399</tt>  <tt class="py-line"><tt class="py-docstring">    be obtained with::</tt> </tt>
+<a name="L400"></a><tt class="py-lineno">400</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L401"></a><tt class="py-lineno">401</tt>  <tt class="py-line"><tt class="py-docstring">       text = u''.join(pyxb.NonElementContent(instance))</tt> </tt>
+<a name="L402"></a><tt class="py-lineno">402</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L403"></a><tt class="py-lineno">403</tt>  <tt class="py-line"><tt class="py-docstring">    @param instance: An instance of L{pyxb.binding.basis.complexTypeDefinition}.</tt> </tt>
+<a name="L404"></a><tt class="py-lineno">404</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L405"></a><tt class="py-lineno">405</tt>  <tt class="py-line"><tt class="py-docstring">    @return: an iterator producing text values</tt> </tt>
+<a name="L406"></a><tt class="py-lineno">406</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L407"></a><tt class="py-lineno">407</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt id="link-139" class="py-name" targets="Package pyxb=pyxb-module.html"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-139', 'pyxb', 'link-139');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-140" class="py-name" targets="Package pyxb.binding=pyxb.binding-module.html"><a title="pyxb.binding" class="py-name" href="#" onclick="return doclink('link-140', 'binding', 'link-140');">binding</a></tt><tt class="py-op">.</tt><tt id="link-141" class="py-name" targets="Module pyxb.binding.basis=pyxb.binding.basis-module.html"><a title="pyxb.binding.basis" class="py-name" href="#" onclick="return doclink('link-141', 'basis', 'link-141');">basis</a></tt> </tt>
+<a name="L408"></a><tt class="py-lineno">408</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt id="link-142" class="py-name"><a title="pyxb" class="py-name" href="#" onclick="return doclink('link-142', 'pyxb', 'link-139');">pyxb</a></tt><tt class="py-op">.</tt><tt id="link-143" class="py-name"><a title="pyxb.binding" class="py-name" href="#" onclick="return doclink('link-143', 'binding', 'link-140');">binding</a></tt><tt class="py-op">.</tt><tt id="link-144" class="py-name"><a title="pyxb.binding.basis" class="py-name" href="#" onclick="return doclink('link-144', 'basis', 'link-141');">basis</a></tt><tt class="py-op">.</tt><tt id="link-145" class="py-name" targets="Function pyxb.NonElementContent()=pyxb-module.html#NonElementContent,Class pyxb.binding.basis.NonElementContent=pyxb.binding.basis.NonElementContent-class.html"><a title="pyxb.NonElementContent
+pyxb.binding.basis.NonElementContent" class="py-name" href="#" onclick="return doclink('link-145', 'NonElementContent', 'link-145');">NonElementContent</a></tt><tt class="py-op">.</tt><tt id="link-146" class="py-name" targets="Class Method pyxb.binding.basis._Content.ContentIterator()=pyxb.binding.basis._Content-class.html#ContentIterator"><a title="pyxb.binding.basis._Content.ContentIterator" class="py-name" href="#" onclick="return doclink('link-146', 'ContentIterator', 'link-146');">ContentIterator</a></tt><tt class="py-op">(</tt><tt id="link-147" class="py-name" targets="Variable pyxb.exceptions_.AttributeOnSimpleTypeError.instance=pyxb.exceptions_.AttributeOnSimpleTypeError-class.html#instance,Variable pyxb.exceptions_.AttributeValidationError.instance=pyxb.exceptions_.AttributeValidationError-class.html#instance,Variable pyxb.exceptions_.BatchElementContentError.instance=pyxb.exceptions_.BatchElementContentError-class.html#instance,Variable pyxb.exceptions_.ContentInNilInstanceError.instance=pyxb.exceptions_.ContentInNilInstanceError-class.html#instance,Variable pyxb.exceptions_.ExtraSimpleContentError.instance=pyxb.exceptions_.ExtraSimpleContentError-class.html#instance,Variable pyxb.exceptions_.IncrementalElementContentError.instance=pyxb.exceptions_.IncrementalElementContentError-class.html#instance,Variable pyxb.exceptions_.MixedContentError.instance=pyxb.exceptions_.MixedContentError-class.html#instance,Variable pyxb.exceptions_.NoNillableSupportError.instance=pyxb.exceptions_.NoNillableSupportError-class.html#instance,Variable pyxb.exceptions_.NonPluralAppendError.instance=pyxb.exceptions_.NonPluralAppendError-class.html#instance,Variable pyxb.exceptions_.NotComplexContentError.instance=pyxb.exceptions_.NotComplexContentError-class.html#instance,Variable pyxb.exceptions_.NotSimpleContentError.instance=pyxb.exceptions_.NotSimpleContentError-class.html#instance,Variable pyxb.exceptions_.OrphanElementContentError.instance=pyxb.exceptions_.OrphanElementContentError-class.html#instance,Variable pyxb.exceptions_.ReservedNameError.instance=pyxb.exceptions_.ReservedNameError-class.html#instance,Variable pyxb.exceptions_.SimpleContentAbsentError.instance=pyxb.exceptions_.SimpleContentAbsentError-class.html#instance,Variable pyxb.exceptions_.UnboundElementError.instance=pyxb.exceptions_.UnboundElementError-class.html#instance,Variable pyxb.exceptions_.UnprocessedKeywordContentError.instance=pyxb.exceptions_.UnprocessedKeywordContentError-class.html#instance"><a title="pyxb.exceptions_.AttributeOnSimpleTypeError.instance
+pyxb.exceptions_.AttributeValidationError.instance
+pyxb.exceptions_.BatchElementContentError.instance
+pyxb.exceptions_.ContentInNilInstanceError.instance
+pyxb.exceptions_.ExtraSimpleContentError.instance
+pyxb.exceptions_.IncrementalElementContentError.instance
+pyxb.exceptions_.MixedContentError.instance
+pyxb.exceptions_.NoNillableSupportError.instance
+pyxb.exceptions_.NonPluralAppendError.instance
+pyxb.exceptions_.NotComplexContentError.instance
+pyxb.exceptions_.NotSimpleContentError.instance
+pyxb.exceptions_.OrphanElementContentError.instance
+pyxb.exceptions_.ReservedNameError.instance
+pyxb.exceptions_.SimpleContentAbsentError.instance
+pyxb.exceptions_.UnboundElementError.instance
+pyxb.exceptions_.UnprocessedKeywordContentError.instance" class="py-name" href="#" onclick="return doclink('link-147', 'instance', 'link-147');">instance</a></tt><tt class="py-op">.</tt><tt id="link-148" class="py-name" targets="Method pyxb.binding.basis.complexTypeDefinition.orderedContent()=pyxb.binding.basis.complexTypeDefinition-class.html#orderedContent"><a title="pyxb.binding.basis.complexTypeDefinition.orderedContent" class="py-name" href="#" onclick="return doclink('link-148', 'orderedContent', 'link-148');">orderedContent</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L409"></a><tt class="py-lineno">409</tt>  <tt class="py-line"> </tt>
+<a name="L410"></a><tt class="py-lineno">410</tt>  <tt class="py-line"><tt class="py-comment">## Local Variables:</tt> </tt>
+<a name="L411"></a><tt class="py-lineno">411</tt>  <tt class="py-line"><tt class="py-comment">## fill-column:78</tt> </tt>
+<a name="L412"></a><tt class="py-lineno">412</tt>  <tt class="py-line"><tt class="py-comment">## End:</tt> </tt>
+<a name="L413"></a><tt class="py-lineno">413</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th bgcolor="#70b0f0" class="navbar-select"
+          >&nbsp;&nbsp;&nbsp;Home&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:38 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

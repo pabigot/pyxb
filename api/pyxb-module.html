@@ -1,0 +1,729 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th bgcolor="#70b0f0" class="navbar-select"
+          >&nbsp;&nbsp;&nbsp;Home&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        Package&nbsp;pyxb
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PACKAGE DESCRIPTION ==================== -->
+<h1 class="epydoc">Package pyxb</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb-pysrc.html">source&nbsp;code</a></span></p>
+<p>PyXB stands for Python <a href="http://www.w3.org/XML/Schema" 
+  target="_top">W3C XML Schema</a> Bindings, and is pronounced 
+  &quot;pixbee&quot;.  It enables translation between XML instance 
+  documents and Python objects following rules specified by an XML Schema 
+  document.</p>
+  <p>This is the top-level entrypoint to the PyXB system.  Importing this 
+  gets you all the <a href="pyxb.exceptions_.PyXBException-class.html" 
+  class="link">exceptions</a>, and <a href="pyxb.namespace-module.html" 
+  class="link">pyxb.namespace</a>.  For more functionality, delve into 
+  these submodules:</p>
+  <ul>
+    <li>
+      <a href="pyxb.xmlschema-module.html" class="link">pyxb.xmlschema</a> 
+      Module holding the <a href="pyxb.xmlschema.structures-module.html" 
+      class="link">structures</a> that convert XMLSchema from a DOM model 
+      to a Python class model based on the XMLSchema components.  Use this 
+      when you need to operate on the component model.
+    </li>
+    <li>
+      <a href="pyxb.binding-module.html" class="link">pyxb.binding</a> 
+      Module used to generate the bindings and at runtime to support the 
+      generated bindings.  Use this if you need to use the binding model or
+      content model.
+    </li>
+    <li>
+      <a href="pyxb.utils-module.html" class="link">pyxb.utils</a> Common 
+      utilities used in parsing, generating, and executing.  The submodules
+      must be imported separately.
+    </li>
+  </ul>
+
+<hr />
+<div class="fields">      <p><strong>Version:</strong>
+        1.2.3
+      </p>
+      <p><strong>License:</strong>
+        Apache License 2.0
+      </p>
+</div><!-- ==================== SUBMODULES ==================== -->
+<a name="section-Submodules"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Submodules</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Submodules"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr><td class="summary">
+  <ul class="nomargin">
+    <li> <strong class="uidlink"><a href="pyxb.binding-module.html">pyxb.binding</a></strong>: <em class="summary">Material used to generate and execute bindings generated by the 
+        PyXB package.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis-module.html">pyxb.binding.basis</a></strong>: <em class="summary">This module contains support classes from which schema-specific 
+        bindings inherit, and that describe the content models of those 
+        schema.</em>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.content-module.html">pyxb.binding.content</a></strong>: <em class="summary">Helper classes that maintain the content model of XMLSchema in the 
+        binding classes.</em>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes-module.html">pyxb.binding.datatypes</a></strong>: <em class="summary">Classes supporting <a href="http://www.w3.org/TR/xmlschema-2/" 
+        target="_top">XMLSchema Part 2: Datatypes</a>.</em>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets-module.html">pyxb.binding.facets</a></strong>: <em class="summary">Classes related to XMLSchema facets.</em>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.generate-module.html">pyxb.binding.generate</a></strong>: <em class="summary">The really ugly code that generates the Python bindings.</em>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.saxer-module.html">pyxb.binding.saxer</a></strong>: <em class="summary">This module contains support for generating bindings from an XML 
+        stream using a SAX parser.</em>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.xml_-module.html">pyxb.binding.xml_</a></strong>: <em class="summary">Binding classes for types referenced by the attribute and attribute
+        group declarations in the XML namespace 
+        (http://www.w3.org/XML/1998/namespace).</em>    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_-module.html">pyxb.exceptions_</a></strong>: <em class="summary">Extensions of standard exceptions for PyXB events.</em>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace-module.html">pyxb.namespace</a></strong>: <em class="summary">Classes and global objects related to <a 
+        href="http://www.w3.org/TR/2006/REC-xml-names-20060816/index.html" 
+        target="_top">XML Namespaces</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.archive-module.html">pyxb.namespace.archive</a></strong>: <em class="summary">Classes and global objects related to archiving <a 
+        href="http://www.w3.org/TR/2006/REC-xml-names-20060816/index.html" 
+        target="_top">XML Namespaces</a>.</em>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.builtin-module.html">pyxb.namespace.builtin</a></strong>: <em class="summary">Classes and global objects related to built-in <a 
+        href="http://www.w3.org/TR/2006/REC-xml-names-20060816/index.html" 
+        target="_top">XML Namespaces</a>.</em>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.resolution-module.html">pyxb.namespace.resolution</a></strong>: <em class="summary">Classes and global objects related to resolving <a 
+        href="http://www.w3.org/TR/2006/REC-xml-names-20060816/index.html" 
+        target="_top">XML Namespaces</a>.</em>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.utility-module.html">pyxb.namespace.utility</a></strong>: <em class="summary">Utility functions related to <a 
+        href="http://www.w3.org/TR/2006/REC-xml-names-20060816/index.html" 
+        target="_top">XML Namespaces</a>.</em>    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils-module.html">pyxb.utils</a></strong>: <em class="summary">pyxb.utils -- Utilities for the PyWXSB package.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.activestate-module.html">pyxb.utils.activestate</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.domutils-module.html">pyxb.utils.domutils</a></strong>: <em class="summary">Functions that support activities related to the Document Object 
+        Model.</em>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac-module.html">pyxb.utils.fac</a></strong>: <em class="summary">This module provides Finite Automata with Counters.</em>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom-module.html">pyxb.utils.saxdom</a></strong>: <em class="summary">This module contains support for a DOM tree representation from an 
+        XML document using a SAX parser.</em>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxutils-module.html">pyxb.utils.saxutils</a></strong>: <em class="summary">This module contains support for processing XML using a SAX parser.</em>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.templates-module.html">pyxb.utils.templates</a></strong>: <em class="summary">Functions that aid with generating text from templates and maps.</em>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.types_-module.html">pyxb.utils.types_</a></strong>: <em class="summary">This module provides references to built-in Python types.</em>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.unicode-module.html">pyxb.utils.unicode</a></strong>: <em class="summary">This module contains support for Unicode characters as required to 
+        support the regular expression syntax defined in <a 
+        href="http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#regexs"
+        target="_top">annex F</a> of the XML Schema definition.</em>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.unicode_data-module.html">pyxb.utils.unicode_data</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.utility-module.html">pyxb.utils.utility</a></strong>: <em class="summary">Utility functions and classes.</em>    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.xmlre-module.html">pyxb.utils.xmlre</a></strong>: <em class="summary">Support for regular expressions conformant to the XML Schema 
+        specification.</em>    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema-module.html">pyxb.xmlschema</a></strong>: <em class="summary">XMLSchema -- Classes to support processing W3C XML Schema 
+        definitions.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures-module.html">pyxb.xmlschema.structures</a></strong>: <em class="summary">Classes corresponding to W3C XML Schema components.</em>    </li>
+    </ul>
+    </li>
+  </ul></td></tr>
+</table>
+
+<br />
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Classes</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Classes"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.BIND-class.html" class="summary-name">BIND</a><br />
+      Bundle data for automated binding generation.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.ValidationConfig-class.html" class="summary-name">ValidationConfig</a><br />
+      Class holding configuration related to validation.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.cscRoot-class.html" class="summary-name">cscRoot</a><br />
+      This little bundle of joy exists because in Python 2.6 it became an
+        error to invoke <code>object.__init__</code> with parameters 
+        (unless you also override <code>__new__</code>, in which case it's 
+        only a warning.
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb-module.html#NonElementContent" class="summary-sig-name">NonElementContent</a>(<span class="summary-sig-arg">instance</span>)</span><br />
+      Return an iterator producing the non-element content of the provided 
+      instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb-pysrc.html#NonElementContent">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb-module.html#PreserveInputTimeZone" class="summary-sig-name">PreserveInputTimeZone</a>(<span class="summary-sig-arg">value</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Control whether time values are converted to UTC during input.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb-pysrc.html#PreserveInputTimeZone">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb-module.html#RequireValidWhenGenerating" class="summary-sig-name">RequireValidWhenGenerating</a>(<span class="summary-sig-arg">value</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Query or set a flag that controls validation checking in XML 
+      generation.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb-pysrc.html#RequireValidWhenGenerating">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb-module.html#RequireValidWhenParsing" class="summary-sig-name">RequireValidWhenParsing</a>(<span class="summary-sig-arg">value</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Query or set a flag that controls validation checking in XML parsing.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb-pysrc.html#RequireValidWhenParsing">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb-module.html#_SetXMLStyle" class="summary-sig-name" onclick="show_private();">_SetXMLStyle</a>(<span class="summary-sig-arg">style</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Set the interface used to parse XML content.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb-pysrc.html#_SetXMLStyle">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Variables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="GlobalValidationConfig"></a><span class="summary-name">GlobalValidationConfig</span> = <code title="pyxb.GlobalValidationConfig">pyxb.GlobalValidationConfig</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="XMLStyle_minidom"></a><span class="summary-name">XMLStyle_minidom</span> = <code title="0">0</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="XMLStyle_saxdom"></a><span class="summary-name">XMLStyle_saxdom</span> = <code title="1">1</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="XMLStyle_saxer"></a><span class="summary-name">XMLStyle_saxer</span> = <code title="2">2</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_CorruptionDetectionEnabled"></a><span class="summary-name">_CorruptionDetectionEnabled</span> = <code title="True">True</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_GenerationRequiresValid"></a><span class="summary-name">_GenerationRequiresValid</span> = <code title="True">True</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_InputEncoding"></a><span class="summary-name">_InputEncoding</span> = <code title="'utf-8'"><code class="variable-quote">'</code><code class="variable-string">utf-8</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_OptimizationActive"></a><span class="summary-name">_OptimizationActive</span> = <code title="False">False</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_OutputEncoding"></a><span class="summary-name">_OutputEncoding</span> = <code title="'utf-8'"><code class="variable-quote">'</code><code class="variable-string">utf-8</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_ParsingRequiresValid"></a><span class="summary-name">_ParsingRequiresValid</span> = <code title="True">True</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_PreserveInputTimeZone"></a><span class="summary-name">_PreserveInputTimeZone</span> = <code title="False">False</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_XMLStyle"></a><span class="summary-name">_XMLStyle</span> = <code title="2">2</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_XMLStyleMap"></a><span class="summary-name">_XMLStyleMap</span> = <code title="{'minidom': 0, 'saxdom': 1, 'saxer': 2}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">minidom</code><code class="variable-quote">'</code><code class="variable-op">: </code>0<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">saxdom</code><code class="variable-quote">'</code><code class="variable-op">: </code>1<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">saxer</code><code class="variable-quote">'</code><code class="variable-op">: </code>2<code class="variable-group">}</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_XMLStyleMapReverse"></a><span class="summary-name">_XMLStyleMapReverse</span> = <code title="{0: 'minidom', 1: 'saxdom', 2: 'saxer'}"><code class="variable-group">{</code>0<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">minidom</code><code class="variable-quote">'</code><code class="variable-op">, </code>1<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">saxdom</code><code class="variable-quote">'</code><code class="variable-op">, </code>2<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">saxer</code><code class="variable-quote">'</code><code class="variable-group">}</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_XMLStyle_envvar"></a><span class="summary-name">_XMLStyle_envvar</span> = <code title="'PYXB_XML_STYLE'"><code class="variable-quote">'</code><code class="variable-string">PYXB_XML_STYLE</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'pyxb'"><code class="variable-quote">'</code><code class="variable-string">pyxb</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__url__"></a><span class="summary-name">__url__</span> = <code title="'http://pyxb.sourceforge.net'"><code class="variable-quote">'</code><code class="variable-string">http://pyxb.sourceforge.net</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_k"></a><span class="summary-name">_k</span> = <code title="'saxdom'"><code class="variable-quote">'</code><code class="variable-string">saxdom</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_log"></a><span class="summary-name">_log</span> = <code title="&lt;logging.Logger object at 0x1ddfed0&gt;">&lt;logging.Logger object at 0x1ddfed0&gt;</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_v"></a><span class="summary-name">_v</span> = <code title="1">1</code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTION DETAILS ==================== -->
+<a name="section-FunctionDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Function Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-FunctionDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="NonElementContent"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">NonElementContent</span>(<span class="sig-arg">instance</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb-pysrc.html#NonElementContent">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return an iterator producing the non-element content of the provided 
+  instance.</p>
+  <p>The catenated text of the non-element content of an instance can be 
+  obtained with:</p>
+<pre class="literalblock">
+  text = u''.join(pyxb.NonElementContent(instance))
+</pre>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>instance</code></strong> - An instance of <a 
+          href="pyxb.binding.basis.complexTypeDefinition-class.html" 
+          class="link">pyxb.binding.basis.complexTypeDefinition</a>.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>an iterator producing text values</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="PreserveInputTimeZone"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">PreserveInputTimeZone</span>(<span class="sig-arg">value</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb-pysrc.html#PreserveInputTimeZone">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Control whether time values are converted to UTC during input.</p>
+  <p>The <a href="http://www.w3.org/TR/xmlschema-2/#dateTime" 
+  target="_top">specification</a> makes clear that timezoned times are in 
+  UTC and that times in other timezones are to be translated to UTC when 
+  converted from literal to value form. Provide an option to bypass this 
+  step, so the input timezone is preserved.</p>
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        Naive processing of unnormalized times--i.e., ignoring the 
+        <code>tzinfo</code> field--may result in errors.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="RequireValidWhenGenerating"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">RequireValidWhenGenerating</span>(<span class="sig-arg">value</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb-pysrc.html#RequireValidWhenGenerating">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Query or set a flag that controls validation checking in XML 
+  generation.</p>
+  <p>Normally any attempts to convert a binding instance to a DOM or XML 
+  representation requires that the binding validate against the content 
+  model, since only in this way can the content be generated in the correct
+  order.  In some cases it may be necessary or useful to generate a 
+  document from a binding that is incomplete.  If validation is not 
+  required, the generated documents may not validate even if the content 
+  validates, because ordering constraints will be ignored.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>value</code></strong> (<code>bool</code>) - If absent or <code>None</code>, no change is made; otherwise, 
+          this enables (<code>True</code>) or disables (<code>False</code>)
+          the requirement that instances validate before being converted to
+          XML.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd><code>True</code> iff attempts to generate XML for a binding that
+          does not validate should raise an exception.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="RequireValidWhenParsing"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">RequireValidWhenParsing</span>(<span class="sig-arg">value</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb-pysrc.html#RequireValidWhenParsing">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Query or set a flag that controls validation checking in XML 
+  parsing.</p>
+  <p>Normally any attempts to convert XML to a binding instance to a 
+  binding instance requires that the document validate against the content 
+  model. In some cases it may be necessary or useful to process a document 
+  that is incomplete.  If validation is not required, the generated 
+  documents may not validate even if the content validates, because 
+  ordering constraints will be ignored.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>value</code></strong> (<code>bool</code>) - If absent or <code>None</code>, no change is made; otherwise, 
+          this enables (<code>True</code>) or disables (<code>False</code>)
+          the requirement that documents validate when being converted to 
+          bindings.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd><code>True</code> iff attempts to generate bindings for a 
+          document that does not validate should raise an exception.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_SetXMLStyle"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_SetXMLStyle</span>(<span class="sig-arg">style</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb-pysrc.html#_SetXMLStyle">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Set the interface used to parse XML content.</p>
+  <p>This can be invoked within code.  The system default of <a 
+  href="pyxb-module.html#XMLStyle_saxer" class="link">XMLStyle_saxer</a> 
+  can also be overridden at runtime by setting the environment variable 
+  <code>PYXB_XML_STYLE</code> to one of <code>minidom</code>, 
+  <code>saxdom</code>, or <code>saxer</code>.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>style</code></strong> - One of <a href="pyxb-module.html#XMLStyle_minidom" 
+          class="link">XMLStyle_minidom</a>, <a 
+          href="pyxb-module.html#XMLStyle_saxdom" 
+          class="link">XMLStyle_saxdom</a>, <a 
+          href="pyxb-module.html#XMLStyle_saxer" 
+          class="link">XMLStyle_saxer</a>.  If not provided, the system 
+          default is used.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th bgcolor="#70b0f0" class="navbar-select"
+          >&nbsp;&nbsp;&nbsp;Home&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:36 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

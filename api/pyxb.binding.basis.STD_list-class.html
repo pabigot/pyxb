@@ -1,0 +1,1067 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.binding.basis.STD_list</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.binding-module.html">Package&nbsp;binding</a> ::
+        <a href="pyxb.binding.basis-module.html">Module&nbsp;basis</a> ::
+        Class&nbsp;STD_list
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.binding.basis.STD_list-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== TYPE DESCRIPTION ==================== -->
+<h1 class="epydoc">type STD_list</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+                    object --+                
+                             |                
+                       <a href="pyxb.cscRoot-class.html">cscRoot</a> --+            
+                                 |            
+     <a href="pyxb.utils.utility.Locatable_mixin-class.html">utils.utility.Locatable_mixin</a> --+        
+                                     |        
+                    <a href="pyxb.binding.basis._TypeBinding_mixin-class.html" onclick="show_private();">_TypeBinding_mixin</a> --+    
+                                         |    
+                            object --+   |    
+                                     |   |    
+<a href="pyxb.utils.utility._DeconflictSymbols_mixin-class.html" onclick="show_private();">utils.utility._DeconflictSymbols_mixin</a> --+    
+                                         |    
+                        object --+       |    
+                                 |       |    
+                           <a href="pyxb.cscRoot-class.html">cscRoot</a> --+   |    
+                                     |   |    
+                  <a href="pyxb.binding.basis._DynamicCreate_mixin-class.html" onclick="show_private();">_DynamicCreate_mixin</a> --+    
+                                         |    
+                      <a href="pyxb.binding.basis.simpleTypeDefinition-class.html">simpleTypeDefinition</a> --+
+                                             |
+                                object --+   |
+                                         |   |
+                                      list --+
+                                             |
+                                            <strong class="uidshort">STD_list</strong>
+</pre>
+
+<dl><dt>Known Subclasses:</dt>
+<dd>
+      <ul class="subclass-list">
+<li><a href="pyxb.binding.datatypes.ENTITIES-class.html">datatypes.ENTITIES</a></li><li>, <a href="pyxb.binding.datatypes.IDREFS-class.html">datatypes.IDREFS</a></li><li>, <a href="pyxb.binding.datatypes.NMTOKENS-class.html">datatypes.NMTOKENS</a></li>  </ul>
+</dd></dl>
+
+<hr />
+<p>Base class for collection datatypes.</p>
+  <p>This class descends from the Python list type, and incorporates 
+  simpleTypeDefinition.  Subclasses must define a class variable _ItemType 
+  which is a reference to the class of which members must be instances.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__convertMany"></a><span class="summary-sig-name">__convertMany</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">values</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.__convertMany">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.STD_list-class.html#__setitem__" class="summary-sig-name">__setitem__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">key</span>,
+        <span class="summary-sig-arg">value</span>)</span><br />
+      x[i]=y</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.__setitem__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.STD_list-class.html#__setslice__" class="summary-sig-name">__setslice__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">start</span>,
+        <span class="summary-sig-arg">end</span>,
+        <span class="summary-sig-arg">values</span>)</span><br />
+      x[i:j]=y</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.__setslice__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.STD_list-class.html#__contains__" class="summary-sig-name">__contains__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">item</span>)</span><br />
+      y in x</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.__contains__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.STD_list-class.html#append" class="summary-sig-name">append</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">x</span>)</span><br />
+      append object to end</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.append">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.STD_list-class.html#extend" class="summary-sig-name">extend</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">x</span>,
+        <span class="summary-sig-arg">_from_xml</span>=<span class="summary-sig-default">False</span>)</span><br />
+      extend list by appending elements from the iterable</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.extend">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">integer</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.STD_list-class.html#count" class="summary-sig-name">count</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">x</span>)</span><br />
+      return number of occurrences of value</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.count">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.STD_list-class.html#index" class="summary-sig-name">index</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">x</span>,
+        <span class="summary-sig-arg">*args</span>)</span><br />
+      L.index(value, [start, [stop]]) -&gt; integer -- return first index 
+      of value.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.index">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.STD_list-class.html#insert" class="summary-sig-name">insert</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">i</span>,
+        <span class="summary-sig-arg">x</span>)</span><br />
+      insert object before index</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.insert">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.STD_list-class.html#remove" class="summary-sig-name">remove</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">x</span>)</span><br />
+      remove first occurrence of value.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.remove">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html">simpleTypeDefinition</a></code></b>:
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#__init__">__init__</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#pythonLiteral">pythonLiteral</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#xsdConstraintsOK">xsdConstraintsOK</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#xsdLiteral">xsdLiteral</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#xsdValueLength">xsdValueLength</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html">simpleTypeDefinition</a></code></b> (private):
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_checkValidValue" onclick="show_private();">_checkValidValue</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_isValidValue" onclick="show_private();">_isValidValue</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_setAttribute" onclick="show_private();">_setAttribute</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_toDOM_csc" onclick="show_private();">_toDOM_csc</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_validateBinding_vx" onclick="show_private();">_validateBinding_vx</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html" onclick="show_private();">_TypeBinding_mixin</a></code></b>:
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#__setattr__">__setattr__</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#toDOM">toDOM</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#toxml">toxml</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#validateBinding">validateBinding</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html" onclick="show_private();">_TypeBinding_mixin</a></code></b> (private):
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_TypeBinding_mixin__checkNilCtor" onclick="show_private();">_TypeBinding_mixin__checkNilCtor</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_TypeBinding_mixin__getValidationConfig" onclick="show_private();">_TypeBinding_mixin__getValidationConfig</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_constructedWithValue" onclick="show_private();">_constructedWithValue</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_diagnosticName" onclick="show_private();">_diagnosticName</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_element" onclick="show_private();">_element</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_finalizeContentModel" onclick="show_private();">_finalizeContentModel</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_isNil" onclick="show_private();">_isNil</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_namespaceContext" onclick="show_private();">_namespaceContext</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_performValidation" onclick="show_private();">_performValidation</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_postDOMValidate" onclick="show_private();">_postDOMValidate</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_postFactory_vx" onclick="show_private();">_postFactory_vx</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_resetContent" onclick="show_private();">_resetContent</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_setAttributesFromKeywordsAndDOM" onclick="show_private();">_setAttributesFromKeywordsAndDOM</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_setElement" onclick="show_private();">_setElement</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_setIsNil" onclick="show_private();">_setIsNil</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_setNamespaceContext" onclick="show_private();">_setNamespaceContext</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_setValidationConfig" onclick="show_private();">_setValidationConfig</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_substitutesFor" onclick="show_private();">_substitutesFor</a></code>
+      </p></div>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.utils.utility.Locatable_mixin-class.html">utils.utility.Locatable_mixin</a></code></b> (private):
+      <code><a href="pyxb.utils.utility.Locatable_mixin-class.html#_location" onclick="show_private();">_location</a></code>,
+      <code><a href="pyxb.utils.utility.Locatable_mixin-class.html#_setLocation" onclick="show_private();">_setLocation</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>list</code></b>:
+      <code>__add__</code>,
+      <code>__delitem__</code>,
+      <code>__delslice__</code>,
+      <code>__eq__</code>,
+      <code>__ge__</code>,
+      <code>__getattribute__</code>,
+      <code>__getitem__</code>,
+      <code>__getslice__</code>,
+      <code>__gt__</code>,
+      <code>__iadd__</code>,
+      <code>__imul__</code>,
+      <code>__iter__</code>,
+      <code>__le__</code>,
+      <code>__len__</code>,
+      <code>__lt__</code>,
+      <code>__mul__</code>,
+      <code>__ne__</code>,
+      <code>__repr__</code>,
+      <code>__reversed__</code>,
+      <code>__rmul__</code>,
+      <code>__sizeof__</code>,
+      <code>pop</code>,
+      <code>reverse</code>,
+      <code>sort</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.STD_list-class.html#_ValidatedItem" class="summary-sig-name" onclick="show_private();">_ValidatedItem</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">value</span>,
+        <span class="summary-sig-arg">kw</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Verify that the given value is permitted as an item of this list.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list._ValidatedItem">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.STD_list-class.html#_ConvertArguments_vx" class="summary-sig-name" onclick="show_private();">_ConvertArguments_vx</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">args</span>,
+        <span class="summary-sig-arg">kw</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list._ConvertArguments_vx">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_XsdValueLength_vx"></a><span class="summary-sig-name">_XsdValueLength_vx</span>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">value</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list._XsdValueLength_vx">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.STD_list-class.html#XsdLiteral" class="summary-sig-name">XsdLiteral</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">value</span>)</span><br />
+      Convert from a binding value to a string usable in an XML document.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.XsdLiteral">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.basis.STD_list-class.html#_description" class="summary-sig-name" onclick="show_private();">_description</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">name_only</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">user_documentation</span>=<span class="summary-sig-default">True</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list._description">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__ConvertOne"></a><span class="summary-sig-name">__ConvertOne</span>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">v</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.__ConvertOne">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html">simpleTypeDefinition</a></code></b>:
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#PythonLiteral">PythonLiteral</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#SimpleTypeDefinition">SimpleTypeDefinition</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#XsdConstraintsOK">XsdConstraintsOK</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#XsdSuperType">XsdSuperType</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#XsdValueLength">XsdValueLength</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html">simpleTypeDefinition</a></code></b> (private):
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_CheckValidValue" onclick="show_private();">_CheckValidValue</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_ConvertArguments" onclick="show_private();">_ConvertArguments</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_FacetMap" onclick="show_private();">_FacetMap</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_InitializeFacetMap" onclick="show_private();">_InitializeFacetMap</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_IsSimpleTypeContent" onclick="show_private();">_IsSimpleTypeContent</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_IsValidValue" onclick="show_private();">_IsValidValue</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_SimpleTypeDefinition" onclick="show_private();">_SimpleTypeDefinition</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_XsdConstraintsPreCheck_vb" onclick="show_private();">_XsdConstraintsPreCheck_vb</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html" onclick="show_private();">_TypeBinding_mixin</a></code></b>:
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#Factory">Factory</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html" onclick="show_private();">_TypeBinding_mixin</a></code></b> (private):
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_CompatibleValue" onclick="show_private();">_CompatibleValue</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_GetValidationConfig" onclick="show_private();">_GetValidationConfig</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_IsUrType" onclick="show_private();">_IsUrType</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_Name" onclick="show_private();">_Name</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_PerformValidation" onclick="show_private();">_PerformValidation</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_PreFactory_vx" onclick="show_private();">_PreFactory_vx</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_RequireXSIType" onclick="show_private();">_RequireXSIType</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_SetValidationConfig" onclick="show_private();">_SetValidationConfig</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_TypeBinding_mixin__AttributesFromDOM" onclick="show_private();">_TypeBinding_mixin__AttributesFromDOM</a></code>
+      </p></div>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html" onclick="show_private();">_DynamicCreate_mixin</a></code></b> (private):
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_AlternativeConstructor" onclick="show_private();">_AlternativeConstructor</a></code>,
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_DynamicCreate" onclick="show_private();">_DynamicCreate</a></code>,
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_DynamicCreate_mixin__AlternativeConstructorAttribute" onclick="show_private();">_DynamicCreate_mixin__AlternativeConstructorAttribute</a></code>,
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_DynamicCreate_mixin__SupersedingClassAttribute" onclick="show_private();">_DynamicCreate_mixin__SupersedingClassAttribute</a></code>,
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_SetAlternativeConstructor" onclick="show_private();">_SetAlternativeConstructor</a></code>,
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_SetSupersedingClass" onclick="show_private();">_SetSupersedingClass</a></code>,
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_SupersedingClass" onclick="show_private();">_SupersedingClass</a></code>
+      </p></div>
+    </td>
+  </tr>
+</table>
+<!-- ==================== STATIC METHODS ==================== -->
+<a name="section-StaticMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Static Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-StaticMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html">simpleTypeDefinition</a></code></b>:
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#__new__">__new__</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_ItemType"></a><span class="summary-name">_ItemType</span> = <code title="None">None</code><br />
+      A reference to the binding class for items within this list.
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__FacetMap"></a><span class="summary-name">__FacetMap</span> = <code title="{}"><code class="variable-group">{</code><code class="variable-group">}</code></code>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html">simpleTypeDefinition</a></code></b> (private):
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_ReservedSymbols" onclick="show_private();">_ReservedSymbols</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html" onclick="show_private();">_TypeBinding_mixin</a></code></b>:
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_validationConfig_">_validationConfig_</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html" onclick="show_private();">_TypeBinding_mixin</a></code></b> (private):
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_Abstract" onclick="show_private();">_Abstract</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_AttributeMap" onclick="show_private();">_AttributeMap</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_AttributeWildcard" onclick="show_private();">_AttributeWildcard</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_ExpandedName" onclick="show_private();">_ExpandedName</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_PyXBFactoryKeywords" onclick="show_private();">_PyXBFactoryKeywords</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_TypeBinding_mixin__WarnedUnassociatedElement" onclick="show_private();">_TypeBinding_mixin__WarnedUnassociatedElement</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_TypeBinding_mixin__constructedWithValue" onclick="show_private();">_TypeBinding_mixin__constructedWithValue</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_TypeBinding_mixin__element" onclick="show_private();">_TypeBinding_mixin__element</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_TypeBinding_mixin__namespaceContext" onclick="show_private();">_TypeBinding_mixin__namespaceContext</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_TypeBinding_mixin__xsiNil" onclick="show_private();">_TypeBinding_mixin__xsiNil</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_XSDLocation" onclick="show_private();">_XSDLocation</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>list</code></b>:
+      <code>__hash__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html" onclick="show_private();">_TypeBinding_mixin</a></code></b> (private):
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_validationConfig" onclick="show_private();">_validationConfig</a></code>
+      </p></div>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="_ValidatedItem"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_ValidatedItem</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">value</span>,
+        <span class="sig-arg">kw</span>=<span class="sig-default">None</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list._ValidatedItem">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Verify that the given value is permitted as an item of this list.</p>
+  <p>This may convert the value to the proper type, if it is compatible but
+  not an instance of the item type.  Returns the value that should be used 
+  as the item, or raises an exception if the value cannot be converted.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>kw</code></strong> - optional dictionary of standard constructor keywords used when 
+          exceptions must be built.  In particular, <code>_location</code> 
+          may be useful.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_ConvertArguments_vx"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_ConvertArguments_vx</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">args</span>,
+        <span class="sig-arg">kw</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list._ConvertArguments_vx">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_ConvertArguments_vx" onclick="show_private();">simpleTypeDefinition._ConvertArguments_vx</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="XsdLiteral"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">XsdLiteral</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">value</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.XsdLiteral">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Convert from a binding value to a string usable in an XML 
+  document.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="pyxb.binding.basis.simpleTypeDefinition-class.html#XsdLiteral">simpleTypeDefinition.XsdLiteral</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_description"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_description</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">name_only</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">user_documentation</span>=<span class="sig-default">True</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list._description">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_description" onclick="show_private();">simpleTypeDefinition._description</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__setitem__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__setitem__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">key</span>,
+        <span class="sig-arg">value</span>)</span>
+    <br /><em class="fname">(Index assignment operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.__setitem__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>x[i]=y</p>
+  <dl class="fields">
+    <dt>Overrides:
+        list.__setitem__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__setslice__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__setslice__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">start</span>,
+        <span class="sig-arg">end</span>,
+        <span class="sig-arg">values</span>)</span>
+    <br /><em class="fname">(Slice assignment operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.__setslice__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>x[i:j]=y</p>
+  <p>Use  of negative indices is not supported.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        list.__setslice__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__contains__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__contains__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">item</span>)</span>
+    <br /><em class="fname">(In operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.__contains__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>y in x</p>
+  <dl class="fields">
+    <dt>Overrides:
+        list.__contains__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="append"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">append</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">x</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.append">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>append object to end</p>
+  <dl class="fields">
+    <dt>Overrides:
+        list.append
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="extend"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">extend</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">x</span>,
+        <span class="sig-arg">_from_xml</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.extend">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>extend list by appending elements from the iterable</p>
+  <dl class="fields">
+    <dt>Overrides:
+        list.extend
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="count"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">count</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">x</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.count">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>return number of occurrences of value</p>
+  <dl class="fields">
+    <dt>Returns: integer</dt>
+    <dt>Overrides:
+        list.count
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="index"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">index</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">x</span>,
+        <span class="sig-arg">*args</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.index">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>L.index(value, [start, [stop]]) -&gt; integer -- return first index of
+  value. Raises ValueError if the value is not present.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        list.index
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="insert"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">insert</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">i</span>,
+        <span class="sig-arg">x</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.insert">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>insert object before index</p>
+  <dl class="fields">
+    <dt>Overrides:
+        list.insert
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="remove"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">remove</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">x</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.basis-pysrc.html#STD_list.remove">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>remove first occurrence of value. Raises ValueError if the value is 
+  not present.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        list.remove
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:36 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

@@ -1,0 +1,758 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.binding.saxer._SAXElementState</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.binding-module.html">Package&nbsp;binding</a> ::
+        <a href="pyxb.binding.saxer-module.html">Module&nbsp;saxer</a> ::
+        Class&nbsp;_SAXElementState
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.binding.saxer._SAXElementState-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== TYPE DESCRIPTION ==================== -->
+<h1 class="epydoc">type _SAXElementState</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+                    object --+    
+                             |    
+<a href="pyxb.utils.saxutils.SAXElementState-class.html">utils.saxutils.SAXElementState</a> --+
+                                 |
+                                <strong class="uidshort">_SAXElementState</strong>
+</pre>
+
+<hr />
+<p>State required to generate bindings for a specific element.</p>
+  <p>If the document being parsed includes references to unrecognized 
+  elements, a DOM instance of the element and its content is created and 
+  treated as a wildcard element.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.saxer._SAXElementState-class.html#setElementBinding" class="summary-sig-name">setElementBinding</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">element_binding</span>)</span><br />
+      Record the binding to be used for this element.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState.setElementBinding">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.saxer._SAXElementState-class.html#enclosingCTD" class="summary-sig-name">enclosingCTD</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      The nearest enclosing complex type definition, as used for resolving 
+      local element/attribute names.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState.enclosingCTD">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.saxer._SAXElementState-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kw</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.saxer._SAXElementState-class.html#setEnclosingCTD" class="summary-sig-name">setEnclosingCTD</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">enclosing_ctd</span>)</span><br />
+      Set the enclosing complex type definition for this element.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState.setEnclosingCTD">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__constructElement"></a><span class="summary-sig-name">__constructElement</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">new_object_factory</span>,
+        <span class="summary-sig-arg">attrs</span>,
+        <span class="summary-sig-arg">content</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState.__constructElement">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="inDOMMode"></a><span class="summary-sig-name">inDOMMode</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState.inDOMMode">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.saxer._SAXElementState-class.html#enterDOMMode" class="summary-sig-name">enterDOMMode</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">attrs</span>)</span><br />
+      Actions upon first encountering an element for which we cannot create
+      a binding.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState.enterDOMMode">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="startDOMElement"></a><span class="summary-sig-name">startDOMElement</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">attrs</span>)</span><br />
+      Actions upon entering an element that is part of a DOM subtree.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState.startDOMElement">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="endDOMElement"></a><span class="summary-sig-name">endDOMElement</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Actions upon leaving an element that is part of a DOM subtree.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState.endDOMElement">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.saxer._SAXElementState-class.html#startBindingElement" class="summary-sig-name">startBindingElement</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">type_class</span>,
+        <span class="summary-sig-arg">new_object_factory</span>,
+        <span class="summary-sig-arg">element_decl</span>,
+        <span class="summary-sig-arg">attrs</span>)</span><br />
+      Actions upon entering an element that will produce a binding 
+      instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState.startBindingElement">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.saxer._SAXElementState-class.html#endBindingElement" class="summary-sig-name">endBindingElement</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Perform any end-of-element processing.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState.endBindingElement">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_SAXElementState__constructElement"></a><span class="summary-sig-name">_SAXElementState__constructElement</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">new_object_factory</span>,
+        <span class="summary-sig-arg">attrs</span>,
+        <span class="summary-sig-arg">content</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState._SAXElementState__constructElement">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.utils.saxutils.SAXElementState-class.html">utils.saxutils.SAXElementState</a></code></b>:
+      <code><a href="pyxb.utils.saxutils.SAXElementState-class.html#addElementContent">addElementContent</a></code>,
+      <code><a href="pyxb.utils.saxutils.SAXElementState-class.html#addTextContent">addTextContent</a></code>,
+      <code><a href="pyxb.utils.saxutils.SAXElementState-class.html#content">content</a></code>,
+      <code><a href="pyxb.utils.saxutils.SAXElementState-class.html#contentHandler">contentHandler</a></code>,
+      <code><a href="pyxb.utils.saxutils.SAXElementState-class.html#expandedName">expandedName</a></code>,
+      <code><a href="pyxb.utils.saxutils.SAXElementState-class.html#location">location</a></code>,
+      <code><a href="pyxb.utils.saxutils.SAXElementState-class.html#namespaceContext">namespaceContext</a></code>,
+      <code><a href="pyxb.utils.saxutils.SAXElementState-class.html#parentState">parentState</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__XSINilTuple"></a><span class="summary-name">__XSINilTuple</span> = <code title="XSI.nil.uriTuple()">XSI.nil.uriTuple()</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__bindingInstance"></a><span class="summary-name">__bindingInstance</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__elementBinding"></a><span class="summary-name">__elementBinding</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__enclosingCTD"></a><span class="summary-name">__enclosingCTD</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__delayedConstructor"></a><span class="summary-name">__delayedConstructor</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__attributes"></a><span class="summary-name">__attributes</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__domDocument"></a><span class="summary-name">__domDocument</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__domDepth"></a><span class="summary-name">__domDepth</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.binding.saxer._SAXElementState-class.html#_SAXElementState__XSINilTuple" class="summary-name" onclick="show_private();">_SAXElementState__XSINilTuple</a> = <code title="('http://www.w3.org/2001/XMLSchema-instance', 'nil')"><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">http://www.w3.org/2001/XMLSc</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_SAXElementState__attributes"></a><span class="summary-name">_SAXElementState__attributes</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_SAXElementState__bindingInstance"></a><span class="summary-name">_SAXElementState__bindingInstance</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_SAXElementState__delayedConstructor"></a><span class="summary-name">_SAXElementState__delayedConstructor</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_SAXElementState__domDepth"></a><span class="summary-name">_SAXElementState__domDepth</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_SAXElementState__domDocument"></a><span class="summary-name">_SAXElementState__domDocument</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_SAXElementState__elementBinding"></a><span class="summary-name">_SAXElementState__elementBinding</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_SAXElementState__enclosingCTD"></a><span class="summary-name">_SAXElementState__enclosingCTD</span> = <code title="None">None</code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="setElementBinding"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">setElementBinding</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">element_binding</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState.setElementBinding">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Record the binding to be used for this element.</p>
+  <p>Generally ignored, except at the top level this is the only way to 
+  associate a binding instance created from an xsi:type description with a 
+  specific element.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="enclosingCTD"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">enclosingCTD</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState.enclosingCTD">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>The nearest enclosing complex type definition, as used for resolving 
+  local element/attribute names.</p>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd>An instance of <a 
+          href="pyxb.binding.basis.complexTypeDefinition-class.html" 
+          class="link">basis.complexTypeDefinition</a>, or 
+          <code>None</code> if the element is top-level</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">**kw</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="pyxb.utils.saxutils.SAXElementState-class.html#__init__">utils.saxutils.SAXElementState.__init__</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="setEnclosingCTD"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">setEnclosingCTD</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">enclosing_ctd</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState.setEnclosingCTD">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Set the enclosing complex type definition for this element.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>enclosing_ctd</code></strong> (<a href="pyxb.binding.basis.complexTypeDefinition-class.html" 
+          class="link">basis.complexTypeDefinition</a>) - The scope for a local element.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd><code>self</code></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="enterDOMMode"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">enterDOMMode</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">attrs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState.enterDOMMode">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Actions upon first encountering an element for which we cannot create 
+  a binding.</p>
+  <p>Invoking this transitions the parser into DOM mode, creating a new DOM
+  document that will represent this element including its content.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="startBindingElement"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">startBindingElement</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">type_class</span>,
+        <span class="sig-arg">new_object_factory</span>,
+        <span class="sig-arg">element_decl</span>,
+        <span class="sig-arg">attrs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState.startBindingElement">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Actions upon entering an element that will produce a binding 
+  instance.</p>
+  <p>The element use is recorded.  If the type is a subclass of <a 
+  href="pyxb.binding.basis.simpleTypeDefinition-class.html" 
+  class="link">basis.simpleTypeDefinition</a>, a delayed constructor is 
+  recorded so the binding instance can be created upon completion of the 
+  element; otherwise, a binding instance is created and stored.  The 
+  attributes are used to initialize the binding instance (now, or upon 
+  element end).</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>type_class</code></strong> (subclass of <a 
+          href="pyxb.binding.basis._TypeBinding_mixin-class.html" 
+          class="link" 
+          onclick="show_private();">basis._TypeBinding_mixin</a>) - The Python type of the binding instance</li>
+        <li><strong class="pname"><code>new_object_factory</code></strong> - A callable object that creates an instance of the 
+          <code>type_class</code></li>
+        <li><strong class="pname"><code>element_decl</code></strong> (<a href="pyxb.binding.basis.element-class.html" 
+          class="link">basis.element</a>) - The element use with which the binding instance is associated.  
+          Will be <code>None</code> for top-level elements</li>
+        <li><strong class="pname"><code>attrs</code></strong> (<code>xml.sax.xmlreader.Attributes</code>) - The XML attributes associated with the element</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>The generated binding instance, or <code>None</code> if creation 
+          is delayed</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="endBindingElement"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">endBindingElement</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.saxer-pysrc.html#_SAXElementState.endBindingElement">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Perform any end-of-element processing.</p>
+  <p>For simple type instances, this creates the binding instance.</p>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd>The generated binding instance</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variable Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariableDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="_SAXElementState__XSINilTuple"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">_SAXElementState__XSINilTuple</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">http://www.w3.org/2001/XMLSchema-instance</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">nil</code><code class="variable-quote">'</code><code class="variable-group">)</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:37 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

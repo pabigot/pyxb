@@ -1,0 +1,682 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Using Binding Classes &mdash; PyXB 1.2.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.2.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyXB 1.2.3 documentation" href="index.html" />
+    <link rel="up" title="User Reference" href="userref_index.html" />
+    <link rel="next" title="Debugging Validation Errors" href="userref_validating.html" />
+    <link rel="prev" title="Generating Binding Classes" href="userref_pyxbgen.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="userref_validating.html" title="Debugging Validation Errors"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="userref_pyxbgen.html" title="Generating Binding Classes"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+          <li><a href="userref_index.html" accesskey="U">User Reference</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="using-binding-classes">
+<span id="usebind"></span><h1>Using Binding Classes<a class="headerlink" href="#using-binding-classes" title="Permalink to this headline">¶</a></h1>
+<p>Python instances corresponding to XML structures can be created in two
+primary ways: from XML documents, and directly within Python code.
+Generating XML documents from bindings can also be controlled.</p>
+<div class="section" id="creating-instances-from-xml-documents">
+<span id="from-xml"></span><h2>Creating Instances from XML Documents<a class="headerlink" href="#creating-instances-from-xml-documents" title="Permalink to this headline">¶</a></h2>
+<p>XML documents are converted into Python bindings by invoking the
+<tt class="docutils literal"><span class="pre">CreateFromDocument</span></tt> function in a binding module.  For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">po3</span>
+
+<span class="n">order</span> <span class="o">=</span> <span class="n">po3</span><span class="o">.</span><span class="n">CreateFromDocument</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s">&#39;po3.xml&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> is sending </span><span class="si">%s</span><span class="s"> </span><span class="si">%d</span><span class="s"> thing(s):&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">billTo</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">shipTo</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">item</span><span class="p">)))</span>
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">order</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">item</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;  Quantity </span><span class="si">%d</span><span class="s"> of </span><span class="si">%s</span><span class="s"> at $</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">quantity</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">productName</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">USPrice</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">CreateFromDocument</span></tt> function in a given binding module is configured
+so that documents with no default namespace are assumed to be in the
+namespace from which the binding was generated.</p>
+<div class="section" id="locating-invalid-content">
+<span id="invalid-content"></span><h3>Locating Invalid Content<a class="headerlink" href="#locating-invalid-content" title="Permalink to this headline">¶</a></h3>
+<p>If a document does not validate, PyXB will generally through an
+<a class="reference external" href="api/pyxb-module.html#UnrecognizedContentError">UnrecognizedContentError</a> exception.  You can determine where the
+problem lies, and what was not recognized, by examining attributes present
+on the exception as shown in this example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">pyxb</span>
+<span class="kn">import</span> <span class="nn">po1</span>
+
+<span class="n">xml</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;badcontent.xml&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">po1</span><span class="o">.</span><span class="n">CreateFromDocument</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">location_base</span><span class="o">=</span><span class="s">&#39;badcontent.xml&#39;</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">pyxb</span><span class="o">.</span><span class="n">UnrecognizedContentError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Unrecognized element &quot;</span><span class="si">%s</span><span class="s">&quot; at </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">expanded_name</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">location</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>which produces:</p>
+<div class="highlight-python"><pre>Unrecognized element "streeet" at badcontent.xml[5:4]
+</pre>
+</div>
+</div>
+<div class="section" id="coping-with-wrong-xsi-type-attributes">
+<h3>Coping With Wrong <tt class="docutils literal"><span class="pre">xsi:type</span></tt> Attributes<a class="headerlink" href="#coping-with-wrong-xsi-type-attributes" title="Permalink to this headline">¶</a></h3>
+<p>Some web services and binding tools mis-use <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#xsi_type">xsi:type</a>, providing attribute values
+that either are not types, or do not specify a type that is derived from an
+abstract type.  The
+<a class="reference external" href="api/pyxb.namespace.builtin._XMLSchema_instance-class.html#ProcessTypeAttribute">pyxb.namespace.builtin.XMLSchema_instance.ProcessTypeAttribute</a> method
+can be used to relax how PyXB processes those attributes.</p>
+</div>
+</div>
+<div class="section" id="creating-instances-in-python-code">
+<span id="from-python"></span><h2>Creating Instances in Python Code<a class="headerlink" href="#creating-instances-in-python-code" title="Permalink to this headline">¶</a></h2>
+<p>Creating bindings from XML documents is straightforward, because the
+documents contain enough information to identify each element and attribute,
+locate the corresponding use in the binding class, and store a value that is
+converted to the appropriate type.  Creating values in Python is inherently
+more complex, because native Python objects like strings and integers do not
+contain this information.</p>
+<p>As described in <a class="reference internal" href="arch_binding.html#bindingmodel"><em>Binding Model</em></a>, binding classes corresponding to simple
+types extend the underlying Python type (such as <tt class="docutils literal"><span class="pre">str</span></tt> or <tt class="docutils literal"><span class="pre">int</span></tt>), and
+add XML-specific information like the canonical representation of the value
+in <a class="reference external" href="http://www.unicode.org/">Unicode</a>, which is the natural representation
+as XML text.  These classes also maintain a set of facets that constrain the
+values that can be stored as instances when validation is active.  Binding
+classes for complex types have constructors that parse positional and
+keyword parameters to determine the appropriate element or attribute to
+which the value belongs.  Attributes are assigned using keyword parameters.
+Content is assigned using positional parameters.  The order of the
+positional parameters must be consistent with the order expected by the
+content model.</p>
+<p>Using the schema in the <a class="reference internal" href="userref_pyxbgen.html#nsaddress-xsd"><em>namespace-aware address schema</em></a>, we can begin to construct the example document in Python:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">address</span>
+
+<span class="n">addr</span> <span class="o">=</span> <span class="n">address</span><span class="o">.</span><span class="n">USAddress</span><span class="p">()</span>
+<span class="n">addr</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;Robert Smith&#39;</span>
+<span class="n">addr</span><span class="o">.</span><span class="n">street</span> <span class="o">=</span> <span class="s">&#39;8 Oak Avenue&#39;</span>
+<span class="n">addr</span><span class="o">.</span><span class="n">city</span> <span class="o">=</span> <span class="s">&#39;Anytown&#39;</span>
+<span class="n">addr</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="s">&#39;AK&#39;</span>
+<span class="n">addr</span><span class="o">.</span><span class="n">zip</span> <span class="o">=</span> <span class="mi">12341</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">addr</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>This produces:</p>
+<div class="highlight-python"><pre>&lt;?xml version="1.0" encoding="utf-8"?&gt;&lt;ns1:USAddress xmlns:ns1="URN:address"&gt;&lt;name&gt;Robert Smith&lt;/name&gt;&lt;street&gt;8 Oak Avenue&lt;/street&gt;&lt;city&gt;Anytown&lt;/city&gt;&lt;state&gt;AK&lt;/state&gt;&lt;zip&gt;12341&lt;/zip&gt;&lt;/ns1:USAddress&gt;
+</pre>
+</div>
+<p>Assigning to individual fields like this bypasses the complex type content
+model, although each field itself is validated.  For example, the address
+schema does not include New York as a state, so the following assignment:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">addr</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="s">&#39;NY&#39;</span>
+</pre></div>
+</div>
+<p>will cause a <a class="reference external" href="api/pyxb.exceptions_-module.html#BadTypeValueError">BadTypeValueError</a> exception to be raised:</p>
+<div class="highlight-python"><pre>Traceback (most recent call last):
+  File "demo4a1.py", line 7, in &lt;module&gt;
+    addr.state = 'NY'
+  File "/opt/pyxb/pyxb/binding/basis.py", line 49, in __setattr__
+    return super(_TypeBinding_mixin, self).__setattr__(name, value)
+  File "/opt/pyxb/pyxb/binding/content.py", line 557, in set
+    value = self.__elementBinding.compatibleValue(value, is_plural=self.isPlural())
+  File "/opt/pyxb/pyxb/binding/basis.py", line 1415, in compatibleValue
+    return self.typeDefinition()._CompatibleValue(value, **kw)
+  File "/opt/pyxb/pyxb/binding/basis.py", line 280, in _CompatibleValue
+    return cls(value)
+  File "/opt/pyxb/pyxb/binding/basis.py", line 791, in __init__
+    self.xsdConstraintsOK()
+  File "/opt/pyxb/pyxb/binding/basis.py", line 924, in xsdConstraintsOK
+    return self.XsdConstraintsOK(self)
+  File "/opt/pyxb/pyxb/binding/basis.py", line 918, in XsdConstraintsOK
+    raise pyxb.SimpleTypeValueError('%s violation for %s in %s' % (f.Name(), value, cls.__name__))
+pyxb.exceptions_.SimpleTypeValueError: enumeration violation for NY in USState
+</pre>
+</div>
+<p>However, the order of the field assignments does not matter, as long as all
+required fields are present by the time the XML document is generated.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">address</span>
+
+<span class="n">addr</span> <span class="o">=</span> <span class="n">address</span><span class="o">.</span><span class="n">USAddress</span><span class="p">()</span>
+<span class="n">addr</span><span class="o">.</span><span class="n">street</span> <span class="o">=</span> <span class="s">&#39;8 Oak Avenue&#39;</span>
+<span class="n">addr</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="s">&#39;AK&#39;</span>
+<span class="n">addr</span><span class="o">.</span><span class="n">city</span> <span class="o">=</span> <span class="s">&#39;Anytown&#39;</span>
+<span class="n">addr</span><span class="o">.</span><span class="n">zip</span> <span class="o">=</span> <span class="mi">12341</span>
+<span class="n">addr</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;Robert Smith&#39;</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">addr</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Alternatively, you can provide the content as positional parameters in the
+object creation call:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># examples/manual/demo4b.py</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+
+<span class="kn">import</span> <span class="nn">address</span>
+
+<span class="n">addr</span> <span class="o">=</span> <span class="n">address</span><span class="o">.</span><span class="n">USAddress</span><span class="p">(</span><span class="s">&#39;Robert Smith&#39;</span><span class="p">,</span> <span class="s">&#39;8 Oak Avenue&#39;</span><span class="p">,</span> <span class="s">&#39;Anytown&#39;</span><span class="p">,</span> <span class="s">&#39;AK&#39;</span><span class="p">,</span> <span class="mi">12341</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">addr</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>This has the same effect, and is much more compact, but it does require that
+the order match the content model.</p>
+<p>Attributes are set using keyword parameters:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># examples/manual/demo4c.py</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+
+<span class="kn">import</span> <span class="nn">pyxb</span>
+<span class="kn">import</span> <span class="nn">po4</span>
+<span class="kn">import</span> <span class="nn">address</span>
+<span class="kn">import</span> <span class="nn">pyxb.binding.datatypes</span> <span class="kn">as</span> <span class="nn">xs</span>
+
+<span class="n">po</span> <span class="o">=</span> <span class="n">po4</span><span class="o">.</span><span class="n">purchaseOrder</span><span class="p">(</span><span class="n">orderDate</span><span class="o">=</span><span class="n">xs</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="mi">1999</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>
+<span class="n">po</span><span class="o">.</span><span class="n">shipTo</span> <span class="o">=</span> <span class="n">address</span><span class="o">.</span><span class="n">USAddress</span><span class="p">(</span><span class="s">&#39;Alice Smith&#39;</span><span class="p">,</span> <span class="s">&#39;123 Maple Street&#39;</span><span class="p">,</span> <span class="s">&#39;Anytown&#39;</span><span class="p">,</span> <span class="s">&#39;AK&#39;</span><span class="p">,</span> <span class="mi">12341</span><span class="p">)</span>
+<span class="n">po</span><span class="o">.</span><span class="n">billTo</span> <span class="o">=</span> <span class="n">address</span><span class="o">.</span><span class="n">USAddress</span><span class="p">(</span><span class="s">&#39;Robert Smith&#39;</span><span class="p">,</span> <span class="s">&#39;8 Oak Avenue&#39;</span><span class="p">,</span> <span class="s">&#39;Anytown&#39;</span><span class="p">,</span> <span class="s">&#39;AK&#39;</span><span class="p">,</span> <span class="mi">12341</span><span class="p">)</span>
+                
+<span class="n">pyxb</span><span class="o">.</span><span class="n">RequireValidWhenGenerating</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">po</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>This example produces (after reformatting):</p>
+<div class="highlight-python"><pre>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;ns1:purchaseOrder xmlns:ns1="URN:purchase-order" orderDate="1999-10-20"&gt;
+  &lt;ns1:billTo&gt;
+    &lt;city&gt;Anytown&lt;/city&gt;
+    &lt;state&gt;AK&lt;/state&gt;
+    &lt;street&gt;8 Oak Avenue&lt;/street&gt;
+    &lt;name&gt;Robert Smith&lt;/name&gt;
+    &lt;zip&gt;12341&lt;/zip&gt;
+  &lt;/ns1:billTo&gt;
+  &lt;ns1:shipTo&gt;
+    &lt;city&gt;Anytown&lt;/city&gt;
+    &lt;state&gt;AK&lt;/state&gt;
+    &lt;street&gt;123 Maple Street&lt;/street&gt;
+    &lt;name&gt;Alice Smith&lt;/name&gt;
+    &lt;zip&gt;12341&lt;/zip&gt;
+  &lt;/ns1:shipTo&gt;
+&lt;/ns1:purchaseOrder&gt;
+</pre>
+</div>
+<p id="index-0">Note that, because we&#8217;re in the middle of the example and have not provided
+the <tt class="docutils literal"><span class="pre">items</span></tt> element that the content model requires, the code
+<a class="reference external" href="api/pyxb-module.html#RequireValidWhenGenerating">explicitly disables the requirement for
+validation</a> when generating XML from a
+binding instance.  A consequence of this is that the generated XML is not
+valid, and validation must be <a class="reference external" href="api/pyxb-module.html#RequireValidWhenParsing">disabled for parsing</a> as well if the resulting document is to be
+re-converted into a binding with <tt class="docutils literal"><span class="pre">CreateFromDocument</span></tt>.</p>
+<div class="section" id="creating-instances-of-anonymous-types">
+<span id="pyxb-bind"></span><h3>Creating Instances of Anonymous Types<a class="headerlink" href="#creating-instances-of-anonymous-types" title="Permalink to this headline">¶</a></h3>
+<p>The style of XML schema used for purchase orders uses anonymous types for
+the deeper elements of the purchase order:</p>
+<div class="highlight-python"><pre>&lt;xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   targetNamespace="URN:purchase-order"
+   xmlns:tns="URN:purchase-order"
+   xmlns:address="URN:address"
+   elementFormDefault="qualified"&gt;
+  &lt;xsd:import namespace="URN:address" schemaLocation="nsaddress.xsd"/&gt;
+  &lt;xsd:element name="purchaseOrder" type="tns:PurchaseOrderType"/&gt;
+  &lt;xsd:element name="comment" type="xsd:string"/&gt;
+  &lt;xsd:complexType name="PurchaseOrderType"&gt;
+    &lt;xsd:sequence&gt;
+      &lt;xsd:element name="shipTo" type="address:USAddress"/&gt;
+      &lt;xsd:element name="billTo" type="address:USAddress"/&gt;
+      &lt;xsd:element ref="tns:comment" minOccurs="0"/&gt;
+      &lt;xsd:element name="items"  type="tns:Items"/&gt;
+    &lt;/xsd:sequence&gt;
+    &lt;xsd:attribute name="orderDate" type="xsd:date"/&gt;
+  &lt;/xsd:complexType&gt;
+  &lt;xsd:complexType name="Items"&gt;
+    &lt;xsd:sequence&gt;
+      &lt;xsd:element name="item" minOccurs="0" maxOccurs="unbounded"&gt;
+        &lt;xsd:complexType&gt;
+          &lt;xsd:sequence&gt;
+            &lt;xsd:element name="productName" type="xsd:string"/&gt;
+            &lt;xsd:element name="quantity"&gt;
+              &lt;xsd:simpleType&gt;
+                &lt;xsd:restriction base="xsd:positiveInteger"&gt;
+                  &lt;xsd:maxExclusive value="100"/&gt;
+                &lt;/xsd:restriction&gt;
+              &lt;/xsd:simpleType&gt;
+            &lt;/xsd:element&gt;
+            &lt;xsd:element name="USPrice"  type="xsd:decimal"/&gt;
+            &lt;xsd:element ref="tns:comment"   minOccurs="0"/&gt;
+            &lt;xsd:element name="shipDate" type="xsd:date" minOccurs="0"/&gt;
+          &lt;/xsd:sequence&gt;
+          &lt;xsd:attribute name="partNum" type="tns:SKU" use="required"/&gt;
+        &lt;/xsd:complexType&gt;
+      &lt;/xsd:element&gt;
+    &lt;/xsd:sequence&gt;
+  &lt;/xsd:complexType&gt;
+  &lt;!-- Stock Keeping Unit, a code for identifying products --&gt;
+  &lt;xsd:simpleType name="SKU"&gt;
+    &lt;xsd:restriction base="xsd:string"&gt;
+      &lt;xsd:pattern value="\d{3}-[A-Z]{2}"/&gt;
+    &lt;/xsd:restriction&gt;
+  &lt;/xsd:simpleType&gt;
+
+&lt;/xsd:schema&gt;
+
+</pre>
+</div>
+<p id="index-1">In particular, there is no global <tt class="docutils literal"><span class="pre">item</span></tt> element that can be used to
+create the individual items.  For situations like this, we use
+<a class="reference external" href="api/pyxb.BIND-class.html">BIND</a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">pyxb</span>
+<span class="kn">import</span> <span class="nn">po4</span>
+<span class="kn">import</span> <span class="nn">address</span>
+<span class="kn">import</span> <span class="nn">pyxb.binding.datatypes</span> <span class="kn">as</span> <span class="nn">xs</span>
+
+<span class="n">po</span> <span class="o">=</span> <span class="n">po4</span><span class="o">.</span><span class="n">purchaseOrder</span><span class="p">(</span><span class="n">orderDate</span><span class="o">=</span><span class="n">xs</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="mi">1999</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>
+<span class="n">po</span><span class="o">.</span><span class="n">shipTo</span> <span class="o">=</span> <span class="n">address</span><span class="o">.</span><span class="n">USAddress</span><span class="p">(</span><span class="s">&#39;Alice Smith&#39;</span><span class="p">,</span> <span class="s">&#39;123 Maple Street&#39;</span><span class="p">,</span> <span class="s">&#39;Anytown&#39;</span><span class="p">,</span> <span class="s">&#39;AK&#39;</span><span class="p">,</span> <span class="mi">12341</span><span class="p">)</span>
+<span class="n">po</span><span class="o">.</span><span class="n">billTo</span> <span class="o">=</span> <span class="n">address</span><span class="o">.</span><span class="n">USAddress</span><span class="p">(</span><span class="s">&#39;Robert Smith&#39;</span><span class="p">,</span> <span class="s">&#39;8 Oak Avenue&#39;</span><span class="p">,</span> <span class="s">&#39;Anytown&#39;</span><span class="p">,</span> <span class="s">&#39;AK&#39;</span><span class="p">,</span> <span class="mi">12341</span><span class="p">)</span>
+<span class="n">po</span><span class="o">.</span><span class="n">items</span> <span class="o">=</span> <span class="n">pyxb</span><span class="o">.</span><span class="n">BIND</span><span class="p">(</span><span class="n">pyxb</span><span class="o">.</span><span class="n">BIND</span><span class="p">(</span><span class="s">&#39;Lapis necklace&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">99.95</span><span class="p">,</span> <span class="n">partNum</span><span class="o">=</span><span class="s">&#39;833-AA&#39;</span><span class="p">),</span>
+                     <span class="n">pyxb</span><span class="o">.</span><span class="n">BIND</span><span class="p">(</span><span class="s">&#39;Plastic necklace&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mf">3.95</span><span class="p">,</span> <span class="n">partNum</span><span class="o">=</span><span class="s">&#39;833-AB&#39;</span><span class="p">))</span>
+                
+<span class="k">print</span><span class="p">(</span><span class="n">po</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The <a class="reference external" href="api/pyxb.BIND-class.html">BIND</a> reference wraps the content of the inner elements, and
+is a cue to PyXB to attempt to build an instance of whatever type of object
+would satisfy the content model at that point.  The resulting document
+(after reformatting) is:</p>
+<div class="highlight-python"><pre>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;ns1:purchaseOrder xmlns:ns1="URN:purchase-order" orderDate="1999-10-20"&gt;
+  &lt;ns1:shipTo&gt;
+    &lt;name&gt;Alice Smith&lt;/name&gt;
+    &lt;street&gt;123 Maple Street&lt;/street&gt;
+    &lt;city&gt;Anytown&lt;/city&gt;
+    &lt;state&gt;AK&lt;/state&gt;
+    &lt;zip&gt;12341&lt;/zip&gt;
+  &lt;/ns1:shipTo&gt;
+  &lt;ns1:billTo&gt;
+    &lt;name&gt;Robert Smith&lt;/name&gt;
+    &lt;street&gt;8 Oak Avenue&lt;/street&gt;
+    &lt;city&gt;Anytown&lt;/city&gt;
+    &lt;state&gt;AK&lt;/state&gt;
+    &lt;zip&gt;12341&lt;/zip&gt;
+  &lt;/ns1:billTo&gt;
+  &lt;ns1:items&gt;
+    &lt;ns1:item partNum="833-AA"&gt;
+      &lt;ns1:productName&gt;Lapis necklace&lt;/ns1:productName&gt;
+      &lt;ns1:quantity&gt;1&lt;/ns1:quantity&gt;
+      &lt;ns1:USPrice&gt;99.95&lt;/ns1:USPrice&gt;
+    &lt;/ns1:item&gt;
+    &lt;ns1:item partNum="833-AB"&gt;
+      &lt;ns1:productName&gt;Plastic necklace&lt;/ns1:productName&gt;
+      &lt;ns1:quantity&gt;4&lt;/ns1:quantity&gt;
+      &lt;ns1:USPrice&gt;3.95&lt;/ns1:USPrice&gt;
+    &lt;/ns1:item&gt;
+  &lt;/ns1:items&gt;
+&lt;/ns1:purchaseOrder&gt;
+</pre>
+</div>
+<p>The complete document is generated by the following program:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">pyxb</span>
+<span class="kn">import</span> <span class="nn">po4</span>
+<span class="kn">import</span> <span class="nn">address</span>
+<span class="kn">import</span> <span class="nn">pyxb.binding.datatypes</span> <span class="kn">as</span> <span class="nn">xs</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="n">po</span> <span class="o">=</span> <span class="n">po4</span><span class="o">.</span><span class="n">purchaseOrder</span><span class="p">(</span><span class="n">orderDate</span><span class="o">=</span><span class="n">xs</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="mi">1999</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>
+<span class="n">po</span><span class="o">.</span><span class="n">shipTo</span> <span class="o">=</span> <span class="n">address</span><span class="o">.</span><span class="n">USAddress</span><span class="p">(</span><span class="s">&#39;Alice Smith&#39;</span><span class="p">,</span> <span class="s">&#39;123 Maple Street&#39;</span><span class="p">,</span> <span class="s">&#39;Anytown&#39;</span><span class="p">,</span> <span class="s">&#39;AK&#39;</span><span class="p">,</span> <span class="mi">12341</span><span class="p">)</span>
+<span class="n">po</span><span class="o">.</span><span class="n">billTo</span> <span class="o">=</span> <span class="n">address</span><span class="o">.</span><span class="n">USAddress</span><span class="p">(</span><span class="s">&#39;Robert Smith&#39;</span><span class="p">,</span> <span class="s">&#39;8 Oak Avenue&#39;</span><span class="p">,</span> <span class="s">&#39;Anytown&#39;</span><span class="p">,</span> <span class="s">&#39;AK&#39;</span><span class="p">,</span> <span class="mi">12341</span><span class="p">)</span>
+<span class="n">po</span><span class="o">.</span><span class="n">items</span> <span class="o">=</span> <span class="n">pyxb</span><span class="o">.</span><span class="n">BIND</span><span class="p">(</span><span class="n">pyxb</span><span class="o">.</span><span class="n">BIND</span><span class="p">(</span><span class="s">&#39;Lapis necklace&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">99.95</span><span class="p">,</span> <span class="n">partNum</span><span class="o">=</span><span class="s">&#39;833-AA&#39;</span><span class="p">),</span>
+                     <span class="n">pyxb</span><span class="o">.</span><span class="n">BIND</span><span class="p">(</span><span class="s">&#39;Plastic necklace&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mf">3.95</span><span class="p">,</span> <span class="n">partNum</span><span class="o">=</span><span class="s">&#39;833-AB&#39;</span><span class="p">))</span>
+
+<span class="n">po</span><span class="o">.</span><span class="n">shipTo</span><span class="o">.</span><span class="n">country</span> <span class="o">=</span> <span class="n">po</span><span class="o">.</span><span class="n">billTo</span><span class="o">.</span><span class="n">country</span> <span class="o">=</span> <span class="n">po</span><span class="o">.</span><span class="n">shipTo</span><span class="o">.</span><span class="n">country</span>
+
+<span class="n">lapis</span> <span class="o">=</span> <span class="n">po</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">lapis</span><span class="o">.</span><span class="n">shipDate</span> <span class="o">=</span> <span class="n">po</span><span class="o">.</span><span class="n">orderDate</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">46</span><span class="p">)</span>
+<span class="n">lapis</span><span class="o">.</span><span class="n">comment</span> <span class="o">=</span> <span class="s">&#39;Want this for the holidays!&#39;</span>
+<span class="n">po</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">shipDate</span> <span class="o">=</span> <span class="n">po</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shipDate</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">19</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">po</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The additional code demonstrates a couple additional features:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Fixed attribute values (such as <tt class="docutils literal"><span class="pre">country</span></tt>) are present in the bindings,
+even though they are only printed if they are set explicitly</li>
+<li>The PyXB types for representing dates and times are extensions of those
+used by Python for the same purpose, including the ability to use them in
+expressions</li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="creating-xml-documents-from-binding-instances">
+<span id="to-xml"></span><h2>Creating XML Documents from Binding Instances<a class="headerlink" href="#creating-xml-documents-from-binding-instances" title="Permalink to this headline">¶</a></h2>
+<p>All along we&#8217;ve been seeing how to generate XML from a binding instance.
+The <tt class="docutils literal"><span class="pre">toxml</span></tt> method is short-hand for a sequence that converts the binding
+to a DOM instance using <tt class="docutils literal"><span class="pre">xml.dom.minidom</span></tt>, then uses the DOM interface to
+generate the XML document.</p>
+<p>The <a class="reference external" href="api/pyxb.utils.domutils.BindingDOMSupport-class.html">BindingDOMSupport</a> class provides ways to
+control this generation.  In particular, you may want to use something more
+informative than <tt class="docutils literal"><span class="pre">ns#</span></tt> to denote namespaces in the generated documents.
+This can be done using the following code:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">pyxb.utils.domutils</span>
+<span class="n">pyxb</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">domutils</span><span class="o">.</span><span class="n">BindingDOMSupport</span><span class="o">.</span><span class="n">DeclareNamespace</span><span class="p">(</span><span class="n">address</span><span class="o">.</span><span class="n">Namespace</span><span class="p">,</span> <span class="s">&#39;addr&#39;</span><span class="p">)</span>
+<span class="n">pyxb</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">domutils</span><span class="o">.</span><span class="n">BindingDOMSupport</span><span class="o">.</span><span class="n">DeclareNamespace</span><span class="p">(</span><span class="n">po4</span><span class="o">.</span><span class="n">Namespace</span><span class="p">,</span> <span class="s">&#39;po&#39;</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">po</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>With this, the final document produced is:</p>
+<div class="highlight-python"><pre>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;po:purchaseOrder xmlns:po="URN:purchase-order" orderDate="1999-10-20"&gt;
+  &lt;po:shipTo country="US"&gt;
+    &lt;name&gt;Alice Smith&lt;/name&gt;
+    &lt;street&gt;123 Maple Street&lt;/street&gt;
+    &lt;city&gt;Anytown&lt;/city&gt;
+    &lt;state&gt;AK&lt;/state&gt;
+    &lt;zip&gt;12341&lt;/zip&gt;
+  &lt;/po:shipTo&gt;
+  &lt;po:billTo country="US"&gt;
+    &lt;name&gt;Robert Smith&lt;/name&gt;
+    &lt;street&gt;8 Oak Avenue&lt;/street&gt;
+    &lt;city&gt;Anytown&lt;/city&gt;
+    &lt;state&gt;AK&lt;/state&gt;
+    &lt;zip&gt;12341&lt;/zip&gt;
+  &lt;/po:billTo&gt;
+  &lt;po:items&gt;
+    &lt;po:item partNum="833-AA"&gt;
+      &lt;po:productName&gt;Lapis necklace&lt;/po:productName&gt;
+      &lt;po:quantity&gt;1&lt;/po:quantity&gt;
+      &lt;po:USPrice&gt;99.95&lt;/po:USPrice&gt;
+      &lt;po:comment&gt;Want this for the holidays!&lt;/po:comment&gt;
+      &lt;po:shipDate&gt;1999-12-05&lt;/po:shipDate&gt;
+    &lt;/po:item&gt;
+    &lt;po:item partNum="833-AB"&gt;
+      &lt;po:productName&gt;Plastic necklace&lt;/po:productName&gt;
+      &lt;po:quantity&gt;4&lt;/po:quantity&gt;
+      &lt;po:USPrice&gt;3.95&lt;/po:USPrice&gt;
+      &lt;po:shipDate&gt;1999-12-24&lt;/po:shipDate&gt;
+    &lt;/po:item&gt;
+  &lt;/po:items&gt;
+&lt;/po:purchaseOrder&gt;
+</pre>
+</div>
+<p>(Surprise: <tt class="docutils literal"><span class="pre">addr</span></tt> does not appear, because the <tt class="docutils literal"><span class="pre">nsaddress.xsd</span></tt> schema
+uses the default element form <tt class="docutils literal"><span class="pre">unqualified</span></tt>, so none of the address
+components in the document have a namespace.)</p>
+<div class="section" id="influencing-element-and-mixed-content-order">
+<span id="mixed-content"></span><h3>Influencing Element and Mixed Content Order<a class="headerlink" href="#influencing-element-and-mixed-content-order" title="Permalink to this headline">¶</a></h3>
+<p>PyXB generally expects that any information reflected in the order of elements
+is controlled by the content model in the schema.  Where content includes
+multiple instances of the same element, they are maintained in order within
+the binding attribute corresponding to the name.  Historically relative order
+with other elements or with mixed content historically was not rigorously
+maintained, and generated documents applied only the order enforced by the
+content model.</p>
+<p>The following example from <tt class="docutils literal"><span class="pre">examples/xhtml/generate.py</span></tt> hints at the difficulty:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">pyxb.bundles.common.xhtml1</span> <span class="kn">as</span> <span class="nn">xhtml</span>
+<span class="kn">import</span> <span class="nn">pyxb.utils.domutils</span>
+
+<span class="n">pyxb</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">domutils</span><span class="o">.</span><span class="n">BindingDOMSupport</span><span class="o">.</span><span class="n">SetDefaultNamespace</span><span class="p">(</span><span class="n">xhtml</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span>
+
+<span class="n">head</span> <span class="o">=</span> <span class="n">xhtml</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s">&#39;A Test Document&#39;</span><span class="p">)</span>
+<span class="n">body</span> <span class="o">=</span> <span class="n">xhtml</span><span class="o">.</span><span class="n">body</span><span class="p">()</span>
+<span class="n">body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xhtml</span><span class="o">.</span><span class="n">h1</span><span class="p">(</span><span class="s">&#39;Contents&#39;</span><span class="p">))</span>
+<span class="n">body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xhtml</span><span class="o">.</span><span class="n">p</span><span class="p">(</span><span class="s">&#39;&#39;&#39;Here is some text.</span>
+
+<span class="s">It doesn&#39;t do anything special.&#39;&#39;&#39;</span><span class="p">))</span>
+
+<span class="n">p2</span> <span class="o">=</span> <span class="n">xhtml</span><span class="o">.</span><span class="n">p</span><span class="p">(</span><span class="s">&#39;Here is more text.  It has &#39;</span><span class="p">,</span>
+             <span class="n">xhtml</span><span class="o">.</span><span class="n">b</span><span class="p">(</span><span class="s">&#39;bold&#39;</span><span class="p">),</span>
+             <span class="s">&#39; and &#39;</span><span class="p">,</span>
+             <span class="n">xhtml</span><span class="o">.</span><span class="n">em</span><span class="p">(</span><span class="s">&#39;emphasized&#39;</span><span class="p">),</span>
+             <span class="s">&#39; content with &#39;</span><span class="p">,</span>
+             <span class="n">xhtml</span><span class="o">.</span><span class="n">b</span><span class="p">(</span><span class="s">&#39;more bold&#39;</span><span class="p">),</span>
+             <span class="s">&#39; just to complicate things.&#39;</span><span class="p">)</span>
+<span class="n">body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p2</span><span class="p">)</span>
+
+<span class="c"># Verify we have two b&#39;s and an em</span>
+<span class="k">assert</span> <span class="mi">2</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">p2</span><span class="o">.</span><span class="n">b</span><span class="p">)</span>
+<span class="k">assert</span> <span class="mi">1</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">p2</span><span class="o">.</span><span class="n">em</span><span class="p">)</span>
+
+<span class="c"># Generate the document and externally verify that the em is between the two bs.</span>
+<span class="n">doc</span> <span class="o">=</span> <span class="n">xhtml</span><span class="o">.</span><span class="n">html</span><span class="p">(</span><span class="n">head</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">xmls</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">toDOM</span><span class="p">()</span><span class="o">.</span><span class="n">toprettyxml</span><span class="p">()</span>
+<span class="k">except</span> <span class="n">pyxb</span><span class="o">.</span><span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">details</span><span class="p">())</span>
+    <span class="k">raise</span>
+<span class="nb">open</span><span class="p">(</span><span class="s">&#39;genout.xhtml&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">xmls</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If the relative order of elements and mixed content were not maintained, this
+might produce something like:</p>
+<div class="highlight-python"><pre>&lt;?xml version="1.0" ?&gt;
+&lt;html xmlns="http://www.w3.org/1999/xhtml"&gt;
+	&lt;head&gt;
+		&lt;title/&gt;
+	&lt;/head&gt;
+	&lt;body&gt;
+		&lt;h1/&gt;
+		&lt;p/&gt;
+		&lt;p&gt;
+			&lt;b/&gt;
+			&lt;b/&gt;
+			&lt;em/&gt;
+		&lt;/p&gt;
+	&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+</div>
+<p>Here mixed content is lost, and element content is emitted in the order that
+elements appear in the original schema.</p>
+<p>As of release 1.2.1 <a class="footnote-reference" href="#content" id="id1">[1]</a>, PyXB appends both element and non-element content to a
+list in each complex binding instance.  The list may be obtained using the
+<a class="reference external" href="api/pyxb.binding.basis.complexTypeDefinition-class.html#orderedContent">orderedContent</a> method.  The list
+comprises instances of <a class="reference external" href="api/pyxb.binding.basis.ElementContent-class.html">ElementContent</a> and
+<a class="reference external" href="api/pyxb.binding.basis.NonElementContent-class.html">NonElementContent</a> added in the order in which they were
+added to the binding instance: when creating the instance from a document or
+through a constructor, or by invoking the
+<a class="reference external" href="api/pyxb.binding.basis.complexTypeDefinition-class.html#append">append</a> or
+<a class="reference external" href="api/pyxb.binding.basis.complexTypeDefinition-class.html#extend">extend</a> methods to add
+content consistent with the content model.</p>
+<p>The <a class="reference external" href="api/pyxb.ValidationConfig-class.html#contentInfluencesGeneration">contentInfluencesGeneration</a> flag of
+<a class="reference external" href="api/pyxb.ValidationConfig-class.html">ValidationConfig</a> controls how the <tt class="docutils literal"><span class="pre">orderedContent</span></tt> list affects
+generation of documents (both DOM directly and XML indirectly).  With the
+default value of <a class="reference external" href="api/pyxb.ValidationConfig-class.html#MIXED_ONLY">MIXED_ONLY</a> the
+<tt class="docutils literal"><span class="pre">orderedContent</span></tt> list is only consulted when a complex type allows both
+element and non-element content.</p>
+<p>The bundle for XHTML has been modified to use:</p>
+<ul class="simple">
+<li><a class="reference external" href="api/pyxb.ValidationConfig-class.html#ALWAYS">ALWAYS</a> for <a class="reference external" href="api/pyxb.ValidationConfig-class.html#contentInfluencesGeneration">contentInfluencesGeneration</a></li>
+<li><a class="reference external" href="api/pyxb.ValidationConfig-class.html#RAISE_EXCEPTION">RAISE_EXCEPTION</a> for
+<a class="reference external" href="api/pyxb.ValidationConfig-class.html#orphanElementInContent">orphanElementInContent</a></li>
+<li><a class="reference external" href="api/pyxb.ValidationConfig-class.html#RAISE_EXCEPTION">RAISE_EXCEPTION</a> for
+<a class="reference external" href="api/pyxb.ValidationConfig-class.html#invalidElementInContent">invalidElementInContent</a></li>
+</ul>
+<p>for all binding classes in that module.  (See
+<tt class="docutils literal"><span class="pre">pyxb/bundles/common/xhtml1.py</span></tt> for the technique used.)  This ensures
+preservation of element order in cases where no non-element content may appear
+(such as the top-level <tt class="docutils literal"><span class="pre">body</span></tt> element).</p>
+<p>With this capability the following document is generated:</p>
+<div class="highlight-python"><pre>&lt;?xml version="1.0" ?&gt;
+&lt;html xmlns="http://www.w3.org/1999/xhtml"&gt;
+	&lt;head&gt;
+		&lt;title&gt;A Test Document&lt;/title&gt;
+	&lt;/head&gt;
+	&lt;body&gt;
+		&lt;h1&gt;Contents&lt;/h1&gt;
+		&lt;p&gt;Here is some text.
+
+It doesn't do anything special.&lt;/p&gt;
+		&lt;p&gt;
+			Here is more text.  It has 
+			&lt;b&gt;bold&lt;/b&gt;
+			 and 
+			&lt;em&gt;emphasized&lt;/em&gt;
+			 content with 
+			&lt;b&gt;more bold&lt;/b&gt;
+			 just to complicate things.
+		&lt;/p&gt;
+	&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+</div>
+<p>Be aware that the automatically-maintained <tt class="docutils literal"><span class="pre">orderedContent</span></tt> list will be
+incorrect in at least two cases:</p>
+<ul>
+<li><p class="first">When the elements of an instance are mutated through Python code, the list
+no longer reflects the correct order;</p>
+</li>
+<li><p class="first">When elements are appended directly to sub-elements as with:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">p2</span><span class="o">.</span><span class="n">b</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;another bit of bold&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>the newly added elements do not appear in the <tt class="docutils literal"><span class="pre">orderedContent</span></tt> list.</p>
+</li>
+</ul>
+<p>The value returned by <a class="reference external" href="api/pyxb.binding.basis.complexTypeDefinition-class.html#orderedContent">orderedContent</a> is a mutable list
+so that you can manipulate it to reflect the content you wish to have
+generated.</p>
+<p>Where the <tt class="docutils literal"><span class="pre">orderedContent</span></tt> list is not consistent with the content model
+(e.g., references elements that are no longer part of the binding instance, or
+proposes an order that is not valid) various exceptions may arise.  To some
+extent this can be controlled through the <a class="reference external" href="api/pyxb.ValidationConfig-class.html#orphanElementInContent">orphanElementInContent</a> and
+<a class="reference external" href="api/pyxb.ValidationConfig-class.html#invalidElementInContent">invalidElementInContent</a>
+flags.</p>
+<table class="docutils footnote" frame="void" id="content" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>Though previous versions also provided this information through
+a <tt class="docutils literal"><span class="pre">content</span></tt> list, the list did not associate content with the element to
+which it belonged making it difficult to reconstruct a valid document.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Using Binding Classes</a><ul>
+<li><a class="reference internal" href="#creating-instances-from-xml-documents">Creating Instances from XML Documents</a><ul>
+<li><a class="reference internal" href="#locating-invalid-content">Locating Invalid Content</a></li>
+<li><a class="reference internal" href="#coping-with-wrong-xsi-type-attributes">Coping With Wrong <tt class="docutils literal"><span class="pre">xsi:type</span></tt> Attributes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#creating-instances-in-python-code">Creating Instances in Python Code</a><ul>
+<li><a class="reference internal" href="#creating-instances-of-anonymous-types">Creating Instances of Anonymous Types</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#creating-xml-documents-from-binding-instances">Creating XML Documents from Binding Instances</a><ul>
+<li><a class="reference internal" href="#influencing-element-and-mixed-content-order">Influencing Element and Mixed Content Order</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="userref_pyxbgen.html"
+                        title="previous chapter">Generating Binding Classes</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="userref_validating.html"
+                        title="next chapter">Debugging Validation Errors</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/userref_usebind.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="userref_validating.html" title="Debugging Validation Errors"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="userref_pyxbgen.html" title="Generating Binding Classes"
+             >previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+          <li><a href="userref_index.html" >User Reference</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009-2013, Peter A. Bigot.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

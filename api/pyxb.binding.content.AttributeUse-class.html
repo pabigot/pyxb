@@ -1,0 +1,854 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.binding.content.AttributeUse</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.binding-module.html">Package&nbsp;binding</a> ::
+        <a href="pyxb.binding.content-module.html">Module&nbsp;content</a> ::
+        Class&nbsp;AttributeUse
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.binding.content.AttributeUse-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== TYPE DESCRIPTION ==================== -->
+<h1 class="epydoc">type AttributeUse</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+object --+    
+         |    
+   <a href="pyxb.cscRoot-class.html">cscRoot</a> --+
+             |
+            <strong class="uidshort">AttributeUse</strong>
+</pre>
+
+<hr />
+<p>A helper class that encapsulates everything we need to know about the 
+  way an attribute is used within a binding class.</p>
+  <p>Attributes are stored internally as pairs <code>(provided, 
+  value)</code>, where <code>provided</code> is a boolean indicating 
+  whether a value for the attribute was provided externally, and 
+  <code>value</code> is an instance of the attribute datatype.  The 
+  <code>provided</code> flag is used to determine whether an XML attribute 
+  should be added to a created DOM node when generating the XML 
+  corresponding to a binding instance.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.content.AttributeUse-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>,
+        <span class="summary-sig-arg">id</span>,
+        <span class="summary-sig-arg">key</span>,
+        <span class="summary-sig-arg">data_type</span>,
+        <span class="summary-sig-arg">unicode_default</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">fixed</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">required</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">prohibited</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Create an AttributeUse instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><a href="pyxb.namespace.ExpandedName-class.html" 
+      class="link">pyxb.namespace.ExpandedName</a></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="name"></a><span class="summary-sig-name">name</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      The expanded name of the element.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.name">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="defaultValue"></a><span class="summary-sig-name">defaultValue</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      The default value of the attribute.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.defaultValue">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="fixed"></a><span class="summary-sig-name">fixed</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      <code>True</code> iff the value of the attribute cannot be changed.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.fixed">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="required"></a><span class="summary-sig-name">required</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      <code>True</code> iff the attribute must be assigned a value.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.required">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="prohibited"></a><span class="summary-sig-name">prohibited</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      <code>True</code> iff the attribute must not be assigned a value.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.prohibited">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.content.AttributeUse-class.html#provided" class="summary-sig-name">provided</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">ctd_instance</span>)</span><br />
+      <code>True</code> iff the given instance has been explicitly given a 
+      value for the attribute.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.provided">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.content.AttributeUse-class.html#id" class="summary-sig-name">id</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Tag used within Python code for the attribute.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.id">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="key"></a><span class="summary-sig-name">key</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      String used as key within object dictionary when storing attribute 
+      value.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.key">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="dataType"></a><span class="summary-sig-name">dataType</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      The subclass of <a 
+      href="pyxb.binding.basis.simpleTypeDefinition-class.html" 
+      class="link">pyxb.binding.basis.simpleTypeDefinition</a> of which any
+      attribute value must be an instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.dataType">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.content.AttributeUse-class.html#__getValue" class="summary-sig-name" onclick="show_private();">__getValue</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">ctd_instance</span>)</span><br />
+      Retrieve the value information for this attribute in a binding 
+      instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.__getValue">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__getProvided"></a><span class="summary-sig-name">__getProvided</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">ctd_instance</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.__getProvided">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="value"></a><span class="summary-sig-name">value</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">ctd_instance</span>)</span><br />
+      Get the value of the attribute from the instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.value">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__setValue"></a><span class="summary-sig-name">__setValue</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">ctd_instance</span>,
+        <span class="summary-sig-arg">new_value</span>,
+        <span class="summary-sig-arg">provided</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.__setValue">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="reset"></a><span class="summary-sig-name">reset</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">ctd_instance</span>)</span><br />
+      Set the value of the attribute in the given instance to be its 
+      default value, and mark that it has not been provided.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.reset">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="addDOMAttribute"></a><span class="summary-sig-name">addDOMAttribute</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dom_support</span>,
+        <span class="summary-sig-arg">ctd_instance</span>,
+        <span class="summary-sig-arg">element</span>)</span><br />
+      If this attribute as been set, add the corresponding attribute to the
+      DOM element.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.addDOMAttribute">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.content.AttributeUse-class.html#validate" class="summary-sig-name">validate</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">ctd_instance</span>)</span><br />
+      Validate the instance against the requirements imposed by this 
+      attribute use.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.validate">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.content.AttributeUse-class.html#set" class="summary-sig-name">set</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">ctd_instance</span>,
+        <span class="summary-sig-arg">new_value</span>,
+        <span class="summary-sig-arg">from_xml</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Set the value of the attribute.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.set">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_description"></a><span class="summary-sig-name">_description</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name_only</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">user_documentation</span>=<span class="summary-sig-default">True</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse._description">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__name"></a><span class="summary-name">__name</span> = <code title="None">None</code><br />
+      ExpandedName of the attribute
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__id"></a><span class="summary-name">__id</span> = <code title="None">None</code><br />
+      Identifier used for this attribute within the owning class
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__key"></a><span class="summary-name">__key</span> = <code title="None">None</code><br />
+      Private Python attribute used in instances to hold the attribute 
+      value
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__dataType"></a><span class="summary-name">__dataType</span> = <code title="None">None</code><br />
+      The <a href="pyxb.binding.basis.simpleTypeDefinition-class.html" 
+      class="link">pyxb.binding.basis.simpleTypeDefinition</a> for values 
+      of the attribute
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__unicodeDefault"></a><span class="summary-name">__unicodeDefault</span> = <code title="None">None</code><br />
+      The default attribute value as a unicode string, or <code>None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__defaultValue"></a><span class="summary-name">__defaultValue</span> = <code title="None">None</code><br />
+      The default value as an instance of <a 
+      href="pyxb.binding.content.AttributeUse-class.html#__dataType" 
+      class="link" onclick="show_private();">__dataType</a>, or 
+      <code>None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__fixed"></a><span class="summary-name">__fixed</span> = <code title="False">False</code><br />
+      <code>True</code> if the attribute value cannot be changed
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__required"></a><span class="summary-name">__required</span> = <code title="False">False</code><br />
+      <code>True</code> if the attribute must appear in every instance of 
+      the type
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__prohibited"></a><span class="summary-name">__prohibited</span> = <code title="False">False</code><br />
+      <code>True</code> if the attribute must not appear in any instance of
+      the type
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>,
+        <span class="sig-arg">id</span>,
+        <span class="sig-arg">key</span>,
+        <span class="sig-arg">data_type</span>,
+        <span class="sig-arg">unicode_default</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">fixed</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">required</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">prohibited</span>=<span class="sig-default">False</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Create an AttributeUse instance.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>name</code></strong> (<a href="pyxb.namespace.ExpandedName-class.html" 
+          class="link">pyxb.namespace.ExpandedName</a>) - The name by which the attribute is referenced in the XML</li>
+        <li><strong class="pname"><code>id</code></strong> (<code>str</code>) - The Python identifier for the attribute within the containing <a 
+          href="pyxb.binding.basis.complexTypeDefinition-class.html" 
+          class="link">pyxb.basis.binding.complexTypeDefinition</a>.  This 
+          is a public identifier, derived from the local part of the 
+          attribute name and modified to be unique, and is usually used as 
+          the name of the attribute's inspector method.</li>
+        <li><strong class="pname"><code>key</code></strong> (<code>str</code>) - The string used to store the attribute value in the dictionary of
+          the containing <a 
+          href="pyxb.binding.basis.complexTypeDefinition-class.html" 
+          class="link">pyxb.basis.binding.complexTypeDefinition</a>.  This 
+          is mangled so that it is unique among and is treated as a Python 
+          private member.</li>
+        <li><strong class="pname"><code>data_type</code></strong> (<code>type</code>) - The class reference to the subclass of <a 
+          href="pyxb.binding.basis.simpleTypeDefinition-class.html" 
+          class="link">pyxb.binding.basis.simpleTypeDefinition</a> of which
+          the attribute values must be instances.</li>
+        <li><strong class="pname"><code>unicode_default</code></strong> (<code>unicode</code>) - The default value of the attribute as specified in the schema, or
+          None if there is no default attribute value.  The default value 
+          (of the keyword) is <code>None</code>.</li>
+        <li><strong class="pname"><code>fixed</code></strong> (<code>bool</code>) - If <code>True</code>, indicates that the attribute, if present, 
+          must have the value that was given via 
+          <code>unicode_default</code>.  The default value is 
+          <code>False</code>.</li>
+        <li><strong class="pname"><code>required</code></strong> (<code>bool</code>) - If <code>True</code>, indicates that the attribute must appear in
+          the DOM node used to create an instance of the corresponding <a 
+          href="pyxb.binding.basis.complexTypeDefinition-class.html" 
+          class="link">pyxb.binding.basis.complexTypeDefinition</a>.  The 
+          default value is <code>False</code>.  No more that one of <a 
+          href="pyxb.binding.content.AttributeUse-class.html#required" 
+          class="link">required</a> and <a 
+          href="pyxb.binding.content.AttributeUse-class.html#prohibited" 
+          class="link">prohibited</a> should be assigned <code>True</code>.</li>
+        <li><strong class="pname"><code>prohibited</code></strong> (<code>bool</code>) - If <code>True</code>, indicates that the attribute must 
+          <b>not</b> appear in the DOM node used to create an instance of 
+          the corresponding <a 
+          href="pyxb.binding.basis.complexTypeDefinition-class.html" 
+          class="link">pyxb.binding.basis.complexTypeDefinition</a>.  The 
+          default value is <code>False</code>.  No more that one of <a 
+          href="pyxb.binding.content.AttributeUse-class.html#required" 
+          class="link">required</a> and <a 
+          href="pyxb.binding.content.AttributeUse-class.html#prohibited" 
+          class="link">prohibited</a> should be assigned <code>True</code>.</li>
+    </ul></dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="pyxb.exceptions_.SimpleTypeValueError-class.html">pyxb.SimpleTypeValueError</a></strong></code> - the <code class="link">unicode_default</code> cannot be used to 
+        initialize an instance of <code class="link">data_type</code></li>
+    </ul></dd>
+    <dt>Overrides:
+        <a href="pyxb.cscRoot-class.html#__init__">cscRoot.__init__</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="provided"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">provided</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">ctd_instance</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.provided">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p><code>True</code> iff the given instance has been explicitly given a 
+  value for the attribute.</p>
+  <p>This is used for things like only generating an XML attribute 
+  assignment when a value was originally given (even if that value happens 
+  to be the default).</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="id"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">id</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.id">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Tag used within Python code for the attribute.</p>
+  <p>This is not used directly in the default code generation template.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__getValue"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__getValue</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">ctd_instance</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.__getValue">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Retrieve the value information for this attribute in a binding 
+  instance.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>ctd_instance</code></strong> (subclass of <a 
+          href="pyxb.binding.basis.complexTypeDefinition-class.html" 
+          class="link">pyxb.binding.basis.complexTypeDefinition</a>) - The instance object from which the attribute is to be retrieved.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd><code>(provided, value)</code> where <code>provided</code> is a 
+          <code>bool</code> and <code>value</code> is <code>None</code> or 
+          an instance of the attribute's datatype.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="validate"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">validate</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">ctd_instance</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.validate">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Validate the instance against the requirements imposed by this 
+  attribute use.</p>
+  <p>There is no return value; calls raise an exception if the content does
+  not validate.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>ctd_instance</code></strong> - An instance of a complex type definition.</li>
+    </ul></dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="pyxb.exceptions_.ProhibitedAttributeError-class.html">pyxb.ProhibitedAttributeError</a></strong></code> - when instance has attribute but must not</li>
+        <li><code><strong class='fraise'><a href="pyxb.exceptions_.MissingAttributeError-class.html">pyxb.MissingAttributeError</a></strong></code> - when instance lacks attribute but must have it (including when a 
+        required fixed-value attribute is missing).</li>
+        <li><code><strong class='fraise'>pyxb.BatchContentValidationError</strong></code> - when instance has attribute but its value is not acceptable</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="set"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">set</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">ctd_instance</span>,
+        <span class="sig-arg">new_value</span>,
+        <span class="sig-arg">from_xml</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.content-pysrc.html#AttributeUse.set">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Set the value of the attribute.</p>
+  <p>This validates the value against the data type, creating a new 
+  instance if necessary.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>ctd_instance</code></strong> (subclass of <a 
+          href="pyxb.binding.basis.complexTypeDefinition-class.html" 
+          class="link">pyxb.binding.basis.complexTypeDefinition</a>) - The binding instance for which the attribute value is to be set</li>
+        <li><strong class="pname"><code>new_value</code></strong> (Any value that is permitted as the input parameter to the 
+          <code>Factory</code> method of the attribute's datatype.) - The value for the attribute</li>
+        <li><strong class="pname"><code>from_xml</code></strong> - Value <code>True</code> iff the new_value is known to be in 
+          lexical space and must by converted by the type factory.  If 
+          <code>False</code> (default) the value is only converted if it is
+          not already an instance of the attribute's underlying type.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:36 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

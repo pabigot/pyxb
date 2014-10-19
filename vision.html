@@ -1,0 +1,240 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>PyXB Vision &mdash; PyXB 1.2.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.2.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyXB 1.2.3 documentation" href="index.html" />
+    <link rel="up" title="Overview" href="overview.html" />
+    <link rel="next" title="Related Packages" href="related.html" />
+    <link rel="prev" title="License and Disclaimers" href="legal.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="related.html" title="Related Packages"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="legal.html" title="License and Disclaimers"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+          <li><a href="overview.html" accesskey="U">Overview</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="pyxb-vision">
+<span id="id1"></span><h1>PyXB Vision<a class="headerlink" href="#pyxb-vision" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This historical document was written in early 2009 prior to PyXB
+development in order to bound the scope of the project and record the
+critical use cases.  It has not been updated in response to lessons
+learned during development.</p>
+</div>
+<p>PyXB is intended to support automated generation of Python language classes
+that conform in structure to data types defined with the W3C XML Schema.</p>
+<div class="section" id="origins">
+<h2>Origins<a class="headerlink" href="#origins" title="Permalink to this headline">¶</a></h2>
+<p>PyXB was developed to support interaction with arbitrary web services from
+Python.</p>
+<p>Service oriented architecture, specifically in the form of web services, has
+gained much traction in recent years.  While languages like Java and C++
+have a variety of commmercial, free, and open source utilities to help
+bridge the gap between web service standards and software, Python has been
+much less developed.  Built-in support is limited to processing of XML
+documents.</p>
+<p>Some external packages are available to support SOAP and WSDL, but they were
+found to be unsatisfactory for a variety of reasons, both an inability to
+process complex schema like those for KML or SAML and a Python interface
+that was not natural.</p>
+<div class="section" id="generateds">
+<h3>generateDS<a class="headerlink" href="#generateds" title="Permalink to this headline">¶</a></h3>
+<p>Reliance on a SAX processor, and use of a code generation scheme that was
+difficult to modify, made the code difficult to work with.  It seemed
+infeasible to extend the implementation to support Pythonic schema bindings
+that used different styles.</p>
+</div>
+<div class="section" id="zsi">
+<h3>ZSI<a class="headerlink" href="#zsi" title="Permalink to this headline">¶</a></h3>
+<p>This system supports generation of bindings that allow web services to be
+invoked, but XML schema support is secondary to SOAP and WSDL.</p>
+</div>
+</div>
+<div class="section" id="design-goals">
+<h2>Design Goals<a class="headerlink" href="#design-goals" title="Permalink to this headline">¶</a></h2>
+<p>PyXB must be able to process the schema used to describe standard web
+services documents, including but not limited to the following namespaces:</p>
+<ul class="simple">
+<li>[XMLSchema]</li>
+<li>[wsdl]</li>
+<li>[soap]</li>
+<li>[soap bindings]</li>
+<li>[http bindings]</li>
+<li>[mime bindings]</li>
+</ul>
+<p>Standard conformance is a high priority.  In addition to official standards
+such as those from W3C and OASIS, industry prevalence should guide selection
+among conflicting standards.  This applies not only to standards that are
+supported by PyXB, but those used in its development.</p>
+<p>Python data structures bound to data types in these namespace should be as
+close as possible to those that would have been hand-written by a user.  As
+an example, elements that may only appear once should correspond to fields
+with a object value; those that may appear multiple times should correspond
+to fields with an iterator value.  Values recognized through a model group
+definition should be broken down into direct references to the underlying
+element (not passed through some intermediate structure).</p>
+<p>Speed of the resulting bindings when used within Python code is a secondary
+concern to usability of the bindings.  Speed of conversion between bound
+objects and XML is a tertiary concern.</p>
+<p>The bindings must be able to generate Python objects corresponding to the
+data held within an XML document that validates against the schema from
+which the bindings were derived.</p>
+<p>The bindings must be able to generate XML that conforms to the schema from
+which they were derived.</p>
+<p>A facility must be provided through which custom behavior can be attached to
+the Python objects derived from PyXB.</p>
+<p>PyXB should support generating a module on a per-namespace basis.  The
+module should include the necessary information to process schemas that
+depend on the namespace, as well as bindings for the namespace.  Modules
+supporting the namespaces listed above should be provided along with PyXB.
+It should be possible for users to dynamically add available namespaces.</p>
+<p>It should be possible to customize the generated binding code.  It is a goal
+to allow PyXB to generate code for other languages, though the
+capabilities of that code may be inherently limited or require additional
+tools.</p>
+<p>PyXB and its generated bindings must work with a relatively current Python
+2.x installation.  Bindings generated by PyXB must require no packages or
+external programs except those that come as part of a standard Python
+distribution.  At a minimum, bindings must be supported by Python
+distributions 2.3 and later.</p>
+<p>While the generated bindings should not require additional packages, they
+should allow use of such packages when available.  For example, use in a
+system that provided a high-speed DOM implementation that would improve
+performance should not be excluded.</p>
+<p>PyXB itself should require no additional Python packages except those that
+come as part of a standard Python package.  There may be additional
+functionality that is supported when certain packages are available.  At a
+minimum, PyXB SHOULD run under Python version 2.4 and later.</p>
+<p>It is acceptable to require that the schemas processed by PyXB validate
+against the W3C specification.  PyXB is not itself required to perform any
+validation.  Given an invalid schema, PyXB SHOULD provide a diagnostic
+indicating any fault that prevents processing of the schema.</p>
+<p>It is not required that generated bindings support validation of instance
+documents.  This function may be added through a customized binding
+generator.</p>
+<p>It should be possible to implement PyXB in terms of the bindings it
+generates from the XMLSchema namespace.  At least conceptually.</p>
+<p>The licensing of PyXB and code it generates should be consistent with the
+Open Source Definition.  An exception is acceptable for material produced by
+a custom generator that does not incorporate PyXB material in its output.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">PyXB Vision</a><ul>
+<li><a class="reference internal" href="#origins">Origins</a><ul>
+<li><a class="reference internal" href="#generateds">generateDS</a></li>
+<li><a class="reference internal" href="#zsi">ZSI</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#design-goals">Design Goals</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="legal.html"
+                        title="previous chapter">License and Disclaimers</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="related.html"
+                        title="next chapter">Related Packages</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/vision.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="related.html" title="Related Packages"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="legal.html" title="License and Disclaimers"
+             >previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+          <li><a href="overview.html" >Overview</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009-2013, Peter A. Bigot.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

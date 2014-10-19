@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.binding.facets</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.binding-module.html">Package&nbsp;binding</a> ::
+        Module&nbsp;facets
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.binding.facets-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module facets</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.binding.facets-pysrc.html">source&nbsp;code</a></span></p>
+<p>Classes related to XMLSchema facets.</p>
+  <p>The definitions herein are from sections <a 
+  href="http://www.w3.org/TR/xmlschema-2/index.html#rf-facets" 
+  target="_top">4.2</a> and <a 
+  href="http://www.w3.org/TR/xmlschema-2/index.html#rf-facets" 
+  target="_top">4.3</a> of <a href="http://www.w3.org/TR/xmlschema-2/" 
+  target="_top">XML Schema Part 2: Datatypes</a>. Facets are attributes of 
+  a datatype that constrain its lexical and value spaces.</p>
+
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Classes</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Classes"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.Facet-class.html" class="summary-name">Facet</a><br />
+      The base class for facets.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.ConstrainingFacet-class.html" class="summary-name">ConstrainingFacet</a><br />
+      One of the facets defined in section 4.3, which provide constraints
+        on the lexical space of a type definition.
+    </td>
+  </tr>
+<tr class="private">
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets._LateDatatype_mixin-class.html" class="summary-name" onclick="show_private();">_LateDatatype_mixin</a><br />
+      Marker class to indicate that the facet instance must be told its 
+        datatype when it is constructed.
+    </td>
+  </tr>
+<tr class="private">
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets._Fixed_mixin-class.html" class="summary-name" onclick="show_private();">_Fixed_mixin</a><br />
+      Mix-in to a constraining facet that adds support for the 'fixed' 
+        property.
+    </td>
+  </tr>
+<tr class="private">
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets._CollectionFacet_mixin-class.html" class="summary-name" onclick="show_private();">_CollectionFacet_mixin</a><br />
+      Mix-in to handle facets whose values are collections, not scalars.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.CF_length-class.html" class="summary-name">CF_length</a><br />
+      A facet that specifies the length of the lexical representation of 
+        a value.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.CF_minLength-class.html" class="summary-name">CF_minLength</a><br />
+      A facet that constrains the length of the lexical representation of
+        a value.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.CF_maxLength-class.html" class="summary-name">CF_maxLength</a><br />
+      A facet that constrains the length of the lexical representation of
+        a value.
+    </td>
+  </tr>
+<tr class="private">
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets._PatternElement-class.html" class="summary-name" onclick="show_private();">_PatternElement</a><br />
+      This class represents individual patterns that appear within a 
+        CF_pattern collection.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.CF_pattern-class.html" class="summary-name">CF_pattern</a><br />
+      A facet that constrains the lexical representation of a value to 
+        match one of a set of patterns.
+    </td>
+  </tr>
+<tr class="private">
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets._EnumerationElement-class.html" class="summary-name" onclick="show_private();">_EnumerationElement</a><br />
+      This class represents individual values that appear within a <a 
+        href="pyxb.binding.facets.CF_enumeration-class.html" 
+        class="link">CF_enumeration</a> collection.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.CF_enumeration-class.html" class="summary-name">CF_enumeration</a><br />
+      Capture a constraint that restricts valid values to a fixed set.
+    </td>
+  </tr>
+<tr class="private">
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets._Enumeration_mixin-class.html" class="summary-name" onclick="show_private();">_Enumeration_mixin</a><br />
+      Marker class to indicate that the generated binding has enumeration
+        members.
+    </td>
+  </tr>
+<tr class="private">
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets._WhiteSpace_enum-class.html" class="summary-name" onclick="show_private();">_WhiteSpace_enum</a><br />
+      The enumeration used to constrain the whiteSpace facet
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.CF_whiteSpace-class.html" class="summary-name">CF_whiteSpace</a><br />
+      Specify the value-space interpretation of whitespace.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.CF_minInclusive-class.html" class="summary-name">CF_minInclusive</a><br />
+      Specify the minimum legal value for the constrained type.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.CF_maxInclusive-class.html" class="summary-name">CF_maxInclusive</a><br />
+      Specify the maximum legal value for the constrained type.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.CF_minExclusive-class.html" class="summary-name">CF_minExclusive</a><br />
+      Specify the exclusive lower bound of legal values for the 
+        constrained type.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.CF_maxExclusive-class.html" class="summary-name">CF_maxExclusive</a><br />
+      Specify the exclusive upper bound of legal values for the 
+        constrained type.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.CF_totalDigits-class.html" class="summary-name">CF_totalDigits</a><br />
+      Specify the number of digits in the *value* space of the type.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.CF_fractionDigits-class.html" class="summary-name">CF_fractionDigits</a><br />
+      Specify the number of sub-unit digits in the *value* space of the 
+        type.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.FundamentalFacet-class.html" class="summary-name">FundamentalFacet</a><br />
+      A fundamental facet provides information on the value space of the 
+        associated type.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.FF_equal-class.html" class="summary-name">FF_equal</a><br />
+      Specifies that the associated type supports a notion of equality.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.FF_ordered-class.html" class="summary-name">FF_ordered</a><br />
+      Specifies that the associated type supports a notion of order.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.FF_bounded-class.html" class="summary-name">FF_bounded</a><br />
+      Specifies that the associated type supports a notion of bounds.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.FF_cardinality-class.html" class="summary-name">FF_cardinality</a><br />
+      Specifies that the associated type supports a notion of length.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.facets.FF_numeric-class.html" class="summary-name">FF_numeric</a><br />
+      Specifies that the associated type represents a number.
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Variables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_log"></a><span class="summary-name">_log</span> = <code title="logging.getLogger(__name__)">logging.getLogger(__name__)</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'pyxb.binding'"><code class="variable-quote">'</code><code class="variable-string">pyxb.binding</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:36 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

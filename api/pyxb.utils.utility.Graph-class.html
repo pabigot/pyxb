@@ -1,0 +1,924 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.utils.utility.Graph</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.utils-module.html">Package&nbsp;utils</a> ::
+        <a href="pyxb.utils.utility-module.html">Module&nbsp;utility</a> ::
+        Class&nbsp;Graph
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.utils.utility.Graph-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASSOBJ DESCRIPTION ==================== -->
+<h1 class="epydoc">classobj Graph</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph">source&nbsp;code</a></span></p>
+<p>Represent a directed graph with arbitrary objects as nodes.</p>
+  <p>This is used in the <a 
+  href="pyxb.binding.generate.Generator-class.html" class="link">code 
+  generator</a> to determine order dependencies among components within a 
+  namespace, and schema that comprise various namespaces.  An edge from 
+  <code>source</code> to <code>target</code> indicates that some aspect of 
+  <code>source</code> requires that some aspect of <code>target</code> 
+  already be available.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__init__"></a><span class="summary-sig-name">__init__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">root</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility.Graph-class.html#addEdge" class="summary-sig-name">addEdge</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">source</span>,
+        <span class="summary-sig-arg">target</span>)</span><br />
+      Add a directed edge from the <code>source</code> to the 
+      <code>target</code>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.addEdge">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="addNode"></a><span class="summary-sig-name">addNode</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">node</span>)</span><br />
+      Add  the given node to the graph.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.addNode">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code>set</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility.Graph-class.html#roots" class="summary-sig-name">roots</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">reset</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Return the set of nodes calculated to be roots (i.e., those that have
+      no incoming edges).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.roots">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility.Graph-class.html#addRoot" class="summary-sig-name">addRoot</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">root</span>)</span><br />
+      Add the provided node as a root node, even if it has incoming edges.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.addRoot">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility.Graph-class.html#edgeMap" class="summary-sig-name">edgeMap</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the edges in the graph.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.edgeMap">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility.Graph-class.html#edges" class="summary-sig-name">edges</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the edges in the graph.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.edges">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility.Graph-class.html#nodes" class="summary-sig-name">nodes</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the set of nodes in the graph.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.nodes">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility.Graph-class.html#tarjan" class="summary-sig-name">tarjan</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">reset</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Execute Tarjan's algorithm on the graph.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.tarjan">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_tarjan"></a><span class="summary-sig-name">_tarjan</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">v</span>)</span><br />
+      Do the work of Tarjan's algorithm for a given root node.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph._tarjan">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility.Graph-class.html#scc" class="summary-sig-name">scc</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">reset</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Return the strongly-connected components of the graph.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.scc">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility.Graph-class.html#sccMap" class="summary-sig-name">sccMap</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">reset</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Return a map from nodes to the strongly-connected component to which 
+      the node belongs.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.sccMap">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility.Graph-class.html#sccOrder" class="summary-sig-name">sccOrder</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">reset</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Return the strongly-connected components in order.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.sccOrder">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility.Graph-class.html#sccForNode" class="summary-sig-name">sccForNode</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">node</span>,
+        <span class="summary-sig-arg">**kw</span>)</span><br />
+      Return the strongly-connected component to which the given node 
+      belongs.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.sccForNode">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="cyclomaticComplexity"></a><span class="summary-sig-name">cyclomaticComplexity</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the cyclomatic complexity of the graph.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.cyclomaticComplexity">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__dfsWalk"></a><span class="summary-sig-name">__dfsWalk</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">source</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.__dfsWalk">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_generateDOT"></a><span class="summary-sig-name">_generateDOT</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">title</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">UNKNOWN</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">labeller</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph._generateDOT">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility.Graph-class.html#dfsOrder" class="summary-sig-name">dfsOrder</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">reset</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Return the nodes of the graph in <a 
+      href="http://en.wikipedia.org/wiki/Depth-first_search" 
+      target="_top">depth-first-search order</a>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.dfsOrder">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility.Graph-class.html#rootSetOrder" class="summary-sig-name">rootSetOrder</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the nodes of the graph as a sequence of root sets.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.rootSetOrder">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__dfsOrder"></a><span class="summary-name">__dfsOrder</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__roots"></a><span class="summary-name">__roots</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__edgeMap"></a><span class="summary-name">__edgeMap</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__scc"></a><span class="summary-name">__scc</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__sccMap"></a><span class="summary-name">__sccMap</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__sccOrder"></a><span class="summary-name">__sccOrder</span> = <code title="None">None</code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="addEdge"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">addEdge</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">source</span>,
+        <span class="sig-arg">target</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.addEdge">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Add a directed edge from the <code>source</code> to the 
+  <code>target</code>.</p>
+  <p>The nodes are added to the graph if necessary.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="roots"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">roots</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">reset</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.roots">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the set of nodes calculated to be roots (i.e., those that have 
+  no incoming edges).</p>
+  <p>This caches the roots calculated in a previous invocation unless the 
+  <code>reset</code> keyword is given the value <code>True</code>.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>reset</code></strong> - If <code>True</code>, any cached value is discarded and 
+          recomputed.  No effect if <code>False</code> (defalut).</li>
+    </ul></dd>
+    <dt>Returns: <code>set</code></dt>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        Upon reset, any notes that had been manually added using <a 
+        href="pyxb.utils.utility.Graph-class.html#addNode" 
+        class="link">addNode</a> will no longer be in the set.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="addRoot"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">addRoot</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">root</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.addRoot">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Add the provided node as a root node, even if it has incoming 
+  edges.</p>
+  <p>The node need not be present in the graph (if necessary, it is 
+  added).</p>
+  <p>Note that roots added in this way do not survive a reset using <a 
+  href="pyxb.utils.utility.Graph-class.html#roots" 
+  class="link">roots</a>.</p>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd><code>self</code></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="edgeMap"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">edgeMap</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.edgeMap">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the edges in the graph.</p>
+  <p>The edge data structure is a map from the source node to the set of 
+  nodes that can be reached in a single step from the source.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="edges"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">edges</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.edges">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the edges in the graph.</p>
+  <p>The edge data structure is a set of node pairs represented as <code>( 
+  source, target )</code>.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="nodes"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">nodes</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.nodes">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the set of nodes in the graph.</p>
+  <p>The node collection data structure is a set containing node objects, 
+  whatever they may be.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="tarjan"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">tarjan</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">reset</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.tarjan">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Execute Tarjan's algorithm on the graph.</p>
+  <p><a 
+  href="http://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm"
+  target="_top">Tarjan's algorithm</a> computes the <a 
+  href="http://en.wikipedia.org/wiki/Strongly_connected_component" 
+  target="_top">strongly-connected components</a> of the graph: i.e., the 
+  sets of nodes that form a minimal closed set under edge transition.  In 
+  essence, the loops.  We use this to detect groups of components that have
+  a dependency cycle.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>reset</code></strong> - If <code>True</code>, any cached component set is erased and 
+          recomputed.  If <code>True</code>, an existing previous result is
+          left unchanged.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="scc"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">scc</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">reset</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.scc">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the strongly-connected components of the graph.</p>
+  <p>The data structure is a set, each element of which is itself a set 
+  containing one or more nodes from the graph.</p>
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>See Also:</strong>
+        <a href="pyxb.utils.utility.Graph-class.html#tarjan" 
+        class="link">tarjan</a>.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="sccMap"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">sccMap</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">reset</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.sccMap">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return a map from nodes to the strongly-connected component to which 
+  the node belongs.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>reset</code></strong> - If <code>True</code>, the <a 
+          href="pyxb.utils.utility.Graph-class.html#tarjan" 
+          class="link">tarjan</a> method will be re-invoked, propagating 
+          the <code>reset</code> value.  If <code>False</code> (default), a
+          cached value will be returned if available.</li>
+    </ul></dd>
+  </dl>
+<div class="fields">      <p><strong>See Also:</strong>
+        <a href="pyxb.utils.utility.Graph-class.html#tarjan" 
+        class="link">tarjan</a>.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="sccOrder"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">sccOrder</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">reset</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.sccOrder">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the strongly-connected components in order.</p>
+  <p>The data structure is a list, in dependency order, of strongly 
+  connected components (which can be single nodes).  Appearance of a node 
+  in a set earlier in the list indicates that it has no dependencies on any
+  node that appears in a subsequent set. This order is preferred over <a 
+  href="pyxb.utils.utility.Graph-class.html#dfsOrder" 
+  class="link">dfsOrder</a> for code generation, since it detects 
+  loops.</p>
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>See Also:</strong>
+        <a href="pyxb.utils.utility.Graph-class.html#tarjan" 
+        class="link">tarjan</a>.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="sccForNode"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">sccForNode</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">node</span>,
+        <span class="sig-arg">**kw</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.sccForNode">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the strongly-connected component to which the given node 
+  belongs.</p>
+  <p>Any keywords suppliend when invoking this method are passed to the <a 
+  href="pyxb.utils.utility.Graph-class.html#sccMap" class="link">sccMap</a>
+  method.</p>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd>The SCC set, or <code>None</code> if the node is not present in 
+          the results of Tarjan's algorithm.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="dfsOrder"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">dfsOrder</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">reset</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.dfsOrder">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the nodes of the graph in <a 
+  href="http://en.wikipedia.org/wiki/Depth-first_search" 
+  target="_top">depth-first-search order</a>.</p>
+  <p>The data structure is a list.  Calculated lists are retained and 
+  returned on future invocations, subject to the <code>reset</code> 
+  keyword.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>reset</code></strong> - If <code>True</code>, discard cached results and recompute the 
+          order.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="rootSetOrder"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">rootSetOrder</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#Graph.rootSetOrder">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the nodes of the graph as a sequence of root sets.</p>
+  <p>The first root set is the set of nodes that are roots: i.e., have no 
+  incoming edges.  The second root set is the set of nodes that have 
+  incoming nodes in the first root set.  This continues until all nodes 
+  have been reached.  The sets impose a partial order on the nodes, without
+  being as constraining as <a 
+  href="pyxb.utils.utility.Graph-class.html#sccOrder" 
+  class="link">sccOrder</a>.</p>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd>a list of the root sets.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:37 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

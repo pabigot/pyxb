@@ -1,0 +1,592 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.binding.datatypes._PyXBDateOnly_base</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.binding-module.html">Package&nbsp;binding</a> ::
+        <a href="pyxb.binding.datatypes-module.html">Module&nbsp;datatypes</a> ::
+        Class&nbsp;_PyXBDateOnly_base
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.binding.datatypes._PyXBDateOnly_base-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== TYPE DESCRIPTION ==================== -->
+<h1 class="epydoc">type _PyXBDateOnly_base</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.binding.datatypes-pysrc.html#_PyXBDateOnly_base">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+                    object --+                    
+                             |                    
+                       <a href="pyxb.cscRoot-class.html">cscRoot</a> --+                
+                                 |                
+     <a href="pyxb.utils.utility.Locatable_mixin-class.html">utils.utility.Locatable_mixin</a> --+            
+                                     |            
+              <a href="pyxb.binding.basis._TypeBinding_mixin-class.html" onclick="show_private();">basis._TypeBinding_mixin</a> --+        
+                                         |        
+                            object --+   |        
+                                     |   |        
+<a href="pyxb.utils.utility._DeconflictSymbols_mixin-class.html" onclick="show_private();">utils.utility._DeconflictSymbols_mixin</a> --+        
+                                         |        
+                        object --+       |        
+                                 |       |        
+                           <a href="pyxb.cscRoot-class.html">cscRoot</a> --+   |        
+                                     |   |        
+            <a href="pyxb.binding.basis._DynamicCreate_mixin-class.html" onclick="show_private();">basis._DynamicCreate_mixin</a> --+        
+                                         |        
+                <a href="pyxb.binding.basis.simpleTypeDefinition-class.html">basis.simpleTypeDefinition</a> --+    
+                                             |    
+                            <a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html" onclick="show_private();">_PyXBDateTime_base</a> --+
+                                                 |
+                                object --+       |
+                                         |       |
+                             datetime.date --+   |
+                                             |   |
+                             datetime.datetime --+
+                                                 |
+                                                <strong class="uidshort">_PyXBDateOnly_base</strong>
+</pre>
+
+<dl><dt>Known Subclasses:</dt>
+<dd>
+      <ul class="subclass-list">
+<li><a href="pyxb.binding.datatypes.date-class.html">date</a></li><li>, <a href="pyxb.binding.datatypes.gDay-class.html">gDay</a></li><li>, <a href="pyxb.binding.datatypes.gMonth-class.html">gMonth</a></li><li>, <a href="pyxb.binding.datatypes.gMonthDay-class.html">gMonthDay</a></li><li>, <a href="pyxb.binding.datatypes.gYear-class.html">gYear</a></li><li>, <a href="pyxb.binding.datatypes.gYearMonth-class.html">gYearMonth</a></li>  </ul>
+</dd></dl>
+
+<hr />
+<!-- ==================== NESTED CLASSES ==================== -->
+<a name="section-NestedClasses"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Nested Classes</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-NestedClasses"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.anySimpleType-class.html" class="summary-name" onclick="show_private();">_XsdBaseType</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#dt-anySimpleType" 
+        target="_top">anySimpleType</a>.
+    </td>
+  </tr>
+</table>
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html" onclick="show_private();">_PyXBDateTime_base</a></code></b>:
+      <code><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html#__reduce__">__reduce__</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html">basis.simpleTypeDefinition</a></code></b>:
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#__init__">__init__</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#pythonLiteral">pythonLiteral</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#xsdConstraintsOK">xsdConstraintsOK</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#xsdLiteral">xsdLiteral</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#xsdValueLength">xsdValueLength</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html">basis.simpleTypeDefinition</a></code></b> (private):
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_checkValidValue" onclick="show_private();">_checkValidValue</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_isValidValue" onclick="show_private();">_isValidValue</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_setAttribute" onclick="show_private();">_setAttribute</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_toDOM_csc" onclick="show_private();">_toDOM_csc</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_validateBinding_vx" onclick="show_private();">_validateBinding_vx</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html" onclick="show_private();">basis._TypeBinding_mixin</a></code></b>:
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#__setattr__">__setattr__</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#toDOM">toDOM</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#toxml">toxml</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#validateBinding">validateBinding</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html" onclick="show_private();">basis._TypeBinding_mixin</a></code></b> (private):
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_TypeBinding_mixin__checkNilCtor" onclick="show_private();">_TypeBinding_mixin__checkNilCtor</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_TypeBinding_mixin__getValidationConfig" onclick="show_private();">_TypeBinding_mixin__getValidationConfig</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_constructedWithValue" onclick="show_private();">_constructedWithValue</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_diagnosticName" onclick="show_private();">_diagnosticName</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_element" onclick="show_private();">_element</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_finalizeContentModel" onclick="show_private();">_finalizeContentModel</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_isNil" onclick="show_private();">_isNil</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_namespaceContext" onclick="show_private();">_namespaceContext</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_performValidation" onclick="show_private();">_performValidation</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_postDOMValidate" onclick="show_private();">_postDOMValidate</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_postFactory_vx" onclick="show_private();">_postFactory_vx</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_resetContent" onclick="show_private();">_resetContent</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_setAttributesFromKeywordsAndDOM" onclick="show_private();">_setAttributesFromKeywordsAndDOM</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_setElement" onclick="show_private();">_setElement</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_setIsNil" onclick="show_private();">_setIsNil</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_setNamespaceContext" onclick="show_private();">_setNamespaceContext</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_setValidationConfig" onclick="show_private();">_setValidationConfig</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_substitutesFor" onclick="show_private();">_substitutesFor</a></code>
+      </p></div>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.utils.utility.Locatable_mixin-class.html">utils.utility.Locatable_mixin</a></code></b> (private):
+      <code><a href="pyxb.utils.utility.Locatable_mixin-class.html#_location" onclick="show_private();">_location</a></code>,
+      <code><a href="pyxb.utils.utility.Locatable_mixin-class.html#_setLocation" onclick="show_private();">_setLocation</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>datetime.datetime</code></b>:
+      <code>__add__</code>,
+      <code>__eq__</code>,
+      <code>__ge__</code>,
+      <code>__getattribute__</code>,
+      <code>__gt__</code>,
+      <code>__hash__</code>,
+      <code>__le__</code>,
+      <code>__lt__</code>,
+      <code>__ne__</code>,
+      <code>__radd__</code>,
+      <code>__repr__</code>,
+      <code>__rsub__</code>,
+      <code>__str__</code>,
+      <code>__sub__</code>,
+      <code>astimezone</code>,
+      <code>combine</code>,
+      <code>ctime</code>,
+      <code>date</code>,
+      <code>dst</code>,
+      <code>fromtimestamp</code>,
+      <code>isoformat</code>,
+      <code>now</code>,
+      <code>replace</code>,
+      <code>strptime</code>,
+      <code>time</code>,
+      <code>timetuple</code>,
+      <code>timetz</code>,
+      <code>tzname</code>,
+      <code>utcfromtimestamp</code>,
+      <code>utcnow</code>,
+      <code>utcoffset</code>,
+      <code>utctimetuple</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>datetime.date</code></b>:
+      <code>__format__</code>,
+      <code>fromordinal</code>,
+      <code>isocalendar</code>,
+      <code>isoweekday</code>,
+      <code>strftime</code>,
+      <code>today</code>,
+      <code>toordinal</code>,
+      <code>weekday</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.datatypes._PyXBDateOnly_base-class.html#XsdLiteral" class="summary-sig-name">XsdLiteral</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">value</span>)</span><br />
+      Convert from a python value to a string usable in an XML document.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.datatypes-pysrc.html#_PyXBDateOnly_base.XsdLiteral">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html" onclick="show_private();">_PyXBDateTime_base</a></code></b> (private):
+      <code><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html#_AdjustForTimezone" onclick="show_private();">_AdjustForTimezone</a></code>,
+      <code><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html#_LexicalToKeywords" onclick="show_private();">_LexicalToKeywords</a></code>,
+      <code><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html#_SetKeysFromPython" onclick="show_private();">_SetKeysFromPython</a></code>,
+      <code><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html#_SetKeysFromPython_csc" onclick="show_private();">_SetKeysFromPython_csc</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html">basis.simpleTypeDefinition</a></code></b>:
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#PythonLiteral">PythonLiteral</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#SimpleTypeDefinition">SimpleTypeDefinition</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#XsdConstraintsOK">XsdConstraintsOK</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#XsdSuperType">XsdSuperType</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#XsdValueLength">XsdValueLength</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html">basis.simpleTypeDefinition</a></code></b> (private):
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_CheckValidValue" onclick="show_private();">_CheckValidValue</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_ConvertArguments" onclick="show_private();">_ConvertArguments</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_ConvertArguments_vx" onclick="show_private();">_ConvertArguments_vx</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_FacetMap" onclick="show_private();">_FacetMap</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_InitializeFacetMap" onclick="show_private();">_InitializeFacetMap</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_IsSimpleTypeContent" onclick="show_private();">_IsSimpleTypeContent</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_IsValidValue" onclick="show_private();">_IsValidValue</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_SimpleTypeDefinition" onclick="show_private();">_SimpleTypeDefinition</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_XsdConstraintsPreCheck_vb" onclick="show_private();">_XsdConstraintsPreCheck_vb</a></code>,
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_description" onclick="show_private();">_description</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html" onclick="show_private();">basis._TypeBinding_mixin</a></code></b>:
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#Factory">Factory</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html" onclick="show_private();">basis._TypeBinding_mixin</a></code></b> (private):
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_CompatibleValue" onclick="show_private();">_CompatibleValue</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_GetValidationConfig" onclick="show_private();">_GetValidationConfig</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_IsUrType" onclick="show_private();">_IsUrType</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_Name" onclick="show_private();">_Name</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_PerformValidation" onclick="show_private();">_PerformValidation</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_PreFactory_vx" onclick="show_private();">_PreFactory_vx</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_RequireXSIType" onclick="show_private();">_RequireXSIType</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_SetValidationConfig" onclick="show_private();">_SetValidationConfig</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_TypeBinding_mixin__AttributesFromDOM" onclick="show_private();">_TypeBinding_mixin__AttributesFromDOM</a></code>
+      </p></div>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html" onclick="show_private();">basis._DynamicCreate_mixin</a></code></b> (private):
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_AlternativeConstructor" onclick="show_private();">_AlternativeConstructor</a></code>,
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_DynamicCreate" onclick="show_private();">_DynamicCreate</a></code>,
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_DynamicCreate_mixin__AlternativeConstructorAttribute" onclick="show_private();">_DynamicCreate_mixin__AlternativeConstructorAttribute</a></code>,
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_DynamicCreate_mixin__SupersedingClassAttribute" onclick="show_private();">_DynamicCreate_mixin__SupersedingClassAttribute</a></code>,
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_SetAlternativeConstructor" onclick="show_private();">_SetAlternativeConstructor</a></code>,
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_SetSupersedingClass" onclick="show_private();">_SetSupersedingClass</a></code>,
+      <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_SupersedingClass" onclick="show_private();">_SupersedingClass</a></code>
+      </p></div>
+    </td>
+  </tr>
+</table>
+<!-- ==================== STATIC METHODS ==================== -->
+<a name="section-StaticMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Static Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-StaticMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">a new object with type S, a subtype of T</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.datatypes._PyXBDateOnly_base-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kw</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.datatypes-pysrc.html#_PyXBDateOnly_base.__new__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_ValidFields"></a><span class="summary-name">_ValidFields</span> = <code title="('year', 'month', 'day')"><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">year</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">month</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">day</code><code class="variable-quote">'</code><code class="variable-group">)</code></code>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html" onclick="show_private();">_PyXBDateTime_base</a></code></b> (private):
+      <code><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html#_DefaultDay" onclick="show_private();">_DefaultDay</a></code>,
+      <code><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html#_DefaultMonth" onclick="show_private();">_DefaultMonth</a></code>,
+      <code><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html#_DefaultYear" onclick="show_private();">_DefaultYear</a></code>,
+      <code><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html#_Lexical_fmt" onclick="show_private();">_Lexical_fmt</a></code>,
+      <code><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html#_LocalTimeZone" onclick="show_private();">_LocalTimeZone</a></code>,
+      <code><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html#_PyXBDateTime_base__LexicalIntegerFields" onclick="show_private();">_PyXBDateTime_base__LexicalIntegerFields</a></code>,
+      <code><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html#_PyXBDateTime_base__LexicalREMap" onclick="show_private();">_PyXBDateTime_base__LexicalREMap</a></code>,
+      <code><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html#_PyXBDateTime_base__PatternMap" onclick="show_private();">_PyXBDateTime_base__PatternMap</a></code>,
+      <code><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html#_UTCTimeZone" onclick="show_private();">_UTCTimeZone</a></code>
+      </p></div>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html">basis.simpleTypeDefinition</a></code></b> (private):
+      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_ReservedSymbols" onclick="show_private();">_ReservedSymbols</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html" onclick="show_private();">basis._TypeBinding_mixin</a></code></b>:
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_validationConfig_">_validationConfig_</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html" onclick="show_private();">basis._TypeBinding_mixin</a></code></b> (private):
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_Abstract" onclick="show_private();">_Abstract</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_AttributeMap" onclick="show_private();">_AttributeMap</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_AttributeWildcard" onclick="show_private();">_AttributeWildcard</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_ExpandedName" onclick="show_private();">_ExpandedName</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_PyXBFactoryKeywords" onclick="show_private();">_PyXBFactoryKeywords</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_TypeBinding_mixin__WarnedUnassociatedElement" onclick="show_private();">_TypeBinding_mixin__WarnedUnassociatedElement</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_TypeBinding_mixin__constructedWithValue" onclick="show_private();">_TypeBinding_mixin__constructedWithValue</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_TypeBinding_mixin__element" onclick="show_private();">_TypeBinding_mixin__element</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_TypeBinding_mixin__namespaceContext" onclick="show_private();">_TypeBinding_mixin__namespaceContext</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_TypeBinding_mixin__xsiNil" onclick="show_private();">_TypeBinding_mixin__xsiNil</a></code>,
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_XSDLocation" onclick="show_private();">_XSDLocation</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>datetime.datetime</code></b>:
+      <code>max</code>,
+      <code>min</code>,
+      <code>resolution</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html" onclick="show_private();">basis._TypeBinding_mixin</a></code></b> (private):
+      <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_validationConfig" onclick="show_private();">_validationConfig</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>datetime.datetime</code></b>:
+      <code>hour</code>,
+      <code>microsecond</code>,
+      <code>minute</code>,
+      <code>second</code>,
+      <code>tzinfo</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>datetime.date</code></b>:
+      <code>day</code>,
+      <code>month</code>,
+      <code>year</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__new__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__new__</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kw</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.datatypes-pysrc.html#_PyXBDateOnly_base.__new__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Returns: a new object with type S, a subtype of T</dt>
+    <dt>Overrides:
+        datetime.date.__new__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="XsdLiteral"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">XsdLiteral</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">value</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.datatypes-pysrc.html#_PyXBDateOnly_base.XsdLiteral">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Convert from a python value to a string usable in an XML document.</p>
+  <p>This should be implemented in the subclass.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="pyxb.binding.basis.simpleTypeDefinition-class.html#XsdLiteral">basis.simpleTypeDefinition.XsdLiteral</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:36 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

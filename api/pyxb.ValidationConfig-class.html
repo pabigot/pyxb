@@ -1,0 +1,831 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.ValidationConfig</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        Class&nbsp;ValidationConfig
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.ValidationConfig-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== TYPE DESCRIPTION ==================== -->
+<h1 class="epydoc">type ValidationConfig</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb-pysrc.html#ValidationConfig">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+object --+
+         |
+        <strong class="uidshort">ValidationConfig</strong>
+</pre>
+
+<hr />
+<p>Class holding configuration related to validation.</p>
+  <p><a href="pyxb-module.html#GlobalValidationConfig" 
+  class="link">pyxb.GlobalValidationConfig</a> is available to influence 
+  validation in all contexts.  Each binding class has a reference to an 
+  instance of this class, which can be inspected using <a 
+  href="pyxb.binding.basis._TypeBinding_mixin-class.html#_GetValidationConfig"
+  class="link" 
+  onclick="show_private();">pyxb.binding.basis._TypeBinding_mixin._GetValidationConfig</a>
+  and changed using <a 
+  href="pyxb.binding.basis._TypeBinding_mixin-class.html#_SetValidationConfig"
+  class="link" 
+  onclick="show_private();">pyxb.binding.basis._TypeBinding_mixin._SetValidationConfig</a>.
+  Each binding instance has a reference inherited from its class which can 
+  be inspected using <a 
+  href="pyxb.binding.basis._TypeBinding_mixin-class.html#_validationConfig"
+  class="link" 
+  onclick="show_private();">pyxb.binding.basis._TypeBinding_mixin._validationConfig</a>
+  and changed using <a 
+  href="pyxb.binding.basis._TypeBinding_mixin-class.html#_setValidationConfig"
+  class="link" 
+  onclick="show_private();">pyxb.binding.basis._TypeBinding_mixin._setValidationConfig</a>.</p>
+  <p>This allows fine control on a per class and per-instance basis.</p>
+  <p><a href="pyxb.ValidationConfig-class.html#forBinding" 
+  class="link">forBinding</a> replaces <a 
+  href="pyxb-module.html#RequireValidWhenParsing" 
+  class="link">RequireValidWhenParsing</a>.</p>
+  <p><a href="pyxb.ValidationConfig-class.html#forDocument" 
+  class="link">forDocument</a> replaces <a 
+  href="pyxb-module.html#RequireValidWhenGenerating" 
+  class="link">RequireValidWhenGenerating</a>.</p>
+  <p><a href="pyxb.ValidationConfig-class.html#contentInfluencesGeneration"
+  class="link">contentInfluencesGeneration</a>, <a 
+  href="pyxb.ValidationConfig-class.html#orphanElementInContent" 
+  class="link">orphanElementInContent</a>, and <a 
+  href="pyxb.ValidationConfig-class.html#invalidElementInContent" 
+  class="link">invalidElementInContent</a> control how <a 
+  href="pyxb.binding.basis.complexTypeDefinition-class.html#orderedContent"
+  class="link">pyxb.binding.basis.complexTypeDefinition.orderedContent</a> 
+  affects generated documents.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.ValidationConfig-class.html#__getContentInfluencesGeneration" class="summary-sig-name" onclick="show_private();">__getContentInfluencesGeneration</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Determine whether complex type content influences element order in 
+      document generation.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb-pysrc.html#ValidationConfig.__getContentInfluencesGeneration">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.ValidationConfig-class.html#__getInvalidElementInContent" class="summary-sig-name" onclick="show_private();">__getInvalidElementInContent</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      How to handle invalid elements in content lists.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb-pysrc.html#ValidationConfig.__getInvalidElementInContent">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.ValidationConfig-class.html#__getOrphanElementInContent" class="summary-sig-name" onclick="show_private();">__getOrphanElementInContent</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      How to handle unrecognized elements in content lists.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb-pysrc.html#ValidationConfig.__getOrphanElementInContent">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.ValidationConfig-class.html#_getForBinding" class="summary-sig-name" onclick="show_private();">_getForBinding</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      <code>True</code> iff validation should be performed when 
+      manipulating a binding instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb-pysrc.html#ValidationConfig._getForBinding">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.ValidationConfig-class.html#_getForDocument" class="summary-sig-name" onclick="show_private();">_getForDocument</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      <code>True</code> iff validation should be performed when creating a 
+      document from a binding instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb-pysrc.html#ValidationConfig._getForDocument">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_setContentInfluencesGeneration"></a><span class="summary-sig-name">_setContentInfluencesGeneration</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">value</span>)</span><br />
+      Set the value of <a 
+      href="pyxb.ValidationConfig-class.html#contentInfluencesGeneration" 
+      class="link">contentInfluencesGeneration</a>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb-pysrc.html#ValidationConfig._setContentInfluencesGeneration">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_setForBinding"></a><span class="summary-sig-name">_setForBinding</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">value</span>)</span><br />
+      Configure whether validation should be performed when manipulating a 
+      binding instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb-pysrc.html#ValidationConfig._setForBinding">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_setForDocument"></a><span class="summary-sig-name">_setForDocument</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">value</span>)</span><br />
+      Configure whether validation should be performed when generating a 
+      document from a binding instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb-pysrc.html#ValidationConfig._setForDocument">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_setInvalidElementInContent"></a><span class="summary-sig-name">_setInvalidElementInContent</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">value</span>)</span><br />
+      Set the value of <a 
+      href="pyxb.ValidationConfig-class.html#invalidElementInContent" 
+      class="link">invalidElementInContent</a>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb-pysrc.html#ValidationConfig._setInvalidElementInContent">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_setOrphanElementInContent"></a><span class="summary-sig-name">_setOrphanElementInContent</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">value</span>)</span><br />
+      Set the value of <a 
+      href="pyxb.ValidationConfig-class.html#orphanElementInContent" 
+      class="link">orphanElementInContent</a>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb-pysrc.html#ValidationConfig._setOrphanElementInContent">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.ValidationConfig-class.html#copy" class="summary-sig-name">copy</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Make a copy of this instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb-pysrc.html#ValidationConfig.copy">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="ALWAYS"></a><span class="summary-name">ALWAYS</span> = <code title="-1">-1</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="GIVE_UP"></a><span class="summary-name">GIVE_UP</span> = <code title="2">2</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="IGNORE_ONCE"></a><span class="summary-name">IGNORE_ONCE</span> = <code title="1">1</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="MIXED_ONLY"></a><span class="summary-name">MIXED_ONLY</span> = <code title="4">4</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="NEVER"></a><span class="summary-name">NEVER</span> = <code title="0">0</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="RAISE_EXCEPTION"></a><span class="summary-name">RAISE_EXCEPTION</span> = <code title="3">3</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__contentInfluencesGeneration"></a><span class="summary-name">__contentInfluencesGeneration</span> = <code title="4">4</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__forBinding"></a><span class="summary-name">__forBinding</span> = <code title="True">True</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__forDocument"></a><span class="summary-name">__forDocument</span> = <code title="True">True</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__invalidElementInContent"></a><span class="summary-name">__invalidElementInContent</span> = <code title="1">1</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__orphanElementInContent"></a><span class="summary-name">__orphanElementInContent</span> = <code title="1">1</code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.ValidationConfig-class.html#contentInfluencesGeneration" class="summary-name">contentInfluencesGeneration</a><br />
+      Determine whether complex type content influences element order in 
+      document generation.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.ValidationConfig-class.html#forBinding" class="summary-name">forBinding</a><br />
+      <code>True</code> iff validation should be performed when 
+      manipulating a binding instance.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.ValidationConfig-class.html#forDocument" class="summary-name">forDocument</a><br />
+      <code>True</code> iff validation should be performed when creating a 
+      document from a binding instance.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.ValidationConfig-class.html#invalidElementInContent" class="summary-name">invalidElementInContent</a><br />
+      How to handle invalid elements in content lists.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.ValidationConfig-class.html#orphanElementInContent" class="summary-name">orphanElementInContent</a><br />
+      How to handle unrecognized elements in content lists.
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__getContentInfluencesGeneration"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__getContentInfluencesGeneration</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb-pysrc.html#ValidationConfig.__getContentInfluencesGeneration">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Determine whether complex type content influences element order in 
+  document generation.</p>
+  <p>The value is one of <a href="pyxb.ValidationConfig-class.html#ALWAYS" 
+  class="link">ALWAYS</a>, <a href="pyxb.ValidationConfig-class.html#NEVER"
+  class="link">NEVER</a>, <a 
+  href="pyxb.ValidationConfig-class.html#MIXED_ONLY" 
+  class="link">MIXED_ONLY</a> (default).</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__getInvalidElementInContent"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__getInvalidElementInContent</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb-pysrc.html#ValidationConfig.__getInvalidElementInContent">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>How to handle invalid elements in content lists.</p>
+  <p>The value is one of <a 
+  href="pyxb.ValidationConfig-class.html#IGNORE_ONCE" 
+  class="link">IGNORE_ONCE</a> (default), <a 
+  href="pyxb.ValidationConfig-class.html#GIVE_UP" class="link">GIVE_UP</a>,
+  <a href="pyxb.ValidationConfig-class.html#RAISE_EXCEPTION" 
+  class="link">RAISE_EXCEPTION</a>.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__getOrphanElementInContent"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__getOrphanElementInContent</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb-pysrc.html#ValidationConfig.__getOrphanElementInContent">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>How to handle unrecognized elements in content lists.</p>
+  <p>This is used when consulting a complex type instance content list to 
+  influence the generation of documents from a binding instance.</p>
+  <p>The value is one of <a 
+  href="pyxb.ValidationConfig-class.html#IGNORE_ONCE" 
+  class="link">IGNORE_ONCE</a> (default), <a 
+  href="pyxb.ValidationConfig-class.html#GIVE_UP" class="link">GIVE_UP</a>,
+  <a href="pyxb.ValidationConfig-class.html#RAISE_EXCEPTION" 
+  class="link">RAISE_EXCEPTION</a>.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="_getForBinding"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_getForBinding</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb-pysrc.html#ValidationConfig._getForBinding">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p><code>True</code> iff validation should be performed when manipulating
+  a binding instance.</p>
+  <p>This includes parsing a document or DOM tree, using a binding instance
+  class constructor, or assigning to an element or attribute field of a 
+  binding instance.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="_getForDocument"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_getForDocument</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb-pysrc.html#ValidationConfig._getForDocument">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p><code>True</code> iff validation should be performed when creating a 
+  document from a binding instance.</p>
+  <p>This applies at invocation of <a 
+  href="pyxb.binding.basis._TypeBinding_mixin-class.html#toDOM" 
+  class="link">toDOM()</a>. <a 
+  href="pyxb.binding.basis._TypeBinding_mixin-class.html#toDOM" 
+  class="link">toxml()</a> invokes <code>toDOM()</code>.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="copy"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">copy</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb-pysrc.html#ValidationConfig.copy">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Make a copy of this instance.</p>
+  <p>Use this to get a starting point when you need to customize validation
+  on a per-instance/per-class basis.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== PROPERTY DETAILS ==================== -->
+<a name="section-PropertyDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Property Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-PropertyDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="contentInfluencesGeneration"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">contentInfluencesGeneration</h3>
+  <p>Determine whether complex type content influences element order in 
+  document generation.</p>
+  <p>The value is one of <a href="pyxb.ValidationConfig-class.html#ALWAYS" 
+  class="link">ALWAYS</a>, <a href="pyxb.ValidationConfig-class.html#NEVER"
+  class="link">NEVER</a>, <a 
+  href="pyxb.ValidationConfig-class.html#MIXED_ONLY" 
+  class="link">MIXED_ONLY</a> (default).</p>
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><a href="pyxb.ValidationConfig-class.html#__getContentInfluencesGeneration" class="summary-sig-name" onclick="show_private();">__getContentInfluencesGeneration</a>(<span class="summary-sig-arg">self</span>)</span>
+        - Determine whether complex type content influences element order in 
+      document generation.
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="forBinding"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">forBinding</h3>
+  <p><code>True</code> iff validation should be performed when manipulating
+  a binding instance.</p>
+  <p>This includes parsing a document or DOM tree, using a binding instance
+  class constructor, or assigning to an element or attribute field of a 
+  binding instance.</p>
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><a href="pyxb.ValidationConfig-class.html#_getForBinding" class="summary-sig-name" onclick="show_private();">_getForBinding</a>(<span class="summary-sig-arg">self</span>)</span>
+        - <code>True</code> iff validation should be performed when 
+      manipulating a binding instance.
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="forDocument"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">forDocument</h3>
+  <p><code>True</code> iff validation should be performed when creating a 
+  document from a binding instance.</p>
+  <p>This applies at invocation of <a 
+  href="pyxb.binding.basis._TypeBinding_mixin-class.html#toDOM" 
+  class="link">toDOM()</a>. <a 
+  href="pyxb.binding.basis._TypeBinding_mixin-class.html#toDOM" 
+  class="link">toxml()</a> invokes <code>toDOM()</code>.</p>
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><a href="pyxb.ValidationConfig-class.html#_getForDocument" class="summary-sig-name" onclick="show_private();">_getForDocument</a>(<span class="summary-sig-arg">self</span>)</span>
+        - <code>True</code> iff validation should be performed when creating a 
+      document from a binding instance.
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="invalidElementInContent"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">invalidElementInContent</h3>
+  <p>How to handle invalid elements in content lists.</p>
+  <p>The value is one of <a 
+  href="pyxb.ValidationConfig-class.html#IGNORE_ONCE" 
+  class="link">IGNORE_ONCE</a> (default), <a 
+  href="pyxb.ValidationConfig-class.html#GIVE_UP" class="link">GIVE_UP</a>,
+  <a href="pyxb.ValidationConfig-class.html#RAISE_EXCEPTION" 
+  class="link">RAISE_EXCEPTION</a>.</p>
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><a href="pyxb.ValidationConfig-class.html#__getInvalidElementInContent" class="summary-sig-name" onclick="show_private();">__getInvalidElementInContent</a>(<span class="summary-sig-arg">self</span>)</span>
+        - How to handle invalid elements in content lists.
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="orphanElementInContent"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">orphanElementInContent</h3>
+  <p>How to handle unrecognized elements in content lists.</p>
+  <p>This is used when consulting a complex type instance content list to 
+  influence the generation of documents from a binding instance.</p>
+  <p>The value is one of <a 
+  href="pyxb.ValidationConfig-class.html#IGNORE_ONCE" 
+  class="link">IGNORE_ONCE</a> (default), <a 
+  href="pyxb.ValidationConfig-class.html#GIVE_UP" class="link">GIVE_UP</a>,
+  <a href="pyxb.ValidationConfig-class.html#RAISE_EXCEPTION" 
+  class="link">RAISE_EXCEPTION</a>.</p>
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><a href="pyxb.ValidationConfig-class.html#__getOrphanElementInContent" class="summary-sig-name" onclick="show_private();">__getOrphanElementInContent</a>(<span class="summary-sig-arg">self</span>)</span>
+        - How to handle unrecognized elements in content lists.
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:36 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

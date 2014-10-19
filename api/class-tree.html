@@ -1,0 +1,3038 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>Class Hierarchy</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th bgcolor="#70b0f0" class="navbar-select"
+          >&nbsp;&nbsp;&nbsp;Trees&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">&nbsp;</td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="class-tree.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<center><b>
+ [ <a href="module-tree.html">Module Hierarchy</a>
+ | <a href="class-tree.html">Class Hierarchy</a> ]
+</b></center><br />
+<h1 class="epydoc">Class Hierarchy</h1>
+<ul class="nomargin-top">
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.Automaton-class.html">pyxb.utils.fac.Automaton</a></strong>:
+      <em class="summary">Representation of a Finite Automaton with Counters.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.content.AutomatonConfiguration-class.html">pyxb.binding.content.AutomatonConfiguration</a></strong>:
+      <em class="summary">State for a <a href="pyxb.utils.fac.Automaton-class.html" 
+        class="link">pyxb.utils.fac.Automaton</a> monitoring content for an
+        incrementally constructed complex type binding instance.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.BIND-class.html">pyxb.BIND</a></strong>:
+      <em class="summary">Bundle data for automated binding generation.</em>
+    </li>
+    <li> <strong class="uidlink">exceptions.BaseException</strong>:
+      <em class="summary">Common base class for all exceptions</em>
+    <ul>
+    <li> <strong class="uidlink">exceptions.Exception</strong>:
+      <em class="summary">Common base class for all non-exit exceptions.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.AutomatonStepError-class.html">pyxb.utils.fac.AutomatonStepError</a></strong>:
+      <em class="summary">Symbol rejected by <a 
+        href="pyxb.utils.fac.Configuration_ABC-class.html#step" 
+        class="link">Configuration_ABC.step</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.NondeterministicSymbolError-class.html">pyxb.utils.fac.NondeterministicSymbolError</a></strong>:
+      <em class="summary"><a href="pyxb.utils.fac.Configuration-class.html#step" 
+        class="link">Configuration.step</a> found multiple transitions.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.UnrecognizedSymbolError-class.html">pyxb.utils.fac.UnrecognizedSymbolError</a></strong>:
+      <em class="summary"><a href="pyxb.utils.fac.Configuration-class.html#step" 
+        class="link">Configuration.step</a> failed to find a valid 
+        transition.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.FACError-class.html">pyxb.utils.fac.FACError</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.InvalidTermTreeError-class.html">pyxb.utils.fac.InvalidTermTreeError</a></strong>:
+      <em class="summary">Exception raised when a FAC term tree is not a tree.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.UpdateApplicationError-class.html">pyxb.utils.fac.UpdateApplicationError</a></strong>:
+      <em class="summary">Exception raised when an unsatisfied update instruction is 
+        executed.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.PyXBError-class.html">pyxb.exceptions_.PyXBError</a></strong>:
+      <em class="summary">Base class for exceptions that indicate a problem that the user 
+        probably can't fix.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.LogicError-class.html">pyxb.exceptions_.LogicError</a></strong>:
+      <em class="summary">Raised when the code detects an implementation problem.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.IncompleteImplementationError-class.html">pyxb.exceptions_.IncompleteImplementationError</a></strong>:
+      <em class="summary">Raised when required capability has not been implemented.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.UsageError-class.html">pyxb.exceptions_.UsageError</a></strong>:
+      <em class="summary">Raised when the code detects user violation of an API.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.PyXBException-class.html">pyxb.exceptions_.PyXBException</a></strong>:
+      <em class="summary">Base class for exceptions that indicate a problem that the user 
+        should fix.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.BadDocumentError-class.html">pyxb.exceptions_.BadDocumentError</a></strong>:
+      <em class="summary">Raised when processing document content and an error is 
+        encountered.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.StructuralBadDocumentError-class.html">pyxb.exceptions_.StructuralBadDocumentError</a></strong>:
+      <em class="summary">Raised when processing document and the content model is not 
+        satisfied.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.UnrecognizedDOMRootNodeError-class.html">pyxb.exceptions_.UnrecognizedDOMRootNodeError</a></strong>:
+      <em class="summary">A root DOM node could not be resolved to a schema element</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.BindingError-class.html">pyxb.exceptions_.BindingError</a></strong>:
+      <em class="summary">Raised when the bindings are mis-used.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.NotComplexContentError-class.html">pyxb.exceptions_.NotComplexContentError</a></strong>:
+      <em class="summary">An operation that requires a content model was invoked on a complex
+        type instance that has empty or simple content.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.NotSimpleContentError-class.html">pyxb.exceptions_.NotSimpleContentError</a></strong>:
+      <em class="summary">An operation that requires simple content was invoked on a complex 
+        type instance that does not have simple content.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.ReservedNameError-class.html">pyxb.exceptions_.ReservedNameError</a></strong>:
+      <em class="summary">Reserved name set in binding instance.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.BindingGenerationError-class.html">pyxb.exceptions_.BindingGenerationError</a></strong>:
+      <em class="summary">Raised when something goes wrong generating the binding classes</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.DOMGenerationError-class.html">pyxb.exceptions_.DOMGenerationError</a></strong>:
+      <em class="summary">A non-validation error encountered converting bindings to DOM.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.UnboundElementError-class.html">pyxb.exceptions_.UnboundElementError</a></strong>:
+      <em class="summary">An instance converting to DOM had no bound element.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.NamespaceArchiveError-class.html">pyxb.exceptions_.NamespaceArchiveError</a></strong>:
+      <em class="summary">Problem related to namespace archives</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.NamespaceError-class.html">pyxb.exceptions_.NamespaceError</a></strong>:
+      <em class="summary">Violation of some rule relevant to XML Namespaces</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.NamespaceUniquenessError-class.html">pyxb.exceptions_.NamespaceUniquenessError</a></strong>:
+      <em class="summary">Raised when an attempt is made to record multiple objects of the 
+        same name in the same namespace category.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.NotInNamespaceError-class.html">pyxb.exceptions_.NotInNamespaceError</a></strong>:
+      <em class="summary">Raised when a name is referenced that is not defined in the 
+        appropriate namespace.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.PyXBVersionError-class.html">pyxb.exceptions_.PyXBVersionError</a></strong>:
+      <em class="summary">Raised on import of a binding generated with a different version of
+        PYXB</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.SchemaUniquenessError-class.html">pyxb.exceptions_.SchemaUniquenessError</a></strong>:
+      <em class="summary">Raised when somebody tries to create a schema component using a 
+        schema that has already been used in that namespace.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.SchemaValidationError-class.html">pyxb.exceptions_.SchemaValidationError</a></strong>:
+      <em class="summary">Raised when the XML hierarchy does not appear to be valid for an 
+        XML schema.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.ValidationError-class.html">pyxb.exceptions_.ValidationError</a></strong>:
+      <em class="summary">Raised when something in the infoset fails to satisfy a content 
+        model or attribute requirement.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.AttributeValidationError-class.html">pyxb.exceptions_.AttributeValidationError</a></strong>:
+      <em class="summary">Raised when an attribute requirement is not satisfied.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.AttributeChangeError-class.html">pyxb.exceptions_.AttributeChangeError</a></strong>:
+      <em class="summary">Attempt to change an attribute that has a fixed value constraint.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.MissingAttributeError-class.html">pyxb.exceptions_.MissingAttributeError</a></strong>:
+      <em class="summary">Raised when an attribute that is required is missing in an element.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.ProhibitedAttributeError-class.html">pyxb.exceptions_.ProhibitedAttributeError</a></strong>:
+      <em class="summary">Raised when an attribute that is prohibited is set or referenced in
+        an element.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.UnrecognizedAttributeError-class.html">pyxb.exceptions_.UnrecognizedAttributeError</a></strong>:
+      <em class="summary">Attempt to reference an attribute not sanctioned by content model.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.ComplexTypeValidationError-class.html">pyxb.exceptions_.ComplexTypeValidationError</a></strong>:
+      <em class="summary">Raised when a validation requirement for a complex type is not 
+        satisfied.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.AbstractInstantiationError-class.html">pyxb.exceptions_.AbstractInstantiationError</a></strong>:
+      <em class="summary">Attempt to create an instance of an abstract complex type.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.AttributeOnSimpleTypeError-class.html">pyxb.exceptions_.AttributeOnSimpleTypeError</a></strong>:
+      <em class="summary">Attempt made to set an attribute on an element with simple type.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.ContentValidationError-class.html">pyxb.exceptions_.ContentValidationError</a></strong>:
+      <em class="summary">Violation of a complex type content model.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.BatchElementContentError-class.html">pyxb.exceptions_.BatchElementContentError</a></strong>:
+      <em class="summary">Element/wildcard content cannot be reconciled with the required 
+        content model.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.IncompleteElementContentError-class.html">pyxb.exceptions_.IncompleteElementContentError</a></strong>:
+      <em class="summary">Validation of an instance failed to produce an accepting state.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.InvalidPreferredElementContentError-class.html">pyxb.exceptions_.InvalidPreferredElementContentError</a></strong>:
+      <em class="summary">Use of a preferred element led to inability to generate a valid 
+        document</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.UnprocessedElementContentError-class.html">pyxb.exceptions_.UnprocessedElementContentError</a></strong>:
+      <em class="summary">Validation of an instance produced an accepting state but left 
+        element material unconsumed.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.ExtraSimpleContentError-class.html">pyxb.exceptions_.ExtraSimpleContentError</a></strong>:
+      <em class="summary">A complex type with simple content was provided too much content.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.IncrementalElementContentError-class.html">pyxb.exceptions_.IncrementalElementContentError</a></strong>:
+      <em class="summary">Element or element-like content could not be validly associated 
+        with an sub-element in the content model.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.UnrecognizedContentError-class.html">pyxb.exceptions_.UnrecognizedContentError</a></strong>:
+      <em class="summary">Element or element-like content could not be validly associated 
+        with an sub-element in the content model.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.MixedContentError-class.html">pyxb.exceptions_.MixedContentError</a></strong>:
+      <em class="summary">Non-element content added to a complex type instance that does not 
+        support mixed content.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.NonPluralAppendError-class.html">pyxb.exceptions_.NonPluralAppendError</a></strong>:
+      <em class="summary">Attempt to append to an element which does not accept multiple 
+        instances.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.OrphanElementContentError-class.html">pyxb.exceptions_.OrphanElementContentError</a></strong>:
+      <em class="summary">An element expected to be used in content is not present in the 
+        instance.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.SimpleContentAbsentError-class.html">pyxb.exceptions_.SimpleContentAbsentError</a></strong>:
+      <em class="summary">An instance with simple content was not provided with a value.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.UnprocessedKeywordContentError-class.html">pyxb.exceptions_.UnprocessedKeywordContentError</a></strong>:
+      <em class="summary">A complex type constructor was provided with keywords that could 
+        not be recognized.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.ElementValidationError-class.html">pyxb.exceptions_.ElementValidationError</a></strong>:
+      <em class="summary">Raised when a validation requirement for an element is not 
+        satisfied.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.AbstractElementError-class.html">pyxb.exceptions_.AbstractElementError</a></strong>:
+      <em class="summary">Attempt to create an instance of an abstract element.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.ContentInNilInstanceError-class.html">pyxb.exceptions_.ContentInNilInstanceError</a></strong>:
+      <em class="summary">Raised when an element that is marked to be nil is assigned 
+        content.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.ElementChangeError-class.html">pyxb.exceptions_.ElementChangeError</a></strong>:
+      <em class="summary">Attempt to change an element that has a fixed value constraint.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.NoNillableSupportError-class.html">pyxb.exceptions_.NoNillableSupportError</a></strong>:
+      <em class="summary">Raised when invoking <a 
+        href="pyxb.binding.basis._TypeBinding_mixin-class.html#_setIsNil" 
+        class="link" onclick="show_private();">_setIsNil</a> on a type that
+        does not support nillable.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.NonElementValidationError-class.html">pyxb.exceptions_.NonElementValidationError</a></strong>:
+      <em class="summary">Raised when an element (or a value bound to an element) appears in 
+        context that does not permit an element.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.SimpleTypeValueError-class.html">pyxb.exceptions_.SimpleTypeValueError</a></strong>:
+      <em class="summary">Raised when a simple type value does not satisfy its constraints.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.SimpleFacetValueError-class.html">pyxb.exceptions_.SimpleFacetValueError</a></strong>:
+      <em class="summary">Raised when a simple type value does not satisfy a facet 
+        constraint.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.SimpleListValueError-class.html">pyxb.exceptions_.SimpleListValueError</a></strong>:
+      <em class="summary">Raised when a list simple type contains a member that does not 
+        satisfy its constraints.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.SimplePluralValueError-class.html">pyxb.exceptions_.SimplePluralValueError</a></strong>:
+      <em class="summary">Raised when context requires a plural value.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.SimpleUnionValueError-class.html">pyxb.exceptions_.SimpleUnionValueError</a></strong>:
+      <em class="summary">Raised when a union simple type contains a member that does not 
+        satisfy its constraints.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink">exceptions.StandardError</strong>:
+      <em class="summary">Base class for all standard Python exceptions that do not represent
+        interpreter exiting.</em>
+    <ul>
+    <li> <strong class="uidlink">exceptions.LookupError</strong>:
+      <em class="summary">Base class for lookup errors.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.unicode.CodePointSetError-class.html">pyxb.utils.unicode.CodePointSetError</a></strong>:
+      <em class="summary">Raised when some abuse of a <a 
+        href="pyxb.utils.unicode.CodePointSet-class.html" 
+        class="link">CodePointSet</a> is detected.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink">exceptions.ValueError</strong>:
+      <em class="summary">Inappropriate argument value (of correct type).</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.xmlre.RegularExpressionError-class.html">pyxb.utils.xmlre.RegularExpressionError</a></strong>:
+      <em class="summary">Raised when a regular expression cannot be processed..</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.domutils.BindingDOMSupport-class.html">pyxb.utils.domutils.BindingDOMSupport</a></strong>:
+      <em class="summary">This holds DOM-related information used when generating a DOM tree 
+        from a binding instance.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.generate.BindingIO-class.html">pyxb.binding.generate.BindingIO</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.unicode.CodePointSet-class.html">pyxb.utils.unicode.CodePointSet</a></strong>:
+      <em class="summary">Represent a set of Unicode code points.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.Configuration_ABC-class.html">pyxb.utils.fac.Configuration_ABC</a></strong>:
+      <em class="summary">Base class for something that represents an <a 
+        href="pyxb.utils.fac.Automaton-class.html" 
+        class="link">Automaton</a> in execution.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.Configuration-class.html">pyxb.utils.fac.Configuration</a></strong>:
+      <em class="summary">The state of an <a href="pyxb.utils.fac.Automaton-class.html" 
+        class="link">Automaton</a> in execution.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.MultiConfiguration-class.html">pyxb.utils.fac.MultiConfiguration</a></strong>:
+      <em class="summary">Support parallel execution of state machine.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink">_abcoll.Container</strong>
+    <ul>
+    <li> <strong class="uidlink">_abcoll.Sequence</strong>:
+      <em class="summary">All the operations on a read-only sequence.</em>
+    <ul>
+    <li> <strong class="uidlink">_abcoll.MutableSequence</strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.content._PluralBinding-class.html" onclick="show_private();">pyxb.binding.content._PluralBinding</a></strong>:
+      <em class="summary">Helper for element content that supports multiple occurences.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink">xml.sax.handler.ContentHandler</strong>:
+      <em class="summary">Interface for receiving logical document content events.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxutils.BaseSAXHandler-class.html">pyxb.utils.saxutils.BaseSAXHandler</a></strong>:
+      <em class="summary">A SAX handler class that maintains a stack of enclosing elements 
+        and manages namespace declarations.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.saxer.PyXBSAXHandler-class.html">pyxb.binding.saxer.PyXBSAXHandler</a></strong>:
+      <em class="summary">A SAX handler class which generates a binding instance for a 
+        document through a streaming parser.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom._DOMSAXHandler-class.html" onclick="show_private();">pyxb.utils.saxdom._DOMSAXHandler</a></strong>:
+      <em class="summary">SAX handler class that transforms events into a DOM tree.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxutils.TracingSAXHandler-class.html">pyxb.utils.saxutils.TracingSAXHandler</a></strong>:
+      <em class="summary">A SAX handler class which prints each method invocation.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxutils._NoopSAXHandler-class.html" onclick="show_private();">pyxb.utils.saxutils._NoopSAXHandler</a></strong>:
+      <em class="summary">A SAX handler class which doesn't do anything.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.CounterCondition-class.html">pyxb.utils.fac.CounterCondition</a></strong>:
+      <em class="summary">A counter condition is a range limit on valid counter values.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.content.ElementDeclaration-class.html">pyxb.binding.content.ElementDeclaration</a></strong>:
+      <em class="summary">Aggregate the information relevant to an element of a complex type.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.ExpandedName-class.html">pyxb.namespace.ExpandedName</a></strong>:
+      <em class="summary">Represent an <a 
+        href="http://www.w3.org/TR/REC-xml-names/#dt-expname" 
+        target="_top">expanded name</a>, which pairs a namespace with a 
+        local name.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.generate.Generator-class.html">pyxb.binding.generate.Generator</a></strong>:
+      <em class="summary">Configuration and data for a single binding-generation action.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.utility.Graph-class.html">pyxb.utils.utility.Graph</a></strong>:
+      <em class="summary">Represent a directed graph with arbitrary objects as nodes.</em>
+    </li>
+    <li> <strong class="uidlink">_abcoll.Iterable</strong>
+    <ul>
+    <li> <strong class="uidlink">_abcoll.Sequence</strong>:
+      <em class="summary">All the operations on a read-only sequence.</em>
+    <ul>
+    <li> <strong class="uidlink">_abcoll.MutableSequence</strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.content._PluralBinding-class.html" onclick="show_private();">pyxb.binding.content._PluralBinding</a></strong>:
+      <em class="summary">Helper for element content that supports multiple occurences.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.utility.Location-class.html">pyxb.utils.utility.Location</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.NamedNodeMap-class.html">pyxb.utils.saxdom.NamedNodeMap</a></strong>:
+      <em class="summary">Implement that portion of NamedNodeMap required to satisfy PyXB's 
+        needs.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.archive.NamespaceArchive-class.html">pyxb.namespace.archive.NamespaceArchive</a></strong>:
+      <em class="summary">Represent a file from which one or more namespaces can be read, or 
+        to which they will be written.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.resolution.NamespaceContext-class.html">pyxb.namespace.resolution.NamespaceContext</a></strong>:
+      <em class="summary">Records information associated with namespaces at a DOM node.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.archive.NamespaceDependencies-class.html">pyxb.namespace.archive.NamespaceDependencies</a></strong>
+    </li>
+    <li> <strong class="uidlink">xml.dom.Node</strong>:
+      <em class="summary">Class giving the NodeType constants.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Node-class.html">pyxb.utils.saxdom.Node</a></strong>:
+      <em class="summary">Base for the minimal DOM interface required by PyXB.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Attr-class.html">pyxb.utils.saxdom.Attr</a></strong>:
+      <em class="summary">Add the nodeName and nodeValue interface.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Document-class.html">pyxb.utils.saxdom.Document</a></strong>:
+      <em class="summary">Add the documentElement interface.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Element-class.html">pyxb.utils.saxdom.Element</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom._CharacterData-class.html" onclick="show_private();">pyxb.utils.saxdom._CharacterData</a></strong>:
+      <em class="summary">Abstract base for anything holding text data.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Comment-class.html">pyxb.utils.saxdom.Comment</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Text-class.html">pyxb.utils.saxdom.Text</a></strong>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.Node-class.html">pyxb.utils.fac.Node</a></strong>:
+      <em class="summary">Abstract class for any node in the term tree.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.LeafNode-class.html">pyxb.utils.fac.LeafNode</a></strong>:
+      <em class="summary">Intermediary for nodes that have no child nodes.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.All-class.html">pyxb.utils.fac.All</a></strong>:
+      <em class="summary">A term that is an unordered sequence of terms.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.Symbol-class.html">pyxb.utils.fac.Symbol</a></strong>:
+      <em class="summary">A leaf term that is a symbol.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.MultiTermNode-class.html">pyxb.utils.fac.MultiTermNode</a></strong>:
+      <em class="summary">Intermediary for nodes that have multiple child nodes.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.All-class.html">pyxb.utils.fac.All</a></strong>:
+      <em class="summary">A term that is an unordered sequence of terms.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.Choice-class.html">pyxb.utils.fac.Choice</a></strong>:
+      <em class="summary">A term that may be any one of a set of terms.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.Sequence-class.html">pyxb.utils.fac.Sequence</a></strong>:
+      <em class="summary">A term that is an ordered sequence of terms.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.NumericalConstraint-class.html">pyxb.utils.fac.NumericalConstraint</a></strong>:
+      <em class="summary">A term with a numeric range constraint.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.generate.ReferenceLiteral-class.html">pyxb.binding.generate.ReferenceLiteral</a></strong>:
+      <em class="summary">Base class for something that requires fairly complex activity in 
+        order to generate its literal value.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.generate.ReferenceEnumerationMember-class.html">pyxb.binding.generate.ReferenceEnumerationMember</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.generate.ReferenceExpandedName-class.html">pyxb.binding.generate.ReferenceExpandedName</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.generate.ReferenceFacet-class.html">pyxb.binding.generate.ReferenceFacet</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.generate.ReferenceFacetMember-class.html">pyxb.binding.generate.ReferenceFacetMember</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.generate.ReferenceNamespace-class.html">pyxb.binding.generate.ReferenceNamespace</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.generate.ReferenceSchemaComponent-class.html">pyxb.binding.generate.ReferenceSchemaComponent</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.generate.ReferenceWildcard-class.html">pyxb.binding.generate.ReferenceWildcard</a></strong>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxutils.SAXElementState-class.html">pyxb.utils.saxutils.SAXElementState</a></strong>:
+      <em class="summary">State corresponding to processing a given element with the SAX 
+        model.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.saxer._SAXElementState-class.html" onclick="show_private();">pyxb.binding.saxer._SAXElementState</a></strong>:
+      <em class="summary">State required to generate bindings for a specific element.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxutils.SAXInformationItem-class.html">pyxb.utils.saxutils.SAXInformationItem</a></strong>:
+      <em class="summary">Class used to capture an item discovered in the body of an element.</em>
+    </li>
+    <li> <strong class="uidlink">_abcoll.Sized</strong>
+    <ul>
+    <li> <strong class="uidlink">_abcoll.Sequence</strong>:
+      <em class="summary">All the operations on a read-only sequence.</em>
+    <ul>
+    <li> <strong class="uidlink">_abcoll.MutableSequence</strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.content._PluralBinding-class.html" onclick="show_private();">pyxb.binding.content._PluralBinding</a></strong>:
+      <em class="summary">Helper for element content that supports multiple occurences.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.State-class.html">pyxb.utils.fac.State</a></strong>:
+      <em class="summary">A thin wrapper around an object reference.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.SymbolMatch_mixin-class.html">pyxb.utils.fac.SymbolMatch_mixin</a></strong>:
+      <em class="summary">Mix-in used by symbols to provide a custom match implementation.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.content._FACSymbol-class.html" onclick="show_private();">pyxb.binding.content._FACSymbol</a></strong>:
+      <em class="summary">Base class for <a href="pyxb.utils.fac.Symbol-class.html" 
+        class="link">pyxb.utils.fac.Symbol</a> instances associated with 
+        PyXB content models.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.content.ElementUse-class.html">pyxb.binding.content.ElementUse</a></strong>:
+      <em class="summary">Information about a schema element declaration reference.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.content.WildcardUse-class.html">pyxb.binding.content.WildcardUse</a></strong>:
+      <em class="summary">Information about a schema wildcard element.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.Transition-class.html">pyxb.utils.fac.Transition</a></strong>:
+      <em class="summary">Representation of a FAC state transition.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.utility.UniqueIdentifier-class.html">pyxb.utils.utility.UniqueIdentifier</a></strong>:
+      <em class="summary">Records a unique identifier, generally associated with a binding 
+        generation action.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.fac.UpdateInstruction-class.html">pyxb.utils.fac.UpdateInstruction</a></strong>:
+      <em class="summary">An update instruction pairs a counter with a mutation of that 
+        counter.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.ValidationConfig-class.html">pyxb.ValidationConfig</a></strong>:
+      <em class="summary">Class holding configuration related to validation.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.content.Wildcard-class.html">pyxb.binding.content.Wildcard</a></strong>:
+      <em class="summary">Placeholder for wildcard objects.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.unicode.XML1p0e2-class.html">pyxb.utils.unicode.XML1p0e2</a></strong>:
+      <em class="summary">Regular expression support for XML Schema Data Types.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.domutils._BDSNamespaceSupport-class.html" onclick="show_private();">pyxb.utils.domutils._BDSNamespaceSupport</a></strong>:
+      <em class="summary">Class holding information relevant to generating the namespace 
+        aspects of a DOM instance.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.generate._CTDAuxData-class.html" onclick="show_private();">pyxb.binding.generate._CTDAuxData</a></strong>:
+      <em class="summary">Helper class holding information need in both preparation and 
+        generation.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis._Content-class.html" onclick="show_private();">pyxb.binding.basis._Content</a></strong>:
+      <em class="summary">Base for any wrapper added to <a 
+        href="pyxb.binding.basis.complexTypeDefinition-class.html#orderedContent"
+        class="link">complexTypeDefinition.orderedContent</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis.ElementContent-class.html">pyxb.binding.basis.ElementContent</a></strong>:
+      <em class="summary">Marking wrapper for element content.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis.NonElementContent-class.html">pyxb.binding.basis.NonElementContent</a></strong>:
+      <em class="summary">Marking wrapper for non-element content.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.utility._DeconflictSymbols_mixin-class.html" onclick="show_private();">pyxb.utils.utility._DeconflictSymbols_mixin</a></strong>:
+      <em class="summary">Mix-in used to deconflict public symbols in classes that may be 
+        inherited by generated binding classes.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis.complexTypeDefinition-class.html">pyxb.binding.basis.complexTypeDefinition</a></strong>:
+      <em class="summary">Base for any Python class that serves as the binding for an 
+        XMLSchema complexType.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.anyType-class.html">pyxb.binding.datatypes.anyType</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType"
+        target="_top">anyType</a>.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis.element-class.html">pyxb.binding.basis.element</a></strong>:
+      <em class="summary">Class that represents a schema element within a binding.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis.simpleTypeDefinition-class.html">pyxb.binding.basis.simpleTypeDefinition</a></strong>:
+      <em class="summary"><a href="pyxb.binding.basis.simpleTypeDefinition-class.html" 
+        class="link">simpleTypeDefinition</a> is a base class that is part 
+        of the hierarchy of any class that represents the Python datatype 
+        for a <a 
+        href="pyxb.xmlschema.structures.SimpleTypeDefinition-class.html" 
+        class="link">SimpleTypeDefinition</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.NOTATION-class.html">pyxb.binding.datatypes.NOTATION</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#NOTATION" 
+        target="_top">NOTATION</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.QName-class.html">pyxb.binding.datatypes.QName</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#QName" 
+        target="_top">QName</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis.STD_list-class.html">pyxb.binding.basis.STD_list</a></strong>:
+      <em class="summary">Base class for collection datatypes.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.ENTITIES-class.html">pyxb.binding.datatypes.ENTITIES</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#ENTITIES" 
+        target="_top">ENTITIES</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.IDREFS-class.html">pyxb.binding.datatypes.IDREFS</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#IDREFS" 
+        target="_top">IDREFS</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.NMTOKENS-class.html">pyxb.binding.datatypes.NMTOKENS</a></strong>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis.STD_union-class.html">pyxb.binding.basis.STD_union</a></strong>:
+      <em class="summary">Base class for union datatypes.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.xml_.STD_ANON_lang-class.html">pyxb.binding.xml_.STD_ANON_lang</a></strong>:
+      <em class="summary">Simple type that is a union of pyxb.binding.datatypes.language, 
+        STD_ANON_emptyString</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html" onclick="show_private();">pyxb.binding.datatypes._PyXBDateTime_base</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes._PyXBDateOnly_base-class.html" onclick="show_private();">pyxb.binding.datatypes._PyXBDateOnly_base</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.date-class.html">pyxb.binding.datatypes.date</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#date"
+        target="_top">date</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gDay-class.html">pyxb.binding.datatypes.gDay</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#gDay"
+        target="_top">gDay</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gMonth-class.html">pyxb.binding.datatypes.gMonth</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gMonth" 
+        target="_top">gMonth</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gMonthDay-class.html">pyxb.binding.datatypes.gMonthDay</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gMonthDay" 
+        target="_top">gMonthDay</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gYear-class.html">pyxb.binding.datatypes.gYear</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gYear" 
+        target="_top">gYear</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gYearMonth-class.html">pyxb.binding.datatypes.gYearMonth</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gYearMonth" 
+        target="_top">gYearMonth</a>.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.dateTime-class.html">pyxb.binding.datatypes.dateTime</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#dateTime" 
+        target="_top">dateTime</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.time-class.html">pyxb.binding.datatypes.time</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#time"
+        target="_top">time</a>.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.anySimpleType-class.html">pyxb.binding.datatypes.anySimpleType</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#dt-anySimpleType" 
+        target="_top">anySimpleType</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.anyURI-class.html">pyxb.binding.datatypes.anyURI</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#anyURI" 
+        target="_top">anyURI</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.base64Binary-class.html">pyxb.binding.datatypes.base64Binary</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#base64Binary" 
+        target="_top">base64Binary</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.boolean-class.html">pyxb.binding.datatypes.boolean</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#boolean" 
+        target="_top">boolean</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.decimal-class.html">pyxb.binding.datatypes.decimal</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#decimal" 
+        target="_top">decimal</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.double-class.html">pyxb.binding.datatypes.double</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#double" 
+        target="_top">double</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.duration-class.html">pyxb.binding.datatypes.duration</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#duration" 
+        target="_top">duration</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.float-class.html">pyxb.binding.datatypes.float</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#float" 
+        target="_top">float</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.hexBinary-class.html">pyxb.binding.datatypes.hexBinary</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#hexBinary" 
+        target="_top">hexBinary</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.int-class.html">pyxb.binding.datatypes.int</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#int" 
+        target="_top">int</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.short-class.html">pyxb.binding.datatypes.short</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#short" 
+        target="_top">short</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.byte-class.html">pyxb.binding.datatypes.byte</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#byte"
+        target="_top">byte</a>.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.integer-class.html">pyxb.binding.datatypes.integer</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#integer" 
+        target="_top">integer</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.long-class.html">pyxb.binding.datatypes.long</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#long"
+        target="_top">long</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.nonNegativeInteger-class.html">pyxb.binding.datatypes.nonNegativeInteger</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#nonNegativeInteger" 
+        target="_top">nonNegativeInteger</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.positiveInteger-class.html">pyxb.binding.datatypes.positiveInteger</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#positiveInteger" 
+        target="_top">positiveInteger</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.unsignedLong-class.html">pyxb.binding.datatypes.unsignedLong</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedLong" 
+        target="_top">unsignedLong</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.unsignedInt-class.html">pyxb.binding.datatypes.unsignedInt</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedInt" 
+        target="_top">unsignedInt</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.unsignedShort-class.html">pyxb.binding.datatypes.unsignedShort</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedShort" 
+        target="_top">unsignedShort</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.unsignedByte-class.html">pyxb.binding.datatypes.unsignedByte</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedByte" 
+        target="_top">unsignedByte</a>.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.nonPositiveInteger-class.html">pyxb.binding.datatypes.nonPositiveInteger</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#nonPositiveInteger" 
+        target="_top">nonPositiveInteger</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.negativeInteger-class.html">pyxb.binding.datatypes.negativeInteger</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#negativeInteger" 
+        target="_top">negativeInteger</a>.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.string-class.html">pyxb.binding.datatypes.string</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#string" 
+        target="_top">string</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.xml_.STD_ANON_emptyString-class.html">pyxb.binding.xml_.STD_ANON_emptyString</a></strong>:
+      <em class="summary">No information</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.normalizedString-class.html">pyxb.binding.datatypes.normalizedString</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#normalizedString" 
+        target="_top">normalizedString</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.token-class.html">pyxb.binding.datatypes.token</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#token" 
+        target="_top">token</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.NMTOKEN-class.html">pyxb.binding.datatypes.NMTOKEN</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#NMTOKEN" 
+        target="_top">NMTOKEN</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets._WhiteSpace_enum-class.html" onclick="show_private();">pyxb.binding.facets._WhiteSpace_enum</a></strong>:
+      <em class="summary">The enumeration used to constrain the whiteSpace facet</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.Name-class.html">pyxb.binding.datatypes.Name</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#Name" 
+        target="_top">Name</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.NCName-class.html">pyxb.binding.datatypes.NCName</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#NCName" 
+        target="_top">NCName</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.ENTITY-class.html">pyxb.binding.datatypes.ENTITY</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#ENTITY" 
+        target="_top">ENTITY</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.ID-class.html">pyxb.binding.datatypes.ID</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http:///www.w3.org/TR/xmlschema-2/#ID" 
+        target="_top">ID</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.IDREF-class.html">pyxb.binding.datatypes.IDREF</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#IDREF" 
+        target="_top">IDREF</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.xml_.STD_ANON_space-class.html">pyxb.binding.xml_.STD_ANON_space</a></strong>:
+      <em class="summary">No information</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.language-class.html">pyxb.binding.datatypes.language</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#language" 
+        target="_top">language</a></em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxutils._EntityResolver-class.html" onclick="show_private();">pyxb.utils.saxutils._EntityResolver</a></strong>:
+      <em class="summary">Dummy used to prevent the SAX parser from crashing when it sees 
+        processing instructions that we don't care about.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets._EnumerationElement-class.html" onclick="show_private();">pyxb.binding.facets._EnumerationElement</a></strong>:
+      <em class="summary">This class represents individual values that appear within a <a 
+        href="pyxb.binding.facets.CF_enumeration-class.html" 
+        class="link">CF_enumeration</a> collection.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.generate._ModuleNaming_mixin-class.html" onclick="show_private();">pyxb.binding.generate._ModuleNaming_mixin</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.generate.NamespaceGroupModule-class.html">pyxb.binding.generate.NamespaceGroupModule</a></strong>:
+      <em class="summary">This class represents a Python module that holds all the 
+        declarations belonging to a set of namespaces which have 
+        interdependencies.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.generate.NamespaceModule-class.html">pyxb.binding.generate.NamespaceModule</a></strong>:
+      <em class="summary">This class represents a Python module that holds all the 
+        declarations belonging to a specific namespace.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._PickledAnonymousReference-class.html" onclick="show_private();">pyxb.xmlschema.structures._PickledAnonymousReference</a></strong>:
+      <em class="summary">A helper that encapsulates a reference to an anonymous type in a 
+        different namespace.</em>
+    </li>
+    <li> <strong class="uidlink">basestring</strong>:
+      <em class="summary">Type basestring cannot be instantiated; it is the base for str and 
+        unicode.</em>
+    <ul>
+    <li> <strong class="uidlink">str</strong>:
+      <em class="summary">str(object) -&gt; string</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.base64Binary-class.html">pyxb.binding.datatypes.base64Binary</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#base64Binary" 
+        target="_top">base64Binary</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.hexBinary-class.html">pyxb.binding.datatypes.hexBinary</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#hexBinary" 
+        target="_top">hexBinary</a>.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink">unicode</strong>:
+      <em class="summary">unicode(string [, encoding[, errors]]) -&gt; object</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.QName-class.html">pyxb.binding.datatypes.QName</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#QName" 
+        target="_top">QName</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.anySimpleType-class.html">pyxb.binding.datatypes.anySimpleType</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#dt-anySimpleType" 
+        target="_top">anySimpleType</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.anyURI-class.html">pyxb.binding.datatypes.anyURI</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#anyURI" 
+        target="_top">anyURI</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.string-class.html">pyxb.binding.datatypes.string</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#string" 
+        target="_top">string</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.xml_.STD_ANON_emptyString-class.html">pyxb.binding.xml_.STD_ANON_emptyString</a></strong>:
+      <em class="summary">No information</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.normalizedString-class.html">pyxb.binding.datatypes.normalizedString</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#normalizedString" 
+        target="_top">normalizedString</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.token-class.html">pyxb.binding.datatypes.token</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#token" 
+        target="_top">token</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.NMTOKEN-class.html">pyxb.binding.datatypes.NMTOKEN</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#NMTOKEN" 
+        target="_top">NMTOKEN</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets._WhiteSpace_enum-class.html" onclick="show_private();">pyxb.binding.facets._WhiteSpace_enum</a></strong>:
+      <em class="summary">The enumeration used to constrain the whiteSpace facet</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.Name-class.html">pyxb.binding.datatypes.Name</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#Name" 
+        target="_top">Name</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.NCName-class.html">pyxb.binding.datatypes.NCName</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#NCName" 
+        target="_top">NCName</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.ENTITY-class.html">pyxb.binding.datatypes.ENTITY</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#ENTITY" 
+        target="_top">ENTITY</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.ID-class.html">pyxb.binding.datatypes.ID</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http:///www.w3.org/TR/xmlschema-2/#ID" 
+        target="_top">ID</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.IDREF-class.html">pyxb.binding.datatypes.IDREF</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#IDREF" 
+        target="_top">IDREF</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.xml_.STD_ANON_space-class.html">pyxb.binding.xml_.STD_ANON_space</a></strong>:
+      <em class="summary">No information</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.language-class.html">pyxb.binding.datatypes.language</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#language" 
+        target="_top">language</a></em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.cscRoot-class.html">pyxb.cscRoot</a></strong>:
+      <em class="summary">This little bundle of joy exists because in Python 2.6 it became an
+        error to invoke <code>object.__init__</code> with parameters 
+        (unless you also override <code>__new__</code>, in which case it's 
+        only a warning.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.content.AttributeUse-class.html">pyxb.binding.content.AttributeUse</a></strong>:
+      <em class="summary">A helper class that encapsulates everything we need to know about 
+        the way an attribute is used within a binding class.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.Facet-class.html">pyxb.binding.facets.Facet</a></strong>:
+      <em class="summary">The base class for facets.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.ConstrainingFacet-class.html">pyxb.binding.facets.ConstrainingFacet</a></strong>:
+      <em class="summary">One of the facets defined in section 4.3, which provide constraints
+        on the lexical space of a type definition.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_enumeration-class.html">pyxb.binding.facets.CF_enumeration</a></strong>:
+      <em class="summary">Capture a constraint that restricts valid values to a fixed set.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_fractionDigits-class.html">pyxb.binding.facets.CF_fractionDigits</a></strong>:
+      <em class="summary">Specify the number of sub-unit digits in the *value* space of the 
+        type.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_length-class.html">pyxb.binding.facets.CF_length</a></strong>:
+      <em class="summary">A facet that specifies the length of the lexical representation of 
+        a value.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_maxExclusive-class.html">pyxb.binding.facets.CF_maxExclusive</a></strong>:
+      <em class="summary">Specify the exclusive upper bound of legal values for the 
+        constrained type.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_maxInclusive-class.html">pyxb.binding.facets.CF_maxInclusive</a></strong>:
+      <em class="summary">Specify the maximum legal value for the constrained type.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_maxLength-class.html">pyxb.binding.facets.CF_maxLength</a></strong>:
+      <em class="summary">A facet that constrains the length of the lexical representation of
+        a value.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_minExclusive-class.html">pyxb.binding.facets.CF_minExclusive</a></strong>:
+      <em class="summary">Specify the exclusive lower bound of legal values for the 
+        constrained type.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_minInclusive-class.html">pyxb.binding.facets.CF_minInclusive</a></strong>:
+      <em class="summary">Specify the minimum legal value for the constrained type.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_minLength-class.html">pyxb.binding.facets.CF_minLength</a></strong>:
+      <em class="summary">A facet that constrains the length of the lexical representation of
+        a value.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_pattern-class.html">pyxb.binding.facets.CF_pattern</a></strong>:
+      <em class="summary">A facet that constrains the lexical representation of a value to 
+        match one of a set of patterns.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_totalDigits-class.html">pyxb.binding.facets.CF_totalDigits</a></strong>:
+      <em class="summary">Specify the number of digits in the *value* space of the type.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_whiteSpace-class.html">pyxb.binding.facets.CF_whiteSpace</a></strong>:
+      <em class="summary">Specify the value-space interpretation of whitespace.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.FundamentalFacet-class.html">pyxb.binding.facets.FundamentalFacet</a></strong>:
+      <em class="summary">A fundamental facet provides information on the value space of the 
+        associated type.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.FF_bounded-class.html">pyxb.binding.facets.FF_bounded</a></strong>:
+      <em class="summary">Specifies that the associated type supports a notion of bounds.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.FF_cardinality-class.html">pyxb.binding.facets.FF_cardinality</a></strong>:
+      <em class="summary">Specifies that the associated type supports a notion of length.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.FF_equal-class.html">pyxb.binding.facets.FF_equal</a></strong>:
+      <em class="summary">Specifies that the associated type supports a notion of equality.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.FF_numeric-class.html">pyxb.binding.facets.FF_numeric</a></strong>:
+      <em class="summary">Specifies that the associated type represents a number.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.FF_ordered-class.html">pyxb.binding.facets.FF_ordered</a></strong>:
+      <em class="summary">Specifies that the associated type supports a notion of order.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.utility.Locatable_mixin-class.html">pyxb.utils.utility.Locatable_mixin</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Node-class.html">pyxb.utils.saxdom.Node</a></strong>:
+      <em class="summary">Base for the minimal DOM interface required by PyXB.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Attr-class.html">pyxb.utils.saxdom.Attr</a></strong>:
+      <em class="summary">Add the nodeName and nodeValue interface.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Document-class.html">pyxb.utils.saxdom.Document</a></strong>:
+      <em class="summary">Add the documentElement interface.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Element-class.html">pyxb.utils.saxdom.Element</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom._CharacterData-class.html" onclick="show_private();">pyxb.utils.saxdom._CharacterData</a></strong>:
+      <em class="summary">Abstract base for anything holding text data.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Comment-class.html">pyxb.utils.saxdom.Comment</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Text-class.html">pyxb.utils.saxdom.Text</a></strong>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._SchemaComponent_mixin-class.html" onclick="show_private();">pyxb.xmlschema.structures._SchemaComponent_mixin</a></strong>:
+      <em class="summary">A mix-in that marks the class as representing a schema component.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Annotation-class.html">pyxb.xmlschema.structures.Annotation</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAnnotation" 
+        target="_top">Annotation</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeDeclaration-class.html">pyxb.xmlschema.structures.AttributeDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Declarations" 
+        target="_top">Attribute Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeGroupDefinition-class.html">pyxb.xmlschema.structures.AttributeGroupDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Group_Definitions"
+        target="_top">Attribute Group Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeUse-class.html">pyxb.xmlschema.structures.AttributeUse</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Use" 
+        target="_top">Attribute Use</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ComplexTypeDefinition-class.html">pyxb.xmlschema.structures.ComplexTypeDefinition</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._UrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._UrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ElementDeclaration-class.html">pyxb.xmlschema.structures.ElementDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cElement_Declarations" 
+        target="_top">Element Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.IdentityConstraintDefinition-class.html">pyxb.xmlschema.structures.IdentityConstraintDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cIdentity-constraint_Definitions"
+        target="_top">Identity Constraint Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ModelGroup-class.html">pyxb.xmlschema.structures.ModelGroup</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cModel_Group" 
+        target="_top">Model Group</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ModelGroupDefinition-class.html">pyxb.xmlschema.structures.ModelGroupDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cModel_Group_Definitions" 
+        target="_top">Model Group Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.NotationDeclaration-class.html">pyxb.xmlschema.structures.NotationDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cNotation_Declarations" 
+        target="_top">Notation Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Particle-class.html">pyxb.xmlschema.structures.Particle</a></strong>:
+      <em class="summary">An XMLSchema <a href="http://www.w3.org/TR/xmlschema-1/#cParticle" 
+        target="_top">Particle</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Schema-class.html">pyxb.xmlschema.structures.Schema</a></strong>:
+      <em class="summary">An XMLSchema <a href="http://www.w3.org/TR/xmlschema-1/#Schemas" 
+        target="_top">Schema</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.SimpleTypeDefinition-class.html">pyxb.xmlschema.structures.SimpleTypeDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#Simple_Type_Definitions" 
+        target="_top">Simple Type Definition</a> component.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._SimpleUrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._SimpleUrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one simple ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Wildcard-class.html">pyxb.xmlschema.structures.Wildcard</a></strong>:
+      <em class="summary">An XMLSchema <a href="http://www.w3.org/TR/xmlschema-1/#cParticle" 
+        target="_top">Wildcard</a> component.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis._TypeBinding_mixin-class.html" onclick="show_private();">pyxb.binding.basis._TypeBinding_mixin</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis.complexTypeDefinition-class.html">pyxb.binding.basis.complexTypeDefinition</a></strong>:
+      <em class="summary">Base for any Python class that serves as the binding for an 
+        XMLSchema complexType.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.anyType-class.html">pyxb.binding.datatypes.anyType</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType"
+        target="_top">anyType</a>.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis.simpleTypeDefinition-class.html">pyxb.binding.basis.simpleTypeDefinition</a></strong>:
+      <em class="summary"><a href="pyxb.binding.basis.simpleTypeDefinition-class.html" 
+        class="link">simpleTypeDefinition</a> is a base class that is part 
+        of the hierarchy of any class that represents the Python datatype 
+        for a <a 
+        href="pyxb.xmlschema.structures.SimpleTypeDefinition-class.html" 
+        class="link">SimpleTypeDefinition</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.NOTATION-class.html">pyxb.binding.datatypes.NOTATION</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#NOTATION" 
+        target="_top">NOTATION</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.QName-class.html">pyxb.binding.datatypes.QName</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#QName" 
+        target="_top">QName</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis.STD_list-class.html">pyxb.binding.basis.STD_list</a></strong>:
+      <em class="summary">Base class for collection datatypes.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.ENTITIES-class.html">pyxb.binding.datatypes.ENTITIES</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#ENTITIES" 
+        target="_top">ENTITIES</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.IDREFS-class.html">pyxb.binding.datatypes.IDREFS</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#IDREFS" 
+        target="_top">IDREFS</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.NMTOKENS-class.html">pyxb.binding.datatypes.NMTOKENS</a></strong>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis.STD_union-class.html">pyxb.binding.basis.STD_union</a></strong>:
+      <em class="summary">Base class for union datatypes.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.xml_.STD_ANON_lang-class.html">pyxb.binding.xml_.STD_ANON_lang</a></strong>:
+      <em class="summary">Simple type that is a union of pyxb.binding.datatypes.language, 
+        STD_ANON_emptyString</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html" onclick="show_private();">pyxb.binding.datatypes._PyXBDateTime_base</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes._PyXBDateOnly_base-class.html" onclick="show_private();">pyxb.binding.datatypes._PyXBDateOnly_base</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.date-class.html">pyxb.binding.datatypes.date</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#date"
+        target="_top">date</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gDay-class.html">pyxb.binding.datatypes.gDay</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#gDay"
+        target="_top">gDay</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gMonth-class.html">pyxb.binding.datatypes.gMonth</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gMonth" 
+        target="_top">gMonth</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gMonthDay-class.html">pyxb.binding.datatypes.gMonthDay</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gMonthDay" 
+        target="_top">gMonthDay</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gYear-class.html">pyxb.binding.datatypes.gYear</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gYear" 
+        target="_top">gYear</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gYearMonth-class.html">pyxb.binding.datatypes.gYearMonth</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gYearMonth" 
+        target="_top">gYearMonth</a>.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.dateTime-class.html">pyxb.binding.datatypes.dateTime</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#dateTime" 
+        target="_top">dateTime</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.time-class.html">pyxb.binding.datatypes.time</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#time"
+        target="_top">time</a>.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.anySimpleType-class.html">pyxb.binding.datatypes.anySimpleType</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#dt-anySimpleType" 
+        target="_top">anySimpleType</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.anyURI-class.html">pyxb.binding.datatypes.anyURI</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#anyURI" 
+        target="_top">anyURI</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.base64Binary-class.html">pyxb.binding.datatypes.base64Binary</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#base64Binary" 
+        target="_top">base64Binary</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.boolean-class.html">pyxb.binding.datatypes.boolean</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#boolean" 
+        target="_top">boolean</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.decimal-class.html">pyxb.binding.datatypes.decimal</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#decimal" 
+        target="_top">decimal</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.double-class.html">pyxb.binding.datatypes.double</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#double" 
+        target="_top">double</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.duration-class.html">pyxb.binding.datatypes.duration</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#duration" 
+        target="_top">duration</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.float-class.html">pyxb.binding.datatypes.float</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#float" 
+        target="_top">float</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.hexBinary-class.html">pyxb.binding.datatypes.hexBinary</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#hexBinary" 
+        target="_top">hexBinary</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.int-class.html">pyxb.binding.datatypes.int</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#int" 
+        target="_top">int</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.short-class.html">pyxb.binding.datatypes.short</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#short" 
+        target="_top">short</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.byte-class.html">pyxb.binding.datatypes.byte</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#byte"
+        target="_top">byte</a>.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.integer-class.html">pyxb.binding.datatypes.integer</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#integer" 
+        target="_top">integer</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.long-class.html">pyxb.binding.datatypes.long</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#long"
+        target="_top">long</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.nonNegativeInteger-class.html">pyxb.binding.datatypes.nonNegativeInteger</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#nonNegativeInteger" 
+        target="_top">nonNegativeInteger</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.positiveInteger-class.html">pyxb.binding.datatypes.positiveInteger</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#positiveInteger" 
+        target="_top">positiveInteger</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.unsignedLong-class.html">pyxb.binding.datatypes.unsignedLong</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedLong" 
+        target="_top">unsignedLong</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.unsignedInt-class.html">pyxb.binding.datatypes.unsignedInt</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedInt" 
+        target="_top">unsignedInt</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.unsignedShort-class.html">pyxb.binding.datatypes.unsignedShort</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedShort" 
+        target="_top">unsignedShort</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.unsignedByte-class.html">pyxb.binding.datatypes.unsignedByte</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedByte" 
+        target="_top">unsignedByte</a>.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.nonPositiveInteger-class.html">pyxb.binding.datatypes.nonPositiveInteger</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#nonPositiveInteger" 
+        target="_top">nonPositiveInteger</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.negativeInteger-class.html">pyxb.binding.datatypes.negativeInteger</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#negativeInteger" 
+        target="_top">negativeInteger</a>.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.string-class.html">pyxb.binding.datatypes.string</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#string" 
+        target="_top">string</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.xml_.STD_ANON_emptyString-class.html">pyxb.binding.xml_.STD_ANON_emptyString</a></strong>:
+      <em class="summary">No information</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.normalizedString-class.html">pyxb.binding.datatypes.normalizedString</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#normalizedString" 
+        target="_top">normalizedString</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.token-class.html">pyxb.binding.datatypes.token</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#token" 
+        target="_top">token</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.NMTOKEN-class.html">pyxb.binding.datatypes.NMTOKEN</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#NMTOKEN" 
+        target="_top">NMTOKEN</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets._WhiteSpace_enum-class.html" onclick="show_private();">pyxb.binding.facets._WhiteSpace_enum</a></strong>:
+      <em class="summary">The enumeration used to constrain the whiteSpace facet</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.Name-class.html">pyxb.binding.datatypes.Name</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#Name" 
+        target="_top">Name</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.NCName-class.html">pyxb.binding.datatypes.NCName</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#NCName" 
+        target="_top">NCName</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.ENTITY-class.html">pyxb.binding.datatypes.ENTITY</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#ENTITY" 
+        target="_top">ENTITY</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.ID-class.html">pyxb.binding.datatypes.ID</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http:///www.w3.org/TR/xmlschema-2/#ID" 
+        target="_top">ID</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.IDREF-class.html">pyxb.binding.datatypes.IDREF</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#IDREF" 
+        target="_top">IDREF</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.xml_.STD_ANON_space-class.html">pyxb.binding.xml_.STD_ANON_space</a></strong>:
+      <em class="summary">No information</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.language-class.html">pyxb.binding.datatypes.language</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#language" 
+        target="_top">language</a></em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.utility.PrivateTransient_mixin-class.html">pyxb.utils.utility.PrivateTransient_mixin</a></strong>:
+      <em class="summary">Emulate the <b>transient</b> keyword from Java for private member 
+        variables.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.archive.ModuleRecord-class.html">pyxb.namespace.archive.ModuleRecord</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace._ComponentDependency_mixin-class.html" onclick="show_private();">pyxb.namespace._ComponentDependency_mixin</a></strong>:
+      <em class="summary">Mix-in for components that can depend on other components.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._SchemaComponent_mixin-class.html" onclick="show_private();">pyxb.xmlschema.structures._SchemaComponent_mixin</a></strong>:
+      <em class="summary">A mix-in that marks the class as representing a schema component.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Annotation-class.html">pyxb.xmlschema.structures.Annotation</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAnnotation" 
+        target="_top">Annotation</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeDeclaration-class.html">pyxb.xmlschema.structures.AttributeDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Declarations" 
+        target="_top">Attribute Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeGroupDefinition-class.html">pyxb.xmlschema.structures.AttributeGroupDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Group_Definitions"
+        target="_top">Attribute Group Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeUse-class.html">pyxb.xmlschema.structures.AttributeUse</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Use" 
+        target="_top">Attribute Use</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ComplexTypeDefinition-class.html">pyxb.xmlschema.structures.ComplexTypeDefinition</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._UrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._UrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ElementDeclaration-class.html">pyxb.xmlschema.structures.ElementDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cElement_Declarations" 
+        target="_top">Element Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.IdentityConstraintDefinition-class.html">pyxb.xmlschema.structures.IdentityConstraintDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cIdentity-constraint_Definitions"
+        target="_top">Identity Constraint Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ModelGroup-class.html">pyxb.xmlschema.structures.ModelGroup</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cModel_Group" 
+        target="_top">Model Group</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ModelGroupDefinition-class.html">pyxb.xmlschema.structures.ModelGroupDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cModel_Group_Definitions" 
+        target="_top">Model Group Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.NotationDeclaration-class.html">pyxb.xmlschema.structures.NotationDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cNotation_Declarations" 
+        target="_top">Notation Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Particle-class.html">pyxb.xmlschema.structures.Particle</a></strong>:
+      <em class="summary">An XMLSchema <a href="http://www.w3.org/TR/xmlschema-1/#cParticle" 
+        target="_top">Particle</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Schema-class.html">pyxb.xmlschema.structures.Schema</a></strong>:
+      <em class="summary">An XMLSchema <a href="http://www.w3.org/TR/xmlschema-1/#Schemas" 
+        target="_top">Schema</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.SimpleTypeDefinition-class.html">pyxb.xmlschema.structures.SimpleTypeDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#Simple_Type_Definitions" 
+        target="_top">Simple Type Definition</a> component.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._SimpleUrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._SimpleUrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one simple ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Wildcard-class.html">pyxb.xmlschema.structures.Wildcard</a></strong>:
+      <em class="summary">An XMLSchema <a href="http://www.w3.org/TR/xmlschema-1/#cParticle" 
+        target="_top">Wildcard</a> component.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html" onclick="show_private();">pyxb.xmlschema.structures._NamedComponent_mixin</a></strong>:
+      <em class="summary">Mix-in to hold the name and targetNamespace of a component.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeDeclaration-class.html">pyxb.xmlschema.structures.AttributeDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Declarations" 
+        target="_top">Attribute Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeGroupDefinition-class.html">pyxb.xmlschema.structures.AttributeGroupDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Group_Definitions"
+        target="_top">Attribute Group Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ComplexTypeDefinition-class.html">pyxb.xmlschema.structures.ComplexTypeDefinition</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._UrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._UrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ElementDeclaration-class.html">pyxb.xmlschema.structures.ElementDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cElement_Declarations" 
+        target="_top">Element Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.IdentityConstraintDefinition-class.html">pyxb.xmlschema.structures.IdentityConstraintDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cIdentity-constraint_Definitions"
+        target="_top">Identity Constraint Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ModelGroupDefinition-class.html">pyxb.xmlschema.structures.ModelGroupDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cModel_Group_Definitions" 
+        target="_top">Model Group Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.NotationDeclaration-class.html">pyxb.xmlschema.structures.NotationDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cNotation_Declarations" 
+        target="_top">Notation Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.SimpleTypeDefinition-class.html">pyxb.xmlschema.structures.SimpleTypeDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#Simple_Type_Definitions" 
+        target="_top">Simple Type Definition</a> component.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._SimpleUrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._SimpleUrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one simple ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.archive._ObjectOrigin-class.html" onclick="show_private();">pyxb.namespace.archive._ObjectOrigin</a></strong>:
+      <em class="summary">Marker class for objects that can serve as an origin for an object 
+        in a namespace.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.archive._SchemaOrigin-class.html" onclick="show_private();">pyxb.namespace.archive._SchemaOrigin</a></strong>:
+      <em class="summary">Holds the data regarding components derived from a single schema.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets._PatternElement-class.html" onclick="show_private();">pyxb.binding.facets._PatternElement</a></strong>:
+      <em class="summary">This class represents individual patterns that appear within a 
+        CF_pattern collection.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._SchemaComponent_mixin-class.html" onclick="show_private();">pyxb.xmlschema.structures._SchemaComponent_mixin</a></strong>:
+      <em class="summary">A mix-in that marks the class as representing a schema component.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Annotation-class.html">pyxb.xmlschema.structures.Annotation</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAnnotation" 
+        target="_top">Annotation</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeDeclaration-class.html">pyxb.xmlschema.structures.AttributeDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Declarations" 
+        target="_top">Attribute Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeGroupDefinition-class.html">pyxb.xmlschema.structures.AttributeGroupDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Group_Definitions"
+        target="_top">Attribute Group Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeUse-class.html">pyxb.xmlschema.structures.AttributeUse</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Use" 
+        target="_top">Attribute Use</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ComplexTypeDefinition-class.html">pyxb.xmlschema.structures.ComplexTypeDefinition</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._UrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._UrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ElementDeclaration-class.html">pyxb.xmlschema.structures.ElementDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cElement_Declarations" 
+        target="_top">Element Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.IdentityConstraintDefinition-class.html">pyxb.xmlschema.structures.IdentityConstraintDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cIdentity-constraint_Definitions"
+        target="_top">Identity Constraint Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ModelGroup-class.html">pyxb.xmlschema.structures.ModelGroup</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cModel_Group" 
+        target="_top">Model Group</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ModelGroupDefinition-class.html">pyxb.xmlschema.structures.ModelGroupDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cModel_Group_Definitions" 
+        target="_top">Model Group Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.NotationDeclaration-class.html">pyxb.xmlschema.structures.NotationDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cNotation_Declarations" 
+        target="_top">Notation Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Particle-class.html">pyxb.xmlschema.structures.Particle</a></strong>:
+      <em class="summary">An XMLSchema <a href="http://www.w3.org/TR/xmlschema-1/#cParticle" 
+        target="_top">Particle</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Schema-class.html">pyxb.xmlschema.structures.Schema</a></strong>:
+      <em class="summary">An XMLSchema <a href="http://www.w3.org/TR/xmlschema-1/#Schemas" 
+        target="_top">Schema</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.SimpleTypeDefinition-class.html">pyxb.xmlschema.structures.SimpleTypeDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#Simple_Type_Definitions" 
+        target="_top">Simple Type Definition</a> component.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._SimpleUrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._SimpleUrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one simple ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Wildcard-class.html">pyxb.xmlschema.structures.Wildcard</a></strong>:
+      <em class="summary">An XMLSchema <a href="http://www.w3.org/TR/xmlschema-1/#cParticle" 
+        target="_top">Wildcard</a> component.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._Annotated_mixin-class.html" onclick="show_private();">pyxb.xmlschema.structures._Annotated_mixin</a></strong>:
+      <em class="summary">Mix-in that supports an optional single annotation that describes 
+        the component.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeDeclaration-class.html">pyxb.xmlschema.structures.AttributeDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Declarations" 
+        target="_top">Attribute Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeGroupDefinition-class.html">pyxb.xmlschema.structures.AttributeGroupDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Group_Definitions"
+        target="_top">Attribute Group Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ComplexTypeDefinition-class.html">pyxb.xmlschema.structures.ComplexTypeDefinition</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._UrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._UrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ElementDeclaration-class.html">pyxb.xmlschema.structures.ElementDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cElement_Declarations" 
+        target="_top">Element Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.IdentityConstraintDefinition-class.html">pyxb.xmlschema.structures.IdentityConstraintDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cIdentity-constraint_Definitions"
+        target="_top">Identity Constraint Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ModelGroup-class.html">pyxb.xmlschema.structures.ModelGroup</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cModel_Group" 
+        target="_top">Model Group</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ModelGroupDefinition-class.html">pyxb.xmlschema.structures.ModelGroupDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cModel_Group_Definitions" 
+        target="_top">Model Group Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.NotationDeclaration-class.html">pyxb.xmlschema.structures.NotationDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cNotation_Declarations" 
+        target="_top">Notation Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.SimpleTypeDefinition-class.html">pyxb.xmlschema.structures.SimpleTypeDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#Simple_Type_Definitions" 
+        target="_top">Simple Type Definition</a> component.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._SimpleUrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._SimpleUrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one simple ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Wildcard-class.html">pyxb.xmlschema.structures.Wildcard</a></strong>:
+      <em class="summary">An XMLSchema <a href="http://www.w3.org/TR/xmlschema-1/#cParticle" 
+        target="_top">Wildcard</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._ImportElementInformationItem-class.html" onclick="show_private();">pyxb.xmlschema.structures._ImportElementInformationItem</a></strong>:
+      <em class="summary">Data associated with an <a 
+        href="http://www.w3.org/TR/xmlschema-1/#composition-schemaImport" 
+        target="_top">import</a> statement within a schema.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.archive._ArchivableObject_mixin-class.html" onclick="show_private();">pyxb.namespace.archive._ArchivableObject_mixin</a></strong>:
+      <em class="summary">Mix-in to any object that can be stored in a namespace within an 
+        archive.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._SchemaComponent_mixin-class.html" onclick="show_private();">pyxb.xmlschema.structures._SchemaComponent_mixin</a></strong>:
+      <em class="summary">A mix-in that marks the class as representing a schema component.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Annotation-class.html">pyxb.xmlschema.structures.Annotation</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAnnotation" 
+        target="_top">Annotation</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeDeclaration-class.html">pyxb.xmlschema.structures.AttributeDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Declarations" 
+        target="_top">Attribute Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeGroupDefinition-class.html">pyxb.xmlschema.structures.AttributeGroupDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Group_Definitions"
+        target="_top">Attribute Group Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeUse-class.html">pyxb.xmlschema.structures.AttributeUse</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Use" 
+        target="_top">Attribute Use</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ComplexTypeDefinition-class.html">pyxb.xmlschema.structures.ComplexTypeDefinition</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._UrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._UrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ElementDeclaration-class.html">pyxb.xmlschema.structures.ElementDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cElement_Declarations" 
+        target="_top">Element Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.IdentityConstraintDefinition-class.html">pyxb.xmlschema.structures.IdentityConstraintDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cIdentity-constraint_Definitions"
+        target="_top">Identity Constraint Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ModelGroup-class.html">pyxb.xmlschema.structures.ModelGroup</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cModel_Group" 
+        target="_top">Model Group</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ModelGroupDefinition-class.html">pyxb.xmlschema.structures.ModelGroupDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cModel_Group_Definitions" 
+        target="_top">Model Group Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.NotationDeclaration-class.html">pyxb.xmlschema.structures.NotationDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cNotation_Declarations" 
+        target="_top">Notation Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Particle-class.html">pyxb.xmlschema.structures.Particle</a></strong>:
+      <em class="summary">An XMLSchema <a href="http://www.w3.org/TR/xmlschema-1/#cParticle" 
+        target="_top">Particle</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Schema-class.html">pyxb.xmlschema.structures.Schema</a></strong>:
+      <em class="summary">An XMLSchema <a href="http://www.w3.org/TR/xmlschema-1/#Schemas" 
+        target="_top">Schema</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.SimpleTypeDefinition-class.html">pyxb.xmlschema.structures.SimpleTypeDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#Simple_Type_Definitions" 
+        target="_top">Simple Type Definition</a> component.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._SimpleUrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._SimpleUrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one simple ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Wildcard-class.html">pyxb.xmlschema.structures.Wildcard</a></strong>:
+      <em class="summary">An XMLSchema <a href="http://www.w3.org/TR/xmlschema-1/#cParticle" 
+        target="_top">Wildcard</a> component.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._AttributeWildcard_mixin-class.html" onclick="show_private();">pyxb.xmlschema.structures._AttributeWildcard_mixin</a></strong>:
+      <em class="summary">Support for components that accept attribute wildcards.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeGroupDefinition-class.html">pyxb.xmlschema.structures.AttributeGroupDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Group_Definitions"
+        target="_top">Attribute Group Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ComplexTypeDefinition-class.html">pyxb.xmlschema.structures.ComplexTypeDefinition</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._UrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._UrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets._CollectionFacet_mixin-class.html" onclick="show_private();">pyxb.binding.facets._CollectionFacet_mixin</a></strong>:
+      <em class="summary">Mix-in to handle facets whose values are collections, not scalars.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_enumeration-class.html">pyxb.binding.facets.CF_enumeration</a></strong>:
+      <em class="summary">Capture a constraint that restricts valid values to a fixed set.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_pattern-class.html">pyxb.binding.facets.CF_pattern</a></strong>:
+      <em class="summary">A facet that constrains the lexical representation of a value to 
+        match one of a set of patterns.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace._ComponentDependency_mixin-class.html" onclick="show_private();">pyxb.namespace._ComponentDependency_mixin</a></strong>:
+      <em class="summary">Mix-in for components that can depend on other components.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._SchemaComponent_mixin-class.html" onclick="show_private();">pyxb.xmlschema.structures._SchemaComponent_mixin</a></strong>:
+      <em class="summary">A mix-in that marks the class as representing a schema component.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Annotation-class.html">pyxb.xmlschema.structures.Annotation</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAnnotation" 
+        target="_top">Annotation</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeDeclaration-class.html">pyxb.xmlschema.structures.AttributeDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Declarations" 
+        target="_top">Attribute Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeGroupDefinition-class.html">pyxb.xmlschema.structures.AttributeGroupDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Group_Definitions"
+        target="_top">Attribute Group Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeUse-class.html">pyxb.xmlschema.structures.AttributeUse</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Use" 
+        target="_top">Attribute Use</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ComplexTypeDefinition-class.html">pyxb.xmlschema.structures.ComplexTypeDefinition</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._UrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._UrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ElementDeclaration-class.html">pyxb.xmlschema.structures.ElementDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cElement_Declarations" 
+        target="_top">Element Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.IdentityConstraintDefinition-class.html">pyxb.xmlschema.structures.IdentityConstraintDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cIdentity-constraint_Definitions"
+        target="_top">Identity Constraint Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ModelGroup-class.html">pyxb.xmlschema.structures.ModelGroup</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cModel_Group" 
+        target="_top">Model Group</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ModelGroupDefinition-class.html">pyxb.xmlschema.structures.ModelGroupDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cModel_Group_Definitions" 
+        target="_top">Model Group Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.NotationDeclaration-class.html">pyxb.xmlschema.structures.NotationDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cNotation_Declarations" 
+        target="_top">Notation Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Particle-class.html">pyxb.xmlschema.structures.Particle</a></strong>:
+      <em class="summary">An XMLSchema <a href="http://www.w3.org/TR/xmlschema-1/#cParticle" 
+        target="_top">Particle</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Schema-class.html">pyxb.xmlschema.structures.Schema</a></strong>:
+      <em class="summary">An XMLSchema <a href="http://www.w3.org/TR/xmlschema-1/#Schemas" 
+        target="_top">Schema</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.SimpleTypeDefinition-class.html">pyxb.xmlschema.structures.SimpleTypeDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#Simple_Type_Definitions" 
+        target="_top">Simple Type Definition</a> component.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._SimpleUrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._SimpleUrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one simple ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Wildcard-class.html">pyxb.xmlschema.structures.Wildcard</a></strong>:
+      <em class="summary">An XMLSchema <a href="http://www.w3.org/TR/xmlschema-1/#cParticle" 
+        target="_top">Wildcard</a> component.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html" onclick="show_private();">pyxb.binding.basis._DynamicCreate_mixin</a></strong>:
+      <em class="summary">Helper to allow overriding the implementation class.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis.complexTypeDefinition-class.html">pyxb.binding.basis.complexTypeDefinition</a></strong>:
+      <em class="summary">Base for any Python class that serves as the binding for an 
+        XMLSchema complexType.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.anyType-class.html">pyxb.binding.datatypes.anyType</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType"
+        target="_top">anyType</a>.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis.element-class.html">pyxb.binding.basis.element</a></strong>:
+      <em class="summary">Class that represents a schema element within a binding.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis.simpleTypeDefinition-class.html">pyxb.binding.basis.simpleTypeDefinition</a></strong>:
+      <em class="summary"><a href="pyxb.binding.basis.simpleTypeDefinition-class.html" 
+        class="link">simpleTypeDefinition</a> is a base class that is part 
+        of the hierarchy of any class that represents the Python datatype 
+        for a <a 
+        href="pyxb.xmlschema.structures.SimpleTypeDefinition-class.html" 
+        class="link">SimpleTypeDefinition</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.NOTATION-class.html">pyxb.binding.datatypes.NOTATION</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#NOTATION" 
+        target="_top">NOTATION</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.QName-class.html">pyxb.binding.datatypes.QName</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#QName" 
+        target="_top">QName</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis.STD_list-class.html">pyxb.binding.basis.STD_list</a></strong>:
+      <em class="summary">Base class for collection datatypes.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.ENTITIES-class.html">pyxb.binding.datatypes.ENTITIES</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#ENTITIES" 
+        target="_top">ENTITIES</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.IDREFS-class.html">pyxb.binding.datatypes.IDREFS</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#IDREFS" 
+        target="_top">IDREFS</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.NMTOKENS-class.html">pyxb.binding.datatypes.NMTOKENS</a></strong>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis.STD_union-class.html">pyxb.binding.basis.STD_union</a></strong>:
+      <em class="summary">Base class for union datatypes.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.xml_.STD_ANON_lang-class.html">pyxb.binding.xml_.STD_ANON_lang</a></strong>:
+      <em class="summary">Simple type that is a union of pyxb.binding.datatypes.language, 
+        STD_ANON_emptyString</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html" onclick="show_private();">pyxb.binding.datatypes._PyXBDateTime_base</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes._PyXBDateOnly_base-class.html" onclick="show_private();">pyxb.binding.datatypes._PyXBDateOnly_base</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.date-class.html">pyxb.binding.datatypes.date</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#date"
+        target="_top">date</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gDay-class.html">pyxb.binding.datatypes.gDay</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#gDay"
+        target="_top">gDay</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gMonth-class.html">pyxb.binding.datatypes.gMonth</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gMonth" 
+        target="_top">gMonth</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gMonthDay-class.html">pyxb.binding.datatypes.gMonthDay</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gMonthDay" 
+        target="_top">gMonthDay</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gYear-class.html">pyxb.binding.datatypes.gYear</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gYear" 
+        target="_top">gYear</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gYearMonth-class.html">pyxb.binding.datatypes.gYearMonth</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gYearMonth" 
+        target="_top">gYearMonth</a>.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.dateTime-class.html">pyxb.binding.datatypes.dateTime</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#dateTime" 
+        target="_top">dateTime</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.time-class.html">pyxb.binding.datatypes.time</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#time"
+        target="_top">time</a>.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.anySimpleType-class.html">pyxb.binding.datatypes.anySimpleType</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#dt-anySimpleType" 
+        target="_top">anySimpleType</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.anyURI-class.html">pyxb.binding.datatypes.anyURI</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#anyURI" 
+        target="_top">anyURI</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.base64Binary-class.html">pyxb.binding.datatypes.base64Binary</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#base64Binary" 
+        target="_top">base64Binary</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.boolean-class.html">pyxb.binding.datatypes.boolean</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#boolean" 
+        target="_top">boolean</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.decimal-class.html">pyxb.binding.datatypes.decimal</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#decimal" 
+        target="_top">decimal</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.double-class.html">pyxb.binding.datatypes.double</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#double" 
+        target="_top">double</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.duration-class.html">pyxb.binding.datatypes.duration</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#duration" 
+        target="_top">duration</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.float-class.html">pyxb.binding.datatypes.float</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#float" 
+        target="_top">float</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.hexBinary-class.html">pyxb.binding.datatypes.hexBinary</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#hexBinary" 
+        target="_top">hexBinary</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.int-class.html">pyxb.binding.datatypes.int</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#int" 
+        target="_top">int</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.short-class.html">pyxb.binding.datatypes.short</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#short" 
+        target="_top">short</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.byte-class.html">pyxb.binding.datatypes.byte</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#byte"
+        target="_top">byte</a>.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.integer-class.html">pyxb.binding.datatypes.integer</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#integer" 
+        target="_top">integer</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.long-class.html">pyxb.binding.datatypes.long</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#long"
+        target="_top">long</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.nonNegativeInteger-class.html">pyxb.binding.datatypes.nonNegativeInteger</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#nonNegativeInteger" 
+        target="_top">nonNegativeInteger</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.positiveInteger-class.html">pyxb.binding.datatypes.positiveInteger</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#positiveInteger" 
+        target="_top">positiveInteger</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.unsignedLong-class.html">pyxb.binding.datatypes.unsignedLong</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedLong" 
+        target="_top">unsignedLong</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.unsignedInt-class.html">pyxb.binding.datatypes.unsignedInt</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedInt" 
+        target="_top">unsignedInt</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.unsignedShort-class.html">pyxb.binding.datatypes.unsignedShort</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedShort" 
+        target="_top">unsignedShort</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.unsignedByte-class.html">pyxb.binding.datatypes.unsignedByte</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedByte" 
+        target="_top">unsignedByte</a>.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.nonPositiveInteger-class.html">pyxb.binding.datatypes.nonPositiveInteger</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#nonPositiveInteger" 
+        target="_top">nonPositiveInteger</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.negativeInteger-class.html">pyxb.binding.datatypes.negativeInteger</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#negativeInteger" 
+        target="_top">negativeInteger</a>.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.string-class.html">pyxb.binding.datatypes.string</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#string" 
+        target="_top">string</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.xml_.STD_ANON_emptyString-class.html">pyxb.binding.xml_.STD_ANON_emptyString</a></strong>:
+      <em class="summary">No information</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.normalizedString-class.html">pyxb.binding.datatypes.normalizedString</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#normalizedString" 
+        target="_top">normalizedString</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.token-class.html">pyxb.binding.datatypes.token</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#token" 
+        target="_top">token</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.NMTOKEN-class.html">pyxb.binding.datatypes.NMTOKEN</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#NMTOKEN" 
+        target="_top">NMTOKEN</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets._WhiteSpace_enum-class.html" onclick="show_private();">pyxb.binding.facets._WhiteSpace_enum</a></strong>:
+      <em class="summary">The enumeration used to constrain the whiteSpace facet</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.Name-class.html">pyxb.binding.datatypes.Name</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#Name" 
+        target="_top">Name</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.NCName-class.html">pyxb.binding.datatypes.NCName</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#NCName" 
+        target="_top">NCName</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.ENTITY-class.html">pyxb.binding.datatypes.ENTITY</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#ENTITY" 
+        target="_top">ENTITY</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.ID-class.html">pyxb.binding.datatypes.ID</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http:///www.w3.org/TR/xmlschema-2/#ID" 
+        target="_top">ID</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.IDREF-class.html">pyxb.binding.datatypes.IDREF</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#IDREF" 
+        target="_top">IDREF</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.xml_.STD_ANON_space-class.html">pyxb.binding.xml_.STD_ANON_space</a></strong>:
+      <em class="summary">No information</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.language-class.html">pyxb.binding.datatypes.language</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#language" 
+        target="_top">language</a></em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets._Enumeration_mixin-class.html" onclick="show_private();">pyxb.binding.facets._Enumeration_mixin</a></strong>:
+      <em class="summary">Marker class to indicate that the generated binding has enumeration
+        members.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets._WhiteSpace_enum-class.html" onclick="show_private();">pyxb.binding.facets._WhiteSpace_enum</a></strong>:
+      <em class="summary">The enumeration used to constrain the whiteSpace facet</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets._Fixed_mixin-class.html" onclick="show_private();">pyxb.binding.facets._Fixed_mixin</a></strong>:
+      <em class="summary">Mix-in to a constraining facet that adds support for the 'fixed' 
+        property.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_fractionDigits-class.html">pyxb.binding.facets.CF_fractionDigits</a></strong>:
+      <em class="summary">Specify the number of sub-unit digits in the *value* space of the 
+        type.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_length-class.html">pyxb.binding.facets.CF_length</a></strong>:
+      <em class="summary">A facet that specifies the length of the lexical representation of 
+        a value.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_maxExclusive-class.html">pyxb.binding.facets.CF_maxExclusive</a></strong>:
+      <em class="summary">Specify the exclusive upper bound of legal values for the 
+        constrained type.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_maxInclusive-class.html">pyxb.binding.facets.CF_maxInclusive</a></strong>:
+      <em class="summary">Specify the maximum legal value for the constrained type.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_maxLength-class.html">pyxb.binding.facets.CF_maxLength</a></strong>:
+      <em class="summary">A facet that constrains the length of the lexical representation of
+        a value.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_minExclusive-class.html">pyxb.binding.facets.CF_minExclusive</a></strong>:
+      <em class="summary">Specify the exclusive lower bound of legal values for the 
+        constrained type.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_minInclusive-class.html">pyxb.binding.facets.CF_minInclusive</a></strong>:
+      <em class="summary">Specify the minimum legal value for the constrained type.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_minLength-class.html">pyxb.binding.facets.CF_minLength</a></strong>:
+      <em class="summary">A facet that constrains the length of the lexical representation of
+        a value.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_totalDigits-class.html">pyxb.binding.facets.CF_totalDigits</a></strong>:
+      <em class="summary">Specify the number of digits in the *value* space of the type.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_whiteSpace-class.html">pyxb.binding.facets.CF_whiteSpace</a></strong>:
+      <em class="summary">Specify the value-space interpretation of whitespace.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets._LateDatatype_mixin-class.html" onclick="show_private();">pyxb.binding.facets._LateDatatype_mixin</a></strong>:
+      <em class="summary">Marker class to indicate that the facet instance must be told its 
+        datatype when it is constructed.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_enumeration-class.html">pyxb.binding.facets.CF_enumeration</a></strong>:
+      <em class="summary">Capture a constraint that restricts valid values to a fixed set.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_maxExclusive-class.html">pyxb.binding.facets.CF_maxExclusive</a></strong>:
+      <em class="summary">Specify the exclusive upper bound of legal values for the 
+        constrained type.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_maxInclusive-class.html">pyxb.binding.facets.CF_maxInclusive</a></strong>:
+      <em class="summary">Specify the maximum legal value for the constrained type.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_minExclusive-class.html">pyxb.binding.facets.CF_minExclusive</a></strong>:
+      <em class="summary">Specify the exclusive lower bound of legal values for the 
+        constrained type.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.facets.CF_minInclusive-class.html">pyxb.binding.facets.CF_minInclusive</a></strong>:
+      <em class="summary">Specify the minimum legal value for the constrained type.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html" onclick="show_private();">pyxb.xmlschema.structures._NamedComponent_mixin</a></strong>:
+      <em class="summary">Mix-in to hold the name and targetNamespace of a component.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeDeclaration-class.html">pyxb.xmlschema.structures.AttributeDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Declarations" 
+        target="_top">Attribute Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeGroupDefinition-class.html">pyxb.xmlschema.structures.AttributeGroupDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Group_Definitions"
+        target="_top">Attribute Group Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ComplexTypeDefinition-class.html">pyxb.xmlschema.structures.ComplexTypeDefinition</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._UrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._UrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ElementDeclaration-class.html">pyxb.xmlschema.structures.ElementDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cElement_Declarations" 
+        target="_top">Element Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.IdentityConstraintDefinition-class.html">pyxb.xmlschema.structures.IdentityConstraintDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cIdentity-constraint_Definitions"
+        target="_top">Identity Constraint Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ModelGroupDefinition-class.html">pyxb.xmlschema.structures.ModelGroupDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cModel_Group_Definitions" 
+        target="_top">Model Group Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.NotationDeclaration-class.html">pyxb.xmlschema.structures.NotationDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cNotation_Declarations" 
+        target="_top">Notation Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.SimpleTypeDefinition-class.html">pyxb.xmlschema.structures.SimpleTypeDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#Simple_Type_Definitions" 
+        target="_top">Simple Type Definition</a> component.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._SimpleUrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._SimpleUrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one simple ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.archive._NamespaceArchivable_mixin-class.html" onclick="show_private();">pyxb.namespace.archive._NamespaceArchivable_mixin</a></strong>:
+      <em class="summary">Encapsulate the operations and data relevant to archiving 
+        namespaces.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.Namespace-class.html">pyxb.namespace.Namespace</a></strong>:
+      <em class="summary">Represents an XML namespace (a URI).</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.builtin._XML-class.html" onclick="show_private();">pyxb.namespace.builtin._XML</a></strong>:
+      <em class="summary">Extension of <a href="pyxb.namespace.Namespace-class.html" 
+        class="link">Namespace</a> that pre-defines components available in
+        the XML (xml) namespace.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.builtin._XMLSchema-class.html" onclick="show_private();">pyxb.namespace.builtin._XMLSchema</a></strong>:
+      <em class="summary">Extension of <a href="pyxb.namespace.Namespace-class.html" 
+        class="link">Namespace</a> that pre-defines components available in
+        the XMLSchema namespace.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.builtin._XMLSchema_instance-class.html" onclick="show_private();">pyxb.namespace.builtin._XMLSchema_instance</a></strong>:
+      <em class="summary">Extension of <a href="pyxb.namespace.Namespace-class.html" 
+        class="link">Namespace</a> that pre-defines components available in
+        the XMLSchema Instance namespace.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace._NamespaceCategory_mixin-class.html" onclick="show_private();">pyxb.namespace._NamespaceCategory_mixin</a></strong>:
+      <em class="summary">Mix-in that aggregates those aspects of XMLNamespaces that hold 
+        references to categories of named objects.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.Namespace-class.html">pyxb.namespace.Namespace</a></strong>:
+      <em class="summary">Represents an XML namespace (a URI).</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.builtin._XML-class.html" onclick="show_private();">pyxb.namespace.builtin._XML</a></strong>:
+      <em class="summary">Extension of <a href="pyxb.namespace.Namespace-class.html" 
+        class="link">Namespace</a> that pre-defines components available in
+        the XML (xml) namespace.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.builtin._XMLSchema-class.html" onclick="show_private();">pyxb.namespace.builtin._XMLSchema</a></strong>:
+      <em class="summary">Extension of <a href="pyxb.namespace.Namespace-class.html" 
+        class="link">Namespace</a> that pre-defines components available in
+        the XMLSchema namespace.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.builtin._XMLSchema_instance-class.html" onclick="show_private();">pyxb.namespace.builtin._XMLSchema_instance</a></strong>:
+      <em class="summary">Extension of <a href="pyxb.namespace.Namespace-class.html" 
+        class="link">Namespace</a> that pre-defines components available in
+        the XMLSchema Instance namespace.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace._NamespaceComponentAssociation_mixin-class.html" onclick="show_private();">pyxb.namespace._NamespaceComponentAssociation_mixin</a></strong>:
+      <em class="summary">Mix-in for managing components defined within this namespace.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.Namespace-class.html">pyxb.namespace.Namespace</a></strong>:
+      <em class="summary">Represents an XML namespace (a URI).</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.builtin._XML-class.html" onclick="show_private();">pyxb.namespace.builtin._XML</a></strong>:
+      <em class="summary">Extension of <a href="pyxb.namespace.Namespace-class.html" 
+        class="link">Namespace</a> that pre-defines components available in
+        the XML (xml) namespace.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.builtin._XMLSchema-class.html" onclick="show_private();">pyxb.namespace.builtin._XMLSchema</a></strong>:
+      <em class="summary">Extension of <a href="pyxb.namespace.Namespace-class.html" 
+        class="link">Namespace</a> that pre-defines components available in
+        the XMLSchema namespace.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.builtin._XMLSchema_instance-class.html" onclick="show_private();">pyxb.namespace.builtin._XMLSchema_instance</a></strong>:
+      <em class="summary">Extension of <a href="pyxb.namespace.Namespace-class.html" 
+        class="link">Namespace</a> that pre-defines components available in
+        the XMLSchema Instance namespace.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.resolution._NamespaceResolution_mixin-class.html" onclick="show_private();">pyxb.namespace.resolution._NamespaceResolution_mixin</a></strong>:
+      <em class="summary">Mix-in that aggregates those aspects of XMLNamespaces relevant to 
+        resolving component references.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.Namespace-class.html">pyxb.namespace.Namespace</a></strong>:
+      <em class="summary">Represents an XML namespace (a URI).</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.builtin._XML-class.html" onclick="show_private();">pyxb.namespace.builtin._XML</a></strong>:
+      <em class="summary">Extension of <a href="pyxb.namespace.Namespace-class.html" 
+        class="link">Namespace</a> that pre-defines components available in
+        the XML (xml) namespace.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.builtin._XMLSchema-class.html" onclick="show_private();">pyxb.namespace.builtin._XMLSchema</a></strong>:
+      <em class="summary">Extension of <a href="pyxb.namespace.Namespace-class.html" 
+        class="link">Namespace</a> that pre-defines components available in
+        the XMLSchema namespace.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.builtin._XMLSchema_instance-class.html" onclick="show_private();">pyxb.namespace.builtin._XMLSchema_instance</a></strong>:
+      <em class="summary">Extension of <a href="pyxb.namespace.Namespace-class.html" 
+        class="link">Namespace</a> that pre-defines components available in
+        the XMLSchema Instance namespace.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.archive._ObjectOrigin-class.html" onclick="show_private();">pyxb.namespace.archive._ObjectOrigin</a></strong>:
+      <em class="summary">Marker class for objects that can serve as an origin for an object 
+        in a namespace.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.archive._SchemaOrigin-class.html" onclick="show_private();">pyxb.namespace.archive._SchemaOrigin</a></strong>:
+      <em class="summary">Holds the data regarding components derived from a single schema.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._ParticleTree_mixin-class.html" onclick="show_private();">pyxb.xmlschema.structures._ParticleTree_mixin</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ElementDeclaration-class.html">pyxb.xmlschema.structures.ElementDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cElement_Declarations" 
+        target="_top">Element Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ModelGroup-class.html">pyxb.xmlschema.structures.ModelGroup</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cModel_Group" 
+        target="_top">Model Group</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Particle-class.html">pyxb.xmlschema.structures.Particle</a></strong>:
+      <em class="summary">An XMLSchema <a href="http://www.w3.org/TR/xmlschema-1/#cParticle" 
+        target="_top">Particle</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Wildcard-class.html">pyxb.xmlschema.structures.Wildcard</a></strong>:
+      <em class="summary">An XMLSchema <a href="http://www.w3.org/TR/xmlschema-1/#cParticle" 
+        target="_top">Wildcard</a> component.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.resolution._Resolvable_mixin-class.html" onclick="show_private();">pyxb.namespace.resolution._Resolvable_mixin</a></strong>:
+      <em class="summary">Mix-in indicating that this object may have references to unseen 
+        named components.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeDeclaration-class.html">pyxb.xmlschema.structures.AttributeDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Declarations" 
+        target="_top">Attribute Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeGroupDefinition-class.html">pyxb.xmlschema.structures.AttributeGroupDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Group_Definitions"
+        target="_top">Attribute Group Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeUse-class.html">pyxb.xmlschema.structures.AttributeUse</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Use" 
+        target="_top">Attribute Use</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ComplexTypeDefinition-class.html">pyxb.xmlschema.structures.ComplexTypeDefinition</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._UrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._UrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ElementDeclaration-class.html">pyxb.xmlschema.structures.ElementDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cElement_Declarations" 
+        target="_top">Element Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.IdentityConstraintDefinition-class.html">pyxb.xmlschema.structures.IdentityConstraintDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cIdentity-constraint_Definitions"
+        target="_top">Identity Constraint Definition</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.Particle-class.html">pyxb.xmlschema.structures.Particle</a></strong>:
+      <em class="summary">An XMLSchema <a href="http://www.w3.org/TR/xmlschema-1/#cParticle" 
+        target="_top">Particle</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.SimpleTypeDefinition-class.html">pyxb.xmlschema.structures.SimpleTypeDefinition</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#Simple_Type_Definitions" 
+        target="_top">Simple Type Definition</a> component.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._SimpleUrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._SimpleUrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one simple ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._ScopedDeclaration_mixin-class.html" onclick="show_private();">pyxb.xmlschema.structures._ScopedDeclaration_mixin</a></strong>:
+      <em class="summary">Mix-in class for named components that have a scope.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeDeclaration-class.html">pyxb.xmlschema.structures.AttributeDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Declarations" 
+        target="_top">Attribute Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ElementDeclaration-class.html">pyxb.xmlschema.structures.ElementDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cElement_Declarations" 
+        target="_top">Element Declaration</a> component.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._Singleton_mixin-class.html" onclick="show_private();">pyxb.xmlschema.structures._Singleton_mixin</a></strong>:
+      <em class="summary">This class is a mix-in which guarantees that only one instance of 
+        the class will be created.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._SimpleUrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._SimpleUrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one simple ur-type.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._UrTypeDefinition-class.html" onclick="show_private();">pyxb.xmlschema.structures._UrTypeDefinition</a></strong>:
+      <em class="summary">Subclass ensures there is only one ur-type.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures._ValueConstraint_mixin-class.html" onclick="show_private();">pyxb.xmlschema.structures._ValueConstraint_mixin</a></strong>:
+      <em class="summary">Mix-in indicating that the component contains a simple-type value 
+        that may be constrained.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeDeclaration-class.html">pyxb.xmlschema.structures.AttributeDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Declarations" 
+        target="_top">Attribute Declaration</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.AttributeUse-class.html">pyxb.xmlschema.structures.AttributeUse</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Use" 
+        target="_top">Attribute Use</a> component.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.xmlschema.structures.ElementDeclaration-class.html">pyxb.xmlschema.structures.ElementDeclaration</a></strong>:
+      <em class="summary">An XMLSchema <a 
+        href="http://www.w3.org/TR/xmlschema-1/#cElement_Declarations" 
+        target="_top">Element Declaration</a> component.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis.enumeration_mixin-class.html">pyxb.binding.basis.enumeration_mixin</a></strong>:
+      <em class="summary">Marker in case we need to know that a PST has an enumeration 
+        constraint facet.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.xml_.STD_ANON_emptyString-class.html">pyxb.binding.xml_.STD_ANON_emptyString</a></strong>:
+      <em class="summary">No information</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.xml_.STD_ANON_space-class.html">pyxb.binding.xml_.STD_ANON_space</a></strong>:
+      <em class="summary">No information</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink">datetime.date</strong>:
+      <em class="summary">date(year, month, day) --&gt; date object</em>
+    <ul>
+    <li> <strong class="uidlink">datetime.datetime</strong>:
+      <em class="summary">datetime(year, month, day[, hour[, minute[, second[, 
+        microsecond[,tzinfo]]]]])</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes._PyXBDateOnly_base-class.html" onclick="show_private();">pyxb.binding.datatypes._PyXBDateOnly_base</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.date-class.html">pyxb.binding.datatypes.date</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#date"
+        target="_top">date</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gDay-class.html">pyxb.binding.datatypes.gDay</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#gDay"
+        target="_top">gDay</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gMonth-class.html">pyxb.binding.datatypes.gMonth</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gMonth" 
+        target="_top">gMonth</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gMonthDay-class.html">pyxb.binding.datatypes.gMonthDay</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gMonthDay" 
+        target="_top">gMonthDay</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gYear-class.html">pyxb.binding.datatypes.gYear</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gYear" 
+        target="_top">gYear</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gYearMonth-class.html">pyxb.binding.datatypes.gYearMonth</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gYearMonth" 
+        target="_top">gYearMonth</a>.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.dateTime-class.html">pyxb.binding.datatypes.dateTime</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#dateTime" 
+        target="_top">dateTime</a>.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink">dict</strong>:
+      <em class="summary">dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+    (key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+    d = {}
+    for k, v in iterable:
+        d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+    in the keyword argument list.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.NamedObjectMap-class.html">pyxb.namespace.NamedObjectMap</a></strong>:
+      <em class="summary">An extended dictionary intended to assist with QName resolution.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink">float</strong>:
+      <em class="summary">float(x) -&gt; floating point number</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.decimal-class.html">pyxb.binding.datatypes.decimal</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#decimal" 
+        target="_top">decimal</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.double-class.html">pyxb.binding.datatypes.double</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#double" 
+        target="_top">double</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.float-class.html">pyxb.binding.datatypes.float</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#float" 
+        target="_top">float</a>.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink">int</strong>:
+      <em class="summary">int(x[, base]) -&gt; integer</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.boolean-class.html">pyxb.binding.datatypes.boolean</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#boolean" 
+        target="_top">boolean</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.int-class.html">pyxb.binding.datatypes.int</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#int" 
+        target="_top">int</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.short-class.html">pyxb.binding.datatypes.short</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#short" 
+        target="_top">short</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.byte-class.html">pyxb.binding.datatypes.byte</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#byte"
+        target="_top">byte</a>.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink">list</strong>:
+      <em class="summary">list() -&gt; new empty list list(iterable) -&gt; new list 
+        initialized from iterable's items</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis.STD_list-class.html">pyxb.binding.basis.STD_list</a></strong>:
+      <em class="summary">Base class for collection datatypes.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.ENTITIES-class.html">pyxb.binding.datatypes.ENTITIES</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#ENTITIES" 
+        target="_top">ENTITIES</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.IDREFS-class.html">pyxb.binding.datatypes.IDREFS</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#IDREFS" 
+        target="_top">IDREFS</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.NMTOKENS-class.html">pyxb.binding.datatypes.NMTOKENS</a></strong>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink">long</strong>:
+      <em class="summary">long(x[, base]) -&gt; integer</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.integer-class.html">pyxb.binding.datatypes.integer</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#integer" 
+        target="_top">integer</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.long-class.html">pyxb.binding.datatypes.long</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#long"
+        target="_top">long</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.nonNegativeInteger-class.html">pyxb.binding.datatypes.nonNegativeInteger</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#nonNegativeInteger" 
+        target="_top">nonNegativeInteger</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.positiveInteger-class.html">pyxb.binding.datatypes.positiveInteger</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#positiveInteger" 
+        target="_top">positiveInteger</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.unsignedLong-class.html">pyxb.binding.datatypes.unsignedLong</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedLong" 
+        target="_top">unsignedLong</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.unsignedInt-class.html">pyxb.binding.datatypes.unsignedInt</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedInt" 
+        target="_top">unsignedInt</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.unsignedShort-class.html">pyxb.binding.datatypes.unsignedShort</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedShort" 
+        target="_top">unsignedShort</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.unsignedByte-class.html">pyxb.binding.datatypes.unsignedByte</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedByte" 
+        target="_top">unsignedByte</a>.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.nonPositiveInteger-class.html">pyxb.binding.datatypes.nonPositiveInteger</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#nonPositiveInteger" 
+        target="_top">nonPositiveInteger</a>.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.negativeInteger-class.html">pyxb.binding.datatypes.negativeInteger</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#negativeInteger" 
+        target="_top">negativeInteger</a>.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink">datetime.time</strong>:
+      <em class="summary">time([hour[, minute[, second[, microsecond[, tzinfo]]]]]) --&gt; a 
+        time object</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.time-class.html">pyxb.binding.datatypes.time</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#time"
+        target="_top">time</a>.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink">datetime.timedelta</strong>:
+      <em class="summary">Difference between two datetime values.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.duration-class.html">pyxb.binding.datatypes.duration</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#duration" 
+        target="_top">duration</a>.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink">datetime.tzinfo</strong>:
+      <em class="summary">Abstract base class for time zone info objects.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.utility.LocalTimeZone-class.html">pyxb.utils.utility.LocalTimeZone</a></strong>:
+      <em class="summary">A <code>datetime.tzinfo</code> subclass for the local time zone.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.utility.UTCOffsetTimeZone-class.html">pyxb.utils.utility.UTCOffsetTimeZone</a></strong>:
+      <em class="summary">A <code>datetime.tzinfo</code> subclass that helps deal with UTC 
+        conversions in an ISO8601 world.</em>
+    </li>
+    </ul>
+    </li>
+</ul>
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th bgcolor="#70b0f0" class="navbar-select"
+          >&nbsp;&nbsp;&nbsp;Trees&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:36 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

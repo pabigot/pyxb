@@ -1,0 +1,737 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.utils.unicode.XML1p0e2</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.utils-module.html">Package&nbsp;utils</a> ::
+        <a href="pyxb.utils.unicode-module.html">Module&nbsp;unicode</a> ::
+        Class&nbsp;XML1p0e2
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.utils.unicode.XML1p0e2-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== TYPE DESCRIPTION ==================== -->
+<h1 class="epydoc">type XML1p0e2</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.utils.unicode-pysrc.html#XML1p0e2">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+object --+
+         |
+        <strong class="uidshort">XML1p0e2</strong>
+</pre>
+
+<hr />
+<p>Regular expression support for XML Schema Data Types.</p>
+  <p>This class holds character classes and regular expressions used to 
+  constrain the lexical space of XML Schema datatypes derived from <a 
+  href="http://www.w3.org/TR/xmlschema-2/#string" target="_top">string</a>.
+  They are from <a href="http://www.w3.org/TR/2000/WD-xml-2e-20000814" 
+  target="_top">XML 1.0 (Second Edition)</a> and <a 
+  href="http://www.w3.org/TR/1999/REC-xml-names-19990114/" 
+  target="_top">Namespaces in XML</a>.</p>
+  <p>Unlike the regular expressions used for pattern constraints in XML 
+  Schema, which are derived from the Unicode 3.1 specification, these are 
+  derived from the Unicode 2.0 specification.</p>
+  <p>The XML Schema definition refers explicitly to the second edition of 
+  XML, so we have to use these code point sets and patterns.  Be aware that
+  <a href="http://www.w3.org/XML/xml-V10-4e-errata#E09" 
+  target="_top">subsequent updates to the XML specification</a> have 
+  changed the corresponding patterns for other uses of XML.  One 
+  significant change is that the original specification, used here, does 
+  not allow wide unicode characters.</p>
+
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.unicode.XML1p0e2-class.html#Char" class="summary-name">Char</a> = <code title="CodePointSet(0x0009, 0x000A, 0x000D, (0x0020, 0xD7FF), (0xE000, 0xFFFD\
+))">CodePointSet(0x0009, 0x000A, 0x000D, (0x0020, 0xD7FF), <code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.unicode.XML1p0e2-class.html#BaseChar" class="summary-name">BaseChar</a> = <code title="CodePointSet((0x0041, 0x005A), (0x0061, 0x007A), (0x00C0, 0x00D6), (0x\
+00D8, 0x00F6), (0x00F8, 0x00FF), (0x0100, 0x0131), (0x0134, 0x013E), (\
+0x0141, 0x0148), (0x014A, 0x017E), (0x0180, 0x01C3), (0x01CD, 0x01F0),\
+ (0x01F4, 0x01F5), (0x01FA, 0x0217), (0x0250, 0x02A8), (0x02BB, 0x02C1\
+), 0x0386, (0x0388, 0x038A), 0x038C, (0x038E, 0x03A1), (0x03A3, 0x03CE\
+), (0x03D0, 0x03D6), 0x03DA, 0x03DC, 0x03DE, 0x03E0, (0x03E2, 0x03F3),\
+ (0x0401, 0x040C), (0x040E, 0x044F), (0x0451, 0x045C), (0x045E, 0x0481\
+), (0x0490, 0x04C4), (0x04C7, 0x04C8), (0x04CB, 0x04CC), (0x04D0, 0x04\
+...">CodePointSet((0x0041, 0x005A), (0x0061, 0x007A), (0<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.unicode.XML1p0e2-class.html#Ideographic" class="summary-name">Ideographic</a> = <code title="CodePointSet((0x4E00, 0x9FA5), 0x3007, (0x3021, 0x3029))">CodePointSet((0x4E00, 0x9FA5), 0x3007, (0x3021, <code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="Letter"></a><span class="summary-name">Letter</span> = <code title="CodePointSet(BaseChar).extend(Ideographic)">CodePointSet(BaseChar).extend(Ideographic)</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.unicode.XML1p0e2-class.html#CombiningChar" class="summary-name">CombiningChar</a> = <code title="CodePointSet((0x0300, 0x0345), (0x0360, 0x0361), (0x0483, 0x0486), (0x\
+0591, 0x05A1), (0x05A3, 0x05B9), (0x05BB, 0x05BD), 0x05BF, (0x05C1, 0x\
+05C2), 0x05C4, (0x064B, 0x0652), 0x0670, (0x06D6, 0x06DC), (0x06DD, 0x\
+06DF), (0x06E0, 0x06E4), (0x06E7, 0x06E8), (0x06EA, 0x06ED), (0x0901, \
+0x0903), 0x093C, (0x093E, 0x094C), 0x094D, (0x0951, 0x0954), (0x0962, \
+0x0963), (0x0981, 0x0983), 0x09BC, 0x09BE, 0x09BF, (0x09C0, 0x09C4), (\
+0x09C7, 0x09C8), (0x09CB, 0x09CD), 0x09D7, (0x09E2, 0x09E3), 0x0A02, 0\
+x0A3C, 0x0A3E, 0x0A3F, (0x0A40, 0x0A42), (0x0A47, 0x0A48), (0x0A4B, 0x\
+...">CodePointSet((0x0300, 0x0345), (0x0360, 0x0361<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.unicode.XML1p0e2-class.html#Digit" class="summary-name">Digit</a> = <code title="CodePointSet((0x0030, 0x0039), (0x0660, 0x0669), (0x06F0, 0x06F9), (0x\
+0966, 0x096F), (0x09E6, 0x09EF), (0x0A66, 0x0A6F), (0x0AE6, 0x0AEF), (\
+0x0B66, 0x0B6F), (0x0BE7, 0x0BEF), (0x0C66, 0x0C6F), (0x0CE6, 0x0CEF),\
+ (0x0D66, 0x0D6F), (0x0E50, 0x0E59), (0x0ED0, 0x0ED9), (0x0F20, 0x0F29\
+))">CodePointSet((0x0030, 0x0039), (0x0660, 0x0669), (0x06<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.unicode.XML1p0e2-class.html#Extender" class="summary-name">Extender</a> = <code title="CodePointSet(0x00B7, 0x02D0, 0x02D1, 0x0387, 0x0640, 0x0E46, 0x0EC6, 0\
+x3005, (0x3031, 0x3035), (0x309D, 0x309E), (0x30FC, 0x30FE))">CodePointSet(0x00B7, 0x02D0, 0x02D1, 0x0387, 0x0640<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="NameStartChar"></a><span class="summary-name">NameStartChar</span> = <code title="CodePointSet(Letter)">CodePointSet(Letter)</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="NCNameStartChar"></a><span class="summary-name">NCNameStartChar</span> = <code title="CodePointSet(Letter)">CodePointSet(Letter)</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="NameChar"></a><span class="summary-name">NameChar</span> = <code title="CodePointSet(Letter)">CodePointSet(Letter)</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="NCNameChar"></a><span class="summary-name">NCNameChar</span> = <code title="CodePointSet(Letter)">CodePointSet(Letter)</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.unicode.XML1p0e2-class.html#Name_pat" class="summary-name">Name_pat</a> = <code title="u'[:A-Z_a-z&#192;-&#214;&#216;-&#246;&#248;-&#305;&#308;-&#318;&#321;-&#328;&#330;-&#382;&#384;-&#451;&#461;-&#496;&#500;-&#501;&#506;-&#535;&#592;-&#680;&#699;-&#705;&#902;&#904;-&#906;&#908;&#910;-&#929;&#931;-&#974;&#976;-&#982;&#986;&#988;&#990;&#992;&#994;-&#1011;&#1025;-\
+&#1036;&#1038;-&#1103;&#1105;-&#1116;&#1118;-&#1153;&#1168;-&#1220;&#1223;-&#1224;&#1227;-&#1228;&#1232;-&#1259;&#1262;-&#1269;&#1272;-&#1273;&#1329;-&#1366;&#1369;&#1377;-&#1414;&#1488;-&#1514;&#1520;-&#1522;&#1569;-&#1594;&#1601;-&#1610;&#1649;-&#1719;&#1722;-&#1726;&#1728;-&#1742;&#1744;-&#1747;&#1749;&#1765;-&#1766;&#2309;-&#2361;&#2365;&#2392;-&#2401;\
+&#2437;-&#2444;&#2447;-&#2448;&#2451;-&#2472;&#2474;-&#2480;&#2482;&#2486;-&#2489;&#2524;-&#2525;&#2527;-&#2529;&#2544;-&#2545;&#2565;-&#2570;&#2575;-&#2576;&#2579;-&#2600;&#2602;-&#2608;&#2610;-&#2611;&#2613;-&#2614;&#2616;-&#2617;&#2649;-&#2652;&#2654;&#2674;-&#2676;&#2693;-&#2699;&#2701;&#2703;-&#2705;&#2707;-&#2728;&#2730;-&#2736;&#2738;-&#2739;&#2741;\
+-&#2745;&#2749;&#2784;&#2821;-&#2828;&#2831;-&#2832;&#2835;-&#2856;&#2858;-&#2864;&#2866;-&#2867;&#2870;-&#2873;&#2877;&#2908;-&#2909;&#2911;-&#2913;&#2949;-&#2954;&#2958;-&#2960;&#2962;-&#2965;&#2969;-&#2970;&#2972;&#2974;-&#2975;&#2979;-&#2980;&#2984;-&#2986;&#2990;-&#2997;&#2999;-&#3001;&#3077;-&#3084;&#3086;-&#3088;&#3090;-&#3112;&#3114;-&#3123;&#3125;\
+-&#3129;&#3168;-&#3169;&#3205;-&#3212;&#3214;-&#3216;&#3218;-&#3240;&#3242;-&#3251;&#3253;-&#3257;&#3294;&#3296;-&#3297;&#3333;-&#3340;&#3342;-&#3344;&#3346;-&#3368;&#3370;-&#3385;&#3424;-&#3425;&#3585;-&#3630;&#3632;&#3634;-&#3635;&#3648;-&#3653;&#3713;-&#3714;&#3716;&#3719;-&#3720;&#3722;&#3725;&#3732;-&#3735;&#3737;-&#3743;&#3745;-&#3747;&#3749;&#3751;&#3754;\
+-&#3755;&#3757;-&#3758;&#3760;&#3762;-&#3763;&#3773;&#3776;-&#3780;&#3904;-&#3911;&#3913;-&#3945;&#4256;-&#4293;&#4304;-&#4342;&#4352;&#4354;-&#4355;&#4357;-&#4359;&#4361;&#4363;-&#4364;&#4366;-&#4370;&#4412;&#4414;&#4416;&#4428;&#4430;&#4432;&#4436;-&#4437;&#4441;&#4447;-&#4449;&#4451;&#4453;&#4455;&#4457;&#4461;-&#4462;&#4466;-&#4467;&#4469;&#4510;&#4520;&#4523;&#4526;-&#4527;&#4535;\
+-&#4536;&#4538;&#4540;-&#4546;&#4587;&#4592;&#4601;&#7680;-&#7835;&#7840;-&#7929;&#7936;-&#7957;&#7960;-&#7965;&#7968;-&#8005;&#8008;-&#8013;&#8016;-&#8023;&#8025;&#8027;&#8029;&#8031;-&#8061;&#8064;-&#8116;&#8118;-&#8124;&#8126;&#8130;-&#8132;&#8134;-&#8140;&#8144;-&#8147;&#8150;-&#8155;&#8160;-&#8172;&#8178;-&#8180;&#8182;-&#8188;&#8486;&#8490;-&#8491;&#8494;&#8576;\
+-&#8578;&#12295;&#12321;-&#12329;&#12353;-&#12436;&#12449;-&#12538;&#12549;-&#12588;&#19968;-&#40869;&#44032;-&#55203;][\--.0-:A-Z_a-z&#183;&#192;-&#214;&#216;-&#246;&#248;-&#305;&#308;-&#318;&#321;-&#328;&#330;-&#382;&#384;-&#451;&#461;-&#496;&#500;-&#501;&#506;-&#535;&#592;-\
+..."><code class="variable-quote">u'</code><code class="variable-string">[:A-Z_a-z&#192;-&#214;&#216;-&#246;&#248;-&#305;&#308;-&#318;&#321;-&#328;&#330;-&#382;&#384;-&#451;&#461;-&#496;&#500;-&#501;&#506;-&#535;&#592;-&#680;&#699;-&#705;&#902;&#904;-&#906;</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.unicode.XML1p0e2-class.html#Name_re" class="summary-name">Name_re</a> = <code title="re.compile(r'^[:A-Z_a-z\xc0-\xd6\xd8-\xf6\xf8-\u0131\u0134-\u013e\u014\
+1-\u0148\u014a-\u017e\u0180-\u01c3\u01cd-\u01f0\u01f4-\u01f5\u01fa-\u0\
+217\u0250-\u02a8\u02bb-\u02c1\u0386\u0388-\u038a\u038c\u038e-\u03a1\u0\
+3a3-\u03ce\u03d0-\u03d6\u03da\u03dc\u03de\u03e0\u03e2-\u03f3\u0401-\u0\
+40c\u040e-\u044f\u0451-\u045c\u045e-\u0481\u0490-\u04c4\u04c7-\u04c8\u\
+04cb-\u04cc\u04d0-\u04eb\u04ee-\u04f5\u04f8-\u04f9\u0531-\u0556\u0559\\
+u0561-\u0586\u05d0-\u05ea\u05f0-\u05f2\u0621-\u063a\u0641-\u064a\u0671\
+-\u06b7\u06ba-\u06be\u06c0-\u06ce\u06d0-\u06d3\u06d5\u06e5-\u06e6\u090\
+...">re.compile(r'^<code class="re-group">[</code>:A<code class="re-op">-</code>Z_a<code class="re-op">-</code>z\xc0<code class="re-op">-</code>\xd6\xd8<code class="re-op">-</code>\xf6\xf8<code class="re-op">-</code>\u0131<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.unicode.XML1p0e2-class.html#NmToken_pat" class="summary-name">NmToken_pat</a> = <code title="u'[\--.0-:A-Z_a-z&#183;&#192;-&#214;&#216;-&#246;&#248;-&#305;&#308;-&#318;&#321;-&#328;&#330;-&#382;&#384;-&#451;&#461;-&#496;&#500;-&#501;&#506;-&#535;&#592;-&#680;&#699;-&#705;&#720;-&#721;&#768;-&#837;&#864;-&#865;&#902;-&#906;&#908;&#910;-&#929;\
+&#931;-&#974;&#976;-&#982;&#986;&#988;&#990;&#992;&#994;-&#1011;&#1025;-&#1036;&#1038;-&#1103;&#1105;-&#1116;&#1118;-&#1153;&#1155;-&#1158;&#1168;-&#1220;&#1223;-&#1224;&#1227;-&#1228;&#1232;-&#1259;&#1262;-&#1269;&#1272;-&#1273;&#1329;-&#1366;&#1369;&#1377;-&#1414;&#1425;-&#1441;&#1443;-&#1465;&#1467;-&#1469;&#1471;&#1473;-&#1474;&#1476;&#1488;-&#1514;\
+&#1520;-&#1522;&#1569;-&#1594;&#1600;-&#1618;&#1632;-&#1641;&#1648;-&#1719;&#1722;-&#1726;&#1728;-&#1742;&#1744;-&#1747;&#1749;-&#1768;&#1770;-&#1773;&#1776;-&#1785;&#2305;-&#2307;&#2309;-&#2361;&#2364;-&#2381;&#2385;-&#2388;&#2392;-&#2403;&#2406;-&#2415;&#2433;-&#2435;&#2437;-&#2444;&#2447;-&#2448;&#2451;-&#2472;&#2474;-&#2480;&#2482;&#2486;-&#2489;\
+&#2492;&#2494;-&#2500;&#2503;-&#2504;&#2507;-&#2509;&#2519;&#2524;-&#2525;&#2527;-&#2531;&#2534;-&#2545;&#2562;&#2565;-&#2570;&#2575;-&#2576;&#2579;-&#2600;&#2602;-&#2608;&#2610;-&#2611;&#2613;-&#2614;&#2616;-&#2617;&#2620;&#2622;-&#2626;&#2631;-&#2632;&#2635;-&#2637;&#2649;-&#2652;&#2654;&#2662;-&#2676;&#2689;-&#2691;&#2693;-&#2699;&#2701;&#2703;-&#2705;&#2707;\
+-&#2728;&#2730;-&#2736;&#2738;-&#2739;&#2741;-&#2745;&#2748;-&#2757;&#2759;-&#2761;&#2763;-&#2765;&#2784;&#2790;-&#2799;&#2817;-&#2819;&#2821;-&#2828;&#2831;-&#2832;&#2835;-&#2856;&#2858;-&#2864;&#2866;-&#2867;&#2870;-&#2873;&#2876;-&#2883;&#2887;-&#2888;&#2891;-&#2893;&#2902;-&#2903;&#2908;-&#2909;&#2911;-&#2913;&#2918;-&#2927;&#2946;-&#2947;&#2949;\
+-&#2954;&#2958;-&#2960;&#2962;-&#2965;&#2969;-&#2970;&#2972;&#2974;-&#2975;&#2979;-&#2980;&#2984;-&#2986;&#2990;-&#2997;&#2999;-&#3001;&#3006;-&#3010;&#3014;-&#3016;&#3018;-&#3021;&#3031;&#3047;-&#3055;&#3073;-&#3075;&#3077;-&#3084;&#3086;-&#3088;&#3090;-&#3112;&#3114;-&#3123;&#3125;-&#3129;&#3134;-&#3140;&#3142;-&#3144;&#3146;-&#3149;&#3157;-&#3158;\
+&#3168;-&#3169;&#3174;-&#3183;&#3202;-&#3203;&#3205;-&#3212;&#3214;-&#3216;&#3218;-&#3240;&#3242;-&#3251;&#3253;-&#3257;&#3262;-&#3268;&#3270;-&#3272;&#3274;-&#3277;&#3285;-&#3286;&#3294;&#3296;-&#3297;&#3302;-&#3311;&#3330;-&#3331;&#3333;-&#3340;&#3342;-&#3344;&#3346;-&#3368;&#3370;-&#3385;&#3390;-&#3395;&#3398;-&#3400;&#3402;-&#3405;&#3415;&#3424;-\
+&#3425;&#3430;-&#3439;&#3585;-&#3630;&#3632;-&#3642;&#3648;-&#3662;&#3664;-&#3673;&#3713;-&#3714;&#3716;&#3719;-&#3720;&#3722;&#3725;&#3732;-&#3735;&#3737;-&#3743;&#3745;-&#3747;&#3749;&#3751;&#3754;-&#3755;&#3757;-&#3758;&#3760;-&#3769;&#3771;-&#3773;&#3776;-&#3780;&#3782;&#3784;-&#3789;&#3792;-&#3801;&#3864;-&#3865;&#3872;-&#3881;&#3893;&#3895;&#3897;&#3902;-&#3911;\
+..."><code class="variable-quote">u'</code><code class="variable-string">[\--.0-:A-Z_a-z&#183;&#192;-&#214;&#216;-&#246;&#248;-&#305;&#308;-&#318;&#321;-&#328;&#330;-&#382;&#384;-&#451;&#461;-&#496;&#500;-&#501;&#506;-&#535;</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.unicode.XML1p0e2-class.html#NmToken_re" class="summary-name">NmToken_re</a> = <code title="re.compile(r'^[--\.0-:A-Z_a-z\xb7\xc0-\xd6\xd8-\xf6\xf8-\u0131\u0134-\\
+u013e\u0141-\u0148\u014a-\u017e\u0180-\u01c3\u01cd-\u01f0\u01f4-\u01f5\
+\u01fa-\u0217\u0250-\u02a8\u02bb-\u02c1\u02d0-\u02d1\u0300-\u0345\u036\
+0-\u0361\u0386-\u038a\u038c\u038e-\u03a1\u03a3-\u03ce\u03d0-\u03d6\u03\
+da\u03dc\u03de\u03e0\u03e2-\u03f3\u0401-\u040c\u040e-\u044f\u0451-\u04\
+5c\u045e-\u0481\u0483-\u0486\u0490-\u04c4\u04c7-\u04c8\u04cb-\u04cc\u0\
+4d0-\u04eb\u04ee-\u04f5\u04f8-\u04f9\u0531-\u0556\u0559\u0561-\u0586\u\
+0591-\u05a1\u05a3-\u05b9\u05bb-\u05bd\u05bf\u05c1-\u05c2\u05c4\u05d0-\\
+...">re.compile(r'^<code class="re-group">[</code>-<code class="re-op">-</code>\.0<code class="re-op">-</code>:A<code class="re-op">-</code>Z_a<code class="re-op">-</code>z\xb7\xc0<code class="re-op">-</code>\xd6\xd8<code class="re-op">-</code>\x<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.unicode.XML1p0e2-class.html#NCName_pat" class="summary-name">NCName_pat</a> = <code title="u'[A-Z_a-z&#192;-&#214;&#216;-&#246;&#248;-&#305;&#308;-&#318;&#321;-&#328;&#330;-&#382;&#384;-&#451;&#461;-&#496;&#500;-&#501;&#506;-&#535;&#592;-&#680;&#699;-&#705;&#902;&#904;-&#906;&#908;&#910;-&#929;&#931;-&#974;&#976;-&#982;&#986;&#988;&#990;&#992;&#994;-&#1011;&#1025;-&#1036;\
+&#1038;-&#1103;&#1105;-&#1116;&#1118;-&#1153;&#1168;-&#1220;&#1223;-&#1224;&#1227;-&#1228;&#1232;-&#1259;&#1262;-&#1269;&#1272;-&#1273;&#1329;-&#1366;&#1369;&#1377;-&#1414;&#1488;-&#1514;&#1520;-&#1522;&#1569;-&#1594;&#1601;-&#1610;&#1649;-&#1719;&#1722;-&#1726;&#1728;-&#1742;&#1744;-&#1747;&#1749;&#1765;-&#1766;&#2309;-&#2361;&#2365;&#2392;-&#2401;&#2437;\
+-&#2444;&#2447;-&#2448;&#2451;-&#2472;&#2474;-&#2480;&#2482;&#2486;-&#2489;&#2524;-&#2525;&#2527;-&#2529;&#2544;-&#2545;&#2565;-&#2570;&#2575;-&#2576;&#2579;-&#2600;&#2602;-&#2608;&#2610;-&#2611;&#2613;-&#2614;&#2616;-&#2617;&#2649;-&#2652;&#2654;&#2674;-&#2676;&#2693;-&#2699;&#2701;&#2703;-&#2705;&#2707;-&#2728;&#2730;-&#2736;&#2738;-&#2739;&#2741;-\
+&#2745;&#2749;&#2784;&#2821;-&#2828;&#2831;-&#2832;&#2835;-&#2856;&#2858;-&#2864;&#2866;-&#2867;&#2870;-&#2873;&#2877;&#2908;-&#2909;&#2911;-&#2913;&#2949;-&#2954;&#2958;-&#2960;&#2962;-&#2965;&#2969;-&#2970;&#2972;&#2974;-&#2975;&#2979;-&#2980;&#2984;-&#2986;&#2990;-&#2997;&#2999;-&#3001;&#3077;-&#3084;&#3086;-&#3088;&#3090;-&#3112;&#3114;-&#3123;&#3125;-\
+&#3129;&#3168;-&#3169;&#3205;-&#3212;&#3214;-&#3216;&#3218;-&#3240;&#3242;-&#3251;&#3253;-&#3257;&#3294;&#3296;-&#3297;&#3333;-&#3340;&#3342;-&#3344;&#3346;-&#3368;&#3370;-&#3385;&#3424;-&#3425;&#3585;-&#3630;&#3632;&#3634;-&#3635;&#3648;-&#3653;&#3713;-&#3714;&#3716;&#3719;-&#3720;&#3722;&#3725;&#3732;-&#3735;&#3737;-&#3743;&#3745;-&#3747;&#3749;&#3751;&#3754;-\
+&#3755;&#3757;-&#3758;&#3760;&#3762;-&#3763;&#3773;&#3776;-&#3780;&#3904;-&#3911;&#3913;-&#3945;&#4256;-&#4293;&#4304;-&#4342;&#4352;&#4354;-&#4355;&#4357;-&#4359;&#4361;&#4363;-&#4364;&#4366;-&#4370;&#4412;&#4414;&#4416;&#4428;&#4430;&#4432;&#4436;-&#4437;&#4441;&#4447;-&#4449;&#4451;&#4453;&#4455;&#4457;&#4461;-&#4462;&#4466;-&#4467;&#4469;&#4510;&#4520;&#4523;&#4526;-&#4527;&#4535;-\
+&#4536;&#4538;&#4540;-&#4546;&#4587;&#4592;&#4601;&#7680;-&#7835;&#7840;-&#7929;&#7936;-&#7957;&#7960;-&#7965;&#7968;-&#8005;&#8008;-&#8013;&#8016;-&#8023;&#8025;&#8027;&#8029;&#8031;-&#8061;&#8064;-&#8116;&#8118;-&#8124;&#8126;&#8130;-&#8132;&#8134;-&#8140;&#8144;-&#8147;&#8150;-&#8155;&#8160;-&#8172;&#8178;-&#8180;&#8182;-&#8188;&#8486;&#8490;-&#8491;&#8494;&#8576;-\
+&#8578;&#12295;&#12321;-&#12329;&#12353;-&#12436;&#12449;-&#12538;&#12549;-&#12588;&#19968;-&#40869;&#44032;-&#55203;][\--.0-9A-Z_a-z&#183;&#192;-&#214;&#216;-&#246;&#248;-&#305;&#308;-&#318;&#321;-&#328;&#330;-&#382;&#384;-&#451;&#461;-&#496;&#500;-&#501;&#506;-&#535;&#592;-&#680;\
+..."><code class="variable-quote">u'</code><code class="variable-string">[A-Z_a-z&#192;-&#214;&#216;-&#246;&#248;-&#305;&#308;-&#318;&#321;-&#328;&#330;-&#382;&#384;-&#451;&#461;-&#496;&#500;-&#501;&#506;-&#535;&#592;-&#680;&#699;-&#705;&#902;&#904;-</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.unicode.XML1p0e2-class.html#NCName_re" class="summary-name">NCName_re</a> = <code title="re.compile(r'^[A-Z_a-z\xc0-\xd6\xd8-\xf6\xf8-\u0131\u0134-\u013e\u0141\
+-\u0148\u014a-\u017e\u0180-\u01c3\u01cd-\u01f0\u01f4-\u01f5\u01fa-\u02\
+17\u0250-\u02a8\u02bb-\u02c1\u0386\u0388-\u038a\u038c\u038e-\u03a1\u03\
+a3-\u03ce\u03d0-\u03d6\u03da\u03dc\u03de\u03e0\u03e2-\u03f3\u0401-\u04\
+0c\u040e-\u044f\u0451-\u045c\u045e-\u0481\u0490-\u04c4\u04c7-\u04c8\u0\
+4cb-\u04cc\u04d0-\u04eb\u04ee-\u04f5\u04f8-\u04f9\u0531-\u0556\u0559\u\
+0561-\u0586\u05d0-\u05ea\u05f0-\u05f2\u0621-\u063a\u0641-\u064a\u0671-\
+\u06b7\u06ba-\u06be\u06c0-\u06ce\u06d0-\u06d3\u06d5\u06e5-\u06e6\u0905\
+...">re.compile(r'^<code class="re-group">[</code>A<code class="re-op">-</code>Z_a<code class="re-op">-</code>z\xc0<code class="re-op">-</code>\xd6\xd8<code class="re-op">-</code>\xf6\xf8<code class="re-op">-</code>\u013<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.unicode.XML1p0e2-class.html#QName_pat" class="summary-name">QName_pat</a> = <code title="u'([A-Z_a-z&#192;-&#214;&#216;-&#246;&#248;-&#305;&#308;-&#318;&#321;-&#328;&#330;-&#382;&#384;-&#451;&#461;-&#496;&#500;-&#501;&#506;-&#535;&#592;-&#680;&#699;-&#705;&#902;&#904;-&#906;&#908;&#910;-&#929;&#931;-&#974;&#976;-&#982;&#986;&#988;&#990;&#992;&#994;-&#1011;&#1025;-\
+&#1036;&#1038;-&#1103;&#1105;-&#1116;&#1118;-&#1153;&#1168;-&#1220;&#1223;-&#1224;&#1227;-&#1228;&#1232;-&#1259;&#1262;-&#1269;&#1272;-&#1273;&#1329;-&#1366;&#1369;&#1377;-&#1414;&#1488;-&#1514;&#1520;-&#1522;&#1569;-&#1594;&#1601;-&#1610;&#1649;-&#1719;&#1722;-&#1726;&#1728;-&#1742;&#1744;-&#1747;&#1749;&#1765;-&#1766;&#2309;-&#2361;&#2365;&#2392;-&#2401;\
+&#2437;-&#2444;&#2447;-&#2448;&#2451;-&#2472;&#2474;-&#2480;&#2482;&#2486;-&#2489;&#2524;-&#2525;&#2527;-&#2529;&#2544;-&#2545;&#2565;-&#2570;&#2575;-&#2576;&#2579;-&#2600;&#2602;-&#2608;&#2610;-&#2611;&#2613;-&#2614;&#2616;-&#2617;&#2649;-&#2652;&#2654;&#2674;-&#2676;&#2693;-&#2699;&#2701;&#2703;-&#2705;&#2707;-&#2728;&#2730;-&#2736;&#2738;-&#2739;&#2741;\
+-&#2745;&#2749;&#2784;&#2821;-&#2828;&#2831;-&#2832;&#2835;-&#2856;&#2858;-&#2864;&#2866;-&#2867;&#2870;-&#2873;&#2877;&#2908;-&#2909;&#2911;-&#2913;&#2949;-&#2954;&#2958;-&#2960;&#2962;-&#2965;&#2969;-&#2970;&#2972;&#2974;-&#2975;&#2979;-&#2980;&#2984;-&#2986;&#2990;-&#2997;&#2999;-&#3001;&#3077;-&#3084;&#3086;-&#3088;&#3090;-&#3112;&#3114;-&#3123;&#3125;\
+-&#3129;&#3168;-&#3169;&#3205;-&#3212;&#3214;-&#3216;&#3218;-&#3240;&#3242;-&#3251;&#3253;-&#3257;&#3294;&#3296;-&#3297;&#3333;-&#3340;&#3342;-&#3344;&#3346;-&#3368;&#3370;-&#3385;&#3424;-&#3425;&#3585;-&#3630;&#3632;&#3634;-&#3635;&#3648;-&#3653;&#3713;-&#3714;&#3716;&#3719;-&#3720;&#3722;&#3725;&#3732;-&#3735;&#3737;-&#3743;&#3745;-&#3747;&#3749;&#3751;&#3754;\
+-&#3755;&#3757;-&#3758;&#3760;&#3762;-&#3763;&#3773;&#3776;-&#3780;&#3904;-&#3911;&#3913;-&#3945;&#4256;-&#4293;&#4304;-&#4342;&#4352;&#4354;-&#4355;&#4357;-&#4359;&#4361;&#4363;-&#4364;&#4366;-&#4370;&#4412;&#4414;&#4416;&#4428;&#4430;&#4432;&#4436;-&#4437;&#4441;&#4447;-&#4449;&#4451;&#4453;&#4455;&#4457;&#4461;-&#4462;&#4466;-&#4467;&#4469;&#4510;&#4520;&#4523;&#4526;-&#4527;&#4535;\
+-&#4536;&#4538;&#4540;-&#4546;&#4587;&#4592;&#4601;&#7680;-&#7835;&#7840;-&#7929;&#7936;-&#7957;&#7960;-&#7965;&#7968;-&#8005;&#8008;-&#8013;&#8016;-&#8023;&#8025;&#8027;&#8029;&#8031;-&#8061;&#8064;-&#8116;&#8118;-&#8124;&#8126;&#8130;-&#8132;&#8134;-&#8140;&#8144;-&#8147;&#8150;-&#8155;&#8160;-&#8172;&#8178;-&#8180;&#8182;-&#8188;&#8486;&#8490;-&#8491;&#8494;&#8576;\
+-&#8578;&#12295;&#12321;-&#12329;&#12353;-&#12436;&#12449;-&#12538;&#12549;-&#12588;&#19968;-&#40869;&#44032;-&#55203;][\--.0-9A-Z_a-z&#183;&#192;-&#214;&#216;-&#246;&#248;-&#305;&#308;-&#318;&#321;-&#328;&#330;-&#382;&#384;-&#451;&#461;-&#496;&#500;-&#501;&#506;-&#535;&#592;-\
+..."><code class="variable-quote">u'</code><code class="variable-string">([A-Z_a-z&#192;-&#214;&#216;-&#246;&#248;-&#305;&#308;-&#318;&#321;-&#328;&#330;-&#382;&#384;-&#451;&#461;-&#496;&#500;-&#501;&#506;-&#535;&#592;-&#680;&#699;-&#705;&#902;&#904;-</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.unicode.XML1p0e2-class.html#QName_re" class="summary-name">QName_re</a> = <code title="re.compile(r'^([A-Z_a-z\xc0-\xd6\xd8-\xf6\xf8-\u0131\u0134-\u013e\u014\
+1-\u0148\u014a-\u017e\u0180-\u01c3\u01cd-\u01f0\u01f4-\u01f5\u01fa-\u0\
+217\u0250-\u02a8\u02bb-\u02c1\u0386\u0388-\u038a\u038c\u038e-\u03a1\u0\
+3a3-\u03ce\u03d0-\u03d6\u03da\u03dc\u03de\u03e0\u03e2-\u03f3\u0401-\u0\
+40c\u040e-\u044f\u0451-\u045c\u045e-\u0481\u0490-\u04c4\u04c7-\u04c8\u\
+04cb-\u04cc\u04d0-\u04eb\u04ee-\u04f5\u04f8-\u04f9\u0531-\u0556\u0559\\
+u0561-\u0586\u05d0-\u05ea\u05f0-\u05f2\u0621-\u063a\u0641-\u064a\u0671\
+-\u06b7\u06ba-\u06be\u06c0-\u06ce\u06d0-\u06d3\u06d5\u06e5-\u06e6\u090\
+...">re.compile(r'^<code class="re-group">(</code><code class="re-group">[</code>A<code class="re-op">-</code>Z_a<code class="re-op">-</code>z\xc0<code class="re-op">-</code>\xd6\xd8<code class="re-op">-</code>\xf6\xf8<code class="re-op">-</code>\u013<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variable Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariableDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="Char"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">Char</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+CodePointSet(0x0009, 0x000A, 0x000D, (0x0020, 0xD7FF), (0xE000, 0xFFFD<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+))
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="BaseChar"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">BaseChar</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+CodePointSet((0x0041, 0x005A), (0x0061, 0x007A), (0x00C0, 0x00D6), (0x<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+00D8, 0x00F6), (0x00F8, 0x00FF), (0x0100, 0x0131), (0x0134, 0x013E), (<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+0x0141, 0x0148), (0x014A, 0x017E), (0x0180, 0x01C3), (0x01CD, 0x01F0),<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ (0x01F4, 0x01F5), (0x01FA, 0x0217), (0x0250, 0x02A8), (0x02BB, 0x02C1<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+), 0x0386, (0x0388, 0x038A), 0x038C, (0x038E, 0x03A1), (0x03A3, 0x03CE<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+), (0x03D0, 0x03D6), 0x03DA, 0x03DC, 0x03DE, 0x03E0, (0x03E2, 0x03F3),<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ (0x0401, 0x040C), (0x040E, 0x044F), (0x0451, 0x045C), (0x045E, 0x0481<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+), (0x0490, 0x04C4), (0x04C7, 0x04C8), (0x04CB, 0x04CC), (0x04D0, 0x04<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="Ideographic"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">Ideographic</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+CodePointSet((0x4E00, 0x9FA5), 0x3007, (0x3021, 0x3029))
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="CombiningChar"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">CombiningChar</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+CodePointSet((0x0300, 0x0345), (0x0360, 0x0361), (0x0483, 0x0486), (0x<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+0591, 0x05A1), (0x05A3, 0x05B9), (0x05BB, 0x05BD), 0x05BF, (0x05C1, 0x<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+05C2), 0x05C4, (0x064B, 0x0652), 0x0670, (0x06D6, 0x06DC), (0x06DD, 0x<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+06DF), (0x06E0, 0x06E4), (0x06E7, 0x06E8), (0x06EA, 0x06ED), (0x0901, <span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+0x0903), 0x093C, (0x093E, 0x094C), 0x094D, (0x0951, 0x0954), (0x0962, <span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+0x0963), (0x0981, 0x0983), 0x09BC, 0x09BE, 0x09BF, (0x09C0, 0x09C4), (<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+0x09C7, 0x09C8), (0x09CB, 0x09CD), 0x09D7, (0x09E2, 0x09E3), 0x0A02, 0<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+x0A3C, 0x0A3E, 0x0A3F, (0x0A40, 0x0A42), (0x0A47, 0x0A48), (0x0A4B, 0x<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="Digit"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">Digit</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+CodePointSet((0x0030, 0x0039), (0x0660, 0x0669), (0x06F0, 0x06F9), (0x<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+0966, 0x096F), (0x09E6, 0x09EF), (0x0A66, 0x0A6F), (0x0AE6, 0x0AEF), (<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+0x0B66, 0x0B6F), (0x0BE7, 0x0BEF), (0x0C66, 0x0C6F), (0x0CE6, 0x0CEF),<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ (0x0D66, 0x0D6F), (0x0E50, 0x0E59), (0x0ED0, 0x0ED9), (0x0F20, 0x0F29<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+))
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="Extender"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">Extender</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+CodePointSet(0x00B7, 0x02D0, 0x02D1, 0x0387, 0x0640, 0x0E46, 0x0EC6, 0<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+x3005, (0x3031, 0x3035), (0x309D, 0x309E), (0x30FC, 0x30FE))
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="Name_pat"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">Name_pat</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-quote">u'</code><code class="variable-string">[:A-Z_a-z&#192;-&#214;&#216;-&#246;&#248;-&#305;&#308;-&#318;&#321;-&#328;&#330;-&#382;&#384;-&#451;&#461;-&#496;&#500;-&#501;&#506;-&#535;&#592;-&#680;&#699;-&#705;&#902;&#904;-&#906;&#908;&#910;-&#929;&#931;-&#974;&#976;-&#982;&#986;&#988;&#990;&#992;&#994;-&#1011;&#1025;-</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">&#1036;&#1038;-&#1103;&#1105;-&#1116;&#1118;-&#1153;&#1168;-&#1220;&#1223;-&#1224;&#1227;-&#1228;&#1232;-&#1259;&#1262;-&#1269;&#1272;-&#1273;&#1329;-&#1366;&#1369;&#1377;-&#1414;&#1488;-&#1514;&#1520;-&#1522;&#1569;-&#1594;&#1601;-&#1610;&#1649;-&#1719;&#1722;-&#1726;&#1728;-&#1742;&#1744;-&#1747;&#1749;&#1765;-&#1766;&#2309;-&#2361;&#2365;&#2392;-&#2401;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">&#2437;-&#2444;&#2447;-&#2448;&#2451;-&#2472;&#2474;-&#2480;&#2482;&#2486;-&#2489;&#2524;-&#2525;&#2527;-&#2529;&#2544;-&#2545;&#2565;-&#2570;&#2575;-&#2576;&#2579;-&#2600;&#2602;-&#2608;&#2610;-&#2611;&#2613;-&#2614;&#2616;-&#2617;&#2649;-&#2652;&#2654;&#2674;-&#2676;&#2693;-&#2699;&#2701;&#2703;-&#2705;&#2707;-&#2728;&#2730;-&#2736;&#2738;-&#2739;&#2741;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">-&#2745;&#2749;&#2784;&#2821;-&#2828;&#2831;-&#2832;&#2835;-&#2856;&#2858;-&#2864;&#2866;-&#2867;&#2870;-&#2873;&#2877;&#2908;-&#2909;&#2911;-&#2913;&#2949;-&#2954;&#2958;-&#2960;&#2962;-&#2965;&#2969;-&#2970;&#2972;&#2974;-&#2975;&#2979;-&#2980;&#2984;-&#2986;&#2990;-&#2997;&#2999;-&#3001;&#3077;-&#3084;&#3086;-&#3088;&#3090;-&#3112;&#3114;-&#3123;&#3125;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">-&#3129;&#3168;-&#3169;&#3205;-&#3212;&#3214;-&#3216;&#3218;-&#3240;&#3242;-&#3251;&#3253;-&#3257;&#3294;&#3296;-&#3297;&#3333;-&#3340;&#3342;-&#3344;&#3346;-&#3368;&#3370;-&#3385;&#3424;-&#3425;&#3585;-&#3630;&#3632;&#3634;-&#3635;&#3648;-&#3653;&#3713;-&#3714;&#3716;&#3719;-&#3720;&#3722;&#3725;&#3732;-&#3735;&#3737;-&#3743;&#3745;-&#3747;&#3749;&#3751;&#3754;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">-&#3755;&#3757;-&#3758;&#3760;&#3762;-&#3763;&#3773;&#3776;-&#3780;&#3904;-&#3911;&#3913;-&#3945;&#4256;-&#4293;&#4304;-&#4342;&#4352;&#4354;-&#4355;&#4357;-&#4359;&#4361;&#4363;-&#4364;&#4366;-&#4370;&#4412;&#4414;&#4416;&#4428;&#4430;&#4432;&#4436;-&#4437;&#4441;&#4447;-&#4449;&#4451;&#4453;&#4455;&#4457;&#4461;-&#4462;&#4466;-&#4467;&#4469;&#4510;&#4520;&#4523;&#4526;-&#4527;&#4535;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">-&#4536;&#4538;&#4540;-&#4546;&#4587;&#4592;&#4601;&#7680;-&#7835;&#7840;-&#7929;&#7936;-&#7957;&#7960;-&#7965;&#7968;-&#8005;&#8008;-&#8013;&#8016;-&#8023;&#8025;&#8027;&#8029;&#8031;-&#8061;&#8064;-&#8116;&#8118;-&#8124;&#8126;&#8130;-&#8132;&#8134;-&#8140;&#8144;-&#8147;&#8150;-&#8155;&#8160;-&#8172;&#8178;-&#8180;&#8182;-&#8188;&#8486;&#8490;-&#8491;&#8494;&#8576;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">-&#8578;&#12295;&#12321;-&#12329;&#12353;-&#12436;&#12449;-&#12538;&#12549;-&#12588;&#19968;-&#40869;&#44032;-&#55203;][\--.0-:A-Z_a-z&#183;&#192;-&#214;&#216;-&#246;&#248;-&#305;&#308;-&#318;&#321;-&#328;&#330;-&#382;&#384;-&#451;&#461;-&#496;&#500;-&#501;&#506;-&#535;&#592;-</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="Name_re"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">Name_re</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+re.compile(r'^<code class="re-group">[</code>:A<code class="re-op">-</code>Z_a<code class="re-op">-</code>z\xc0<code class="re-op">-</code>\xd6\xd8<code class="re-op">-</code>\xf6\xf8<code class="re-op">-</code>\u0131\u0134<code class="re-op">-</code>\u013e\u014<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+1<code class="re-op">-</code>\u0148\u014a<code class="re-op">-</code>\u017e\u0180<code class="re-op">-</code>\u01c3\u01cd<code class="re-op">-</code>\u01f0\u01f4<code class="re-op">-</code>\u01f5\u01fa<code class="re-op">-</code>\u0<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+217\u0250<code class="re-op">-</code>\u02a8\u02bb<code class="re-op">-</code>\u02c1\u0386\u0388<code class="re-op">-</code>\u038a\u038c\u038e<code class="re-op">-</code>\u03a1\u0<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+3a3<code class="re-op">-</code>\u03ce\u03d0<code class="re-op">-</code>\u03d6\u03da\u03dc\u03de\u03e0\u03e2<code class="re-op">-</code>\u03f3\u0401<code class="re-op">-</code>\u0<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+40c\u040e<code class="re-op">-</code>\u044f\u0451<code class="re-op">-</code>\u045c\u045e<code class="re-op">-</code>\u0481\u0490<code class="re-op">-</code>\u04c4\u04c7<code class="re-op">-</code>\u04c8\u<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+04cb<code class="re-op">-</code>\u04cc\u04d0<code class="re-op">-</code>\u04eb\u04ee<code class="re-op">-</code>\u04f5\u04f8<code class="re-op">-</code>\u04f9\u0531<code class="re-op">-</code>\u0556\u0559\<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+u0561<code class="re-op">-</code>\u0586\u05d0<code class="re-op">-</code>\u05ea\u05f0<code class="re-op">-</code>\u05f2\u0621<code class="re-op">-</code>\u063a\u0641<code class="re-op">-</code>\u064a\u0671<code class="re-op"></code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="re-op">-</code>\u06b7\u06ba<code class="re-op">-</code>\u06be\u06c0<code class="re-op">-</code>\u06ce\u06d0<code class="re-op">-</code>\u06d3\u06d5\u06e5<code class="re-op">-</code>\u06e6\u090<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="NmToken_pat"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">NmToken_pat</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-quote">u'</code><code class="variable-string">[\--.0-:A-Z_a-z&#183;&#192;-&#214;&#216;-&#246;&#248;-&#305;&#308;-&#318;&#321;-&#328;&#330;-&#382;&#384;-&#451;&#461;-&#496;&#500;-&#501;&#506;-&#535;&#592;-&#680;&#699;-&#705;&#720;-&#721;&#768;-&#837;&#864;-&#865;&#902;-&#906;&#908;&#910;-&#929;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">&#931;-&#974;&#976;-&#982;&#986;&#988;&#990;&#992;&#994;-&#1011;&#1025;-&#1036;&#1038;-&#1103;&#1105;-&#1116;&#1118;-&#1153;&#1155;-&#1158;&#1168;-&#1220;&#1223;-&#1224;&#1227;-&#1228;&#1232;-&#1259;&#1262;-&#1269;&#1272;-&#1273;&#1329;-&#1366;&#1369;&#1377;-&#1414;&#1425;-&#1441;&#1443;-&#1465;&#1467;-&#1469;&#1471;&#1473;-&#1474;&#1476;&#1488;-&#1514;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">&#1520;-&#1522;&#1569;-&#1594;&#1600;-&#1618;&#1632;-&#1641;&#1648;-&#1719;&#1722;-&#1726;&#1728;-&#1742;&#1744;-&#1747;&#1749;-&#1768;&#1770;-&#1773;&#1776;-&#1785;&#2305;-&#2307;&#2309;-&#2361;&#2364;-&#2381;&#2385;-&#2388;&#2392;-&#2403;&#2406;-&#2415;&#2433;-&#2435;&#2437;-&#2444;&#2447;-&#2448;&#2451;-&#2472;&#2474;-&#2480;&#2482;&#2486;-&#2489;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">&#2492;&#2494;-&#2500;&#2503;-&#2504;&#2507;-&#2509;&#2519;&#2524;-&#2525;&#2527;-&#2531;&#2534;-&#2545;&#2562;&#2565;-&#2570;&#2575;-&#2576;&#2579;-&#2600;&#2602;-&#2608;&#2610;-&#2611;&#2613;-&#2614;&#2616;-&#2617;&#2620;&#2622;-&#2626;&#2631;-&#2632;&#2635;-&#2637;&#2649;-&#2652;&#2654;&#2662;-&#2676;&#2689;-&#2691;&#2693;-&#2699;&#2701;&#2703;-&#2705;&#2707;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">-&#2728;&#2730;-&#2736;&#2738;-&#2739;&#2741;-&#2745;&#2748;-&#2757;&#2759;-&#2761;&#2763;-&#2765;&#2784;&#2790;-&#2799;&#2817;-&#2819;&#2821;-&#2828;&#2831;-&#2832;&#2835;-&#2856;&#2858;-&#2864;&#2866;-&#2867;&#2870;-&#2873;&#2876;-&#2883;&#2887;-&#2888;&#2891;-&#2893;&#2902;-&#2903;&#2908;-&#2909;&#2911;-&#2913;&#2918;-&#2927;&#2946;-&#2947;&#2949;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">-&#2954;&#2958;-&#2960;&#2962;-&#2965;&#2969;-&#2970;&#2972;&#2974;-&#2975;&#2979;-&#2980;&#2984;-&#2986;&#2990;-&#2997;&#2999;-&#3001;&#3006;-&#3010;&#3014;-&#3016;&#3018;-&#3021;&#3031;&#3047;-&#3055;&#3073;-&#3075;&#3077;-&#3084;&#3086;-&#3088;&#3090;-&#3112;&#3114;-&#3123;&#3125;-&#3129;&#3134;-&#3140;&#3142;-&#3144;&#3146;-&#3149;&#3157;-&#3158;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">&#3168;-&#3169;&#3174;-&#3183;&#3202;-&#3203;&#3205;-&#3212;&#3214;-&#3216;&#3218;-&#3240;&#3242;-&#3251;&#3253;-&#3257;&#3262;-&#3268;&#3270;-&#3272;&#3274;-&#3277;&#3285;-&#3286;&#3294;&#3296;-&#3297;&#3302;-&#3311;&#3330;-&#3331;&#3333;-&#3340;&#3342;-&#3344;&#3346;-&#3368;&#3370;-&#3385;&#3390;-&#3395;&#3398;-&#3400;&#3402;-&#3405;&#3415;&#3424;-</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">&#3425;&#3430;-&#3439;&#3585;-&#3630;&#3632;-&#3642;&#3648;-&#3662;&#3664;-&#3673;&#3713;-&#3714;&#3716;&#3719;-&#3720;&#3722;&#3725;&#3732;-&#3735;&#3737;-&#3743;&#3745;-&#3747;&#3749;&#3751;&#3754;-&#3755;&#3757;-&#3758;&#3760;-&#3769;&#3771;-&#3773;&#3776;-&#3780;&#3782;&#3784;-&#3789;&#3792;-&#3801;&#3864;-&#3865;&#3872;-&#3881;&#3893;&#3895;&#3897;&#3902;-&#3911;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="NmToken_re"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">NmToken_re</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+re.compile(r'^<code class="re-group">[</code>-<code class="re-op">-</code>\.0<code class="re-op">-</code>:A<code class="re-op">-</code>Z_a<code class="re-op">-</code>z\xb7\xc0<code class="re-op">-</code>\xd6\xd8<code class="re-op">-</code>\xf6\xf8<code class="re-op">-</code>\u0131\u0134<code class="re-op">-</code>\<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+u013e\u0141<code class="re-op">-</code>\u0148\u014a<code class="re-op">-</code>\u017e\u0180<code class="re-op">-</code>\u01c3\u01cd<code class="re-op">-</code>\u01f0\u01f4<code class="re-op">-</code>\u01f5<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+\u01fa<code class="re-op">-</code>\u0217\u0250<code class="re-op">-</code>\u02a8\u02bb<code class="re-op">-</code>\u02c1\u02d0<code class="re-op">-</code>\u02d1\u0300<code class="re-op">-</code>\u0345\u036<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+0<code class="re-op">-</code>\u0361\u0386<code class="re-op">-</code>\u038a\u038c\u038e<code class="re-op">-</code>\u03a1\u03a3<code class="re-op">-</code>\u03ce\u03d0<code class="re-op">-</code>\u03d6\u03<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+da\u03dc\u03de\u03e0\u03e2<code class="re-op">-</code>\u03f3\u0401<code class="re-op">-</code>\u040c\u040e<code class="re-op">-</code>\u044f\u0451<code class="re-op">-</code>\u04<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+5c\u045e<code class="re-op">-</code>\u0481\u0483<code class="re-op">-</code>\u0486\u0490<code class="re-op">-</code>\u04c4\u04c7<code class="re-op">-</code>\u04c8\u04cb<code class="re-op">-</code>\u04cc\u0<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+4d0<code class="re-op">-</code>\u04eb\u04ee<code class="re-op">-</code>\u04f5\u04f8<code class="re-op">-</code>\u04f9\u0531<code class="re-op">-</code>\u0556\u0559\u0561<code class="re-op">-</code>\u0586\u<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+0591<code class="re-op">-</code>\u05a1\u05a3<code class="re-op">-</code>\u05b9\u05bb<code class="re-op">-</code>\u05bd\u05bf\u05c1<code class="re-op">-</code>\u05c2\u05c4\u05d0<code class="re-op">-</code>\<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="NCName_pat"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">NCName_pat</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-quote">u'</code><code class="variable-string">[A-Z_a-z&#192;-&#214;&#216;-&#246;&#248;-&#305;&#308;-&#318;&#321;-&#328;&#330;-&#382;&#384;-&#451;&#461;-&#496;&#500;-&#501;&#506;-&#535;&#592;-&#680;&#699;-&#705;&#902;&#904;-&#906;&#908;&#910;-&#929;&#931;-&#974;&#976;-&#982;&#986;&#988;&#990;&#992;&#994;-&#1011;&#1025;-&#1036;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">&#1038;-&#1103;&#1105;-&#1116;&#1118;-&#1153;&#1168;-&#1220;&#1223;-&#1224;&#1227;-&#1228;&#1232;-&#1259;&#1262;-&#1269;&#1272;-&#1273;&#1329;-&#1366;&#1369;&#1377;-&#1414;&#1488;-&#1514;&#1520;-&#1522;&#1569;-&#1594;&#1601;-&#1610;&#1649;-&#1719;&#1722;-&#1726;&#1728;-&#1742;&#1744;-&#1747;&#1749;&#1765;-&#1766;&#2309;-&#2361;&#2365;&#2392;-&#2401;&#2437;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">-&#2444;&#2447;-&#2448;&#2451;-&#2472;&#2474;-&#2480;&#2482;&#2486;-&#2489;&#2524;-&#2525;&#2527;-&#2529;&#2544;-&#2545;&#2565;-&#2570;&#2575;-&#2576;&#2579;-&#2600;&#2602;-&#2608;&#2610;-&#2611;&#2613;-&#2614;&#2616;-&#2617;&#2649;-&#2652;&#2654;&#2674;-&#2676;&#2693;-&#2699;&#2701;&#2703;-&#2705;&#2707;-&#2728;&#2730;-&#2736;&#2738;-&#2739;&#2741;-</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">&#2745;&#2749;&#2784;&#2821;-&#2828;&#2831;-&#2832;&#2835;-&#2856;&#2858;-&#2864;&#2866;-&#2867;&#2870;-&#2873;&#2877;&#2908;-&#2909;&#2911;-&#2913;&#2949;-&#2954;&#2958;-&#2960;&#2962;-&#2965;&#2969;-&#2970;&#2972;&#2974;-&#2975;&#2979;-&#2980;&#2984;-&#2986;&#2990;-&#2997;&#2999;-&#3001;&#3077;-&#3084;&#3086;-&#3088;&#3090;-&#3112;&#3114;-&#3123;&#3125;-</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">&#3129;&#3168;-&#3169;&#3205;-&#3212;&#3214;-&#3216;&#3218;-&#3240;&#3242;-&#3251;&#3253;-&#3257;&#3294;&#3296;-&#3297;&#3333;-&#3340;&#3342;-&#3344;&#3346;-&#3368;&#3370;-&#3385;&#3424;-&#3425;&#3585;-&#3630;&#3632;&#3634;-&#3635;&#3648;-&#3653;&#3713;-&#3714;&#3716;&#3719;-&#3720;&#3722;&#3725;&#3732;-&#3735;&#3737;-&#3743;&#3745;-&#3747;&#3749;&#3751;&#3754;-</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">&#3755;&#3757;-&#3758;&#3760;&#3762;-&#3763;&#3773;&#3776;-&#3780;&#3904;-&#3911;&#3913;-&#3945;&#4256;-&#4293;&#4304;-&#4342;&#4352;&#4354;-&#4355;&#4357;-&#4359;&#4361;&#4363;-&#4364;&#4366;-&#4370;&#4412;&#4414;&#4416;&#4428;&#4430;&#4432;&#4436;-&#4437;&#4441;&#4447;-&#4449;&#4451;&#4453;&#4455;&#4457;&#4461;-&#4462;&#4466;-&#4467;&#4469;&#4510;&#4520;&#4523;&#4526;-&#4527;&#4535;-</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">&#4536;&#4538;&#4540;-&#4546;&#4587;&#4592;&#4601;&#7680;-&#7835;&#7840;-&#7929;&#7936;-&#7957;&#7960;-&#7965;&#7968;-&#8005;&#8008;-&#8013;&#8016;-&#8023;&#8025;&#8027;&#8029;&#8031;-&#8061;&#8064;-&#8116;&#8118;-&#8124;&#8126;&#8130;-&#8132;&#8134;-&#8140;&#8144;-&#8147;&#8150;-&#8155;&#8160;-&#8172;&#8178;-&#8180;&#8182;-&#8188;&#8486;&#8490;-&#8491;&#8494;&#8576;-</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">&#8578;&#12295;&#12321;-&#12329;&#12353;-&#12436;&#12449;-&#12538;&#12549;-&#12588;&#19968;-&#40869;&#44032;-&#55203;][\--.0-9A-Z_a-z&#183;&#192;-&#214;&#216;-&#246;&#248;-&#305;&#308;-&#318;&#321;-&#328;&#330;-&#382;&#384;-&#451;&#461;-&#496;&#500;-&#501;&#506;-&#535;&#592;-&#680;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="NCName_re"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">NCName_re</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+re.compile(r'^<code class="re-group">[</code>A<code class="re-op">-</code>Z_a<code class="re-op">-</code>z\xc0<code class="re-op">-</code>\xd6\xd8<code class="re-op">-</code>\xf6\xf8<code class="re-op">-</code>\u0131\u0134<code class="re-op">-</code>\u013e\u0141<code class="re-op"></code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="re-op">-</code>\u0148\u014a<code class="re-op">-</code>\u017e\u0180<code class="re-op">-</code>\u01c3\u01cd<code class="re-op">-</code>\u01f0\u01f4<code class="re-op">-</code>\u01f5\u01fa<code class="re-op">-</code>\u02<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+17\u0250<code class="re-op">-</code>\u02a8\u02bb<code class="re-op">-</code>\u02c1\u0386\u0388<code class="re-op">-</code>\u038a\u038c\u038e<code class="re-op">-</code>\u03a1\u03<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+a3<code class="re-op">-</code>\u03ce\u03d0<code class="re-op">-</code>\u03d6\u03da\u03dc\u03de\u03e0\u03e2<code class="re-op">-</code>\u03f3\u0401<code class="re-op">-</code>\u04<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+0c\u040e<code class="re-op">-</code>\u044f\u0451<code class="re-op">-</code>\u045c\u045e<code class="re-op">-</code>\u0481\u0490<code class="re-op">-</code>\u04c4\u04c7<code class="re-op">-</code>\u04c8\u0<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+4cb<code class="re-op">-</code>\u04cc\u04d0<code class="re-op">-</code>\u04eb\u04ee<code class="re-op">-</code>\u04f5\u04f8<code class="re-op">-</code>\u04f9\u0531<code class="re-op">-</code>\u0556\u0559\u<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+0561<code class="re-op">-</code>\u0586\u05d0<code class="re-op">-</code>\u05ea\u05f0<code class="re-op">-</code>\u05f2\u0621<code class="re-op">-</code>\u063a\u0641<code class="re-op">-</code>\u064a\u0671<code class="re-op">-</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+\u06b7\u06ba<code class="re-op">-</code>\u06be\u06c0<code class="re-op">-</code>\u06ce\u06d0<code class="re-op">-</code>\u06d3\u06d5\u06e5<code class="re-op">-</code>\u06e6\u0905<code class="re-op"></code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="QName_pat"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">QName_pat</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-quote">u'</code><code class="variable-string">([A-Z_a-z&#192;-&#214;&#216;-&#246;&#248;-&#305;&#308;-&#318;&#321;-&#328;&#330;-&#382;&#384;-&#451;&#461;-&#496;&#500;-&#501;&#506;-&#535;&#592;-&#680;&#699;-&#705;&#902;&#904;-&#906;&#908;&#910;-&#929;&#931;-&#974;&#976;-&#982;&#986;&#988;&#990;&#992;&#994;-&#1011;&#1025;-</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">&#1036;&#1038;-&#1103;&#1105;-&#1116;&#1118;-&#1153;&#1168;-&#1220;&#1223;-&#1224;&#1227;-&#1228;&#1232;-&#1259;&#1262;-&#1269;&#1272;-&#1273;&#1329;-&#1366;&#1369;&#1377;-&#1414;&#1488;-&#1514;&#1520;-&#1522;&#1569;-&#1594;&#1601;-&#1610;&#1649;-&#1719;&#1722;-&#1726;&#1728;-&#1742;&#1744;-&#1747;&#1749;&#1765;-&#1766;&#2309;-&#2361;&#2365;&#2392;-&#2401;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">&#2437;-&#2444;&#2447;-&#2448;&#2451;-&#2472;&#2474;-&#2480;&#2482;&#2486;-&#2489;&#2524;-&#2525;&#2527;-&#2529;&#2544;-&#2545;&#2565;-&#2570;&#2575;-&#2576;&#2579;-&#2600;&#2602;-&#2608;&#2610;-&#2611;&#2613;-&#2614;&#2616;-&#2617;&#2649;-&#2652;&#2654;&#2674;-&#2676;&#2693;-&#2699;&#2701;&#2703;-&#2705;&#2707;-&#2728;&#2730;-&#2736;&#2738;-&#2739;&#2741;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">-&#2745;&#2749;&#2784;&#2821;-&#2828;&#2831;-&#2832;&#2835;-&#2856;&#2858;-&#2864;&#2866;-&#2867;&#2870;-&#2873;&#2877;&#2908;-&#2909;&#2911;-&#2913;&#2949;-&#2954;&#2958;-&#2960;&#2962;-&#2965;&#2969;-&#2970;&#2972;&#2974;-&#2975;&#2979;-&#2980;&#2984;-&#2986;&#2990;-&#2997;&#2999;-&#3001;&#3077;-&#3084;&#3086;-&#3088;&#3090;-&#3112;&#3114;-&#3123;&#3125;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">-&#3129;&#3168;-&#3169;&#3205;-&#3212;&#3214;-&#3216;&#3218;-&#3240;&#3242;-&#3251;&#3253;-&#3257;&#3294;&#3296;-&#3297;&#3333;-&#3340;&#3342;-&#3344;&#3346;-&#3368;&#3370;-&#3385;&#3424;-&#3425;&#3585;-&#3630;&#3632;&#3634;-&#3635;&#3648;-&#3653;&#3713;-&#3714;&#3716;&#3719;-&#3720;&#3722;&#3725;&#3732;-&#3735;&#3737;-&#3743;&#3745;-&#3747;&#3749;&#3751;&#3754;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">-&#3755;&#3757;-&#3758;&#3760;&#3762;-&#3763;&#3773;&#3776;-&#3780;&#3904;-&#3911;&#3913;-&#3945;&#4256;-&#4293;&#4304;-&#4342;&#4352;&#4354;-&#4355;&#4357;-&#4359;&#4361;&#4363;-&#4364;&#4366;-&#4370;&#4412;&#4414;&#4416;&#4428;&#4430;&#4432;&#4436;-&#4437;&#4441;&#4447;-&#4449;&#4451;&#4453;&#4455;&#4457;&#4461;-&#4462;&#4466;-&#4467;&#4469;&#4510;&#4520;&#4523;&#4526;-&#4527;&#4535;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">-&#4536;&#4538;&#4540;-&#4546;&#4587;&#4592;&#4601;&#7680;-&#7835;&#7840;-&#7929;&#7936;-&#7957;&#7960;-&#7965;&#7968;-&#8005;&#8008;-&#8013;&#8016;-&#8023;&#8025;&#8027;&#8029;&#8031;-&#8061;&#8064;-&#8116;&#8118;-&#8124;&#8126;&#8130;-&#8132;&#8134;-&#8140;&#8144;-&#8147;&#8150;-&#8155;&#8160;-&#8172;&#8178;-&#8180;&#8182;-&#8188;&#8486;&#8490;-&#8491;&#8494;&#8576;</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">-&#8578;&#12295;&#12321;-&#12329;&#12353;-&#12436;&#12449;-&#12538;&#12549;-&#12588;&#19968;-&#40869;&#44032;-&#55203;][\--.0-9A-Z_a-z&#183;&#192;-&#214;&#216;-&#246;&#248;-&#305;&#308;-&#318;&#321;-&#328;&#330;-&#382;&#384;-&#451;&#461;-&#496;&#500;-&#501;&#506;-&#535;&#592;-</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="QName_re"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">QName_re</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+re.compile(r'^<code class="re-group">(</code><code class="re-group">[</code>A<code class="re-op">-</code>Z_a<code class="re-op">-</code>z\xc0<code class="re-op">-</code>\xd6\xd8<code class="re-op">-</code>\xf6\xf8<code class="re-op">-</code>\u0131\u0134<code class="re-op">-</code>\u013e\u014<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+1<code class="re-op">-</code>\u0148\u014a<code class="re-op">-</code>\u017e\u0180<code class="re-op">-</code>\u01c3\u01cd<code class="re-op">-</code>\u01f0\u01f4<code class="re-op">-</code>\u01f5\u01fa<code class="re-op">-</code>\u0<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+217\u0250<code class="re-op">-</code>\u02a8\u02bb<code class="re-op">-</code>\u02c1\u0386\u0388<code class="re-op">-</code>\u038a\u038c\u038e<code class="re-op">-</code>\u03a1\u0<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+3a3<code class="re-op">-</code>\u03ce\u03d0<code class="re-op">-</code>\u03d6\u03da\u03dc\u03de\u03e0\u03e2<code class="re-op">-</code>\u03f3\u0401<code class="re-op">-</code>\u0<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+40c\u040e<code class="re-op">-</code>\u044f\u0451<code class="re-op">-</code>\u045c\u045e<code class="re-op">-</code>\u0481\u0490<code class="re-op">-</code>\u04c4\u04c7<code class="re-op">-</code>\u04c8\u<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+04cb<code class="re-op">-</code>\u04cc\u04d0<code class="re-op">-</code>\u04eb\u04ee<code class="re-op">-</code>\u04f5\u04f8<code class="re-op">-</code>\u04f9\u0531<code class="re-op">-</code>\u0556\u0559\<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+u0561<code class="re-op">-</code>\u0586\u05d0<code class="re-op">-</code>\u05ea\u05f0<code class="re-op">-</code>\u05f2\u0621<code class="re-op">-</code>\u063a\u0641<code class="re-op">-</code>\u064a\u0671<code class="re-op"></code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="re-op">-</code>\u06b7\u06ba<code class="re-op">-</code>\u06be\u06c0<code class="re-op">-</code>\u06ce\u06d0<code class="re-op">-</code>\u06d3\u06d5\u06e5<code class="re-op">-</code>\u06e6\u090<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:37 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

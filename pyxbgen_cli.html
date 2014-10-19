@@ -1,0 +1,717 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyxbgen Command Line Options &mdash; PyXB 1.2.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.2.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyXB 1.2.3 documentation" href="index.html" />
+    <link rel="up" title="User Reference" href="userref_index.html" />
+    <link rel="next" title="Maintainer Reference" href="maintref.html" />
+    <link rel="prev" title="Debugging Validation Errors" href="userref_validating.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="maintref.html" title="Maintainer Reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="userref_validating.html" title="Debugging Validation Errors"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+          <li><a href="userref_index.html" accesskey="U">User Reference</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="pyxbgen-command-line-options">
+<span id="pyxbgen-cli"></span><h1><tt class="docutils literal"><span class="pre">pyxbgen</span></tt> Command Line Options<a class="headerlink" href="#pyxbgen-command-line-options" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="generic-options">
+<h2>Generic Options<a class="headerlink" href="#generic-options" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<caption>Generic Options</caption>
+<colgroup>
+<col width="14%" />
+<col width="10%" />
+<col width="7%" />
+<col width="69%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Long Option</th>
+<th class="head">Argument</th>
+<th class="head">Alt</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--version</span></tt></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-version"><em>show program&#8217;s version number and exit</em></a></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--help</span></tt></td>
+<td>&nbsp;</td>
+<td><tt class="docutils literal"><span class="pre">-h</span></tt></td>
+<td><a class="reference internal" href="#pyxbgen-help"><em>show this help message and exit</em></a></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="version">
+<span id="pyxbgen-version"></span><h3><tt class="docutils literal"><span class="pre">--version</span></tt><a class="headerlink" href="#version" title="Permalink to this headline">¶</a></h3>
+<p>show program&#8217;s version number and exit</p>
+</div>
+<div class="section" id="help">
+<span id="pyxbgen-help"></span><h3><tt class="docutils literal"><span class="pre">--help</span></tt><a class="headerlink" href="#help" title="Permalink to this headline">¶</a></h3>
+<p>show this help message and exit</p>
+</div>
+</div>
+<div class="section" id="identifying-schema">
+<h2>Identifying Schema<a class="headerlink" href="#identifying-schema" title="Permalink to this headline">¶</a></h2>
+<p>Specify and locate schema for which bindings should be generated.</p>
+<table border="1" class="docutils">
+<caption>Identifying Schema</caption>
+<colgroup>
+<col width="24%" />
+<col width="9%" />
+<col width="4%" />
+<col width="63%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Long Option</th>
+<th class="head">Argument</th>
+<th class="head">Alt</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--schema-location</span></tt></td>
+<td><em>FILE_or_URL</em></td>
+<td><tt class="docutils literal"><span class="pre">-u</span></tt></td>
+<td><a class="reference internal" href="#pyxbgen-schema-location"><em>Add the location of an entrypoint schema.  The...</em></a></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--schema-root</span></tt></td>
+<td><em>DIRECTORY</em></td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-schema-root"><em>The directory from which entrypoint schemas...</em></a></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--schema-stripped-prefix</span></tt></td>
+<td><em>TEXT</em></td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-schema-stripped-prefix"><em>Optional string that is stripped from the...</em></a></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--location-prefix-rewrite</span></tt></td>
+<td><em>TEXT</em></td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-location-prefix-rewrite"><em>Add a rewrite entry for schema locations....</em></a></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--uri-content-archive-directory</span></tt></td>
+<td><em>DIRECTORY</em></td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-uri-content-archive-directory"><em>The directory path into which any content...</em></a></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="schema-location">
+<span id="pyxbgen-schema-location"></span><h3><tt class="docutils literal"><span class="pre">--schema-location</span></tt><a class="headerlink" href="#schema-location" title="Permalink to this headline">¶</a></h3>
+<p>Add the location of an entrypoint schema.  The provided value should be
+a URL; if it does not have a URL scheme (e.g., <tt class="docutils literal"><span class="pre">http:</span></tt>), it is assumed
+to be a file, and if it is not an absolute path is located relative to
+the <tt class="docutils literal"><span class="pre">schemaRoot</span></tt>.</p>
+</div>
+<div class="section" id="schema-root">
+<span id="pyxbgen-schema-root"></span><h3><tt class="docutils literal"><span class="pre">--schema-root</span></tt><a class="headerlink" href="#schema-root" title="Permalink to this headline">¶</a></h3>
+<p>The directory from which entrypoint schemas specified as relative file
+paths will be read.</p>
+</div>
+<div class="section" id="schema-stripped-prefix">
+<span id="pyxbgen-schema-stripped-prefix"></span><h3><tt class="docutils literal"><span class="pre">--schema-stripped-prefix</span></tt><a class="headerlink" href="#schema-stripped-prefix" title="Permalink to this headline">¶</a></h3>
+<p>Optional string that is stripped from the beginning of schemaLocation
+values before loading from them. This applies only to the values of
+schemaLocation attributes in <tt class="docutils literal"><span class="pre">import</span></tt> and <tt class="docutils literal"><span class="pre">include</span></tt> elements.  Its
+purpose is to convert absolute schema locations into relative ones to
+allow offline processing when all schema are available in a local
+directory.  See <tt class="docutils literal"><span class="pre">schemaRoot</span></tt>.</p>
+</div>
+<div class="section" id="location-prefix-rewrite">
+<span id="pyxbgen-location-prefix-rewrite"></span><h3><tt class="docutils literal"><span class="pre">--location-prefix-rewrite</span></tt><a class="headerlink" href="#location-prefix-rewrite" title="Permalink to this headline">¶</a></h3>
+<p>Add a rewrite entry for schema locations. Parameter values are strings
+of the form <tt class="docutils literal"><span class="pre">pfx=sub</span></tt>.  The effect is that a schema location that
+begins with <tt class="docutils literal"><span class="pre">pfx</span></tt> is rewritten so that it instead begins with <tt class="docutils literal"><span class="pre">sub</span></tt>.</p>
+</div>
+<div class="section" id="uri-content-archive-directory">
+<span id="pyxbgen-uri-content-archive-directory"></span><h3><tt class="docutils literal"><span class="pre">--uri-content-archive-directory</span></tt><a class="headerlink" href="#uri-content-archive-directory" title="Permalink to this headline">¶</a></h3>
+<p>The directory path into which any content retrieved by URI will be
+written. This serves as a local cache, and to give you an opportunity to
+inspect material retrieved from some other system. &#64;rtype: <tt class="docutils literal"><span class="pre">str</span></tt></p>
+</div>
+</div>
+<div class="section" id="configuring-bindings">
+<h2>Configuring Bindings<a class="headerlink" href="#configuring-bindings" title="Permalink to this headline">¶</a></h2>
+<p>Specify where generated bindings should be written, and how they will be accessed from Python.</p>
+<table border="1" class="docutils">
+<caption>Configuring Bindings</caption>
+<colgroup>
+<col width="22%" />
+<col width="8%" />
+<col width="4%" />
+<col width="66%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Long Option</th>
+<th class="head">Argument</th>
+<th class="head">Alt</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--module</span></tt></td>
+<td><em>MODULE</em></td>
+<td><tt class="docutils literal"><span class="pre">-m</span></tt></td>
+<td><a class="reference internal" href="#pyxbgen-module"><em>Add a module name corresponding to an entrypoint...</em></a></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--module-prefix</span></tt></td>
+<td><em>MODULE</em></td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-module-prefix"><em>The prefix for binding modules. The base name for...</em></a></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--binding-root</span></tt></td>
+<td><em>DIRECTORY</em></td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-binding-root"><em>The directory path into which generated bindings...</em></a></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--write-for-customization</span></tt></td>
+<td>&nbsp;</td>
+<td><tt class="docutils literal"><span class="pre">-r</span></tt></td>
+<td><a class="reference internal" href="#pyxbgen-write-for-customization"><em>Indicates whether the binding Python code should...</em></a></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--no-write-for-customization</span></tt></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-no-write-for-customization"><em>Indicates whether the binding Python code should...</em></a></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="module">
+<span id="pyxbgen-module"></span><h3><tt class="docutils literal"><span class="pre">--module</span></tt><a class="headerlink" href="#module" title="Permalink to this headline">¶</a></h3>
+<p>Add a module name corresponding to an entrypoint schema. The namespace
+defined by the corresponding schema will be written to a binding using
+the given module name, adjusted by L{modulePrefix}.</p>
+</div>
+<div class="section" id="module-prefix">
+<span id="pyxbgen-module-prefix"></span><h3><tt class="docutils literal"><span class="pre">--module-prefix</span></tt><a class="headerlink" href="#module-prefix" title="Permalink to this headline">¶</a></h3>
+<p>The prefix for binding modules. The base name for the module holding a
+binding is taken from the moduleList, moduleMap, or an XMLNS prefix
+associated with the namespace in a containing schema.  This value, if
+present, is used as a prefix to allow a deeper module hierarchy.</p>
+</div>
+<div class="section" id="binding-root">
+<span id="pyxbgen-binding-root"></span><h3><tt class="docutils literal"><span class="pre">--binding-root</span></tt><a class="headerlink" href="#binding-root" title="Permalink to this headline">¶</a></h3>
+<p>The directory path into which generated bindings will be written.
+&#64;rtype: <tt class="docutils literal"><span class="pre">str</span></tt></p>
+</div>
+<div class="section" id="write-for-customization">
+<span id="pyxbgen-write-for-customization"></span><h3><tt class="docutils literal"><span class="pre">--write-for-customization</span></tt><a class="headerlink" href="#write-for-customization" title="Permalink to this headline">¶</a></h3>
+<p>Indicates whether the binding Python code should be written into a sub-
+module for customization. If enabled, a module <tt class="docutils literal"><span class="pre">path.to.namespace</span></tt>
+will be written to the file <tt class="docutils literal"><span class="pre">path/to/raw/namespace.py</span></tt>, so that the
+file <tt class="docutils literal"><span class="pre">path/to/namespace.py</span></tt> can import it and override behavior. This
+option turns on the feature.</p>
+</div>
+<div class="section" id="no-write-for-customization">
+<span id="pyxbgen-no-write-for-customization"></span><h3><tt class="docutils literal"><span class="pre">--no-write-for-customization</span></tt><a class="headerlink" href="#no-write-for-customization" title="Permalink to this headline">¶</a></h3>
+<p>Indicates whether the binding Python code should be written into a sub-
+module for customization. If enabled, a module <tt class="docutils literal"><span class="pre">path.to.namespace</span></tt>
+will be written to the file <tt class="docutils literal"><span class="pre">path/to/raw/namespace.py</span></tt>, so that the
+file <tt class="docutils literal"><span class="pre">path/to/namespace.py</span></tt> can import it and override behavior. This
+option turns off the feature (<em>default</em>).</p>
+</div>
+</div>
+<div class="section" id="reading-namespace-archives">
+<h2>Reading Namespace Archives<a class="headerlink" href="#reading-namespace-archives" title="Permalink to this headline">¶</a></h2>
+<p>Locating and loading (or inhibiting load of) namespace archives.</p>
+<table border="1" class="docutils">
+<caption>Reading Namespace Archives</caption>
+<colgroup>
+<col width="23%" />
+<col width="6%" />
+<col width="3%" />
+<col width="68%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Long Option</th>
+<th class="head">Argument</th>
+<th class="head">Alt</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--archive-path</span></tt></td>
+<td><em>PATH</em></td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-archive-path"><em>A colon-separated list of paths from which...</em></a></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--import-augmentable-namespace</span></tt></td>
+<td><em>URI</em></td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-import-augmentable-namespace"><em>Mark that the specified namespace may be imported...</em></a></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--no-load-namespace</span></tt></td>
+<td><em>URI</em></td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-no-load-namespace"><em>Mark that the specified namespace should not be...</em></a></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="archive-path">
+<span id="pyxbgen-archive-path"></span><h3><tt class="docutils literal"><span class="pre">--archive-path</span></tt><a class="headerlink" href="#archive-path" title="Permalink to this headline">¶</a></h3>
+<p>A colon-separated list of paths from which namespace archives can be
+read. The default path is the contents of the <tt class="docutils literal"><span class="pre">PYXB_ARCHIVE_PATH</span></tt>
+environment variable, or the standard path configured at installation
+time.  Any file with the extension <tt class="docutils literal"><span class="pre">.wxs</span></tt> found in one of these
+directories is examined to see whether it is a namespace archive.</p>
+</div>
+<div class="section" id="import-augmentable-namespace">
+<span id="pyxbgen-import-augmentable-namespace"></span><h3><tt class="docutils literal"><span class="pre">--import-augmentable-namespace</span></tt><a class="headerlink" href="#import-augmentable-namespace" title="Permalink to this headline">¶</a></h3>
+<p>Mark that the specified namespace may be imported by new bindings.
+Normally namespaces that are available from archives are considered to
+be complete, and schema locations in import directives are ignored.  Use
+this to indicate that the bindings being generated import new bindings.
+Note that attempts to import schema that contributed to the archive will
+only be detected if the archive was generated from the same
+schemaLocation URI; if the archive was generated from a different source
+component definitions might conflict.</p>
+</div>
+<div class="section" id="no-load-namespace">
+<span id="pyxbgen-no-load-namespace"></span><h3><tt class="docutils literal"><span class="pre">--no-load-namespace</span></tt><a class="headerlink" href="#no-load-namespace" title="Permalink to this headline">¶</a></h3>
+<p>Mark that the specified namespace should not be loaded from an archive.
+Use this when you are generating bindings for an application that has a
+restricted profile of a namespace that would otherwise be read from an
+archive.  Be aware that this removes any knowledge of any archive in
+which this namespace is present as a non-private member.</p>
+</div>
+</div>
+<div class="section" id="writing-namespace-archives">
+<h2>Writing Namespace Archives<a class="headerlink" href="#writing-namespace-archives" title="Permalink to this headline">¶</a></h2>
+<p>Control the location and content of a namespace archive corresponding to a binding generation.</p>
+<table border="1" class="docutils">
+<caption>Writing Namespace Archives</caption>
+<colgroup>
+<col width="22%" />
+<col width="7%" />
+<col width="3%" />
+<col width="68%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Long Option</th>
+<th class="head">Argument</th>
+<th class="head">Alt</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--archive-to-file</span></tt></td>
+<td><em>FILE</em></td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-archive-to-file"><em>Optional file into which the archive of namespaces...</em></a></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--public-namespace</span></tt></td>
+<td><em>URI</em></td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-public-namespace"><em>Indicates, for specific namespaces, whether their...</em></a></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--private-namespace</span></tt></td>
+<td><em>URI</em></td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-private-namespace"><em>Indicates, for specific namespaces, whether their...</em></a></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--default-namespace-public</span></tt></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-default-namespace-public"><em>Indicates whether unmentioned namespaces will be...</em></a></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--default-namespace-private</span></tt></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-default-namespace-private"><em>Indicates whether unmentioned namespaces will be...</em></a></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="archive-to-file">
+<span id="pyxbgen-archive-to-file"></span><h3><tt class="docutils literal"><span class="pre">--archive-to-file</span></tt><a class="headerlink" href="#archive-to-file" title="Permalink to this headline">¶</a></h3>
+<p>Optional file into which the archive of namespaces will be written.
+Subsequent generation actions can read pre-parsed namespaces from this
+file, and therefore reference the bindings that were built earlier
+rather than re-generating them. The file name should normally end with
+<tt class="docutils literal"><span class="pre">.wxs</span></tt>.</p>
+</div>
+<div class="section" id="public-namespace">
+<span id="pyxbgen-public-namespace"></span><h3><tt class="docutils literal"><span class="pre">--public-namespace</span></tt><a class="headerlink" href="#public-namespace" title="Permalink to this headline">¶</a></h3>
+<p>Indicates, for specific namespaces, whether their visibility in the
+archive should be public or private. This option adds the namespace as a
+public archive member.</p>
+</div>
+<div class="section" id="private-namespace">
+<span id="pyxbgen-private-namespace"></span><h3><tt class="docutils literal"><span class="pre">--private-namespace</span></tt><a class="headerlink" href="#private-namespace" title="Permalink to this headline">¶</a></h3>
+<p>Indicates, for specific namespaces, whether their visibility in the
+archive should be public or private. This option adds the namespace as a
+private archive member.</p>
+</div>
+<div class="section" id="default-namespace-public">
+<span id="pyxbgen-default-namespace-public"></span><h3><tt class="docutils literal"><span class="pre">--default-namespace-public</span></tt><a class="headerlink" href="#default-namespace-public" title="Permalink to this headline">¶</a></h3>
+<p>Indicates whether unmentioned namespaces will be public or private
+(default) in the archive. A namespace is <em>mentioned</em> if it is the target
+namespace of an entrypoint schema, or appears in a namespace visibility
+specification.  I.e., this default applies only to namespaces that are
+modified as a result of including some schema, which is generally a
+local customization of something. This option makes the default
+<tt class="docutils literal"><span class="pre">public</span></tt> (<em>default</em>).</p>
+</div>
+<div class="section" id="default-namespace-private">
+<span id="pyxbgen-default-namespace-private"></span><h3><tt class="docutils literal"><span class="pre">--default-namespace-private</span></tt><a class="headerlink" href="#default-namespace-private" title="Permalink to this headline">¶</a></h3>
+<p>Indicates whether unmentioned namespaces will be public or private
+(default) in the archive. A namespace is <em>mentioned</em> if it is the target
+namespace of an entrypoint schema, or appears in a namespace visibility
+specification.  I.e., this default applies only to namespaces that are
+modified as a result of including some schema, which is generally a
+local customization of something. This option makes the default
+<tt class="docutils literal"><span class="pre">private</span></tt>.</p>
+</div>
+</div>
+<div class="section" id="configuring-binding-code-generation">
+<h2>Configuring Binding Code Generation<a class="headerlink" href="#configuring-binding-code-generation" title="Permalink to this headline">¶</a></h2>
+<p>Control the style and content of the generated bindings.  This is not well-supported, and you are advised to pretend these options don&#8217;t exist.</p>
+<table border="1" class="docutils">
+<caption>Configuring Binding Code Generation</caption>
+<colgroup>
+<col width="20%" />
+<col width="7%" />
+<col width="3%" />
+<col width="69%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Long Option</th>
+<th class="head">Argument</th>
+<th class="head">Alt</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--validate-changes</span></tt></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-validate-changes"><em>Indicates whether the bindings should validate...</em></a></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--no-validate-changes</span></tt></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-no-validate-changes"><em>Indicates whether the bindings should validate...</em></a></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="validate-changes">
+<span id="pyxbgen-validate-changes"></span><h3><tt class="docutils literal"><span class="pre">--validate-changes</span></tt><a class="headerlink" href="#validate-changes" title="Permalink to this headline">¶</a></h3>
+<p>Indicates whether the bindings should validate mutations against the
+content model. This option turns on validation (default).</p>
+</div>
+<div class="section" id="no-validate-changes">
+<span id="pyxbgen-no-validate-changes"></span><h3><tt class="docutils literal"><span class="pre">--no-validate-changes</span></tt><a class="headerlink" href="#no-validate-changes" title="Permalink to this headline">¶</a></h3>
+<p>Indicates whether the bindings should validate mutations against the
+content model. This option turns off validation.</p>
+</div>
+</div>
+<div class="section" id="miscellaneous-options">
+<h2>Miscellaneous Options<a class="headerlink" href="#miscellaneous-options" title="Permalink to this headline">¶</a></h2>
+<p>Anything else.</p>
+<table border="1" class="docutils">
+<caption>Miscellaneous Options</caption>
+<colgroup>
+<col width="20%" />
+<col width="7%" />
+<col width="3%" />
+<col width="70%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Long Option</th>
+<th class="head">Argument</th>
+<th class="head">Alt</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--logging-config-file</span></tt></td>
+<td><em>FILE</em></td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-logging-config-file"><em>A file provided to L{logging.config.fileConfig} to...</em></a></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="logging-config-file">
+<span id="pyxbgen-logging-config-file"></span><h3><tt class="docutils literal"><span class="pre">--logging-config-file</span></tt><a class="headerlink" href="#logging-config-file" title="Permalink to this headline">¶</a></h3>
+<p>A file provided to L{logging.config.fileConfig} to control log messages.
+In the absence of other configuration the Python standard logging
+infrastructure is used in its default configuration. &#64;rtype: <tt class="docutils literal"><span class="pre">str</span></tt></p>
+</div>
+</div>
+<div class="section" id="maintainer-options">
+<h2>Maintainer Options<a class="headerlink" href="#maintainer-options" title="Permalink to this headline">¶</a></h2>
+<p>Don&#8217;t use these.  They don&#8217;t exist.  If they did, they&#8217;d do different things at different times, and if you used them you&#8217;d probably be sorry.</p>
+<table border="1" class="docutils">
+<caption>Maintainer Options</caption>
+<colgroup>
+<col width="24%" />
+<col width="6%" />
+<col width="3%" />
+<col width="67%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Long Option</th>
+<th class="head">Argument</th>
+<th class="head">Alt</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--allow-absent-module</span></tt></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-allow-absent-module"><em>Indicates whether the code generator is permitted...</em></a></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--no-allow-absent-module</span></tt></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-no-allow-absent-module"><em>Indicates whether the code generator is permitted...</em></a></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--allow-builtin-generation</span></tt></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-allow-builtin-generation"><em>Indicates whether bindings will be written for...</em></a></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--no-allow-builtin-generation</span></tt></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td><a class="reference internal" href="#pyxbgen-no-allow-builtin-generation"><em>Indicates whether bindings will be written for...</em></a></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="allow-absent-module">
+<span id="pyxbgen-allow-absent-module"></span><h3><tt class="docutils literal"><span class="pre">--allow-absent-module</span></tt><a class="headerlink" href="#allow-absent-module" title="Permalink to this headline">¶</a></h3>
+<p>Indicates whether the code generator is permitted to process namespace
+for which no module path can be determined. Use this only when
+generating bindings that will not be referenced by other bindings. This
+option turns on the feature.</p>
+</div>
+<div class="section" id="no-allow-absent-module">
+<span id="pyxbgen-no-allow-absent-module"></span><h3><tt class="docutils literal"><span class="pre">--no-allow-absent-module</span></tt><a class="headerlink" href="#no-allow-absent-module" title="Permalink to this headline">¶</a></h3>
+<p>Indicates whether the code generator is permitted to process namespace
+for which no module path can be determined. Use this only when
+generating bindings that will not be referenced by other bindings. This
+option turns off the feature (default).</p>
+</div>
+<div class="section" id="allow-builtin-generation">
+<span id="pyxbgen-allow-builtin-generation"></span><h3><tt class="docutils literal"><span class="pre">--allow-builtin-generation</span></tt><a class="headerlink" href="#allow-builtin-generation" title="Permalink to this headline">¶</a></h3>
+<p>Indicates whether bindings will be written for namespaces that are
+built-in to PyXB. This must be enabled when building bindings for the
+XML, XMLSchema instance, and other built-in namespaces.  Normally
+generation of these namespaces is inhibited lest it produce
+inconsistencies. This option turns on the feature.</p>
+</div>
+<div class="section" id="no-allow-builtin-generation">
+<span id="pyxbgen-no-allow-builtin-generation"></span><h3><tt class="docutils literal"><span class="pre">--no-allow-builtin-generation</span></tt><a class="headerlink" href="#no-allow-builtin-generation" title="Permalink to this headline">¶</a></h3>
+<p>Indicates whether bindings will be written for namespaces that are
+built-in to PyXB. This must be enabled when building bindings for the
+XML, XMLSchema instance, and other built-in namespaces.  Normally
+generation of these namespaces is inhibited lest it produce
+inconsistencies. This option turns off the feature (default).</p>
+</div>
+</div>
+<div class="section" id="wsdl-options">
+<h2>WSDL Options<a class="headerlink" href="#wsdl-options" title="Permalink to this headline">¶</a></h2>
+<p>Options relevant to generating bindings from WSDL service descriptions</p>
+<table border="1" class="docutils">
+<caption>WSDL Options</caption>
+<colgroup>
+<col width="16%" />
+<col width="11%" />
+<col width="5%" />
+<col width="68%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Long Option</th>
+<th class="head">Argument</th>
+<th class="head">Alt</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--wsdl-location</span></tt></td>
+<td><em>FILE_or_URL</em></td>
+<td><tt class="docutils literal"><span class="pre">-W</span></tt></td>
+<td><a class="reference internal" href="#pyxbgen-wsdl-location"><em>Generate bindings for the types stanza of the...</em></a></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="wsdl-location">
+<span id="pyxbgen-wsdl-location"></span><h3><tt class="docutils literal"><span class="pre">--wsdl-location</span></tt><a class="headerlink" href="#wsdl-location" title="Permalink to this headline">¶</a></h3>
+<p>Generate bindings for the <tt class="docutils literal"><span class="pre">types</span></tt> stanza of the WSDL at this location.
+This option is equivalent to retrieving the WSDL, extracting the schema
+part of its <tt class="docutils literal"><span class="pre">types</span></tt> block to a file, and using that file as a
+<tt class="docutils literal"><span class="pre">--schema-location</span></tt>.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">pyxbgen</span></tt> Command Line Options</a><ul>
+<li><a class="reference internal" href="#generic-options">Generic Options</a><ul>
+<li><a class="reference internal" href="#version"><tt class="docutils literal"><span class="pre">--version</span></tt></a></li>
+<li><a class="reference internal" href="#help"><tt class="docutils literal"><span class="pre">--help</span></tt></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#identifying-schema">Identifying Schema</a><ul>
+<li><a class="reference internal" href="#schema-location"><tt class="docutils literal"><span class="pre">--schema-location</span></tt></a></li>
+<li><a class="reference internal" href="#schema-root"><tt class="docutils literal"><span class="pre">--schema-root</span></tt></a></li>
+<li><a class="reference internal" href="#schema-stripped-prefix"><tt class="docutils literal"><span class="pre">--schema-stripped-prefix</span></tt></a></li>
+<li><a class="reference internal" href="#location-prefix-rewrite"><tt class="docutils literal"><span class="pre">--location-prefix-rewrite</span></tt></a></li>
+<li><a class="reference internal" href="#uri-content-archive-directory"><tt class="docutils literal"><span class="pre">--uri-content-archive-directory</span></tt></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#configuring-bindings">Configuring Bindings</a><ul>
+<li><a class="reference internal" href="#module"><tt class="docutils literal"><span class="pre">--module</span></tt></a></li>
+<li><a class="reference internal" href="#module-prefix"><tt class="docutils literal"><span class="pre">--module-prefix</span></tt></a></li>
+<li><a class="reference internal" href="#binding-root"><tt class="docutils literal"><span class="pre">--binding-root</span></tt></a></li>
+<li><a class="reference internal" href="#write-for-customization"><tt class="docutils literal"><span class="pre">--write-for-customization</span></tt></a></li>
+<li><a class="reference internal" href="#no-write-for-customization"><tt class="docutils literal"><span class="pre">--no-write-for-customization</span></tt></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#reading-namespace-archives">Reading Namespace Archives</a><ul>
+<li><a class="reference internal" href="#archive-path"><tt class="docutils literal"><span class="pre">--archive-path</span></tt></a></li>
+<li><a class="reference internal" href="#import-augmentable-namespace"><tt class="docutils literal"><span class="pre">--import-augmentable-namespace</span></tt></a></li>
+<li><a class="reference internal" href="#no-load-namespace"><tt class="docutils literal"><span class="pre">--no-load-namespace</span></tt></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#writing-namespace-archives">Writing Namespace Archives</a><ul>
+<li><a class="reference internal" href="#archive-to-file"><tt class="docutils literal"><span class="pre">--archive-to-file</span></tt></a></li>
+<li><a class="reference internal" href="#public-namespace"><tt class="docutils literal"><span class="pre">--public-namespace</span></tt></a></li>
+<li><a class="reference internal" href="#private-namespace"><tt class="docutils literal"><span class="pre">--private-namespace</span></tt></a></li>
+<li><a class="reference internal" href="#default-namespace-public"><tt class="docutils literal"><span class="pre">--default-namespace-public</span></tt></a></li>
+<li><a class="reference internal" href="#default-namespace-private"><tt class="docutils literal"><span class="pre">--default-namespace-private</span></tt></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#configuring-binding-code-generation">Configuring Binding Code Generation</a><ul>
+<li><a class="reference internal" href="#validate-changes"><tt class="docutils literal"><span class="pre">--validate-changes</span></tt></a></li>
+<li><a class="reference internal" href="#no-validate-changes"><tt class="docutils literal"><span class="pre">--no-validate-changes</span></tt></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#miscellaneous-options">Miscellaneous Options</a><ul>
+<li><a class="reference internal" href="#logging-config-file"><tt class="docutils literal"><span class="pre">--logging-config-file</span></tt></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#maintainer-options">Maintainer Options</a><ul>
+<li><a class="reference internal" href="#allow-absent-module"><tt class="docutils literal"><span class="pre">--allow-absent-module</span></tt></a></li>
+<li><a class="reference internal" href="#no-allow-absent-module"><tt class="docutils literal"><span class="pre">--no-allow-absent-module</span></tt></a></li>
+<li><a class="reference internal" href="#allow-builtin-generation"><tt class="docutils literal"><span class="pre">--allow-builtin-generation</span></tt></a></li>
+<li><a class="reference internal" href="#no-allow-builtin-generation"><tt class="docutils literal"><span class="pre">--no-allow-builtin-generation</span></tt></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wsdl-options">WSDL Options</a><ul>
+<li><a class="reference internal" href="#wsdl-location"><tt class="docutils literal"><span class="pre">--wsdl-location</span></tt></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="userref_validating.html"
+                        title="previous chapter">Debugging Validation Errors</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="maintref.html"
+                        title="next chapter">Maintainer Reference</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/pyxbgen_cli.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="maintref.html" title="Maintainer Reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="userref_validating.html" title="Debugging Validation Errors"
+             >previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+          <li><a href="userref_index.html" >User Reference</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009-2013, Peter A. Bigot.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

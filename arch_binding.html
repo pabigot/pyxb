@@ -1,0 +1,468 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Binding Model &mdash; PyXB 1.2.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.2.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyXB 1.2.3 documentation" href="index.html" />
+    <link rel="up" title="Architecture" href="architecture.html" />
+    <link rel="next" title="Content Model" href="arch_content.html" />
+    <link rel="prev" title="Component Model" href="arch_component.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="arch_content.html" title="Content Model"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="arch_component.html" title="Component Model"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+          <li><a href="architecture.html" accesskey="U">Architecture</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="binding-model">
+<span id="bindingmodel"></span><h1>Binding Model<a class="headerlink" href="#binding-model" title="Permalink to this headline">¶</a></h1>
+<p>The binding model represents the relations between Python classes that
+correspond to schema components.  The class hierarchy for the binding model
+is depicted in the following diagram.</p>
+<img alt="_images/BindingModel.jpg" src="_images/BindingModel.jpg" />
+<p>There are three primary groups of classes, which in turn depend on some
+supporting capabilities, all of which are described in the following
+sections.</p>
+<div class="section" id="supporting-capabilities">
+<h2>Supporting Capabilities<a class="headerlink" href="#supporting-capabilities" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="common-binding-instance-features">
+<h3>Common Binding Instance Features<a class="headerlink" href="#common-binding-instance-features" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="api/pyxb.binding.basis._TypeBinding_mixin-class.html">_TypeBinding_mixin</a> is a marker class to indicate
+that the incorporating class represents a binding associated with a type
+definition (whether simple or complex).  The key features of this mixin are:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The <a class="reference external" href="api/pyxb.binding.basis._TypeBinding_mixin-class.html#_ExpandedName">_ExpandedName</a> class variable is
+overridden in each class to identify the type definition corresponding to
+the class.</li>
+<li>The <a class="reference external" href="api/pyxb.binding.basis._TypeBinding_mixin-class.html#_XSDLocation">_XSDLocation</a> class variable is
+overridden in each class to provide the line, column, and schema at which
+the data type definition was found.  This is used in diagnostics.</li>
+<li>The <a class="reference external" href="api/pyxb.binding.basis._TypeBinding_mixin-class.html#_namespaceContext">namespace context</a> of the type
+definition is recorded to allow users to perform QName resolution of values
+within instance documents (see, for example, the customized bindings in
+<tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wsdl11</span></tt>).</li>
+<li>Each instance records the <a class="reference external" href="api/pyxb.binding.basis.element-class.html">element</a> instance that
+determines where the type came from.  The element is required in order to
+provide the correct name when converting the binding instance to a DOM
+instance on its way to expression as a text XML document.</li>
+<li>The mixin is also where <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#xsi_nil">xsi:nil</a> information for the instance
+is stored.</li>
+<li>A <a class="reference external" href="api/pyxb.binding.basis._TypeBinding_mixin-class.html">Factory</a> infrastructure is
+provided to allow creation of new instances of the binding while permitting
+developers to customize the generated binding classes; see
+<a class="reference internal" href="#binding-customization"><em>Support for Customization</em></a>.</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="deconflicting-names">
+<span id="binding-deconflictingnames"></span><h3>Deconflicting Names<a class="headerlink" href="#deconflicting-names" title="Permalink to this headline">¶</a></h3>
+<p>In XML schema, the namespaces for element declarations, type definitions, and
+attribute definitions are all distinct.  Python uses the same namespace for
+everything.  So, if you have a schema that defines a simple type <tt class="docutils literal"><span class="pre">color</span></tt>,
+the schema can also have an element named <tt class="docutils literal"><span class="pre">color</span></tt> with a complex type that
+itself has both a child element named <tt class="docutils literal"><span class="pre">color</span></tt> and a distinct attribute (of
+type <tt class="docutils literal"><span class="pre">color</span></tt>) that is also named <tt class="docutils literal"><span class="pre">color</span></tt>.  Since the natural
+representation of elements and attributes inside complex types is also by
+their XML name, the chances of conflict are high.</p>
+<p>PyXB resolves this by ensuring every identifiable object has a unique
+identifier within its context.  The steps involved are:</p>
+<ol class="arabic simple">
+<li>Make object name into an <a class="reference external" href="api/pyxb.utils.utility-module.html#MakeIdentifier">identifier</a> by stripping out non-printable
+characters, replacing characters that cannot appear in identifiers with
+underscores, stripping leading underscores, and prefixing an initial
+digit with the character <tt class="docutils literal"><span class="pre">n</span></tt>.</li>
+<li><a class="reference external" href="api/pyxb.utils.utility-module.html#DeconflictKeyword">Deconflict</a> the resulting
+identifier from Python <a class="reference external" href="api/pyxb.utils.utility-module.html#_Keywords">reserved identifiers</a> and other context-specific keywords.</li>
+<li>Prepend the standard prefix that denotes the identifier&#8217;s <a class="reference internal" href="maintref.html#identifier-naming"><em>visibility</em></a> (public, protected, private)</li>
+<li>Make the resulting identifier <a class="reference external" href="api/pyxb.utils.utility-module.html#MakeUnique">unique</a>
+within its context (containing class or module).</li>
+</ol>
+<p>These steps are encapsulated into a single function
+<a class="reference external" href="api/pyxb.utils.utility-module.html#PrepareIdentifier">PrepareIdentifier</a> which takes parameters that
+customize the context for the identifier.</p>
+<p>In addition to name conflicts with namespace-global identifiers appearing
+directly in the module, conflicts may also appear within a binding class as a
+result of collision with names from Python keywords, public class names, and
+public field or method names in the class.  The
+<a class="reference external" href="api/pyxb.utils.utility._DeconflictSymbols_mixin-class.html">_DeconflictSymbols_mixin</a> is used to refine the set
+of type-specific public names.  If you customize a generated binding class by
+extending from it, you must specify your own class variable
+<tt class="docutils literal"><span class="pre">_ReservedSymbols</span></tt> with a value that is the union of your symbols and those
+of the superclass(es) (see <a class="reference external" href="api/pyxb.utils.utility._DeconflictSymbols_mixin-class.html">_DeconflictSymbols_mixin</a>
+for details).</p>
+<p>Deconfliction of module-level names occurs prior to <a class="reference external" href="api/pyxb.binding.generate-module.html#GeneratePython">code generation</a>.  Identifiers are deconflicted in
+favor of higher items on this list:</p>
+<ul class="simple">
+<li>Python keywords</li>
+<li>Public class identifiers</li>
+<li>Element tags</li>
+<li>Complex or simple type definition tags</li>
+<li>Enumeration tags</li>
+<li>Attribute tags</li>
+</ul>
+</div>
+<div class="section" id="support-for-customization">
+<span id="binding-customization"></span><h3>Support for Customization<a class="headerlink" href="#support-for-customization" title="Permalink to this headline">¶</a></h3>
+<p>One of the primary goals of PyXB is to support Python modules which customize
+the generated bindings by adding both functionality and derived content.
+Maintenance issues require that these extensions exist separately from the
+automatically-generated binding modules; usability requires that they inherit
+from the automatically-generated modules.  This is supported by the
+<a class="reference external" href="api/pyxb.binding.basis._DynamicCreate_mixin-class.html">_DynamicCreate_mixin</a> class.</p>
+<p>This class provides a <a class="reference external" href="api/pyxb.binding.basis._DynamicCreate_mixin-class.html#_DynamicCreate">method</a> which is used by
+the generated bindings to create new instances of themselves.  The raw
+bindings are generated into a sub-module with the prefix <tt class="docutils literal"><span class="pre">raw</span></tt>, and the
+extensions modify the generated class to record the real class that should
+be used when new instances are created as a result of converting an XML
+document into a binding object.</p>
+<p>For example, if a binding is to be created in a module <tt class="docutils literal"><span class="pre">dinner</span></tt>, the
+<tt class="docutils literal"><span class="pre">--generate-raw-binding</span></tt> flag would be used on <a class="reference internal" href="userref_pyxbgen.html#pyxbgen"><em>pyxbgen</em></a> to
+generate the binding in a file named <tt class="docutils literal"><span class="pre">raw/dinner.py</span></tt>.  The wrapper module
+<tt class="docutils literal"><span class="pre">dinner.py</span></tt> would contain the following code (assuming that the class
+<tt class="docutils literal"><span class="pre">parsnip</span></tt> was to be extended):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Bring all public symbols up from the generated one</span>
+<span class="kn">from</span> <span class="nn">raw.dinner</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="c"># Bring them in again, but left with their original module path</span>
+<span class="kn">import</span> <span class="nn">raw.dinner</span>
+<span class="c"># Replace the generated parsnip with a customizing extension</span>
+<span class="k">class</span> <span class="nc">parsnip</span> <span class="p">(</span><span class="n">raw</span><span class="o">.</span><span class="n">dinner</span><span class="o">.</span><span class="n">parsnip</span><span class="p">):</span>
+  <span class="c"># Customization here</span>
+  <span class="k">pass</span>
+<span class="c"># Register the customization for use by the binding infrastructure</span>
+<span class="n">raw</span><span class="o">.</span><span class="n">dinner</span><span class="o">.</span><span class="n">parsnip</span><span class="o">.</span><span class="n">_SetSupersedingClass</span><span class="p">(</span><span class="n">parsnip</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>With this pattern, objects created by the user through <tt class="docutils literal"><span class="pre">dinner.parsnip()</span></tt>
+and from XML documents by the <tt class="docutils literal"><span class="pre">CreateFromDOM</span></tt> infrastructure will both be
+instances of the extending wrapper class.</p>
+</div>
+</div>
+<div class="section" id="simple-type-definitions">
+<h2>Simple Type Definitions<a class="headerlink" href="#simple-type-definitions" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#Simple_Type_Definitions">Simple type definitions</a> derive from
+<a class="reference external" href="api/pyxb.binding.basis.simpleTypeDefinition-class.html">simpleTypeDefinition</a> and a standard Python type.</p>
+<p>For simple types that are not derived by list or union, you can construct
+instances using the <a class="reference external" href="api/pyxb.binding.basis._TypeBinding_mixin-class.html">Factory</a>
+method or directly, providing the value as an argument.  New instance creation
+is validated against the <a class="reference external" href="http://www.w3.org/TR/xmlschema-2/#rf-facets">facets</a> recorded in the binding class.</p>
+<div class="section" id="constraining-facets">
+<h3>Constraining Facets<a class="headerlink" href="#constraining-facets" title="Permalink to this headline">¶</a></h3>
+<p>Each class corresponding to a simple type definition has class variables for
+the <a class="reference external" href="http://www.w3.org/TR/xmlschema-2/#rf-facets">constraining facets</a>
+that are valid for that class.  These variables are named by prefixing the
+facet name with <tt class="docutils literal"><span class="pre">_CF_</span></tt>, and have a value that is an instance of the
+corresponding <a class="reference external" href="api/pyxb.binding.facets-module.html">facet class</a>.  Where possible, the
+variables are inherited from the parent class; when a simple type is derived
+by restriction, the restricted class overrides its parent with a new value
+for the corresponding facet.</p>
+<p>Facets incorporate schema-specific constraining values with some code that
+validates potential instances of the type against the constraints.
+Constraining values may:</p>
+<ul class="simple">
+<li>be of a fixed type, as with <a class="reference external" href="http://www.w3.org/TR/xmlschema-2/#rf-length">length</a>;</li>
+<li>take on a value in the value space of the simple type in which the facet
+appears, as with <a class="reference external" href="http://www.w3.org/TR/xmlschema-2/#rf-minInclusive">minInclusive</a>; or</li>
+<li>take on a value in the value space of the superclass of the simple type in
+which the facet appears, as with <a class="reference external" href="http://www.w3.org/TR/xmlschema-2/#rf-minExclusive">minExclusive</a>;</li>
+</ul>
+<p>Enumeration and pattern constraints maintain a list of the respective
+acceptable enumeration and pattern values.</p>
+<p>Facets implement the
+<a class="reference external" href="api/pyxb.binding.facets.ConstrainingFacet-class.html#validateConstraint">ConstrainingFacet.validateConstraint</a> method, which
+in turn is invoked by the
+<a class="reference external" href="api/pyxb.binding.basis.simpleTypeDefinition-class.html#XsdConstraintsOK">simpleTypeDefinition.XsdConstraintsOK</a> class method
+when given a value that may or may not satisfy the constraints.  The
+<a class="reference external" href="api/pyxb.binding.basis._TypeBinding_mixin-class.html#Factory">Factory</a> will normally
+validate the constraints before allowing a new instance to be returned.</p>
+</div>
+<div class="section" id="list-types">
+<h3>List Types<a class="headerlink" href="#list-types" title="Permalink to this headline">¶</a></h3>
+<p>Simple types that derive by <a class="reference external" href="http://www.w3.org/TR/xmlschema-2/#atomic-vs-list">list</a> extend from
+<a class="reference external" href="api/pyxb.binding.basis.STD_list-class.html">STD_list</a> which in turn descends from the Python
+<tt class="docutils literal"><span class="pre">list</span></tt> type.  These derived classes must override the base class
+<a class="reference external" href="api/pyxb.binding.basis.STD_list-class.html#_ItemType">STD_list._ItemType</a> value with the appropriate
+class to use when creating or validating list members.</p>
+<p>When constructing an instance of a simple list type, you can provide a list as
+the initializer.  The members of the list must be valid initializers to the
+underlying item type.</p>
+</div>
+<div class="section" id="union-types">
+<h3>Union Types<a class="headerlink" href="#union-types" title="Permalink to this headline">¶</a></h3>
+<p>Union types are classes that are never instantiated.  Instead, the binding
+classes define a <a class="reference external" href="api/pyxb.binding.basis.STD_union-class.html#_MemberTypes">STD_union._MemberTypes</a> variable
+which contains a list of binding classes that are permitted as members of the
+union.  The <a class="reference external" href="api/pyxb.binding.basis.STD_union-class.html#Factory">STD_union.Factory</a> method attempts, in
+turn, to create an instance of each potential member type using the arguments
+passed into it.  The returned value is the first instance that was
+successfully created.</p>
+<p>Note that this means the fact that a particular attribute in an element is a
+member of a union is not recorded in the attribute value.  See
+<a class="reference internal" href="arch_content.html#attributeuse"><em>Attribute Uses</em></a>.</p>
+<p>It is not possible to construct an instance of a union type directly.  You
+must use the <a class="reference external" href="api/pyxb.binding.basis.STD_union-class.html#Factory">Factory</a> method,
+with an argument that is acceptable as an initializer for one of the member
+types.</p>
+</div>
+</div>
+<div class="section" id="complex-type-definitions">
+<h2>Complex Type Definitions<a class="headerlink" href="#complex-type-definitions" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#Complex_Type_Definitions">Complex type definitions</a> derive from
+<a class="reference external" href="api/pyxb.binding.basis.complexTypeDefinition-class.html">complexTypeDefinition</a>.  Classes representing complex
+type definitions record maps that specify <a class="reference external" href="api/pyxb.binding.content.AttributeUse-class.html">attribute</a> and <a class="reference external" href="api/pyxb.binding.content.ElementDeclaration-class.html">element</a> use structures to record the attributes and
+elements that comprise the type.  Each such structure is stored as a private
+class field and is used by Python properties to provide access to element and
+attribute values in a binding instance.</p>
+<p>The base <a class="reference external" href="api/pyxb.binding.basis.complexTypeDefinition-class.html">complexTypeDefinition</a> class provides the
+infrastructure to identify the appropriate attribute or element given an XML
+tag name.  For classes corresponding to types that enable <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#Wildcards">wildcards</a>, it also provides a mechanism
+to access unrecognized elements and attributes.  <a class="reference external" href="api/pyxb.binding.basis.complexTypeDefinition-class.html#wildcardElements">Wildcard elements</a> are converted to
+binding instances if their namespace and name are recognized, and otherwise
+are left as DOM nodes.  <a class="reference external" href="api/pyxb.binding.basis.complexTypeDefinition-class.html#wildcardAttributeMap">Wildcard attributes</a> are stored in
+a map from their <a class="reference external" href="api/pyxb.namespace.ExpandedName-class.html">expanded name</a> to the
+unicode value of the attribute.</p>
+<p>When creating a complex type definition, you can provide the values for its
+attributes and fields through arguments and keywords.  Keywords whose name
+matches an attribute or element identifier are used to set that element,
+bypassing the content model.  Arguments are processed in order using the
+content model for identification and validation.  See the <a class="reference internal" href="#ex-showcontent"><em>example below</em></a>.</p>
+<div class="section" id="elements">
+<h3>Elements<a class="headerlink" href="#elements" title="Permalink to this headline">¶</a></h3>
+<p>Each element corresponds to a field in the binding instance; the field is
+managed through a <a class="reference internal" href="arch_content.html#elementuse"><em>element declaration</em></a> structure.  Element
+names are disambiguated, and a Python property is defined to retrieve and set
+the element value.</p>
+<p>When the content model permits multiple occurrences of the element, its value
+is a Python list.  The order in this list is significant.</p>
+</div>
+<div class="section" id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<p>Each attribute corresponds to a field in the binding instance; the field is
+managed through a <a class="reference internal" href="arch_content.html#attributeuse"><em>attribute use</em></a> structure.  Attribute
+names are disambiguated, and a Python property is defined to retrieve and set
+each attribute value.</p>
+<p>Note that if the same name is used for both an attribute and an element, the
+element use takes priority.  See <a class="reference internal" href="#binding-deconflictingnames"><em>Deconflicting Names</em></a>.</p>
+</div>
+<div class="section" id="simple-content">
+<h3>Simple Content<a class="headerlink" href="#simple-content" title="Permalink to this headline">¶</a></h3>
+<p>Complex types with simple content (i.e., those in which the body of the
+element is an octet sequence in the lexical space of a specified simple type)
+are distinguished by providing a value for the class-level
+<a class="reference external" href="api/pyxb.binding.basis.complexTypeDefinition-class.html#_TypeDefinition">complexTypeDefinition._TypeDefinition</a> variable.
+For these types, the <a class="reference external" href="api/pyxb.binding.basis.complexTypeDefinition-class.html#content">complexTypeDefinition.content</a>
+method returns the instance of that type that corresponds to the content of
+the object.</p>
+<p>Users of bindings must be aware of whether a particular value is a true simple
+type, or a complex type with simple content.  In the former case, the value
+descends from the corresponding Python type and can be used directly in Python
+expressions.  In the latter, the value must be retrieved using the <tt class="docutils literal"><span class="pre">value</span></tt>
+method before it can be used.</p>
+<p>As an example, consider this schema (available in <tt class="file docutils literal"><span class="pre">examples/content</span></tt>):</p>
+<div class="highlight-python"><pre>&lt;xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;xs:element name="numbers"&gt;
+    &lt;xs:complexType&gt;
+      &lt;xs:sequence&gt;
+        &lt;xs:element name="simple" type="xs:integer"/&gt;
+        &lt;xs:element name="complex"&gt;
+          &lt;xs:complexType&gt;
+            &lt;xs:simpleContent&gt;
+              &lt;xs:extension base="xs:integer"&gt;
+                &lt;xs:attribute name="style" type="xs:string"/&gt;
+              &lt;/xs:extension&gt;
+            &lt;/xs:simpleContent&gt;
+          &lt;/xs:complexType&gt;
+        &lt;/xs:element&gt;
+      &lt;/xs:sequence&gt;
+      &lt;xs:attribute name="attribute" type="xs:integer"/&gt;
+    &lt;/xs:complexType&gt;
+  &lt;/xs:element&gt;
+&lt;/xs:schema&gt;
+</pre>
+</div>
+<p>With the generated bindings, the following program:</p>
+<div class="highlight-python" id="ex-showcontent"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">pyxb</span> <span class="kn">import</span> <span class="n">BIND</span>
+<span class="kn">import</span> <span class="nn">content</span>
+
+<span class="n">v</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">numbers</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">BIND</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">attribute</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">v</span><span class="o">.</span><span class="n">complex</span><span class="o">.</span><span class="n">style</span> <span class="o">=</span> <span class="s">&quot;decimal&quot;</span>
+<span class="k">print</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">simple</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">complex</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>
+<span class="k">print</span><span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">attribute</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>produces the following output:</p>
+<div class="highlight-python"><pre>&lt;?xml version="1.0" encoding="utf-8"?&gt;&lt;numbers attribute="3"&gt;&lt;simple&gt;1&lt;/simple&gt;&lt;complex style="decimal"&gt;2&lt;/complex&gt;&lt;/numbers&gt;
+3
+8
+15
+</pre>
+</div>
+<p>Note that it was necessary to indicate that the second member (<tt class="docutils literal"><span class="pre">complex</span></tt>) of
+the <tt class="docutils literal"><span class="pre">numbers</span></tt> element needs to be wrapped in an instance of the appropriate
+complex type.  Similarly, it was necessary to add the call to <tt class="docutils literal"><span class="pre">value()</span></tt> on
+the value of <tt class="docutils literal"><span class="pre">v.complex</span></tt> in order to get a valid Python numeric value.  This
+was not necessary for <tt class="docutils literal"><span class="pre">v.simple</span></tt> or <tt class="docutils literal"><span class="pre">v.attribute</span></tt>.</p>
+</div>
+<div class="section" id="mixed-and-element-only-content">
+<h3>Mixed and Element-Only Content<a class="headerlink" href="#mixed-and-element-only-content" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#content_type">Mixed and element-only content</a> nodes use the :api:`
+&lt;pyxb.binding.basis.complexTypeDefinition._ElementBindingDeclForName&gt;` method
+to manage the mapping from XML schema element names to class members.  The
+element and attribute names are distinct.  Instances of complex types also
+reference a <a class="reference external" href="api/pyxb.binding.content.AutomatonConfiguration-class.html">content automaton</a> to ensure the constraints of
+the schema are satisfied.  These structures are described in
+<a class="reference internal" href="arch_content.html#contentmodel"><em>Content Model</em></a>.</p>
+<p>For these types, the <a class="reference external" href="api/pyxb.binding.basis.complexTypeDefinition-class.html#content">complexTypeDefinition.content</a>
+method returns a list, in parsed order, of the Python objects and (if mixed)
+non-element content that belong to the instance.  Be aware that this order
+currently does not influence the order of elements when converting bindings
+into XML.</p>
+</div>
+</div>
+<div class="section" id="id5">
+<h2>Elements<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>Unlike the bindings for schema type definitions, which are represented as
+Python classes, bindings corresponding to XML Schema element declarations are
+represented as instances of the <a class="reference external" href="api/pyxb.binding.basis.element-class.html">element</a> class.  The
+instances can be used to create new binding instances that are associated with
+the element.  Elements are used in the content model to identify transitions
+through a finite automaton.</p>
+<p>You can use elements just like types in that they are invokable, with
+arguments corresponding to the arguments of the constructor of the
+corresponding type.  See <a class="reference internal" href="#ex-showcontent"><em>the example above</em></a>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Binding Model</a><ul>
+<li><a class="reference internal" href="#supporting-capabilities">Supporting Capabilities</a><ul>
+<li><a class="reference internal" href="#common-binding-instance-features">Common Binding Instance Features</a></li>
+<li><a class="reference internal" href="#deconflicting-names">Deconflicting Names</a></li>
+<li><a class="reference internal" href="#support-for-customization">Support for Customization</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#simple-type-definitions">Simple Type Definitions</a><ul>
+<li><a class="reference internal" href="#constraining-facets">Constraining Facets</a></li>
+<li><a class="reference internal" href="#list-types">List Types</a></li>
+<li><a class="reference internal" href="#union-types">Union Types</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#complex-type-definitions">Complex Type Definitions</a><ul>
+<li><a class="reference internal" href="#elements">Elements</a></li>
+<li><a class="reference internal" href="#attributes">Attributes</a></li>
+<li><a class="reference internal" href="#simple-content">Simple Content</a></li>
+<li><a class="reference internal" href="#mixed-and-element-only-content">Mixed and Element-Only Content</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id5">Elements</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="arch_component.html"
+                        title="previous chapter">Component Model</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="arch_content.html"
+                        title="next chapter">Content Model</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/arch_binding.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="arch_content.html" title="Content Model"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="arch_component.html" title="Component Model"
+             >previous</a> |</li>
+        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+          <li><a href="architecture.html" >Architecture</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009-2013, Peter A. Bigot.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

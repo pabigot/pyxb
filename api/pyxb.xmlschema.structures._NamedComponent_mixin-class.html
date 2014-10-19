@@ -1,0 +1,1194 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.xmlschema.structures._NamedComponent_mixin</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.xmlschema-module.html">Package&nbsp;xmlschema</a> ::
+        <a href="pyxb.xmlschema.structures-module.html">Module&nbsp;structures</a> ::
+        Class&nbsp;_NamedComponent_mixin
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== TYPE DESCRIPTION ==================== -->
+<h1 class="epydoc">type _NamedComponent_mixin</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+                      object --+        
+                               |        
+                         <a href="pyxb.cscRoot-class.html">cscRoot</a> --+    
+                                   |    
+<a href="pyxb.utils.utility.PrivateTransient_mixin-class.html">utils.utility.PrivateTransient_mixin</a> --+
+                                       |
+                          object --+   |
+                                   |   |
+                             <a href="pyxb.cscRoot-class.html">cscRoot</a> --+
+                                       |
+                                      <strong class="uidshort">_NamedComponent_mixin</strong>
+</pre>
+
+<dl><dt>Known Subclasses:</dt>
+<dd>
+      <ul class="subclass-list">
+<li><a href="pyxb.xmlschema.structures.AttributeDeclaration-class.html">AttributeDeclaration</a></li><li>, <a href="pyxb.xmlschema.structures.AttributeGroupDefinition-class.html">AttributeGroupDefinition</a></li><li>, <a href="pyxb.xmlschema.structures.ComplexTypeDefinition-class.html">ComplexTypeDefinition</a></li><li>, <a href="pyxb.xmlschema.structures.ElementDeclaration-class.html">ElementDeclaration</a></li><li>, <a href="pyxb.xmlschema.structures.IdentityConstraintDefinition-class.html">IdentityConstraintDefinition</a></li><li>, <a href="pyxb.xmlschema.structures.ModelGroupDefinition-class.html">ModelGroupDefinition</a></li><li>, <a href="pyxb.xmlschema.structures.NotationDeclaration-class.html">NotationDeclaration</a></li><li>, <a href="pyxb.xmlschema.structures.SimpleTypeDefinition-class.html">SimpleTypeDefinition</a></li>  </ul>
+</dd></dl>
+
+<hr />
+<p>Mix-in to hold the name and targetNamespace of a component.</p>
+  <p>The name may be None, indicating an anonymous component.  The 
+  targetNamespace is never None, though it could be an empty namespace.  
+  The name and targetNamespace values are immutable after creation.</p>
+  <p>This class overrides the pickling behavior: when pickling a Namespace,
+  objects that do not belong to that namespace are pickled as references, 
+  not as values.  This ensures the uniqueness of objects when multiple 
+  namespace definitions are pre-loaded.</p>
+  <p>This class must follow <a 
+  href="pyxb.xmlschema.structures._SchemaComponent_mixin-class.html" 
+  class="link" onclick="show_private();">_SchemaComponent_mixin</a> in the 
+  MRO.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html#name" class="summary-sig-name">name</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Name of the component within its scope or namespace.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.name">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="isAnonymous"></a><span class="summary-sig-name">isAnonymous</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return true iff this instance is locally scoped (has no name).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.isAnonymous">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_setAnonymousName"></a><span class="summary-sig-name">_setAnonymousName</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">namespace</span>,
+        <span class="summary-sig-arg">unique_id</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">anon_name</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin._setAnonymousName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_anonymousName"></a><span class="summary-sig-name">_anonymousName</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">namespace</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin._anonymousName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html#targetNamespace" class="summary-sig-name">targetNamespace</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      The targetNamespace of a component.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.targetNamespace">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="bindingNamespace"></a><span class="summary-sig-name">bindingNamespace</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      The namespace in which this component's binding is placed.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.bindingNamespace">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_setBindingNamespace"></a><span class="summary-sig-name">_setBindingNamespace</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">namespace</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin._setBindingNamespace">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html#_templateMap" class="summary-sig-name" onclick="show_private();">_templateMap</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      A map from template keys to component-specific values.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin._templateMap">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__needAnonymousSupport"></a><span class="summary-sig-name">__needAnonymousSupport</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.__needAnonymousSupport">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html#_schema" class="summary-sig-name" onclick="show_private();">_schema</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the schema component from which this component was defined.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin._schema">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_prepareForArchive_csc"></a><span class="summary-sig-name">_prepareForArchive_csc</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">module_record</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin._prepareForArchive_csc">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html#_picklesInArchive" class="summary-sig-name" onclick="show_private();">_picklesInArchive</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">archive</span>)</span><br />
+      Return <code>True</code> if this component should be pickled by value
+      in the given namespace.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin._picklesInArchive">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html#_bindsInNamespace" class="summary-sig-name" onclick="show_private();">_bindsInNamespace</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">ns</span>)</span><br />
+      Return <code>True</code> if the binding for this component should be 
+      generated in the given namespace.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin._bindsInNamespace">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="expandedName"></a><span class="summary-sig-name">expandedName</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the <a href="pyxb.namespace.ExpandedName-class.html" 
+      class="link">pyxb.namespace.ExpandedName</a> of this object.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.expandedName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kw</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html#isNameEquivalent" class="summary-sig-name">isNameEquivalent</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span><br />
+      Return true iff this and the other component share the same name and 
+      target namespace.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.isNameEquivalent">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html#isTypeEquivalent" class="summary-sig-name">isTypeEquivalent</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span><br />
+      Return True iff this and the other component have matching types.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.isTypeEquivalent">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html#isDerivationConsistent" class="summary-sig-name">isDerivationConsistent</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span><br />
+      Return True iff this type can serve as a restriction of the other 
+      type for the purposes of <a 
+      href="http://www.w3.org/TR/xmlschema-1/#cos-element-consistent" 
+      target="_top">element consistency</a>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.isDerivationConsistent">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_picklingReference"></a><span class="summary-sig-name">_picklingReference</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin._picklingReference">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__pickleAsReference"></a><span class="summary-sig-name">__pickleAsReference</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.__pickleAsReference">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html#__getstate__" class="summary-sig-name">__getstate__</a>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.__getstate__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html#__getnewargs__" class="summary-sig-name">__getnewargs__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Pickling support.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.__getnewargs__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__setstate__"></a><span class="summary-sig-name">__setstate__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">state</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.__setstate__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_resetClone_csc"></a><span class="summary-sig-name">_resetClone_csc</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kw</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin._resetClone_csc">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_NamedComponent_mixin__needAnonymousSupport"></a><span class="summary-sig-name">_NamedComponent_mixin__needAnonymousSupport</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin._NamedComponent_mixin__needAnonymousSupport">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_NamedComponent_mixin__pickleAsReference"></a><span class="summary-sig-name">_NamedComponent_mixin__pickleAsReference</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin._NamedComponent_mixin__pickleAsReference">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== STATIC METHODS ==================== -->
+<a name="section-StaticMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Static Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-StaticMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kw</span>)</span><br />
+      Pickling support.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.__new__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__PrivateTransient"></a><span class="summary-name">__PrivateTransient</span> = <code title="set()">set()</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__name"></a><span class="summary-name">__name</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__anonymousName"></a><span class="summary-name">__anonymousName</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__targetNamespace"></a><span class="summary-name">__targetNamespace</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__bindingNamespace"></a><span class="summary-name">__bindingNamespace</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__templateMap"></a><span class="summary-name">__templateMap</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html#__AnonymousCategory" class="summary-name" onclick="show_private();">__AnonymousCategory</a> = <code title="pyxb.namespace.archive.NamespaceArchive._AnonymousCategory()">pyxb.namespace.archive.NamespaceArchive.<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__schema"></a><span class="summary-name">__schema</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html#_NamedComponent_mixin__AnonymousCategory" class="summary-name" onclick="show_private();">_NamedComponent_mixin__AnonymousCategory</a> = <code title="'_anonymousTypeDefinition'"><code class="variable-quote">'</code><code class="variable-string">_anonymousTypeDefi</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_NamedComponent_mixin__PrivateTransient"></a><span class="summary-name">_NamedComponent_mixin__PrivateTransient</span> = <code title="set(['schema'])"><code class="variable-group">set([</code><code class="variable-quote">'</code><code class="variable-string">schema</code><code class="variable-quote">'</code><code class="variable-group">])</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_NamedComponent_mixin__anonymousName"></a><span class="summary-name">_NamedComponent_mixin__anonymousName</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_NamedComponent_mixin__bindingNamespace"></a><span class="summary-name">_NamedComponent_mixin__bindingNamespace</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_NamedComponent_mixin__name"></a><span class="summary-name">_NamedComponent_mixin__name</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_NamedComponent_mixin__schema"></a><span class="summary-name">_NamedComponent_mixin__schema</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_NamedComponent_mixin__targetNamespace"></a><span class="summary-name">_NamedComponent_mixin__targetNamespace</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_NamedComponent_mixin__templateMap"></a><span class="summary-name">_NamedComponent_mixin__templateMap</span> = <code title="None">None</code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="name"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">name</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.name">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Name of the component within its scope or namespace.</p>
+  <p>This is an NCName.  The value isNone if the component is anonymous.  
+  The attribute is immutable after the component is created creation.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="targetNamespace"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">targetNamespace</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.targetNamespace">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>The targetNamespace of a component.</p>
+  <p>This is None, or a reference to a Namespace in which the component is 
+  declared (either as a global or local to one of the namespace's complex 
+  type definitions).  This is immutable after creation.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="_templateMap"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_templateMap</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin._templateMap">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>A map from template keys to component-specific values.</p>
+  <p>This is used in code generation to maintain unique names for accessor 
+  methods, identifiers, keys, and other characteristics associated with the
+  code generated in support of the binding for this component.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="_schema"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_schema</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin._schema">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the schema component from which this component was defined.</p>
+  <p>Needed so we can distinguish components that came from different 
+  locations, since that imposes an external order dependency on them and on
+  cross-namespace inclusions.</p>
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        This characteristic is removed when the component is stored in a 
+        namespace archive.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="_picklesInArchive"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_picklesInArchive</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">archive</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin._picklesInArchive">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return <code>True</code> if this component should be pickled by value 
+  in the given namespace.</p>
+  <p>When pickling, a declaration component is considered to belong to the 
+  namespace if it has a local scope which belongs to the namespace.  In 
+  that case, the declaration is a clone of something that does not belong 
+  to the namespace; but the clone does.</p>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd><code>False</code> if the component should be pickled by 
+          reference.</dd>
+  </dl>
+<div class="fields">      <p><strong>See Also:</strong>
+        <a 
+        href="pyxb.xmlschema.structures._NamedComponent_mixin-class.html#_bindsInNamespace"
+        class="link" onclick="show_private();">_bindsInNamespace</a>
+      </p>
+</div></td></tr></table>
+</div>
+<a name="_bindsInNamespace"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_bindsInNamespace</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">ns</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin._bindsInNamespace">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return <code>True</code> if the binding for this component should be 
+  generated in the given namespace.</p>
+  <p>This is the case when the component is in the given namespace.  It's 
+  also the case when the component has no associated namespace (but not an 
+  absent namespace).  Be aware that cross-namespace inheritance means you 
+  will get references to elements in another namespace when generating code
+  for a subclass; that's fine, and those references should not be generated
+  locally.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__new__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__new__</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kw</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.__new__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Pickling support.</p>
+  <p>Normally, we just create a new instance of this class. However, if 
+  we're unpickling a reference in a loadable schema, we need to return the 
+  existing component instance by looking up the name in the component map 
+  of the desired namespace.  We can tell the difference because no normal 
+  constructors that inherit from this have positional arguments; only 
+  invocations by unpickling with a value returned in __getnewargs__ do.</p>
+  <p>This does require that the dependent namespace already have been 
+  validated (or that it be validated here).  That shouldn't be a problem, 
+  except for the dependency loop resulting from use of xml:lang in the 
+  XMLSchema namespace.  For that issue, see pyxb.namespace._XMLSchema.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        object.__new__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kw</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="pyxb.cscRoot-class.html#__init__">cscRoot.__init__</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="isNameEquivalent"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">isNameEquivalent</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">other</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.isNameEquivalent">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return true iff this and the other component share the same name and 
+  target namespace.</p>
+  <p>Anonymous components are inherently name inequivalent, except to 
+  themselves.  This relies on equivalence as defined for 
+  pyxb.namespace.ExpandedName, for which None is not equivalent to any 
+  non-anonymous name.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="isTypeEquivalent"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">isTypeEquivalent</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">other</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.isTypeEquivalent">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return True iff this and the other component have matching types.</p>
+  <p>It appears that name equivalence is used; two complex type definitions
+  with identical structures are not considered equivalent (at least, per 
+  XMLSpy).</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="isDerivationConsistent"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">isDerivationConsistent</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">other</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.isDerivationConsistent">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return True iff this type can serve as a restriction of the other type
+  for the purposes of <a 
+  href="http://www.w3.org/TR/xmlschema-1/#cos-element-consistent" 
+  target="_top">element consistency</a>.</p>
+  <p>It appears that name equivalence is normally used; two complex type 
+  definitions with identical structures are not considered equivalent (at 
+  least, per XMLSpy).  However, some OpenGIS standards demonstrate that 
+  derivation by restriction from the other type is also acceptable. That 
+  opens a whole can of worms; see <a 
+  href="pyxb.xmlschema.structures.ElementDeclaration-class.html#isAdaptable"
+  class="link">ElementDeclaration.isAdaptable</a>.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__getstate__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__getstate__</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.__getstate__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="pyxb.utils.utility.PrivateTransient_mixin-class.html#__getstate__">utils.utility.PrivateTransient_mixin.__getstate__</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__getnewargs__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__getnewargs__</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.xmlschema.structures-pysrc.html#_NamedComponent_mixin.__getnewargs__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Pickling support.</p>
+  <p>If this instance is being pickled as a reference, provide the 
+  arguments that are necessary so that the unpickler can locate the 
+  appropriate component rather than create a duplicate instance.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variable Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariableDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__AnonymousCategory"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">__AnonymousCategory</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+pyxb.namespace.archive.NamespaceArchive._AnonymousCategory()
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_NamedComponent_mixin__AnonymousCategory"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">_NamedComponent_mixin__AnonymousCategory</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-quote">'</code><code class="variable-string">_anonymousTypeDefinition</code><code class="variable-quote">'</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:38 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

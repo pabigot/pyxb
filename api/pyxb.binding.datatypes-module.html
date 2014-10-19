@@ -1,0 +1,729 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.binding.datatypes</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.binding-module.html">Package&nbsp;binding</a> ::
+        Module&nbsp;datatypes
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.binding.datatypes-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module datatypes</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.binding.datatypes-pysrc.html">source&nbsp;code</a></span></p>
+<p>Classes supporting <a href="http://www.w3.org/TR/xmlschema-2/" 
+  target="_top">XMLSchema Part 2: Datatypes</a>.</p>
+  <p>Each <a 
+  href="pyxb.xmlschema.structures.SimpleTypeDefinition-class.html" 
+  class="link">simple type definition</a> component instance is paired with
+  at most one <a href="pyxb.binding.basis.simpleTypeDefinition-class.html" 
+  class="link">basis.simpleTypeDefinition</a> class, which is a subclass of
+  a Python type augmented with facets and other constraining information.  
+  This file contains the definitions of these types.</p>
+  <p>We want the simple datatypes to be efficient Python values, but to 
+  also hold specific constraints that don't apply to the Python types. To 
+  do this, we subclass each PST.  Primitive PSTs inherit from the Python 
+  type that represents them, and from a 
+  pyxb.binding.basis.simpleTypeDefinition class which adds in the 
+  constraint infrastructure.  Derived PSTs inherit from the parent PST.</p>
+  <p>There is an exception to this when the Python type best suited for a 
+  derived SimpleTypeDefinition differs from the type associated with its 
+  parent STD: for example, <a 
+  href="pyxb.binding.datatypes.integer-class.html" 
+  class="link">xsd:integer</a> has a value range that requires it be 
+  represented by a Python <code>long</code>, but <a 
+  href="pyxb.binding.datatypes.int-class.html" class="link">xsd:int</a> 
+  allows representation by a Python <code>int</code>.  In this case, the 
+  derived PST class is structured like a primitive type, but the PST 
+  associated with the STD superclass is recorded in a class variable 
+  <code>_XsdBaseType</code>.</p>
+  <p>Note the strict terminology: &quot;datatype&quot; refers to a class 
+  which is a subclass of a Python type, while &quot;type definition&quot; 
+  refers to an instance of either SimpleTypeDefinition or 
+  ComplexTypeDefinition.</p>
+
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Classes</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Classes"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.anySimpleType-class.html" class="summary-name">anySimpleType</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#dt-anySimpleType" 
+        target="_top">anySimpleType</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.string-class.html" class="summary-name">string</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#string" 
+        target="_top">string</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.boolean-class.html" class="summary-name">boolean</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#boolean" 
+        target="_top">boolean</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.decimal-class.html" class="summary-name">decimal</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#decimal" 
+        target="_top">decimal</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.float-class.html" class="summary-name">float</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#float" 
+        target="_top">float</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.double-class.html" class="summary-name">double</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#double" 
+        target="_top">double</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.duration-class.html" class="summary-name">duration</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#duration" 
+        target="_top">duration</a>.
+    </td>
+  </tr>
+<tr class="private">
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html" class="summary-name" onclick="show_private();">_PyXBDateTime_base</a>
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.dateTime-class.html" class="summary-name">dateTime</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#dateTime" 
+        target="_top">dateTime</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.time-class.html" class="summary-name">time</a><br />
+      XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#time"
+        target="_top">time</a>.
+    </td>
+  </tr>
+<tr class="private">
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes._PyXBDateOnly_base-class.html" class="summary-name" onclick="show_private();">_PyXBDateOnly_base</a>
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.date-class.html" class="summary-name">date</a><br />
+      XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#date"
+        target="_top">date</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.gYearMonth-class.html" class="summary-name">gYearMonth</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gYearMonth" 
+        target="_top">gYearMonth</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.gYear-class.html" class="summary-name">gYear</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gYear" 
+        target="_top">gYear</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.gMonthDay-class.html" class="summary-name">gMonthDay</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gMonthDay" 
+        target="_top">gMonthDay</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.gDay-class.html" class="summary-name">gDay</a><br />
+      XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#gDay"
+        target="_top">gDay</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.gMonth-class.html" class="summary-name">gMonth</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gMonth" 
+        target="_top">gMonth</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.hexBinary-class.html" class="summary-name">hexBinary</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#hexBinary" 
+        target="_top">hexBinary</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.base64Binary-class.html" class="summary-name">base64Binary</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#base64Binary" 
+        target="_top">base64Binary</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.anyURI-class.html" class="summary-name">anyURI</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#anyURI" 
+        target="_top">anyURI</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.QName-class.html" class="summary-name">QName</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#QName" 
+        target="_top">QName</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.NOTATION-class.html" class="summary-name">NOTATION</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#NOTATION" 
+        target="_top">NOTATION</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.normalizedString-class.html" class="summary-name">normalizedString</a><br />
+      XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#normalizedString" 
+        target="_top">normalizedString</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.token-class.html" class="summary-name">token</a><br />
+      XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#token" 
+        target="_top">token</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.language-class.html" class="summary-name">language</a><br />
+      XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#language" 
+        target="_top">language</a>
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.NMTOKEN-class.html" class="summary-name">NMTOKEN</a><br />
+      XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#NMTOKEN" 
+        target="_top">NMTOKEN</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.NMTOKENS-class.html" class="summary-name">NMTOKENS</a>
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.Name-class.html" class="summary-name">Name</a><br />
+      XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#Name" 
+        target="_top">Name</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.NCName-class.html" class="summary-name">NCName</a><br />
+      XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#NCName" 
+        target="_top">NCName</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.ID-class.html" class="summary-name">ID</a><br />
+      XMLSchema datatype <a href="http:///www.w3.org/TR/xmlschema-2/#ID" 
+        target="_top">ID</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.IDREF-class.html" class="summary-name">IDREF</a><br />
+      XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#IDREF" 
+        target="_top">IDREF</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.IDREFS-class.html" class="summary-name">IDREFS</a><br />
+      XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#IDREFS" 
+        target="_top">IDREFS</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.ENTITY-class.html" class="summary-name">ENTITY</a><br />
+      XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#ENTITY" 
+        target="_top">ENTITY</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.ENTITIES-class.html" class="summary-name">ENTITIES</a><br />
+      XMLSchema datatype <a 
+        href="http:///www.w3.org/TR/xmlschema-2/#ENTITIES" 
+        target="_top">ENTITIES</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.integer-class.html" class="summary-name">integer</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#integer" 
+        target="_top">integer</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.nonPositiveInteger-class.html" class="summary-name">nonPositiveInteger</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#nonPositiveInteger" 
+        target="_top">nonPositiveInteger</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.negativeInteger-class.html" class="summary-name">negativeInteger</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#negativeInteger" 
+        target="_top">negativeInteger</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.long-class.html" class="summary-name">long</a><br />
+      XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#long"
+        target="_top">long</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.int-class.html" class="summary-name">int</a><br />
+      XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#int" 
+        target="_top">int</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.short-class.html" class="summary-name">short</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#short" 
+        target="_top">short</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.byte-class.html" class="summary-name">byte</a><br />
+      XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#byte"
+        target="_top">byte</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.nonNegativeInteger-class.html" class="summary-name">nonNegativeInteger</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#nonNegativeInteger" 
+        target="_top">nonNegativeInteger</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.unsignedLong-class.html" class="summary-name">unsignedLong</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedLong" 
+        target="_top">unsignedLong</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.unsignedInt-class.html" class="summary-name">unsignedInt</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedInt" 
+        target="_top">unsignedInt</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.unsignedShort-class.html" class="summary-name">unsignedShort</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedShort" 
+        target="_top">unsignedShort</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.unsignedByte-class.html" class="summary-name">unsignedByte</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#unsignedByte" 
+        target="_top">unsignedByte</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.positiveInteger-class.html" class="summary-name">positiveInteger</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#positiveInteger" 
+        target="_top">positiveInteger</a>.
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.binding.datatypes.anyType-class.html" class="summary-name">anyType</a><br />
+      XMLSchema datatype <a 
+        href="http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType"
+        target="_top">anyType</a>.
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_BuildAutomaton"></a><span class="summary-sig-name">_BuildAutomaton</span>()</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.datatypes-pysrc.html#_BuildAutomaton">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Variables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_log"></a><span class="summary-name">_log</span> = <code title="logging.getLogger(__name__)">logging.getLogger(__name__)</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.binding.datatypes-module.html#_PrimitiveDatatypes" class="summary-name" onclick="show_private();">_PrimitiveDatatypes</a> = <code title="[&lt;class 'pyxb.binding.datatypes.string'&gt;,
+ &lt;class 'pyxb.binding.datatypes.boolean'&gt;,
+ &lt;class 'pyxb.binding.datatypes.decimal'&gt;,
+ &lt;class 'pyxb.binding.datatypes.float'&gt;,
+ &lt;class 'pyxb.binding.datatypes.double'&gt;,
+ &lt;class 'pyxb.binding.datatypes.duration'&gt;,
+ &lt;class 'pyxb.binding.datatypes.dateTime'&gt;,
+ &lt;class 'pyxb.binding.datatypes.time'&gt;,
+..."><code class="variable-group">[</code>&lt;class 'pyxb.binding.datatypes.string'&gt;<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.binding.datatypes-module.html#_DerivedDatatypes" class="summary-name" onclick="show_private();">_DerivedDatatypes</a> = <code title="[&lt;class 'pyxb.binding.datatypes.normalizedString'&gt;,
+ &lt;class 'pyxb.binding.datatypes.token'&gt;,
+ &lt;class 'pyxb.binding.datatypes.language'&gt;,
+ &lt;class 'pyxb.binding.datatypes.NMTOKEN'&gt;,
+ &lt;class 'pyxb.binding.datatypes.Name'&gt;,
+ &lt;class 'pyxb.binding.datatypes.NCName'&gt;,
+ &lt;class 'pyxb.binding.datatypes.ID'&gt;,
+ &lt;class 'pyxb.binding.datatypes.IDREF'&gt;,
+..."><code class="variable-group">[</code>&lt;class 'pyxb.binding.datatypes.normalized<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.binding.datatypes-module.html#_ListDatatypes" class="summary-name" onclick="show_private();">_ListDatatypes</a> = <code title="[&lt;class 'pyxb.binding.datatypes.NMTOKENS'&gt;,
+ &lt;class 'pyxb.binding.datatypes.IDREFS'&gt;,
+ &lt;class 'pyxb.binding.datatypes.ENTITIES'&gt;]"><code class="variable-group">[</code>&lt;class 'pyxb.binding.datatypes.NMTOKENS'&gt;<code class="variable-op">, </code>&lt;<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'pyxb.binding'"><code class="variable-quote">'</code><code class="variable-string">pyxb.binding</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES DETAILS ==================== -->
+<a name="section-VariablesDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-VariablesDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="_PrimitiveDatatypes"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">_PrimitiveDatatypes</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">[</code>&lt;class 'pyxb.binding.datatypes.string'&gt;<code class="variable-op">,</code>
+ &lt;class 'pyxb.binding.datatypes.boolean'&gt;<code class="variable-op">,</code>
+ &lt;class 'pyxb.binding.datatypes.decimal'&gt;<code class="variable-op">,</code>
+ &lt;class 'pyxb.binding.datatypes.float'&gt;<code class="variable-op">,</code>
+ &lt;class 'pyxb.binding.datatypes.double'&gt;<code class="variable-op">,</code>
+ &lt;class 'pyxb.binding.datatypes.duration'&gt;<code class="variable-op">,</code>
+ &lt;class 'pyxb.binding.datatypes.dateTime'&gt;<code class="variable-op">,</code>
+ &lt;class 'pyxb.binding.datatypes.time'&gt;<code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_DerivedDatatypes"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">_DerivedDatatypes</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">[</code>&lt;class 'pyxb.binding.datatypes.normalizedString'&gt;<code class="variable-op">,</code>
+ &lt;class 'pyxb.binding.datatypes.token'&gt;<code class="variable-op">,</code>
+ &lt;class 'pyxb.binding.datatypes.language'&gt;<code class="variable-op">,</code>
+ &lt;class 'pyxb.binding.datatypes.NMTOKEN'&gt;<code class="variable-op">,</code>
+ &lt;class 'pyxb.binding.datatypes.Name'&gt;<code class="variable-op">,</code>
+ &lt;class 'pyxb.binding.datatypes.NCName'&gt;<code class="variable-op">,</code>
+ &lt;class 'pyxb.binding.datatypes.ID'&gt;<code class="variable-op">,</code>
+ &lt;class 'pyxb.binding.datatypes.IDREF'&gt;<code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_ListDatatypes"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">_ListDatatypes</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">[</code>&lt;class 'pyxb.binding.datatypes.NMTOKENS'&gt;<code class="variable-op">,</code>
+ &lt;class 'pyxb.binding.datatypes.IDREFS'&gt;<code class="variable-op">,</code>
+ &lt;class 'pyxb.binding.datatypes.ENTITIES'&gt;<code class="variable-group">]</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Wed Sep 18 10:35:36 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
