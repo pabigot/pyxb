@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Release History &mdash; PyXB 1.2.3 documentation</title>
+    <title>Release History &mdash; PyXB 1.2.4 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.2.3',
+        VERSION:     '1.2.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyXB 1.2.3 documentation" href="index.html" />
+    <link rel="top" title="PyXB 1.2.4 documentation" href="index.html" />
     <link rel="next" title="Architecture" href="architecture.html" />
     <link rel="prev" title="Examples" href="examples.html" /> 
   </head>
@@ -42,7 +42,7 @@
         <li class="right" >
           <a href="examples.html" title="Examples"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+        <li><a href="index.html">PyXB 1.2.4 documentation</a> &raquo;</li>
     <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
     width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
      
@@ -74,18 +74,65 @@ the <a class="reference internal" href="maintref.html#git-repository"><em>git re
 <li>All packaged releases are intended to be of comparable stability, with bug
 fixes and most enhancements causing an increment in the third integer</li>
 </ul>
-<p>As examples, <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/112">correcting the content model for weak determinism</a>
-resulted in PyXB 1.2.0, and <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/150">support of Python 3</a> will be part of
-PyXB 1.3.0 along with <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/217">support for XML Schema 1.1</a>.</p>
+<p>As examples, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/112/">correcting the content model for weak determinism</a>
+resulted in PyXB 1.2.0, and <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/150/">support of Python 3</a> was completed
+in PyXB 1.2.4.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/217/">support for XML Schema 1.1</a> will not be addressed
+until PyXB 1.3.0 if at all.</p>
 <div class="section" id="x">
 <h2>1.2.x<a class="headerlink" href="#x" title="Permalink to this headline">¶</a></h2>
 <p>The 1.2.x release series introduces a new content model which provides much
 more help in resolving validation errors.  Concurrent with this support was
-dropped for Python 2.4 and 2.5.  The 1.2.x release will work with Python 2.6
-and 2.7; some unit tests are skipped under Python 2.6 due to insufficient
-support for validating exception attributes.</p>
+dropped for Python 2.4 and 2.5.  The 1.2.x release works with Python 2.6 and
+2.7 and as of PyXB 1.2.4 also with Python 3.1 and later.  Some unit tests are
+skipped under Python 2.6 due to insufficient support for validating exception
+attributes.</p>
+<div class="section" id="oct-2014">
+<span id="pyxb-1-2-4"></span><h3>1.2.4 (19 Oct 2014)<a class="headerlink" href="#oct-2014" title="Permalink to this headline">¶</a></h3>
+<p>The major feature of this release is a new approach to Python 3 support based
+on the <a class="reference external" href="https://pypi.python.org/pypi/six/">six</a> module.  This resolves
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/150/">support for Python 3</a> and allows one release of PyXB to support
+Python versions from 2.6 through 3.4, excluding 3.0.  The <tt class="docutils literal"><span class="pre">maintainer/2to3</span></tt>
+script used in PyXB 1.2.3 is no longer supported.  Both the core
+implementation and the bindings are compatible with Python 2 and 3.</p>
+<p>A second important feature was correct handling of QName by changing the
+binding representation from a string to an expanded name that saves the
+namespace URI rather than the prefix from the original document.</p>
+<p>Finally, with this release primary development and support moves from
+SourceForge to <a class="reference external" href="https://github.com/pabigot/pyxb">Github</a>.  Inter-release
+updates will be made first on github (on the <a class="reference external" href="https://github.com/pabigot/pyxb/tree/next">next</a> branch), and pushed to the
+SourceForge git repository aperiodically.</p>
+<p>Other miscellanous changes:</p>
+<ul class="simple">
+<li>Correct rich comparisons for _PluralBinding instances.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/218/">SF ticket 218</a></li>
+<li>Prevent adding non-element content as wildcard elements.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/219/">SF ticket 219</a></li>
+<li>Provide public API to _CF_enumeration helper methods. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/221/">SF ticket 221</a></li>
+<li>Specify requirements for an acceptable DOM implementation. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/224/">SF ticket 224</a></li>
+<li>Rebase xs:decimal on Python decimal.Decimal to provide high precision
+support. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/91/">SF ticket 91</a></li>
+<li>Support Python 3. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/150/">SF ticket 150</a></li>
+<li>Fix mis-ordered attribute groups use/resolution issue.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/230/">SF ticket 230</a></li>
+<li>Generate facet values that are valid Python expressions.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/231/">SF ticket 231</a></li>
+<li>Improve validation failure location for simple values. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/232/">SF ticket 232</a></li>
+<li>Disallow name attribute in internal complex types.  <a class="reference external" href="https://github.com/pabigot/pyxb/issues/6/">issue 6</a></li>
+<li>Avoid unbounded non-deterministic expansion.  <a class="reference external" href="https://github.com/pabigot/pyxb/issues/5/">issue 5</a></li>
+<li>Reduce namespace intrusion with enumeration types.  <a class="reference external" href="https://github.com/pabigot/pyxb/issues/9/">issue 9</a></li>
+<li>Add API to replace simple content complex type values. <a class="reference external" href="https://github.com/pabigot/pyxb/issues/7/">issue 7</a></li>
+<li>Fix representation and use of QNames.  <a class="reference external" href="https://github.com/pabigot/pyxb/issues/13/">issue 13</a></li>
+<li>Fix generation of wildcard attributes. <a class="reference external" href="https://github.com/pabigot/pyxb/issues/14/">issue 14</a></li>
+<li>Fix validation of wildcard types in DOM instances.  <a class="reference external" href="https://github.com/pabigot/pyxb/issues/15/">issue 15</a></li>
+<li>Reference github for bug reports.  <a class="reference external" href="https://github.com/pabigot/pyxb/issues/16/">issue 16</a>:</li>
+<li>Eliminate a gratuitous log warning on a validation failure.  <a class="reference external" href="https://github.com/pabigot/pyxb/issues/17/">issue 17</a></li>
+<li>Eliminate improper assertion on extension binding use of imported bindings.
+<a class="reference external" href="https://github.com/pabigot/pyxb/issues/18/">issue 18</a></li>
+<li>Support serialization of anonymous namespaces to allow Python copy.deepcopy
+module to work on binding instances.  <a class="reference external" href="https://github.com/pabigot/pyxb/issues/19/">issue 19</a></li>
+<li>Generate bindings that are compatible with both Python 2 and Python 3.
+<a class="reference external" href="https://github.com/pabigot/pyxb/issues/22/">issue 22</a></li>
+</ul>
+</div>
 <div class="section" id="sep-2013">
 <span id="pyxb-1-2-3"></span><h3>1.2.3 (18 Sep 2013)<a class="headerlink" href="#sep-2013" title="Permalink to this headline">¶</a></h3>
+<p>Documentation: <a class="reference external" href="http://pyxb.sourceforge.net/PyXB-1.2.3">http://pyxb.sourceforge.net/PyXB-1.2.3</a></p>
 <p>This is primarily a bug-fix and clean-up release.  One new feature is that
 starting with this release a Python 3 compatible version of PyXB will be
 available in the git repository.  For this version, it may be obtained by:</p>
@@ -119,36 +166,36 @@ complaints and non-reproducible patches.</li>
 <li>Several coding practices that would not work under Python3 have been
 replaced with new solutions.</li>
 </ul>
-<p>The following reported <a class="reference external" href="http://sourceforge.net/apps/trac/pyxb/">defects/enhancements</a> have been addressed:</p>
+<p>The following reported <a class="reference external" href="http://sourceforge.net/p/pyxb/tickets/">defects/enhancements</a> have been addressed:</p>
 <ul class="simple">
-<li>Fix DOM style handling of xsi:type attribute.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/166">#166</a></li>
-<li>Fix problems with nillable simple types.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/200">#200</a></li>
-<li>Fix problems inserting into plural element attributes.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/201">#201</a></li>
-<li>Correct namespace-qualified attributes.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/202">#202</a></li>
+<li>Fix DOM style handling of xsi:type attribute.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/166/">SF ticket 166</a></li>
+<li>Fix problems with nillable simple types.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/200/">SF ticket 200</a></li>
+<li>Fix problems inserting into plural element attributes.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/201/">SF ticket 201</a></li>
+<li>Correct namespace-qualified attributes.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/202/">SF ticket 202</a></li>
 <li>Eliminate automatic derivation of XML element tag from binding type when
-converting an element-free instance to DOM.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/203">#203</a></li>
-<li>Eliminate default to fixed value for elements.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/204">#204</a></li>
+converting an element-free instance to DOM.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/203/">SF ticket 203</a></li>
+<li>Eliminate default to fixed value for elements.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/204/">SF ticket 204</a></li>
 <li>Re-word exception when element content was incompatible with fixed value.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/205">#205</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/205/">SF ticket 205</a></li>
 <li>Fix the aslocal() method for xs:dateTime values with non-UTC timezones.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/206">#206</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/206/">SF ticket 206</a></li>
 <li>Fix values for restricted duration ranges in pickled data such as namespace
-archives.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/207">#207</a></li>
+archives.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/207/">SF ticket 207</a></li>
 <li>Correct the interpretation of QName-valued base and similar attributes with
-respect to in-scope namespace declarations.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/208">#208</a></li>
+respect to in-scope namespace declarations.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/208/">SF ticket 208</a></li>
 <li>Rework how to specify that imported namespaces should be processed to extend
-the content model.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/209">#209</a></li>
+the content model.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/209/">SF ticket 209</a></li>
 <li>Removed redundant code in pyxbgen relevant to
-<a class="reference internal" href="pyxbgen_cli.html#pyxbgen-wsdl-location"><em>&#8211;wsdl-location</em></a>.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/210">#210</a></li>
+<a class="reference internal" href="pyxbgen_cli.html#pyxbgen-wsdl-location"><em>&#8211;wsdl-location</em></a>.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/210/">SF ticket 210</a></li>
 <li>Refine diagnostics when an element with simple type appears in a context
-that expects non-element content.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/211">#211</a></li>
+that expects non-element content.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/211/">SF ticket 211</a></li>
 <li>Add <a class="reference external" href="api/pyxb-module.html#NonElementContent">NonElementContent</a> to simplify access to non-element content
-in a mixed-content instance.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/212">#212</a></li>
+in a mixed-content instance.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/212/">SF ticket 212</a></li>
 <li>Convert assert failures to diagnostic exceptions when generating DOM
 expressions of complex types with simple content where the content is
-missing. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/213">#213</a></li>
+missing. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/213/">SF ticket 213</a></li>
 <li>Ensure attribute values are converted from lexical space to value space when
-assigned from an XML representation.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/216">#216</a></li>
+assigned from an XML representation.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/216/">SF ticket 216</a></li>
 </ul>
 </div>
 <div class="section" id="apr-2013">
@@ -159,23 +206,23 @@ extending types, name conflicts between XML and Python entities in the
 binding, and unicode problems in diagnostics.</p>
 <p>PyXB has never intentionally supported using bindings generated by different
 versions of PyXB.  This will be enforced from version 1.2.2 onwards.</p>
-<p>The following reported <a class="reference external" href="http://sourceforge.net/apps/trac/pyxb/">defects/enhancements</a> have been addressed:</p>
+<p>The following reported <a class="reference external" href="http://sourceforge.net/p/pyxb/tickets/">defects/enhancements</a> have been addressed:</p>
 <ul class="simple">
-<li>Correct management of changes to default namespace within documents. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/183">#183</a></li>
-<li>Do not interleave base and extension type elements. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/184">#184</a></li>
-<li>Incorrect character range management resulted in regex failure. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/186">#186</a></li>
-<li>Wide unicode mis-defines XML1p0e2 Char class. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/187">#187</a></li>
-<li>Improve contents of StructuralBadDocumentError. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/189">#189</a></li>
-<li>Generate exception details correctly with unicode content. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/190">#190</a></li>
+<li>Correct management of changes to default namespace within documents. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/183/">SF ticket 183</a></li>
+<li>Do not interleave base and extension type elements. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/184/">SF ticket 184</a></li>
+<li>Incorrect character range management resulted in regex failure. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/186/">SF ticket 186</a></li>
+<li>Wide unicode mis-defines XML1p0e2 Char class. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/187/">SF ticket 187</a></li>
+<li>Improve contents of StructuralBadDocumentError. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/189/">SF ticket 189</a></li>
+<li>Generate exception details correctly with unicode content. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/190/">SF ticket 190</a></li>
 <li>Namespace must be a reserved symbol within CTD instances.</li>
-<li>PyXB rejects restriction that changes element type. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/193">#193</a></li>
+<li>PyXB rejects restriction that changes element type. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/193/">SF ticket 193</a></li>
 <li>Multiple cases where names (from imported bindings, namespaces, and
 top-level classes and elements) resulted in conflicts with other top-level
-and class-level names. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/191">#191</a>, <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/194">#194</a>, <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/197">#197</a></li>
-<li>Avoid validating content of simple types marked with xsi:nil. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/195">#195</a></li>
-<li>Validate handling of attribute and element form attributes. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/196">#196</a></li>
-<li>Ensure all referenced namespaces are imported into a binding. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/198">#198</a></li>
-<li>Detect import of bindings generated by a different version of PyXB. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/199">#199</a></li>
+and class-level names. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/191/">SF ticket 191</a>, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/194/">SF ticket 194</a>, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/197/">SF ticket 197</a></li>
+<li>Avoid validating content of simple types marked with xsi:nil. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/195/">SF ticket 195</a></li>
+<li>Validate handling of attribute and element form attributes. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/196/">SF ticket 196</a></li>
+<li>Ensure all referenced namespaces are imported into a binding. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/198/">SF ticket 198</a></li>
+<li>Detect import of bindings generated by a different version of PyXB. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/199/">SF ticket 199</a></li>
 </ul>
 </div>
 <div class="section" id="dec-2012">
@@ -202,23 +249,23 @@ XHTML.</li>
 <li>A first step to providing finer control of validation, using
 <a class="reference external" href="api/pyxb.ValidationConfig-class.html">ValidationConfig</a></li>
 </ul>
-<p>The following reported <a class="reference external" href="http://sourceforge.net/apps/trac/pyxb/">defects/enhancements</a> have been addressed:</p>
+<p>The following reported <a class="reference external" href="http://sourceforge.net/p/pyxb/tickets/">defects/enhancements</a> have been addressed:</p>
 <ul class="simple">
-<li>Validate <a class="reference internal" href="userref_usebind.html#pyxb-bind"><em>pyxb.BIND</em></a> at point of use.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/69">#69</a></li>
-<li>Issues with renamed element (most of which were mis-use of pyxb.BIND).  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/71">#71</a></li>
-<li>Support for default and fixed values in elements. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/99">#99</a></li>
-<li>Support for mixed content.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/153">#153</a>, <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/154">#154</a></li>
+<li>Validate <a class="reference internal" href="userref_usebind.html#pyxb-bind"><em>pyxb.BIND</em></a> at point of use.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/69/">SF ticket 69</a></li>
+<li>Issues with renamed element (most of which were mis-use of pyxb.BIND).  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/71/">SF ticket 71</a></li>
+<li>Support for default and fixed values in elements. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/99/">SF ticket 99</a></li>
+<li>Support for mixed content.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/153/">SF ticket 153</a>, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/154/">SF ticket 154</a></li>
 <li>Provide an example based on a <a class="reference external" href="http://sourceforge.net/projects/pyxb/forums/forum/956708/topic/5422611/">help-forum thread</a>
 to show how to take advantage of PyXB 1.2.x improved diagnostics.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/158">#158</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/158/">SF ticket 158</a></li>
 <li>Improve interpretation of Python native type values when used in element
-constructors.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/175">#175</a></li>
+constructors.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/175/">SF ticket 175</a></li>
 <li>Add <a class="reference internal" href="bundles.html#bundle-ecma376"><em>ECMA-376 (Office Open XML)</em></a> as an optional bundle.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/178">#178</a></li>
-<li>Fix invalid error when an all model group had minOccurs=0.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/179">#179</a></li>
-<li>Add <a class="reference internal" href="bundles.html#bundle-dc"><em>Dublin Core</em></a> to the standard bundles.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/180">#180</a></li>
-<li>Allow control of element order in generated documents.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/181">#181</a></li>
-<li>Include wildcard elements in content.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/182">#182</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/178/">SF ticket 178</a></li>
+<li>Fix invalid error when an all model group had minOccurs=0.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/179/">SF ticket 179</a></li>
+<li>Add <a class="reference internal" href="bundles.html#bundle-dc"><em>Dublin Core</em></a> to the standard bundles.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/180/">SF ticket 180</a></li>
+<li>Allow control of element order in generated documents.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/181/">SF ticket 181</a></li>
+<li>Include wildcard elements in content.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/182/">SF ticket 182</a></li>
 </ul>
 </div>
 <div class="section" id="nov-2012">
@@ -237,18 +284,18 @@ a future Python3 implementation of PyXB).</li>
 instances.  These exceptions now provide information through attributes
 rather than a text message.</li>
 </ul>
-<p>The following reported <a class="reference external" href="http://sourceforge.net/apps/trac/pyxb/">defects/enhancements</a> have been addressed:</p>
+<p>The following reported <a class="reference external" href="http://sourceforge.net/p/pyxb/tickets/">defects/enhancements</a> have been addressed:</p>
 <ul class="simple">
-<li>Improved diagnostics. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/26">#26</a>, <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/75">#75</a></li>
-<li>Correct handling of schema where greedy processing fails.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/112">#112</a>,
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/133">#133</a></li>
+<li>Improved diagnostics. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/26/">SF ticket 26</a>, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/75/">SF ticket 75</a></li>
+<li>Correct handling of schema where greedy processing fails.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/112/">SF ticket 112</a>,
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/133/">SF ticket 133</a></li>
 <li>Elements and attributes in generated bindings are emitted in a deterministic
 order sorted by schema and location within schema, to ensure deterministic
 processing and reduce variation between bindings when generation is
-repeated.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/164">#164</a></li>
+repeated.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/164/">SF ticket 164</a></li>
 <li>Make documentation annotations from schema available as documentation
-strings for the generated complex type bindings.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/79">#79</a></li>
-<li>Update OpenGIS bindings to <a class="reference external" href="http://www.ogcnetwork.net/node/1829">use W3C XLink schema</a>.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/165">#165</a></li>
+strings for the generated complex type bindings.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/79/">SF ticket 79</a></li>
+<li>Update OpenGIS bindings to <a class="reference external" href="http://www.ogcnetwork.net/node/1829">use W3C XLink schema</a>.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/165/">SF ticket 165</a></li>
 </ul>
 </div>
 </div>
@@ -263,24 +310,24 @@ Bugs reported against 1.1.5 will generally be fixed in the 1.2.x series.</p>
 <p>Documentation: <a class="reference external" href="http://pyxb.sourceforge.net/PyXB-1.1.5">http://pyxb.sourceforge.net/PyXB-1.1.5</a></p>
 <p>This is a maintenance release to finalize the 1.1.x series before starting the
 1.2.x series.</p>
-<p>The following reported <a class="reference external" href="http://sourceforge.net/apps/trac/pyxb/">defects/enhancements</a> have been addressed:</p>
+<p>The following reported <a class="reference external" href="http://sourceforge.net/p/pyxb/tickets/">defects/enhancements</a> have been addressed:</p>
 <ul class="simple">
-<li>The standard Python logging module is now used.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/17">#17</a>,
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/159">#159</a>, <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/157">#157</a></li>
+<li>The standard Python logging module is now used.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/17/">SF ticket 17</a>,
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/159/">SF ticket 159</a>, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/157/">SF ticket 157</a></li>
 <li>The potential for changing binding style support has been removed.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/82">#82</a></li>
-<li>PyPI/setuptools support has been fixed (again).  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/130">#130</a></li>
-<li>Unit test setup/teardown has been reviewed.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/149">#149</a></li>
-<li>utf-8 is now used in all PyXB source files.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/151">#151</a></li>
-<li>Preserve namespace mappings in deep-cloned instances.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/155">#155</a></li>
-<li>Fix problems revealed by cython and pyflakes.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/156">#156</a>, <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/167">#167</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/82/">SF ticket 82</a></li>
+<li>PyPI/setuptools support has been fixed (again).  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/130/">SF ticket 130</a></li>
+<li>Unit test setup/teardown has been reviewed.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/149/">SF ticket 149</a></li>
+<li>utf-8 is now used in all PyXB source files.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/151/">SF ticket 151</a></li>
+<li>Preserve namespace mappings in deep-cloned instances.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/155/">SF ticket 155</a></li>
+<li>Fix problems revealed by cython and pyflakes.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/156/">SF ticket 156</a>, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/167/">SF ticket 167</a></li>
 <li>User contributions from Jon Foster, with the exception of windows test
-scripts, have been incorporated.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/157">#157</a></li>
+scripts, have been incorporated.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/157/">SF ticket 157</a></li>
 <li>Correct issues in generator function to retrieve command line.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/161">#161</a></li>
-<li>Restore content of ExtraContentError exception.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/163">#163</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/161/">SF ticket 161</a></li>
+<li>Restore content of ExtraContentError exception.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/163/">SF ticket 163</a></li>
 <li>Warn rather than abort when apparently redundant schema are included.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/169">#169</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/169/">SF ticket 169</a></li>
 </ul>
 </div>
 <div class="section" id="jun-2012">
@@ -311,40 +358,40 @@ the ability to intercept PyXB&#8217;s construction of Python identifiers from XM
 identifiers to produce meaningful identifiers when the schema language is
 not compatible with the Python 2 requirement that identifiers be ASCII.</li>
 </ul>
-<p>The following reported <a class="reference external" href="http://sourceforge.net/apps/trac/pyxb/">defects/enhancements</a> have been addressed:</p>
+<p>The following reported <a class="reference external" href="http://sourceforge.net/p/pyxb/tickets/">defects/enhancements</a> have been addressed:</p>
 <ul class="simple">
-<li>Timezone support for xsd:date types. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/102">#102</a></li>
-<li>Pattern restriction does not work correctly with Unicode. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/108">#108</a></li>
-<li>bad unvalidated generation with simple list. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/110">#110</a></li>
-<li>Make simpleType CF_Enumeration iterable. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/111">#111</a></li>
-<li>toxml fails when wildcard is in unrecognized namespace. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/114">#114</a></li>
-<li>Problem with timedelta to duration conversion. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/115">#115</a></li>
-<li>Simple-typed elements accept any attributes. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/116">#116</a></li>
-<li>attributes are validated regardless of pyxb.RequireValidWhenParsing. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/117">#117</a></li>
-<li>unable to resolve with absent namespace. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/119">#119</a></li>
-<li>module CreateFromDocument ignores default_namespace. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/120">#120</a></li>
-<li>PyXB elementary data types do not play well with copy/pickling/.... <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/121">#121</a></li>
-<li>PxXB should allow to assign None to optional elements and attributes. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/122">#122</a></li>
-<li>unbound wildcard element toxml() fails. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/123">#123</a></li>
-<li>misapplied allow_builtin_generation keyword in Generator. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/124">#124</a></li>
-<li>attributes are not validated regardless of pyxb.RequireValidWhenGenerating. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/126">#126</a></li>
-<li>dateTime objects must be timezone-aware. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/127">#127</a></li>
-<li>most lexical representations for reduced dates wrong. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/128">#128</a></li>
-<li>incorrect timezone adjustment from python values. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/129">#129</a></li>
-<li>validate processing of unicode in assignments and documents. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/131">#131</a></li>
-<li>Crash in PyXB when attempting to retrieve Unicode value from exception. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/132">#132</a></li>
-<li>Name, NMTOKEN, NCName wrong validation regexes. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/134">#134</a></li>
-<li>opengis/scripts/genbind removes all user files. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/135">#135</a></li>
-<li>preserve timezone in processing. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/136">#136</a></li>
-<li>wildcards rejected when validation disabled during parsing. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/137">#137</a></li>
-<li>xsd.dateTime loses microsecond precision. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/138">#138</a></li>
-<li>support alternative XML parsers. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/139">#139</a></li>
-<li>need regular way to replace MakeIdentifier. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/141">#141</a></li>
-<li>Document advanced customization. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/142">#142</a></li>
-<li>cleanup OpenGIS schema bundle. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/143">#143</a></li>
-<li>toxml needs encoding support. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/144">#144</a></li>
-<li>mark encoding in generated output. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/146">#146</a></li>
-<li>domutils references unqualified PyXB exceptions. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/148">#148</a></li>
+<li>Timezone support for xsd:date types. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/102/">SF ticket 102</a></li>
+<li>Pattern restriction does not work correctly with Unicode. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/108/">SF ticket 108</a></li>
+<li>bad unvalidated generation with simple list. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/110/">SF ticket 110</a></li>
+<li>Make simpleType CF_Enumeration iterable. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/111/">SF ticket 111</a></li>
+<li>toxml fails when wildcard is in unrecognized namespace. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/114/">SF ticket 114</a></li>
+<li>Problem with timedelta to duration conversion. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/115/">SF ticket 115</a></li>
+<li>Simple-typed elements accept any attributes. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/116/">SF ticket 116</a></li>
+<li>attributes are validated regardless of pyxb.RequireValidWhenParsing. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/117/">SF ticket 117</a></li>
+<li>unable to resolve with absent namespace. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/119/">SF ticket 119</a></li>
+<li>module CreateFromDocument ignores default_namespace. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/120/">SF ticket 120</a></li>
+<li>PyXB elementary data types do not play well with copy/pickling/.... <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/121/">SF ticket 121</a></li>
+<li>PxXB should allow to assign None to optional elements and attributes. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/122/">SF ticket 122</a></li>
+<li>unbound wildcard element toxml() fails. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/123/">SF ticket 123</a></li>
+<li>misapplied allow_builtin_generation keyword in Generator. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/124/">SF ticket 124</a></li>
+<li>attributes are not validated regardless of pyxb.RequireValidWhenGenerating. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/126/">SF ticket 126</a></li>
+<li>dateTime objects must be timezone-aware. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/127/">SF ticket 127</a></li>
+<li>most lexical representations for reduced dates wrong. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/128/">SF ticket 128</a></li>
+<li>incorrect timezone adjustment from python values. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/129/">SF ticket 129</a></li>
+<li>validate processing of unicode in assignments and documents. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/131/">SF ticket 131</a></li>
+<li>Crash in PyXB when attempting to retrieve Unicode value from exception. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/132/">SF ticket 132</a></li>
+<li>Name, NMTOKEN, NCName wrong validation regexes. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/134/">SF ticket 134</a></li>
+<li>opengis/scripts/genbind removes all user files. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/135/">SF ticket 135</a></li>
+<li>preserve timezone in processing. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/136/">SF ticket 136</a></li>
+<li>wildcards rejected when validation disabled during parsing. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/137/">SF ticket 137</a></li>
+<li>xsd.dateTime loses microsecond precision. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/138/">SF ticket 138</a></li>
+<li>support alternative XML parsers. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/139/">SF ticket 139</a></li>
+<li>need regular way to replace MakeIdentifier. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/141/">SF ticket 141</a></li>
+<li>Document advanced customization. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/142/">SF ticket 142</a></li>
+<li>cleanup OpenGIS schema bundle. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/143/">SF ticket 143</a></li>
+<li>toxml needs encoding support. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/144/">SF ticket 144</a></li>
+<li>mark encoding in generated output. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/146/">SF ticket 146</a></li>
+<li>domutils references unqualified PyXB exceptions. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/148/">SF ticket 148</a></li>
 </ul>
 </div>
 <div class="section" id="sep-2011">
@@ -353,26 +400,26 @@ not compatible with the Python 2 requirement that identifiers be ASCII.</li>
 <p>General cleanup, finish up a few previously unsupported datatypes.</p>
 <ul class="simple">
 <li>Correct extension of a simple type with enumeration restrictions.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/89">#89</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/89/">SF ticket 89</a></li>
 <li>Use the Python string type as the basis for <a class="reference external" href="http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/#hexBinary">xs:hexBinary</a>.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/90">#90</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/90/">SF ticket 90</a></li>
 <li>Support <tt class="docutils literal"><span class="pre">+</span></tt> in <tt class="docutils literal"><span class="pre">PYXB_ARCHIVE_PATH</span></tt> like the documentation says.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/92">#92</a></li>
-<li>Correct exception reference.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/93">#93</a></li>
-<li>Correct handling of the <a class="reference external" href="http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType">ur-type</a>.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/94">#94</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/92/">SF ticket 92</a></li>
+<li>Correct exception reference.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/93/">SF ticket 93</a></li>
+<li>Correct handling of the <a class="reference external" href="http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType">ur-type</a>.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/94/">SF ticket 94</a></li>
 <li>Automatically provide an <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#xsi_type">xsi:type</a>
-attribute when the schema uses the ur-type.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/95">#95</a></li>
+attribute when the schema uses the ur-type.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/95/">SF ticket 95</a></li>
 <li>Implement <a class="reference external" href="http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/#base64Binary">xs:base64binary</a>.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/83">#83</a>, <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/96">#96</a></li>
-<li>Fix pickling and URI path issues on Windows.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/97">#97</a>, <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/98">#98</a></li>
-<li>Correct extensions that involve wildcards.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/100">#100</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/83/">SF ticket 83</a>, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/96/">SF ticket 96</a></li>
+<li>Fix pickling and URI path issues on Windows.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/97/">SF ticket 97</a>, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/98/">SF ticket 98</a></li>
+<li>Correct extensions that involve wildcards.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/100/">SF ticket 100</a></li>
 <li>Do a better job resolving circular dependencies, and don&#8217;t try to write two
-namespace groups to the same binding file.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/104">#104</a>, <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/105">#105</a></li>
+namespace groups to the same binding file.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/104/">SF ticket 104</a>, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/105/">SF ticket 105</a></li>
 <li>Add a bundle for <a class="reference internal" href="bundles.html#bundle-saml20"><em>Security Assertion Markup Language</em></a>.
 Thanks to Michael van der Westhuizen for providing this (sixteen months
-ago).  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/106">#106</a></li>
+ago).  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/106/">SF ticket 106</a></li>
 <li>Avoid overwrite of Python <a class="reference external" href="http://docs.python.org/library/constants.html">built-in constants</a>, including <tt class="docutils literal"><span class="pre">None</span></tt>,
-<tt class="docutils literal"><span class="pre">True</span></tt>, and <tt class="docutils literal"><span class="pre">False</span></tt>.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/107">#107</a></li>
+<tt class="docutils literal"><span class="pre">True</span></tt>, and <tt class="docutils literal"><span class="pre">False</span></tt>.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/107/">SF ticket 107</a></li>
 </ul>
 </div>
 <div class="section" id="may-2010">
@@ -383,14 +430,14 @@ NFA-to-DFA approach is gone.  The resulting system does a better job in less
 space and significantly faster: 30% faster on the standard tmsxtvd test,
 orders of magnitude on documents with large sequences of optional elements.</p>
 <p>Note: A couple unit tests fail due to incidental reasons that will be
-addressed when fixing <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/75">#75</a>.  Also, the architecture documentation for
+addressed when fixing <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/75/">SF ticket 75</a>.  Also, the architecture documentation for
 the validation portion of the content model is completely out of date.</p>
 <ul class="simple">
-<li>Handle sequences of optional elements more effectively.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/33">#33</a></li>
-<li>Correct multi-step attribute restriction/extension.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/80">#80</a></li>
-<li>Support prefix rewrite for schema location URIs.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/81">#81</a></li>
-<li>Fix syntax error generating wildcard namespace constraints.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/84">#84</a></li>
-<li>Support whitespace validation bypass in simple type definitions.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/85">#85</a></li>
+<li>Handle sequences of optional elements more effectively.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/33/">SF ticket 33</a></li>
+<li>Correct multi-step attribute restriction/extension.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/80/">SF ticket 80</a></li>
+<li>Support prefix rewrite for schema location URIs.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/81/">SF ticket 81</a></li>
+<li>Fix syntax error generating wildcard namespace constraints.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/84/">SF ticket 84</a></li>
+<li>Support whitespace validation bypass in simple type definitions.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/85/">SF ticket 85</a></li>
 </ul>
 </div>
 <div class="section" id="jan-2010-rev-2135">
@@ -408,19 +455,19 @@ element of the class being instantiated.</p>
 2.6.</li>
 <li>Fix assorted problems with mixtures of <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-binding-root"><em>&#8211;binding-root</em></a>,
 <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-module-prefix"><em>&#8211;module-prefix</em></a>, and <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-write-for-customization"><em>&#8211;write-for-customization</em></a>.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/64">#64</a>, <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/65">#65</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/64/">SF ticket 64</a>, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/65/">SF ticket 65</a></li>
 <li>Eliminate unnecessary attempts to download schema for builtin namespaces.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/63">#63</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/63/">SF ticket 63</a></li>
 <li>Avoid assertion failure when provided schema location&#8217;s content looks a
-little, but not enough, like a schema document.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/72">#72</a></li>
+little, but not enough, like a schema document.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/72/">SF ticket 72</a></li>
 <li>References to declarations in other namespaces are now calculated locally to
 the module, rather than cached under the expectation the name is valid
-everywhere.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/73">#73</a></li>
+everywhere.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/73/">SF ticket 73</a></li>
 <li>Imposed consistency on behavior when document root element is not
-recognized.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/74">#74</a></li>
+recognized.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/74/">SF ticket 74</a></li>
 <li>Partial implementation of improved error data stored in exceptions.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/75">#75</a></li>
-<li>Detect invalid keywords in instance constructor calls.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/76">#76</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/75/">SF ticket 75</a></li>
+<li>Detect invalid keywords in instance constructor calls.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/76/">SF ticket 76</a></li>
 </ul>
 </div>
 <div class="section" id="nov-2009-rev-2092">
@@ -428,15 +475,15 @@ recognized.  <a class="reference external" href="https://sourceforge.net/apps/tr
 <p>Mostly nit-picky things, but some changed interface, so we&#8217;re starting a new
 beta series.</p>
 <ul class="simple">
-<li>Make handling of invalid xsi:type attributes more robust.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/56">#56</a></li>
+<li>Make handling of invalid xsi:type attributes more robust.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/56/">SF ticket 56</a></li>
 <li>Use validation flags to control validation (what a novel concept).
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/57">#57</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/57/">SF ticket 57</a></li>
 <li>Fix improper generation of content within elements marked as xsi:nil.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/58">#58</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/58/">SF ticket 58</a></li>
 <li>Provide mechanism to control default handling of xsi:type attributes in
-instance documents.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/60">#60</a></li>
+instance documents.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/60/">SF ticket 60</a></li>
 <li>Fix bug where constraining facets were not inherited when deriving simple
-types by restriction.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/61">#61</a></li>
+types by restriction.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/61/">SF ticket 61</a></li>
 </ul>
 </div>
 </div>
@@ -448,10 +495,10 @@ types by restriction.  <a class="reference external" href="https://sourceforge.n
 want it to, so we&#8217;ll let this thing run free.</p>
 <ul class="simple">
 <li>Replace a reference to a non-existent variable with something that works.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/52">#52</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/52/">SF ticket 52</a></li>
 <li>Consistently validate instances created from documents no matter which
-parser is used.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/53">#53</a></li>
-<li>Support caching message references in WSDL SOAP faults.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/54">#54</a></li>
+parser is used.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/53/">SF ticket 53</a></li>
+<li>Support caching message references in WSDL SOAP faults.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/54/">SF ticket 54</a></li>
 </ul>
 </div>
 </div>
@@ -463,15 +510,15 @@ parser is used.  <a class="reference external" href="https://sourceforge.net/app
 various components to allow a smaller distribution.</p>
 <ul>
 <li><p class="first">Fixed a circular reference in the DFA state classes that caused memory bloat
-in long-running processes.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/49">#49</a></p>
+in long-running processes.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/49/">SF ticket 49</a></p>
 </li>
 <li><p class="first">When PyXB renames an XML element or attribute due to a collision with a
 reserved word, it will write a warning, and at runtime will raise an
 exception if an attempt is made to assign to the original name.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/50">#50</a>, <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/51">#51</a></p>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/50/">SF ticket 50</a>, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/51/">SF ticket 51</a></p>
 </li>
 <li><p class="first">Support for pattern restrictions for string-based simple types.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/47">#47</a></p>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/47/">SF ticket 47</a></p>
 </li>
 <li><p class="first">Split distribution into multiple files to reduce download size:</p>
 <blockquote>
@@ -493,11 +540,11 @@ exception if an attempt is made to assign to the original name.
 minor issues.</p>
 <ul class="simple">
 <li>References to QNames with absent namespaces in chameleon schema included
-into schema with a target namespace could not be resolved.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/46">#46</a></li>
+into schema with a target namespace could not be resolved.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/46/">SF ticket 46</a></li>
 <li>Documentation content was not correctly sanitized for use within a Python
-docstring.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/45">#45</a>.</li>
+docstring.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/45/">SF ticket 45</a>.</li>
 <li>Elements with complex types with simple content that derived from string
-could not be marked as nil.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/48">#48</a></li>
+could not be marked as nil.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/48/">SF ticket 48</a></li>
 </ul>
 </div>
 <div class="section" id="aug-2009-rev-1968">
@@ -505,26 +552,26 @@ could not be marked as nil.  <a class="reference external" href="https://sourcef
 <p>None of the enhancements really got in, but lots of minor bug fixes.</p>
 <ul class="simple">
 <li>Restored the ability to dump copies of all schemas retrieved from a remote
-location, so you can review them.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/28">#28</a></li>
+location, so you can review them.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/28/">SF ticket 28</a></li>
 <li>Fixed assorted problems with simple types constructed by list and union.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/35">#35</a>, <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/40">#40</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/35/">SF ticket 35</a>, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/40/">SF ticket 40</a></li>
 <li>Provide link from content values to the element binding that was used to
 store them.  Useful for quickly identifying the owner element when
-generating a valid child sequence for conversion to DOM.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/36">#36</a></li>
-<li>Fix validation of attributes with union types.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/37">#37</a></li>
+generating a valid child sequence for conversion to DOM.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/36/">SF ticket 36</a></li>
+<li>Fix validation of attributes with union types.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/37/">SF ticket 37</a></li>
 <li>Enumeration fixes: Only generate class-level constants for enumerations that
 restrict a string representation (not double, float, etc).  Verify
 enumerations work correctly on list and union constructions.  Duplicate the
 class-level constants for enumerations that are defined in union member
-types.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/38">#38</a></li>
+types.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/38/">SF ticket 38</a></li>
 <li>Provide a facility to simplify the automatic creation of an instance of the
 appropriate type when storing values into an element.  Makes life with
-anonymous local elements a lot easier.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/39">#39</a></li>
+anonymous local elements a lot easier.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/39/">SF ticket 39</a></li>
 <li>Enhance management of namespace prefixes by allowing a system-wide default
 in BindingDOMSupport and by inferring the base name of the module as the
-default prefix for namespaces defined in imported bindings.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/41">#41</a></li>
+default prefix for namespaces defined in imported bindings.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/41/">SF ticket 41</a></li>
 <li>Provided crude facility to bypass validation when generating and parsing
-documents.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/44">#44</a></li>
+documents.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/44/">SF ticket 44</a></li>
 <li>Re-arrange the help for pyxbgen&#8217;s arguments, and add a script to
 automatically generate the Sphinx tables for it.</li>
 <li>Support bundles of related schemas/namespaces, currently wssplat (for WS-*)
@@ -545,7 +592,7 @@ parameter to pyxbgen if you want to change this.</p>
 <ul class="simple">
 <li>Change the method of accessing elements and attributes in bindings from
 accessor methods (e.g., elt.attr(), elt.setAttr()) to properties (e.g.,
-elt.attr).  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/18">#18</a></li>
+elt.attr).  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/18/">SF ticket 18</a></li>
 </ul>
 </div>
 </div>
@@ -560,19 +607,19 @@ namespace switches.</p>
 <ul class="simple">
 <li>Presence of nested choice model groups caused the plurality calculations to
 be wrong: some elements were dropped from the model, others were treated as
-lists when only one instance would be permitted.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/34">#34</a></li>
+lists when only one instance would be permitted.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/34/">SF ticket 34</a></li>
 <li>Content accessor would return wrong value for elements with simple type of
-list variety.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/32">#32</a></li>
+list variety.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/32/">SF ticket 32</a></li>
 <li>Corrected handling of attributes when deriving complex types by
-restriction.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/27">#27</a></li>
+restriction.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/27/">SF ticket 27</a></li>
 <li>Added a source module for XML namespace
 (<a class="reference external" href="http://www.w3.org/XML/1998/namespace">http://www.w3.org/XML/1998/namespace</a>) with bindings linked to the built-in
-component model.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/23">#23</a></li>
-<li>Fix inadequacies in namespace archive management.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/22">#22</a></li>
+component model.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/23/">SF ticket 23</a></li>
+<li>Fix inadequacies in namespace archive management.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/22/">SF ticket 22</a></li>
 </ul>
 <p>This is expected to be the last release in 0.5.x.  0.7.0 should follow soon
 thereafter, and only contain the change of default binding style from accessor
-to property.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/18">#18</a></p>
+to property.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/18/">SF ticket 18</a></p>
 </div>
 <div class="section" id="jul-2009-rev-1502">
 <h3>0.5.1 (16 Jul 2009, rev 1502)<a class="headerlink" href="#jul-2009-rev-1502" title="Permalink to this headline">¶</a></h3>
@@ -582,20 +629,20 @@ the schema they came from, and loss of bindings for one namespace due to its
 being overwritten by those for another.</p>
 <ul class="simple">
 <li>The presence of a wildcard in a sequence or choice model group caused other
-elements to be lost in the binding.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/29">#29</a></li>
+elements to be lost in the binding.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/29/">SF ticket 29</a></li>
 <li>Rework content verification to operate on binding instances rather than DOM
-nodes.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/24">#24</a></li>
+nodes.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/24/">SF ticket 24</a></li>
 <li>Use <cite>value()</cite> to extract the value of a complex type with simple content;
 the <cite>content()</cite> method works only with element and mixed content.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/21">#21</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/21/">SF ticket 21</a></li>
 <li>Add support to specify prefix to be used in QNames when generating DOM
 documents from binding instances.  Provide facility to re-use the
-BindingDOMSupport instance for multiple conversions.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/15">#15</a></li>
+BindingDOMSupport instance for multiple conversions.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/15/">SF ticket 15</a></li>
 <li>Tightened requirements on content type matching: no more will strings and
 numbers automatically be converted to match the content model (probably for
-a branch you didn&#8217;t intend).  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/14">#14</a></li>
+a branch you didn&#8217;t intend).  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/14/">SF ticket 14</a></li>
 <li>Fix problems overwriting binding modules with data from a different set of
-namespaces.  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/31">#31</a>.</li>
+namespaces.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/31/">SF ticket 31</a>.</li>
 <li>Eliminated the schema group modules: too hard to avoid dependency loops.
 Now all components are written into a single module, which is a namespace
 group module if the components cross namespaces.  A namespace-specific
@@ -610,16 +657,16 @@ ogckml22, om, ows, sensorML, sos, swe, tml, ...).</p>
 <ul class="simple">
 <li>Completely rework include and import directives to correctly handle relative
 paths in <tt class="docutils literal"><span class="pre">schemaLocation</span></tt> attributes and to only import from a given
-location once per namespace. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/9">#9</a>, <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/8">#8</a>, <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/5">#5</a></li>
+location once per namespace. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/9/">SF ticket 9</a>, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/8/">SF ticket 8</a>, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/5/">SF ticket 5</a></li>
 <li>Parse <tt class="docutils literal"><span class="pre">final</span></tt> attribute on type definitions (though this has no effect on
-the bindings).  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/10">#10</a></li>
+the bindings).  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/10/">SF ticket 10</a></li>
 <li>Complete missing implementations in complex types with simple content.
-<a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/6">#6</a></li>
+<a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/6/">SF ticket 6</a></li>
 <li>Create new code generation model which supports inter-namespace and
 inter-schema dependency cycles.  Namespace archives can now holds all
 namespaces that depend on each other.</li>
-<li>Other miscellaneous. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/11">#11</a></li>
-<li>Did I mention the ability to handle OpenGIS?  <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/16">#16</a></li>
+<li>Other miscellaneous. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/11/">SF ticket 11</a></li>
+<li>Did I mention the ability to handle OpenGIS?  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/16/">SF ticket 16</a></li>
 </ul>
 <p>Beware:</p>
 <ul class="simple">
@@ -636,11 +683,11 @@ directory.</li>
 <h3>0.4.0 (20 Jun 2009, rev 1204)<a class="headerlink" href="#jun-2009-rev-1204" title="Permalink to this headline">¶</a></h3>
 <p>First usable public release.</p>
 <ul class="simple">
-<li>Use expanded names for all declarations and definitions. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/1">#1</a></li>
+<li>Use expanded names for all declarations and definitions. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/1/">SF ticket 1</a></li>
 <li>Use the finite automaton content model for generation as well as
-parsing. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/2">#2</a></li>
-<li>Support xsi:type and xsi:nil. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/3">#3</a></li>
-<li>Support substitution groups. <a class="reference external" href="https://sourceforge.net/apps/trac/pyxb/ticket/4">#4</a></li>
+parsing. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/2/">SF ticket 2</a></li>
+<li>Support xsi:type and xsi:nil. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/3/">SF ticket 3</a></li>
+<li>Support substitution groups. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/4/">SF ticket 4</a></li>
 <li>Fix many problems in QName resolution</li>
 <li>Implement the remaining date/time types</li>
 <li>Rework content model so binding instances are always instances of the
@@ -671,6 +718,7 @@ instance</li>
   <ul>
 <li><a class="reference internal" href="#">Release History</a><ul>
 <li><a class="reference internal" href="#x">1.2.x</a><ul>
+<li><a class="reference internal" href="#oct-2014">1.2.4 (19 Oct 2014)</a></li>
 <li><a class="reference internal" href="#sep-2013">1.2.3 (18 Sep 2013)</a></li>
 <li><a class="reference internal" href="#apr-2013">1.2.2 (17 Apr 2013)</a></li>
 <li><a class="reference internal" href="#dec-2012">1.2.1 (17 Dec 2012)</a></li>
@@ -755,7 +803,7 @@ instance</li>
         <li class="right" >
           <a href="examples.html" title="Examples"
              >previous</a> |</li>
-        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+        <li><a href="index.html">PyXB 1.2.4 documentation</a> &raquo;</li>
     <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
     width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
      
@@ -763,7 +811,7 @@ instance</li>
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2009-2013, Peter A. Bigot.
+        &copy; Copyright 2009-2014, Peter A. Bigot.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
   </body>

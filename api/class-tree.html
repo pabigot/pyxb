@@ -177,6 +177,9 @@
       <em class="summary">Raised when an attempt is made to record multiple objects of the 
         same name in the same namespace category.</em>
     </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.QNameResolutionError-class.html">pyxb.exceptions_.QNameResolutionError</a></strong>:
+      <em class="summary">Raised when a QName cannot be associated with a namespace.</em>
+    </li>
     </ul>
     </li>
     <li> <strong class="uidlink"><a href="pyxb.exceptions_.NotInNamespaceError-class.html">pyxb.exceptions_.NotInNamespaceError</a></strong>:
@@ -246,6 +249,9 @@
         element material unconsumed.</em>
     </li>
     </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.exceptions_.ContentNondeterminismExceededError-class.html">pyxb.exceptions_.ContentNondeterminismExceededError</a></strong>:
+      <em class="summary">Content validation exceeded the allowed limits of nondeterminism.</em>
     </li>
     <li> <strong class="uidlink"><a href="pyxb.exceptions_.ExtraSimpleContentError-class.html">pyxb.exceptions_.ExtraSimpleContentError</a></strong>:
       <em class="summary">A complex type with simple content was provided too much content.</em>
@@ -427,14 +433,18 @@
     <li> <strong class="uidlink"><a href="pyxb.utils.fac.CounterCondition-class.html">pyxb.utils.fac.CounterCondition</a></strong>:
       <em class="summary">A counter condition is a range limit on valid counter values.</em>
     </li>
+    <li> <strong class="uidlink">decimal.Decimal</strong>:
+      <em class="summary">Floating point class for decimal arithmetic.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.decimal-class.html">pyxb.binding.datatypes.decimal</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#decimal" 
+        target="_top">decimal</a>.</em>
+    </li>
+    </ul>
+    </li>
     <li> <strong class="uidlink"><a href="pyxb.binding.content.ElementDeclaration-class.html">pyxb.binding.content.ElementDeclaration</a></strong>:
       <em class="summary">Aggregate the information relevant to an element of a complex type.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="pyxb.namespace.ExpandedName-class.html">pyxb.namespace.ExpandedName</a></strong>:
-      <em class="summary">Represent an <a 
-        href="http://www.w3.org/TR/REC-xml-names/#dt-expname" 
-        target="_top">expanded name</a>, which pairs a namespace with a 
-        local name.</em>
     </li>
     <li> <strong class="uidlink"><a href="pyxb.binding.generate.Generator-class.html">pyxb.binding.generate.Generator</a></strong>:
       <em class="summary">Configuration and data for a single binding-generation action.</em>
@@ -458,7 +468,13 @@
     </li>
     </ul>
     </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.six.Iterator-class.html">pyxb.utils.six.Iterator</a></strong>
+    </li>
     <li> <strong class="uidlink"><a href="pyxb.utils.utility.Location-class.html">pyxb.utils.utility.Location</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.six.Module_six_moves_urllib-class.html">pyxb.utils.six.Module_six_moves_urllib</a></strong>:
+      <em class="summary">Create a six.moves.urllib namespace that resembles the Python 3 
+        namespace</em>
     </li>
     <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.NamedNodeMap-class.html">pyxb.utils.saxdom.NamedNodeMap</a></strong>:
       <em class="summary">Implement that portion of NamedNodeMap required to satisfy PyXB's 
@@ -472,33 +488,6 @@
       <em class="summary">Records information associated with namespaces at a DOM node.</em>
     </li>
     <li> <strong class="uidlink"><a href="pyxb.namespace.archive.NamespaceDependencies-class.html">pyxb.namespace.archive.NamespaceDependencies</a></strong>
-    </li>
-    <li> <strong class="uidlink">xml.dom.Node</strong>:
-      <em class="summary">Class giving the NodeType constants.</em>
-    <ul>
-    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Node-class.html">pyxb.utils.saxdom.Node</a></strong>:
-      <em class="summary">Base for the minimal DOM interface required by PyXB.</em>
-    <ul>
-    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Attr-class.html">pyxb.utils.saxdom.Attr</a></strong>:
-      <em class="summary">Add the nodeName and nodeValue interface.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Document-class.html">pyxb.utils.saxdom.Document</a></strong>:
-      <em class="summary">Add the documentElement interface.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Element-class.html">pyxb.utils.saxdom.Element</a></strong>
-    </li>
-    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom._CharacterData-class.html" onclick="show_private();">pyxb.utils.saxdom._CharacterData</a></strong>:
-      <em class="summary">Abstract base for anything holding text data.</em>
-    <ul>
-    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Comment-class.html">pyxb.utils.saxdom.Comment</a></strong>
-    </li>
-    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Text-class.html">pyxb.utils.saxdom.Text</a></strong>
-    </li>
-    </ul>
-    </li>
-    </ul>
-    </li>
-    </ul>
     </li>
     <li> <strong class="uidlink"><a href="pyxb.utils.fac.Node-class.html">pyxb.utils.fac.Node</a></strong>:
       <em class="summary">Abstract class for any node in the term tree.</em>
@@ -530,6 +519,33 @@
     </li>
     <li> <strong class="uidlink"><a href="pyxb.utils.fac.NumericalConstraint-class.html">pyxb.utils.fac.NumericalConstraint</a></strong>:
       <em class="summary">A term with a numeric range constraint.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink">xml.dom.Node</strong>:
+      <em class="summary">Class giving the NodeType constants.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Node-class.html">pyxb.utils.saxdom.Node</a></strong>:
+      <em class="summary">Base for the minimal DOM interface required by PyXB.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Attr-class.html">pyxb.utils.saxdom.Attr</a></strong>:
+      <em class="summary">Add the nodeName and nodeValue interface.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Document-class.html">pyxb.utils.saxdom.Document</a></strong>:
+      <em class="summary">Add the documentElement interface.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Element-class.html">pyxb.utils.saxdom.Element</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom._CharacterData-class.html" onclick="show_private();">pyxb.utils.saxdom._CharacterData</a></strong>:
+      <em class="summary">Abstract base for anything holding text data.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Comment-class.html">pyxb.utils.saxdom.Comment</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.saxdom.Text-class.html">pyxb.utils.saxdom.Text</a></strong>
+    </li>
+    </ul>
+    </li>
+    </ul>
     </li>
     </ul>
     </li>
@@ -621,10 +637,6 @@
     </li>
     <li> <strong class="uidlink"><a href="pyxb.utils.unicode.XML1p0e2-class.html">pyxb.utils.unicode.XML1p0e2</a></strong>:
       <em class="summary">Regular expression support for XML Schema Data Types.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="pyxb.utils.domutils._BDSNamespaceSupport-class.html" onclick="show_private();">pyxb.utils.domutils._BDSNamespaceSupport</a></strong>:
-      <em class="summary">Class holding information relevant to generating the namespace 
-        aspects of a DOM instance.</em>
     </li>
     <li> <strong class="uidlink"><a href="pyxb.binding.generate._CTDAuxData-class.html" onclick="show_private();">pyxb.binding.generate._CTDAuxData</a></strong>:
       <em class="summary">Helper class holding information need in both preparation and 
@@ -956,6 +968,36 @@
         href="pyxb.binding.facets.CF_enumeration-class.html" 
         class="link">CF_enumeration</a> collection.</em>
     </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.six._LazyDescr-class.html">pyxb.utils.six._LazyDescr</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.six.MovedAttribute-class.html">pyxb.utils.six.MovedAttribute</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.six.MovedModule-class.html">pyxb.utils.six.MovedModule</a></strong>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.six._LazyModule-class.html">pyxb.utils.six._LazyModule</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.utils.six.Module_six_moves_urllib_error-class.html">pyxb.utils.six.Module_six_moves_urllib_error</a></strong>:
+      <em class="summary">Lazy loading of moved objects in six.moves.urllib_error</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.six.Module_six_moves_urllib_parse-class.html">pyxb.utils.six.Module_six_moves_urllib_parse</a></strong>:
+      <em class="summary">Lazy loading of moved objects in six.moves.urllib_parse</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.six.Module_six_moves_urllib_request-class.html">pyxb.utils.six.Module_six_moves_urllib_request</a></strong>:
+      <em class="summary">Lazy loading of moved objects in six.moves.urllib_request</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.six.Module_six_moves_urllib_response-class.html">pyxb.utils.six.Module_six_moves_urllib_response</a></strong>:
+      <em class="summary">Lazy loading of moved objects in six.moves.urllib_response</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.six.Module_six_moves_urllib_robotparser-class.html">pyxb.utils.six.Module_six_moves_urllib_robotparser</a></strong>:
+      <em class="summary">Lazy loading of moved objects in six.moves.urllib_robotparser</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.utils.six._MovedItems-class.html">pyxb.utils.six._MovedItems</a></strong>:
+      <em class="summary">Lazy loading of moved objects</em>
+    </li>
+    </ul>
+    </li>
     <li> <strong class="uidlink"><a href="pyxb.binding.generate._ModuleNaming_mixin-class.html" onclick="show_private();">pyxb.binding.generate._ModuleNaming_mixin</a></strong>
     <ul>
     <li> <strong class="uidlink"><a href="pyxb.binding.generate.NamespaceGroupModule-class.html">pyxb.binding.generate.NamespaceGroupModule</a></strong>:
@@ -977,7 +1019,7 @@
       <em class="summary">Type basestring cannot be instantiated; it is the base for str and 
         unicode.</em>
     <ul>
-    <li> <strong class="uidlink">str</strong>:
+    <li> <strong class="uidlink"><a href="str-class.html">str</a></strong>:
       <em class="summary">str(object) -&gt; string</em>
     <ul>
     <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.base64Binary-class.html">pyxb.binding.datatypes.base64Binary</a></strong>:
@@ -992,14 +1034,9 @@
     </li>
     </ul>
     </li>
-    <li> <strong class="uidlink">unicode</strong>:
+    <li> <strong class="uidlink"><a href="unicode-class.html">unicode</a></strong>:
       <em class="summary">unicode(string [, encoding[, errors]]) -&gt; object</em>
     <ul>
-    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.QName-class.html">pyxb.binding.datatypes.QName</a></strong>:
-      <em class="summary">XMLSchema datatype <a 
-        href="http://www.w3.org/TR/xmlschema-2/#QName" 
-        target="_top">QName</a>.</em>
-    </li>
     <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.anySimpleType-class.html">pyxb.binding.datatypes.anySimpleType</a></strong>:
       <em class="summary">XMLSchema datatype <a 
         href="http://www.w3.org/TR/xmlschema-2/#dt-anySimpleType" 
@@ -1093,6 +1130,19 @@
     <li> <strong class="uidlink"><a href="pyxb.binding.content.AttributeUse-class.html">pyxb.binding.content.AttributeUse</a></strong>:
       <em class="summary">A helper class that encapsulates everything we need to know about 
         the way an attribute is used within a binding class.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.namespace.ExpandedName-class.html">pyxb.namespace.ExpandedName</a></strong>:
+      <em class="summary">Represent an <a 
+        href="http://www.w3.org/TR/REC-xml-names/#dt-expname" 
+        target="_top">expanded name</a>, which pairs a namespace with a 
+        local name.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.QName-class.html">pyxb.binding.datatypes.QName</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#QName" 
+        target="_top">QName</a>.</em>
+    </li>
+    </ul>
     </li>
     <li> <strong class="uidlink"><a href="pyxb.binding.facets.Facet-class.html">pyxb.binding.facets.Facet</a></strong>:
       <em class="summary">The base class for facets.</em>
@@ -2637,6 +2687,67 @@
     </li>
     </ul>
     </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.basis._RepresentAsXsdLiteral_mixin-class.html" onclick="show_private();">pyxb.binding.basis._RepresentAsXsdLiteral_mixin</a></strong>:
+      <em class="summary">Marker class for data types using XSD literal string as 
+        pythonLiteral.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html" onclick="show_private();">pyxb.binding.datatypes._PyXBDateTime_base</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes._PyXBDateOnly_base-class.html" onclick="show_private();">pyxb.binding.datatypes._PyXBDateOnly_base</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.date-class.html">pyxb.binding.datatypes.date</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#date"
+        target="_top">date</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gDay-class.html">pyxb.binding.datatypes.gDay</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#gDay"
+        target="_top">gDay</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gMonth-class.html">pyxb.binding.datatypes.gMonth</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gMonth" 
+        target="_top">gMonth</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gMonthDay-class.html">pyxb.binding.datatypes.gMonthDay</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gMonthDay" 
+        target="_top">gMonthDay</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gYear-class.html">pyxb.binding.datatypes.gYear</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gYear" 
+        target="_top">gYear</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.gYearMonth-class.html">pyxb.binding.datatypes.gYearMonth</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#gYearMonth" 
+        target="_top">gYearMonth</a>.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.dateTime-class.html">pyxb.binding.datatypes.dateTime</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#dateTime" 
+        target="_top">dateTime</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.time-class.html">pyxb.binding.datatypes.time</a></strong>:
+      <em class="summary">XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#time"
+        target="_top">time</a>.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.decimal-class.html">pyxb.binding.datatypes.decimal</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#decimal" 
+        target="_top">decimal</a>.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.duration-class.html">pyxb.binding.datatypes.duration</a></strong>:
+      <em class="summary">XMLSchema datatype <a 
+        href="http://www.w3.org/TR/xmlschema-2/#duration" 
+        target="_top">duration</a>.</em>
+    </li>
+    </ul>
+    </li>
     <li> <strong class="uidlink"><a href="pyxb.namespace.resolution._Resolvable_mixin-class.html" onclick="show_private();">pyxb.namespace.resolution._Resolvable_mixin</a></strong>:
       <em class="summary">Mix-in indicating that this object may have references to unseen 
         named components.</em>
@@ -2818,11 +2929,6 @@ dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
     <li> <strong class="uidlink">float</strong>:
       <em class="summary">float(x) -&gt; floating point number</em>
     <ul>
-    <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.decimal-class.html">pyxb.binding.datatypes.decimal</a></strong>:
-      <em class="summary">XMLSchema datatype <a 
-        href="http://www.w3.org/TR/xmlschema-2/#decimal" 
-        target="_top">decimal</a>.</em>
-    </li>
     <li> <strong class="uidlink"><a href="pyxb.binding.datatypes.double-class.html">pyxb.binding.datatypes.double</a></strong>:
       <em class="summary">XMLSchema datatype <a 
         href="http://www.w3.org/TR/xmlschema-2/#double" 
@@ -3016,7 +3122,7 @@ dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Wed Sep 18 10:35:36 2013
+    on Sun Oct 19 06:24:41 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -95,9 +95,9 @@ object --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="pyxb.namespace.resolution.NamespaceContext-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a href="pyxb.namespace.resolution.NamespaceContext-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">_s</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.__str__">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -115,6 +115,24 @@ object --+
       The default namespace in effect at this node.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.defaultNamespace">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.namespace.resolution.NamespaceContext-class.html#setDefaultNamespace" class="summary-sig-name">setDefaultNamespace</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">default_namespace</span>)</span><br />
+      Set the default namespace for the generated document.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.setDefaultNamespace">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -151,6 +169,57 @@ object --+
       instances associated with those prefixes.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.inScopeNamespaces">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__removePrefixMap"></a><span class="summary-sig-name">__removePrefixMap</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">pfx</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.__removePrefixMap">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__addPrefixMap"></a><span class="summary-sig-name">__addPrefixMap</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">pfx</span>,
+        <span class="summary-sig-arg">ns</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.__addPrefixMap">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__clonePrefixMap"></a><span class="summary-sig-name">__clonePrefixMap</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.__clonePrefixMap">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -200,6 +269,26 @@ object --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="pyxb.namespace.resolution.NamespaceContext-class.html#declareNamespace" class="summary-sig-name">declareNamespace</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">namespace</span>,
+        <span class="summary-sig-arg">prefix</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">add_to_map</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Record the given namespace as one to be used in this document.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.declareNamespace">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="processXMLNS"></a><span class="summary-sig-name">processXMLNS</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">prefix</span>,
         <span class="summary-sig-arg">uri</span>)</span></td>
@@ -223,6 +312,25 @@ object --+
         <span class="summary-sig-arg">including_context</span>=<span class="summary-sig-default">None</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.finalizeTargetNamespace">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.namespace.resolution.NamespaceContext-class.html#reset" class="summary-sig-name">reset</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Reset this instance to the state it was when created, exclusive of 
+      XMLNS directives passed in a constructor <code>dom_node</code> 
+      parameter.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.reset">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -265,7 +373,8 @@ object --+
         <tr>
           <td><span class="summary-sig"><a href="pyxb.namespace.resolution.NamespaceContext-class.html#interpretQName" class="summary-sig-name">interpretQName</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>,
-        <span class="summary-sig-arg">namespace</span>=<span class="summary-sig-default">None</span>)</span><br />
+        <span class="summary-sig-arg">namespace</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">default_no_namespace</span>=<span class="summary-sig-default">False</span>)</span><br />
       Convert the provided name into an <a 
       href="pyxb.namespace.ExpandedName-class.html" 
       class="link">ExpandedName</a>, i.e.</td>
@@ -301,6 +410,22 @@ object --+
       
     </td>
   </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__unicode__"></a><span class="summary-sig-name">__unicode__</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.__unicode__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
 </table>
 <!-- ==================== CLASS METHODS ==================== -->
 <a name="section-ClassMethods"></a>
@@ -319,6 +444,59 @@ object --+
     </table>
   </td>
 </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.namespace.resolution.NamespaceContext-class.html#PushContext" class="summary-sig-name">PushContext</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">ctx</span>)</span><br />
+      Make <code>ctx</code> the currently active namespace context.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.PushContext">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.namespace.resolution.NamespaceContext-class.html#Current" class="summary-sig-name">Current</a>(<span class="summary-sig-arg">cls</span>)</span><br />
+      Access the currently active namespace context.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.Current">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.namespace.resolution.NamespaceContext-class.html#PopContext" class="summary-sig-name">PopContext</a>(<span class="summary-sig-arg">cls</span>)</span><br />
+      Discard the currently active namespace context, restoring its 
+      predecessor.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.PopContext">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -347,6 +525,22 @@ object --+
         <span class="summary-sig-arg">expanded_name</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext._TargetNamespaceAttribute">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__BuildInitialPrefixMap"></a><span class="summary-sig-name">__BuildInitialPrefixMap</span>(<span class="summary-sig-arg">cls</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.__BuildInitialPrefixMap">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -398,6 +592,13 @@ object --+
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a name="__ContextStack"></a><span class="summary-name">__ContextStack</span> = <code title="[]"><code class="variable-group">[</code><code class="variable-group">]</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a name="__TargetNamespaceAttributes"></a><span class="summary-name">__TargetNamespaceAttributes</span> = <code title="{}">{}</code>
     </td>
   </tr>
@@ -433,7 +634,52 @@ object --+
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__inScopeNamespaces"></a><span class="summary-name">__inScopeNamespaces</span> = <code title="None">None</code>
+        <a href="pyxb.namespace.resolution.NamespaceContext-class.html#__inScopeNamespaces" class="summary-name" onclick="show_private();">__inScopeNamespaces</a> = <code title="None">None</code><br />
+      Map from <a href="pyxb.namespace.Namespace-class.html" 
+      class="link">Namespace</a> instances to sets of prefix strings 
+      associated with the namespace.
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__inScopePrefixes"></a><span class="summary-name">__inScopePrefixes</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__InitialScopeNamespaces"></a><span class="summary-name">__InitialScopeNamespaces</span> = <code title="{}">{}</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__InitialScopePrefixes"></a><span class="summary-name">__InitialScopePrefixes</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__initialScopeNamespaces"></a><span class="summary-name">__initialScopeNamespaces</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__initialScopePrefixes"></a><span class="summary-name">__initialScopePrefixes</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__namespacePrefixCounter"></a><span class="summary-name">__namespacePrefixCounter</span> = <code title="None">None</code>
     </td>
   </tr>
 </table>
@@ -462,11 +708,11 @@ object --+
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__str__</span>(<span class="sig-arg">self</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__str__</span>(<span class="sig-arg">_s</span>)</span>
     <br /><em class="fname">(Informal representation operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.__str__">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -476,6 +722,73 @@ object --+
         object.__str__
         <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="PushContext"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">PushContext</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">ctx</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.PushContext">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Make <code>ctx</code> the currently active namespace context.</p>
+  <p>Prior contexts are retained on a LIFO stack.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="Current"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">Current</span>(<span class="sig-arg">cls</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.Current">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Access the currently active namespace context.</p>
+  <p>If no context is active, <code>None</code> is returned.  This probably
+  represents mis-use of the infrastructure (viz., failure to record the 
+  context within which a QName must be resolved).</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="PopContext"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">PopContext</span>(<span class="sig-arg">cls</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.PopContext">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Discard the currently active namespace context, restoring its 
+  predecessor.</p>
+  <p>The discarded context is returned.</p>
+  <dl class="fields">
   </dl>
 </td></tr></table>
 </div>
@@ -496,6 +809,37 @@ object --+
   <p>The default namespace in effect at this node.  E.g., 
   <code>xmlns=&quot;URN:default&quot;</code>.</p>
   <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="setDefaultNamespace"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">setDefaultNamespace</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">default_namespace</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.setDefaultNamespace">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Set the default namespace for the generated document.</p>
+  <p>Even if invoked post construction, the default namespace will affect 
+  the entire document, as all namespace declarations are placed in the 
+  document root.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>default_namespace</code></strong> (<a href="pyxb.namespace.Namespace-class.html" 
+          class="link">pyxb.namespace.Namespace</a> or <code>str</code> or 
+          <code>unicode</code>.) - The namespace to be defined as the default namespace in the 
+          top-level element of the document.  May be provided as a real 
+          namespace, or just its URI.</li>
+    </ul></dd>
   </dl>
 </td></tr></table>
 </div>
@@ -576,6 +920,76 @@ object --+
   </dl>
 </td></tr></table>
 </div>
+<a name="declareNamespace"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">declareNamespace</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">namespace</span>,
+        <span class="sig-arg">prefix</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">add_to_map</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.declareNamespace">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Record the given namespace as one to be used in this document.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>namespace</code></strong> (<a href="pyxb.namespace.Namespace-class.html" 
+          class="link">pyxb.namespace.Namespace</a>) - The namespace to be associated with the document.</li>
+        <li><strong class="pname"><code>prefix</code></strong> - Optional prefix to be used with this namespace.  If not provided,
+          a unique prefix is generated or a standard prefix is used, 
+          depending on the namespace.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>a prefix that may be used with the namespace.  If 
+          <code>prefix</code> was <code>None</code> the return value may be
+          a previously-assigned prefix.</dd>
+  </dl>
+<div class="fields">      <strong>To Do:</strong>
+      <ul class="nomargin-top">
+        <li>
+        ensure multiple namespaces do not share the same prefix
+        </li>
+        <li>
+        provide default prefix in <a href="pyxb.namespace.Namespace-class.html"
+    class="link">pyxb.namespace.Namespace</a>
+        </li>
+      </ul>
+</div></td></tr></table>
+</div>
+<a name="reset"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">reset</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.reset">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Reset this instance to the state it was when created, exclusive of 
+  XMLNS directives passed in a constructor <code>dom_node</code> 
+  parameter.</p>
+  <p>This preserves parent context and constructor-specified prefix maps, 
+  but clears the namespace-prefix mapping of any additions made while 
+  processing namespace directives in DOM nodes, or manually added 
+  post-construction.</p>
+  <p>The defaultNamespace is also retained.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
 <a name="__init__"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -602,6 +1016,16 @@ object --+
   
   <p>Determine the namespace context that should be associated with the 
   given node and, optionally, its element children.</p>
+  <p>Primarily this class maintains a map between namespaces and prefixes 
+  used in QName instances.  The initial map comprises the bound prefixes 
+  (<code>xml</code> and <code>xmlns</code>), prefixes inherited from 
+  <code>parent_context</code>, and prefixes passed through the 
+  <code>in_scope_namespaces</code> parameter to the constructor.  This map 
+  is then augmented by any namespace declarations present in a passed 
+  <code>dom_node</code>.  The initial map prior to augmentation may be 
+  restored through the <a 
+  href="pyxb.namespace.resolution.NamespaceContext-class.html#reset" 
+  class="link">reset()</a> method.</p>
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
@@ -621,7 +1045,7 @@ object --+
           <code>parent_context</code> would override this, as would a 
           <code>targetNamespace</code> attribute in the 
           <code>dom_node</code></li>
-        <li><strong class="pname"><code>in_scope_namespaces</code></strong> (<code>dict</code> mapping <code>string</code> to <a 
+        <li><strong class="pname"><code>in_scope_namespaces</code></strong> (<code>dict</code> mapping prefix <code>string</code> to <a 
           href="pyxb.namespace.Namespace-class.html" 
           class="link">Namespace</a>.) - Optional value to set as the initial set of in-scope namespaces.
           The always-present namespaces are added to this if necessary.</li>
@@ -641,7 +1065,8 @@ object --+
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">interpretQName</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">name</span>,
-        <span class="sig-arg">namespace</span>=<span class="sig-default">None</span>)</span>
+        <span class="sig-arg">namespace</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">default_no_namespace</span>=<span class="sig-default">False</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext.interpretQName">source&nbsp;code</a></span>&nbsp;
@@ -657,7 +1082,7 @@ object --+
   namespace in this context.  Absence of a prefix maps to <a 
   href="pyxb.namespace.resolution.NamespaceContext-class.html#defaultNamespace"
   class="link">defaultNamespace()</a>, which must be provided (or defaults 
-  to the target namespace, if that is absent).</p>
+  to the target namespace, if that is not absent).</p>
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
@@ -665,6 +1090,11 @@ object --+
         <li><strong class="pname"><code>name</code></strong> (<code>str</code> or <code>unicode</code>) - Optional namespace to use for unqualified names when there is no 
           default namespace.  Note that a defined default namespace, even 
           if absent, supersedes this value.</li>
+        <li><strong class="pname"><code>default_no_namespace</code></strong> - If <code>False</code> (default), an NCName in a context where 
+          <code>namespace</code> is <code>None</code> and no default or 
+          fallback namespace can be identified produces an exception.  If 
+          <code>True</code>, such an NCName is implicitly placed in no 
+          namespace.</li>
     </ul></dd>
     <dt>Returns:</dt>
         <dd>An <a href="pyxb.namespace.ExpandedName-class.html" 
@@ -673,9 +1103,48 @@ object --+
           class="link">Namespace</a>, <code>str</code> )</dd>
     <dt>Raises:</dt>
     <dd><ul class="nomargin-top">
-        <li><code><strong class='fraise'><a href="pyxb.exceptions_.SchemaValidationError-class.html">pyxb.SchemaValidationError</a></strong></code> - The prefix is not in scope</li>
-        <li><code><strong class='fraise'><a href="pyxb.exceptions_.SchemaValidationError-class.html">pyxb.SchemaValidationError</a></strong></code> - No prefix is given and the default namespace is absent</li>
+        <li><code><strong class='fraise'><a href="pyxb.exceptions_.QNameResolutionError-class.html">pyxb.QNameResolutionError</a></strong></code> - The prefix is not in scope</li>
+        <li><code><strong class='fraise'><a href="pyxb.exceptions_.QNameResolutionError-class.html">pyxb.QNameResolutionError</a></strong></code> - No prefix is given and the default namespace is absent</li>
     </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variable Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariableDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__inScopeNamespaces"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">__inScopeNamespaces</h3>
+  <p>Map from <a href="pyxb.namespace.Namespace-class.html" 
+  class="link">Namespace</a> instances to sets of prefix strings associated
+  with the namespace.  The default namespace is not represented.</p>
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+None
+</pre></td></tr></table>
+</dd>
   </dl>
 </td></tr></table>
 </div>
@@ -712,7 +1181,7 @@ object --+
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Wed Sep 18 10:35:37 2013
+    on Sun Oct 19 06:24:42 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

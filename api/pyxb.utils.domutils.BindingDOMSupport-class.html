@@ -149,8 +149,7 @@ object --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="pyxb.utils.domutils.BindingDOMSupport-class.html#reset" class="summary-sig-name">reset</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">**kw</span>)</span><br />
+          <td><span class="summary-sig"><a href="pyxb.utils.domutils.BindingDOMSupport-class.html#reset" class="summary-sig-name">reset</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Reset this instance to the state it was when created.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="pyxb.utils.domutils-pysrc.html#BindingDOMSupport.reset">source&nbsp;code</a></span>
@@ -241,11 +240,10 @@ object --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="namespacePrefix"></a><span class="summary-sig-name">namespacePrefix</span>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="pyxb.utils.domutils.BindingDOMSupport-class.html#namespacePrefix" class="summary-sig-name">namespacePrefix</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">namespace</span>,
         <span class="summary-sig-arg">enable_default_namespace</span>=<span class="summary-sig-default">True</span>)</span><br />
-      Obtain the prefix for the given namespace using this instance's 
-      configuration.</td>
+      Return the prefix to be used for the given namespace.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="pyxb.utils.domutils-pysrc.html#BindingDOMSupport.namespacePrefix">source&nbsp;code</a></span>
             
@@ -261,10 +259,30 @@ object --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="namespacePrefixMap"></a><span class="summary-sig-name">namespacePrefixMap</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Get the map from namespaces to prefixes for this instance</td>
+          <td><span class="summary-sig"><a name="qnameAsText"></a><span class="summary-sig-name">qnameAsText</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">qname</span>,
+        <span class="summary-sig-arg">enable_default_namespace</span>=<span class="summary-sig-default">True</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="pyxb.utils.domutils-pysrc.html#BindingDOMSupport.namespacePrefixMap">source&nbsp;code</a></span>
+            <span class="codelink"><a href="pyxb.utils.domutils-pysrc.html#BindingDOMSupport.qnameAsText">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.domutils.BindingDOMSupport-class.html#valueAsText" class="summary-sig-name">valueAsText</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">value</span>,
+        <span class="summary-sig-arg">enable_default_namespace</span>=<span class="summary-sig-default">True</span>)</span><br />
+      Represent a simple type value as XML text.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.domutils-pysrc.html#BindingDOMSupport.valueAsText">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -285,6 +303,26 @@ object --+
       Add an attribute to the given element.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="pyxb.utils.domutils-pysrc.html#BindingDOMSupport.addAttribute">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.domutils.BindingDOMSupport-class.html#addXMLNSDeclaration" class="summary-sig-name">addXMLNSDeclaration</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">element</span>,
+        <span class="summary-sig-arg">namespace</span>,
+        <span class="summary-sig-arg">prefix</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Manually add an XMLNS declaration to the document element.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.domutils-pysrc.html#BindingDOMSupport.addXMLNSDeclaration">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -445,9 +483,8 @@ object --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="Reset"></a><span class="summary-sig-name">Reset</span>(<span class="summary-sig-arg">cls</span>,
-        <span class="summary-sig-arg">**kw</span>)</span><br />
-      Reset the global defaults for default/prefix/namespace informmation.</td>
+          <td><span class="summary-sig"><a name="Reset"></a><span class="summary-sig-name">Reset</span>(<span class="summary-sig-arg">cls</span>)</span><br />
+      Reset the global defaults for default/prefix/namespace information.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="pyxb.utils.domutils-pysrc.html#BindingDOMSupport.Reset">source&nbsp;code</a></span>
             
@@ -501,26 +538,10 @@ object --+
           <td><span class="summary-sig"><a name="DeclareNamespace"></a><span class="summary-sig-name">DeclareNamespace</span>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">namespace</span>,
         <span class="summary-sig-arg">prefix</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Declare a namespace that will be added to each created instance.</td>
+      Declare a namespace that will made available to each created 
+      instance.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="pyxb.utils.domutils-pysrc.html#BindingDOMSupport.DeclareNamespace">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="NamespacePrefixMap"></a><span class="summary-sig-name">NamespacePrefixMap</span>(<span class="summary-sig-arg">cls</span>)</span><br />
-      Get the map of default namespace-to-prefix mappings</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="pyxb.utils.domutils-pysrc.html#BindingDOMSupport.NamespacePrefixMap">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -571,14 +592,21 @@ object --+
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__namespaceSupport"></a><span class="summary-name">__namespaceSupport</span> = <code title="None">None</code>
+        <a name="__NamespaceContext"></a><span class="summary-name">__NamespaceContext</span> = <code title="pyxb.namespace.NamespaceContext()">pyxb.namespace.NamespaceContext()</code>
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__NamespaceSupport"></a><span class="summary-name">__NamespaceSupport</span> = <code title="_BDSNamespaceSupport()">_BDSNamespaceSupport()</code>
+        <a name="__namespaceContext"></a><span class="summary-name">__namespaceContext</span> = <code title="None">None</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__referencedNamespacePrefixes"></a><span class="summary-name">__referencedNamespacePrefixes</span> = <code title="None">None</code>
     </td>
   </tr>
 </table>
@@ -655,8 +683,7 @@ object --+
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">reset</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">**kw</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">reset</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="pyxb.utils.domutils-pysrc.html#BindingDOMSupport.reset">source&nbsp;code</a></span>&nbsp;
@@ -664,8 +691,9 @@ object --+
   </tr></table>
   
   <p>Reset this instance to the state it was when created.</p>
-  <p>This creates a new root document with no content, and flushes the list
-  of namespaces for the document.  The defaultNamespace and requireXSIType 
+  <p>This creates a new root document with no content, resets the 
+  namespace-prefix map to its as-constructed content, and clears the set of
+  referenced namespace prefixes.  The defaultNamespace and requireXSIType 
   are not modified.</p>
   <dl class="fields">
   </dl>
@@ -722,6 +750,69 @@ object --+
   </dl>
 </td></tr></table>
 </div>
+<a name="namespacePrefix"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">namespacePrefix</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">namespace</span>,
+        <span class="sig-arg">enable_default_namespace</span>=<span class="sig-default">True</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.domutils-pysrc.html#BindingDOMSupport.namespacePrefix">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the prefix to be used for the given namespace.</p>
+  <p>This will <a 
+  href="pyxb.utils.domutils.BindingDOMSupport-class.html#declareNamespace" 
+  class="link">declare</a> the namespace if it has not yet been observed.  
+  It will also ensure the mapping from the returned prefix to 
+  <code>namespace</code> is recorded for addition as an xmlns directive in 
+  the final document.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>namespace</code></strong> - The namespace for which a prefix is needed.  If the provided 
+          namespace is <code>None</code> or an absent namespace, the 
+          <code>None</code> value will be returned as the corresponding 
+          prefix.</li>
+        <li><strong class="pname"><code>enable_default_namespace</code></strong> - Normally if the namespace is the default namespace 
+          <code>None</code> is returned to indicate this.  If this keyword 
+          is <code>False</code> then we need a namespace prefix even if 
+          this is the default.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="valueAsText"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">valueAsText</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">value</span>,
+        <span class="sig-arg">enable_default_namespace</span>=<span class="sig-default">True</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.domutils-pysrc.html#BindingDOMSupport.valueAsText">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Represent a simple type value as XML text.</p>
+  <p>This is essentially what <code>value.xsdLiteral()</code> does, but 
+  this one handles any special cases such as QName values where the lexical
+  representation cannot be done in isolation of external information such 
+  as namespace declarations.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
 <a name="addAttribute"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -750,6 +841,40 @@ object --+
           attribute is not in a namespace.</li>
         <li><strong class="pname"><code>value</code></strong> (<code>str</code> or <code>unicode</code>) - The value of the attribute</li>
     </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="addXMLNSDeclaration"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">addXMLNSDeclaration</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">element</span>,
+        <span class="sig-arg">namespace</span>,
+        <span class="sig-arg">prefix</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.domutils-pysrc.html#BindingDOMSupport.addXMLNSDeclaration">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Manually add an XMLNS declaration to the document element.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>namespace</code></strong> - a <a href="pyxb.namespace.Namespace-class.html" 
+          class="link">pyxb.namespace.Namespace</a> instance</li>
+        <li><strong class="pname"><code>prefix</code></strong> - the prefix by which the namespace is known.  If 
+          <code>None</code>, the default prefix as previously declared will
+          be used; if <code>''</code> (empty string) a declaration for 
+          <code>namespace</code> as the default namespace will be 
+          generated.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd><code>prefix</code> as used in the added declaration.</dd>
   </dl>
 </td></tr></table>
 </div>
@@ -928,7 +1053,7 @@ object --+
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Wed Sep 18 10:35:37 2013
+    on Sun Oct 19 06:24:42 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

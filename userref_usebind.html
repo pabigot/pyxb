@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Using Binding Classes &mdash; PyXB 1.2.3 documentation</title>
+    <title>Using Binding Classes &mdash; PyXB 1.2.4 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.2.3',
+        VERSION:     '1.2.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyXB 1.2.3 documentation" href="index.html" />
+    <link rel="top" title="PyXB 1.2.4 documentation" href="index.html" />
     <link rel="up" title="User Reference" href="userref_index.html" />
     <link rel="next" title="Debugging Validation Errors" href="userref_validating.html" />
     <link rel="prev" title="Generating Binding Classes" href="userref_pyxbgen.html" /> 
@@ -43,7 +43,7 @@
         <li class="right" >
           <a href="userref_pyxbgen.html" title="Generating Binding Classes"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+        <li><a href="index.html">PyXB 1.2.4 documentation</a> &raquo;</li>
           <li><a href="userref_index.html" accesskey="U">User Reference</a> &raquo;</li>
     <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
     width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
@@ -92,12 +92,17 @@ on the exception as shown in this example:</p>
 <span class="n">xml</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;badcontent.xml&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="n">order</span> <span class="o">=</span> <span class="n">po1</span><span class="o">.</span><span class="n">CreateFromDocument</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">location_base</span><span class="o">=</span><span class="s">&#39;badcontent.xml&#39;</span><span class="p">)</span>
-<span class="k">except</span> <span class="n">pyxb</span><span class="o">.</span><span class="n">UnrecognizedContentError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Unrecognized element &quot;</span><span class="si">%s</span><span class="s">&quot; at </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">expanded_name</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">location</span><span class="p">))</span>
+<span class="k">except</span> <span class="n">pyxb</span><span class="o">.</span><span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">details</span><span class="p">())</span>
 </pre></div>
 </div>
 <p>which produces:</p>
-<div class="highlight-python"><pre>Unrecognized element "streeet" at badcontent.xml[5:4]
+<div class="highlight-python"><pre>The containing element shipTo is defined at po1.xsd[6:6].
+The containing element type USAddress is defined at po1.xsd[13:2]
+The unrecognized content streeet begins at badcontent.xml[5:4]
+The USAddress automaton is not in an accepting state.
+The following element and wildcard content would be accepted:
+	An element street per po1.xsd[16:6]
 </pre>
 </div>
 </div>
@@ -141,11 +146,21 @@ content model.</p>
 <span class="n">addr</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="s">&#39;AK&#39;</span>
 <span class="n">addr</span><span class="o">.</span><span class="n">zip</span> <span class="o">=</span> <span class="mi">12341</span>
 
-<span class="k">print</span><span class="p">(</span><span class="n">addr</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">addr</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">element_name</span><span class="o">=</span><span class="s">&#39;USAddress&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It is necessary to provide an <tt class="docutils literal"><span class="pre">element_name</span></tt> parameter to <tt class="docutils literal"><span class="pre">to_xml</span></tt>
+because in this case <tt class="docutils literal"><span class="pre">USAddress</span></tt> is the name of a complex type, not an
+top-level schema element.  PyXB cannot generate XML for an instance unless
+it knows the name to use for the root element.  In most situations PyXB can
+figure out what element the instance belongs to, as when the instance is
+created through an element binding instead of a type binding and when it is
+assigned into another instance, both of which are seen in <a class="reference internal" href="#demo4c">demo4c</a>.</p>
+</div>
 <p>This produces:</p>
-<div class="highlight-python"><pre>&lt;?xml version="1.0" encoding="utf-8"?&gt;&lt;ns1:USAddress xmlns:ns1="URN:address"&gt;&lt;name&gt;Robert Smith&lt;/name&gt;&lt;street&gt;8 Oak Avenue&lt;/street&gt;&lt;city&gt;Anytown&lt;/city&gt;&lt;state&gt;AK&lt;/state&gt;&lt;zip&gt;12341&lt;/zip&gt;&lt;/ns1:USAddress&gt;
+<div class="highlight-python"><pre>&lt;?xml version="1.0" encoding="utf-8"?&gt;&lt;USAddress&gt;&lt;name&gt;Robert Smith&lt;/name&gt;&lt;street&gt;8 Oak Avenue&lt;/street&gt;&lt;city&gt;Anytown&lt;/city&gt;&lt;state&gt;AK&lt;/state&gt;&lt;zip&gt;12341&lt;/zip&gt;&lt;/USAddress&gt;
 </pre>
 </div>
 <p>Assigning to individual fields like this bypasses the complex type content
@@ -156,23 +171,23 @@ schema does not include New York as a state, so the following assignment:</p>
 </div>
 <p>will cause a <a class="reference external" href="api/pyxb.exceptions_-module.html#BadTypeValueError">BadTypeValueError</a> exception to be raised:</p>
 <div class="highlight-python"><pre>Traceback (most recent call last):
-  File "demo4a1.py", line 7, in &lt;module&gt;
+  File "demo4a1.py", line 8, in &lt;module&gt;
     addr.state = 'NY'
-  File "/opt/pyxb/pyxb/binding/basis.py", line 49, in __setattr__
+  File "/opt/pyxb/pyxb/binding/basis.py", line 100, in __setattr__
     return super(_TypeBinding_mixin, self).__setattr__(name, value)
-  File "/opt/pyxb/pyxb/binding/content.py", line 557, in set
+  File "/opt/pyxb/pyxb/binding/content.py", line 1037, in set
     value = self.__elementBinding.compatibleValue(value, is_plural=self.isPlural())
-  File "/opt/pyxb/pyxb/binding/basis.py", line 1415, in compatibleValue
+  File "/opt/pyxb/pyxb/binding/basis.py", line 1623, in compatibleValue
     return self.typeDefinition()._CompatibleValue(value, **kw)
-  File "/opt/pyxb/pyxb/binding/basis.py", line 280, in _CompatibleValue
+  File "/opt/pyxb/pyxb/binding/basis.py", line 373, in _CompatibleValue
     return cls(value)
-  File "/opt/pyxb/pyxb/binding/basis.py", line 791, in __init__
-    self.xsdConstraintsOK()
-  File "/opt/pyxb/pyxb/binding/basis.py", line 924, in xsdConstraintsOK
-    return self.XsdConstraintsOK(self)
-  File "/opt/pyxb/pyxb/binding/basis.py", line 918, in XsdConstraintsOK
-    raise pyxb.SimpleTypeValueError('%s violation for %s in %s' % (f.Name(), value, cls.__name__))
-pyxb.exceptions_.SimpleTypeValueError: enumeration violation for NY in USState
+  File "/opt/pyxb/pyxb/binding/basis.py", line 924, in __init__
+    self.xsdConstraintsOK(location)
+  File "/opt/pyxb/pyxb/binding/basis.py", line 1050, in xsdConstraintsOK
+    return self.XsdConstraintsOK(self, location)
+  File "/opt/pyxb/pyxb/binding/basis.py", line 1045, in XsdConstraintsOK
+    raise pyxb.SimpleFacetValueError(cls, value, f, location)
+pyxb.exceptions_.SimpleFacetValueError: Type {URN:address}USState enumeration constraint violated by value NY
 </pre>
 </div>
 <p>However, the order of the field assignments does not matter, as long as all
@@ -187,7 +202,7 @@ required fields are present by the time the XML document is generated.</p>
 <span class="n">addr</span><span class="o">.</span><span class="n">zip</span> <span class="o">=</span> <span class="mi">12341</span>
 <span class="n">addr</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;Robert Smith&#39;</span>
 
-<span class="k">print</span><span class="p">(</span><span class="n">addr</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">addr</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">element_name</span><span class="o">=</span><span class="s">&#39;USAddress&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>Alternatively, you can provide the content as positional parameters in the
@@ -199,12 +214,12 @@ object creation call:</p>
 
 <span class="n">addr</span> <span class="o">=</span> <span class="n">address</span><span class="o">.</span><span class="n">USAddress</span><span class="p">(</span><span class="s">&#39;Robert Smith&#39;</span><span class="p">,</span> <span class="s">&#39;8 Oak Avenue&#39;</span><span class="p">,</span> <span class="s">&#39;Anytown&#39;</span><span class="p">,</span> <span class="s">&#39;AK&#39;</span><span class="p">,</span> <span class="mi">12341</span><span class="p">)</span>
 
-<span class="k">print</span><span class="p">(</span><span class="n">addr</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">addr</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">element_name</span><span class="o">=</span><span class="s">&#39;USAddress&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>This has the same effect, and is much more compact, but it does require that
 the order match the content model.</p>
-<p>Attributes are set using keyword parameters:</p>
+<p id="demo4c">Attributes are set using keyword parameters:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># examples/manual/demo4c.py</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
 
@@ -666,7 +681,7 @@ which it belonged making it difficult to reconstruct a valid document.</td></tr>
         <li class="right" >
           <a href="userref_pyxbgen.html" title="Generating Binding Classes"
              >previous</a> |</li>
-        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+        <li><a href="index.html">PyXB 1.2.4 documentation</a> &raquo;</li>
           <li><a href="userref_index.html" >User Reference</a> &raquo;</li>
     <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
     width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
@@ -675,7 +690,7 @@ which it belonged making it difficult to reconstruct a valid document.</td></tr>
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2009-2013, Peter A. Bigot.
+        &copy; Copyright 2009-2014, Peter A. Bigot.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
   </body>

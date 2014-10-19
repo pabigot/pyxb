@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>PyXB: Python XML Schema Bindings &mdash; PyXB 1.2.3 documentation</title>
+    <title>PyXB: Python XML Schema Bindings &mdash; PyXB 1.2.4 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.2.3',
+        VERSION:     '1.2.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyXB 1.2.3 documentation" href="#" />
+    <link rel="top" title="PyXB 1.2.4 documentation" href="#" />
     <link rel="next" title="Overview" href="overview.html" /> 
   </head>
   <body>
@@ -38,7 +38,7 @@
         <li class="right" >
           <a href="overview.html" title="Overview"
              accesskey="N">next</a> |</li>
-        <li><a href="#">PyXB 1.2.3 documentation</a> &raquo;</li>
+        <li><a href="#">PyXB 1.2.4 documentation</a> &raquo;</li>
     <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
     width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
      
@@ -62,11 +62,16 @@ documents and Python objects.  In concept it is similar to <a class="reference e
 examples are in <a class="reference internal" href="userref_index.html#userreference"><em>User Reference</em></a>.</p>
 <div class="section" id="getting-help">
 <h2>Getting Help<a class="headerlink" href="#getting-help" title="Permalink to this headline">¶</a></h2>
-<p>PyXB is distributed on <a class="reference external" href="http://sourceforge.net/projects/pyxb">SourceForge</a>.</p>
+<p>PyXB is distributed on <a class="reference external" href="http://sourceforge.net/projects/pyxb">SourceForge</a>
+and <a class="reference external" href="https://pypi.python.org/pypi/PyXB/">PyPI</a>, but active development has
+moved to <a class="reference external" href="https://github.com/pabigot/pyxb">Github</a>.  Inter-release updates
+will be available on github on the <a class="reference external" href="https://github.com/pabigot/pyxb/tree/next">next</a> branch of the PyXB repository.</p>
 <p>For support, consult the <a class="reference external" href="https://sourceforge.net/projects/pyxb/forums/forum/956708">Help Forum</a>, or subscribe to
 and email the <a class="reference external" href="https://sourceforge.net/mailarchive/forum.php?forum_name=pyxb-users">mailing list</a>.</p>
 <p>To file a bug report or see the status of defects reported against the current
-release, visit the <a class="reference external" href="http://sourceforge.net/apps/trac/pyxb/">Trac database</a>.</p>
+release, visit the <a class="reference external" href="http://github.com/pabigot/pyxb/issues">Github issues page</a>.  (Older defects were archived under
+Trac at SourceForge; the historical data was moved to the <a class="reference external" href="http://sourceforge.net/p/pyxb/tickets/">SF ticket interface</a> when SourceForge stopped supporting
+hosted applications.  Do not attempt to open new issues on SourceForge.)</p>
 <p>For a history of releases, see <a class="reference internal" href="releases.html#releases"><em>Release History</em></a>.</p>
 </div>
 <div class="section" id="contents">
@@ -130,13 +135,13 @@ release, visit the <a class="reference external" href="http://sourceforge.net/ap
 <p>An example of a program using PyXB to interact with a <a class="reference external" href="http://wiki.cdyne.com/wiki/index.php?title=CDYNE_Weather">web service</a> using an
 automatically-generated module.  First, retrieve the WSDL and generate the
 bindings:</p>
-<div class="highlight-python"><pre>llc[837]$  pyxbgen \
+<div class="highlight-python"><pre>llc[566]$ pyxbgen \
       --wsdl-location=http://wsf.cdyne.com/WeatherWS/Weather.asmx?WSDL \
       --module=weather \
       --write-for-customization
 Retrieving WSDL from http://wsf.cdyne.com/WeatherWS/Weather.asmx?WSDL
 WARNING:pyxb.binding.basis:Unable to convert DOM node {http://www.w3.org/2001/XMLSchema}schema at Weather.asmx?WSDL[4:4] to binding
-PS urn:uuid:029825d0-a6a3-11e2-a410-c8600024e903
+PS urn:uuid:8292a36c-577f-11e4-b592-c8600024e903
 WARNING:pyxb.binding.generate:Complex type {http://ws.cdyne.com/WeatherWS/}ArrayOfWeatherDescription renamed to ArrayOfWeatherDescription_
 WARNING:pyxb.binding.generate:Complex type {http://ws.cdyne.com/WeatherWS/}ForecastReturn renamed to ForecastReturn_
 WARNING:pyxb.binding.generate:Complex type {http://ws.cdyne.com/WeatherWS/}WeatherReturn renamed to WeatherReturn_
@@ -145,12 +150,12 @@ Python for http://ws.cdyne.com/WeatherWS/ requires 1 modules</pre>
 <p>Then write a program that uses them:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">urllib2</span>
+<span class="kn">from</span> <span class="nn">pyxb.utils.six.moves.urllib</span> <span class="kn">import</span> <span class="n">request</span> <span class="k">as</span> <span class="n">urllib_request</span>
 <span class="kn">import</span> <span class="nn">weather</span>   <span class="c"># Bindings generated by PyXB</span>
 <span class="kn">import</span> <span class="nn">pyxb.utils.domutils</span> <span class="kn">as</span> <span class="nn">domutils</span>
 
 <span class="n">uri</span> <span class="o">=</span> <span class="s">&#39;http://wsf.cdyne.com/WeatherWS/Weather.asmx/GetCityForecastByZIP?ZIP=55113&#39;</span>
-<span class="n">xml</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">xml</span> <span class="o">=</span> <span class="n">urllib_request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 <span class="n">doc</span> <span class="o">=</span> <span class="n">domutils</span><span class="o">.</span><span class="n">StringToDOM</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
 <span class="n">fc_return</span> <span class="o">=</span> <span class="n">weather</span><span class="o">.</span><span class="n">CreateFromDOM</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">documentElement</span><span class="p">)</span>
 <span class="k">if</span> <span class="n">fc_return</span><span class="o">.</span><span class="n">Success</span><span class="p">:</span>
@@ -164,17 +169,19 @@ Python for http://ws.cdyne.com/WeatherWS/ requires 1 modules</pre>
 </pre></div>
 </div>
 <p>And run it:</p>
-<div class="highlight-python"><pre>llc[838]$ python client_get.py
+<div class="highlight-python"><pre>llc[567]$ python client_get.py
 Weather forecast for Saint Paul, MN:
- Friday, March 22 2013: Partly Cloudy, from 8 to 31
- Saturday, March 23 2013: Partly Cloudy, from 17 to 34
- Sunday, March 24 2013: Mostly Cloudy, from 21 to 34
- Monday, March 25 2013: Partly Cloudy, from 21 to 33
- Tuesday, March 26 2013: Partly Cloudy, from 21 to 34
- Wednesday, March 27 2013: Partly Cloudy, from 19 to 36
- Thursday, March 28 2013: Partly Cloudy, from 20 to 36</pre>
+ Wednesday, August 13 2014: Partly Cloudy, from 63 to 83
+ Thursday, August 14 2014: Partly Cloudy, from 61 to 82
+ Friday, August 15 2014: Partly Cloudy, from 65 to 86
+ Saturday, August 16 2014: Partly Cloudy, from 67 to 84
+ Sunday, August 17 2014: Partly Cloudy, from 67 to 82
+ Monday, August 18 2014: Partly Cloudy, from 67 to 83
+ Tuesday, August 19 2014: Partly Cloudy, from 65 to 84</pre>
 </div>
-<p>That&#8217;s it.</p>
+<p>That&#8217;s it.  (Note: The <a class="reference external" href="http://wsf.cdyne.com/WeatherWS/Weather.asmx?op=GetCityForecastByZIP">CDYNE Weather Service</a>
+sometimes provides out-of-date information.  When notified of this they will
+fix the problem quickly.)</p>
 </div>
 <div class="section" id="indices-and-tables">
 <h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
@@ -238,7 +245,7 @@ Weather forecast for Saint Paul, MN:
         <li class="right" >
           <a href="overview.html" title="Overview"
              >next</a> |</li>
-        <li><a href="#">PyXB 1.2.3 documentation</a> &raquo;</li>
+        <li><a href="#">PyXB 1.2.4 documentation</a> &raquo;</li>
     <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
     width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
      
@@ -246,7 +253,7 @@ Weather forecast for Saint Paul, MN:
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2009-2013, Peter A. Bigot.
+        &copy; Copyright 2009-2014, Peter A. Bigot.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
   </body>

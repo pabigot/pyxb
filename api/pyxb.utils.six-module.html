@@ -1,0 +1,1176 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pyxb.utils.six</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
+        <a href="pyxb.utils-module.html">Package&nbsp;utils</a> ::
+        Module&nbsp;six
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pyxb.utils.six-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module six</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.utils.six-pysrc.html">source&nbsp;code</a></span></p>
+<p>Utilities for writing code that runs on Python 2 and 3</p>
+
+<hr />
+<div class="fields">      <p><strong>Version:</strong>
+        1.5.2
+      </p>
+      <p><strong>Author:</strong>
+        Benjamin Peterson &lt;benjamin@python.org&gt;
+      </p>
+</div><!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Classes</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Classes"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="unicode-class.html" class="summary-name">text_type</a><br />
+      unicode(string [, encoding[, errors]]) -&gt; object
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="str-class.html" class="summary-name">binary_type</a><br />
+      str(object) -&gt; string
+    </td>
+  </tr>
+<tr class="private">
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.six._LazyDescr-class.html" class="summary-name" onclick="show_private();">_LazyDescr</a>
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.six.MovedModule-class.html" class="summary-name">MovedModule</a>
+    </td>
+  </tr>
+<tr class="private">
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.six._LazyModule-class.html" class="summary-name" onclick="show_private();">_LazyModule</a>
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.six.MovedAttribute-class.html" class="summary-name">MovedAttribute</a>
+    </td>
+  </tr>
+<tr class="private">
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.six._MovedItems-class.html" class="summary-name" onclick="show_private();">_MovedItems</a><br />
+      Lazy loading of moved objects
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.six.Module_six_moves_urllib_parse-class.html" class="summary-name">Module_six_moves_urllib_parse</a><br />
+      Lazy loading of moved objects in six.moves.urllib_parse
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.six.Module_six_moves_urllib_error-class.html" class="summary-name">Module_six_moves_urllib_error</a><br />
+      Lazy loading of moved objects in six.moves.urllib_error
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.six.Module_six_moves_urllib_request-class.html" class="summary-name">Module_six_moves_urllib_request</a><br />
+      Lazy loading of moved objects in six.moves.urllib_request
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.six.Module_six_moves_urllib_response-class.html" class="summary-name">Module_six_moves_urllib_response</a><br />
+      Lazy loading of moved objects in six.moves.urllib_response
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.six.Module_six_moves_urllib_robotparser-class.html" class="summary-name">Module_six_moves_urllib_robotparser</a><br />
+      Lazy loading of moved objects in six.moves.urllib_robotparser
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.six.Module_six_moves_urllib-class.html" class="summary-name">Module_six_moves_urllib</a><br />
+      Create a six.moves.urllib namespace that resembles the Python 3 
+        namespace
+    </td>
+  </tr>
+<tr>
+    <td class="summary" colspan="2">
+        <a href="pyxb.utils.six.Iterator-class.html" class="summary-name">Iterator</a>
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_add_doc"></a><span class="summary-sig-name">_add_doc</span>(<span class="summary-sig-arg">func</span>,
+        <span class="summary-sig-arg">doc</span>)</span><br />
+      Add documentation to a function.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#_add_doc">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_import_module"></a><span class="summary-sig-name">_import_module</span>(<span class="summary-sig-arg">name</span>)</span><br />
+      Import module, returning the module after the last dot.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#_import_module">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="add_move"></a><span class="summary-sig-name">add_move</span>(<span class="summary-sig-arg">move</span>)</span><br />
+      Add an item to six.moves.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#add_move">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="remove_move"></a><span class="summary-sig-name">remove_move</span>(<span class="summary-sig-arg">name</span>)</span><br />
+      Remove item from six.moves.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#remove_move">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="advance_iterator"></a><span class="summary-sig-name">advance_iterator</span>(<span class="summary-sig-arg">it</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#advance_iterator">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="next"></a><span class="summary-sig-name">next</span>(<span class="summary-sig-arg">it</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#advance_iterator">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_unbound_function"></a><span class="summary-sig-name">get_unbound_function</span>(<span class="summary-sig-arg">unbound</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#get_unbound_function">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="create_bound_method"></a><span class="summary-sig-name">create_bound_method</span>(<span class="summary-sig-arg">func</span>,
+        <span class="summary-sig-arg">obj</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#create_bound_method">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="callable"></a><span class="summary-sig-name">callable</span>(<span class="summary-sig-arg">obj</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#callable">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="iterkeys"></a><span class="summary-sig-name">iterkeys</span>(<span class="summary-sig-arg">d</span>,
+        <span class="summary-sig-arg">**kw</span>)</span><br />
+      Return an iterator over the keys of a dictionary.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#iterkeys">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="itervalues"></a><span class="summary-sig-name">itervalues</span>(<span class="summary-sig-arg">d</span>,
+        <span class="summary-sig-arg">**kw</span>)</span><br />
+      Return an iterator over the values of a dictionary.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#itervalues">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="iteritems"></a><span class="summary-sig-name">iteritems</span>(<span class="summary-sig-arg">d</span>,
+        <span class="summary-sig-arg">**kw</span>)</span><br />
+      Return an iterator over the (key, value) pairs of a dictionary.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#iteritems">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="iterlists"></a><span class="summary-sig-name">iterlists</span>(<span class="summary-sig-arg">d</span>,
+        <span class="summary-sig-arg">**kw</span>)</span><br />
+      Return an iterator over the (key, [values]) pairs of a dictionary.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#iterlists">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="b"></a><span class="summary-sig-name">b</span>(<span class="summary-sig-arg">s</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#b">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="u"></a><span class="summary-sig-name">u</span>(<span class="summary-sig-arg">s</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#u">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">character</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="unichr"></a><span class="summary-sig-name">unichr</span>(<span class="summary-sig-arg">i</span>)</span><br />
+      Return a string of one character with ordinal i; 0 &lt;= i &lt; 256.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">character</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="int2byte"></a><span class="summary-sig-name">int2byte</span>(<span class="summary-sig-arg">i</span>)</span><br />
+      Return a string of one character with ordinal i; 0 &lt;= i &lt; 256.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="byte2int"></a><span class="summary-sig-name">byte2int</span>(<span class="summary-sig-arg">bs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#byte2int">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="indexbytes"></a><span class="summary-sig-name">indexbytes</span>(<span class="summary-sig-arg">buf</span>,
+        <span class="summary-sig-arg">i</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#indexbytes">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="iterbytes"></a><span class="summary-sig-name">iterbytes</span>(<span class="summary-sig-arg">buf</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#iterbytes">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="reraise"></a><span class="summary-sig-name">reraise</span>(<span class="summary-sig-arg">tp</span>,
+        <span class="summary-sig-arg">value</span>,
+        <span class="summary-sig-arg">tb</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#reraise">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="exec_"></a><span class="summary-sig-name">exec_</span>(<span class="summary-sig-arg">_code_</span>,
+        <span class="summary-sig-arg">_globs_</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">_locs_</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Execute code in a namespace.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#exec_">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="print_"></a><span class="summary-sig-name">print_</span>(<span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      The new-style print function for Python 2.4 and 2.5.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#print_">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="with_metaclass"></a><span class="summary-sig-name">with_metaclass</span>(<span class="summary-sig-arg">meta</span>,
+        <span class="summary-sig-arg">*bases</span>)</span><br />
+      Create a base class with a metaclass.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#with_metaclass">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="add_metaclass"></a><span class="summary-sig-name">add_metaclass</span>(<span class="summary-sig-arg">metaclass</span>)</span><br />
+      Class decorator for creating a class with a metaclass.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#add_metaclass">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="unicode_convertible"></a><span class="summary-sig-name">unicode_convertible</span>(<span class="summary-sig-arg">clazz</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.six-pysrc.html#unicode_convertible">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Variables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="PY2"></a><span class="summary-name">PY2</span> = <code title="sys.version_info [0]== 2">sys.version_info [0]== 2</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="PY3"></a><span class="summary-name">PY3</span> = <code title="sys.version_info [0]== 3">sys.version_info [0]== 3</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="string_types"></a><span class="summary-name">string_types</span> = <code title="basestring,">basestring,</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="integer_types"></a><span class="summary-name">integer_types</span> = <code title="int, long">int, long</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="class_types"></a><span class="summary-name">class_types</span> = <code title="type, types.ClassType">type, types.ClassType</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="none_type"></a><span class="summary-name">none_type</span> = <code title="types.NoneType">types.NoneType</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="boolean_type"></a><span class="summary-name">boolean_type</span> = <code title="types.BooleanType">types.BooleanType</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="int_type"></a><span class="summary-name">int_type</span> = <code title="types.IntType">types.IntType</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="long_type"></a><span class="summary-name">long_type</span> = <code title="types.LongType">types.LongType</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="float_type"></a><span class="summary-name">float_type</span> = <code title="types.FloatType">types.FloatType</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="list_type"></a><span class="summary-name">list_type</span> = <code title="types.ListType">types.ListType</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="tuple_type"></a><span class="summary-name">tuple_type</span> = <code title="types.TupleType">types.TupleType</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="dictionary_type"></a><span class="summary-name">dictionary_type</span> = <code title="types.DictionaryType">types.DictionaryType</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="MAXSIZE"></a><span class="summary-name">MAXSIZE</span> = <code title="int((1 &lt;&lt; 63)-1)">int((1 &lt;&lt; 63)-1)</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.six-module.html#_moved_attributes" class="summary-name" onclick="show_private();">_moved_attributes</a> = <code title="[MovedAttribute(&quot;cStringIO&quot;, &quot;cStringIO&quot;, &quot;io&quot;, &quot;StringIO&quot;), MovedAttr\
+ibute(&quot;filter&quot;, &quot;itertools&quot;, &quot;builtins&quot;, &quot;ifilter&quot;, &quot;filter&quot;), MovedAt\
+tribute(&quot;filterfalse&quot;, &quot;itertools&quot;, &quot;itertools&quot;, &quot;ifilterfalse&quot;, &quot;filt\
+erfalse&quot;), MovedAttribute(&quot;input&quot;, &quot;__builtin__&quot;, &quot;builtins&quot;, &quot;raw_inp\
+ut&quot;, &quot;input&quot;), MovedAttribute(&quot;map&quot;, &quot;itertools&quot;, &quot;builtins&quot;, &quot;imap&quot;, \
+&quot;map&quot;), MovedAttribute(&quot;range&quot;, &quot;__builtin__&quot;, &quot;builtins&quot;, &quot;xrange&quot;, &quot;\
+range&quot;), MovedAttribute(&quot;reload_module&quot;, &quot;__builtin__&quot;, &quot;imp&quot;, &quot;reload\
+&quot;), MovedAttribute(&quot;reduce&quot;, &quot;__builtin__&quot;, &quot;functools&quot;), MovedAttribu\
+...">[MovedAttribute(&quot;cStringIO&quot;, &quot;cStringIO&quot;, <code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="moves"></a><span class="summary-name">moves</span>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.six-module.html#_urllib_parse_moved_attributes" class="summary-name" onclick="show_private();">_urllib_parse_moved_attributes</a> = <code title="[MovedAttribute(&quot;ParseResult&quot;, &quot;urlparse&quot;, &quot;urllib.parse&quot;), MovedAttri\
+bute(&quot;parse_qs&quot;, &quot;urlparse&quot;, &quot;urllib.parse&quot;), MovedAttribute(&quot;parse_qs\
+l&quot;, &quot;urlparse&quot;, &quot;urllib.parse&quot;), MovedAttribute(&quot;urldefrag&quot;, &quot;urlparse\
+&quot;, &quot;urllib.parse&quot;), MovedAttribute(&quot;urljoin&quot;, &quot;urlparse&quot;, &quot;urllib.pars\
+e&quot;), MovedAttribute(&quot;urlparse&quot;, &quot;urlparse&quot;, &quot;urllib.parse&quot;), MovedAttr\
+ibute(&quot;urlsplit&quot;, &quot;urlparse&quot;, &quot;urllib.parse&quot;), MovedAttribute(&quot;urlunpa\
+rse&quot;, &quot;urlparse&quot;, &quot;urllib.parse&quot;), MovedAttribute(&quot;urlunsplit&quot;, &quot;urlpa\
+rse&quot;, &quot;urllib.parse&quot;), MovedAttribute(&quot;quote&quot;, &quot;urllib&quot;, &quot;urllib.parse\
+...">[MovedAttribute(&quot;ParseResult&quot;<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.six-module.html#_urllib_error_moved_attributes" class="summary-name" onclick="show_private();">_urllib_error_moved_attributes</a> = <code title="[MovedAttribute(&quot;URLError&quot;, &quot;urllib2&quot;, &quot;urllib.error&quot;), MovedAttribute\
+(&quot;HTTPError&quot;, &quot;urllib2&quot;, &quot;urllib.error&quot;), MovedAttribute(&quot;ContentTooSh\
+ortError&quot;, &quot;urllib&quot;, &quot;urllib.error&quot;),]">[MovedAttribute(&quot;URLError&quot;, &quot;<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.six-module.html#_urllib_request_moved_attributes" class="summary-name" onclick="show_private();">_urllib_request_moved_attributes</a> = <code title="[MovedAttribute(&quot;urlopen&quot;, &quot;urllib2&quot;, &quot;urllib.request&quot;), MovedAttribut\
+e(&quot;install_opener&quot;, &quot;urllib2&quot;, &quot;urllib.request&quot;), MovedAttribute(&quot;buil\
+d_opener&quot;, &quot;urllib2&quot;, &quot;urllib.request&quot;), MovedAttribute(&quot;pathname2url&quot;\
+, &quot;urllib&quot;, &quot;urllib.request&quot;), MovedAttribute(&quot;url2pathname&quot;, &quot;urllib&quot;\
+, &quot;urllib.request&quot;), MovedAttribute(&quot;getproxies&quot;, &quot;urllib&quot;, &quot;urllib.re\
+quest&quot;), MovedAttribute(&quot;Request&quot;, &quot;urllib2&quot;, &quot;urllib.request&quot;), Moved\
+Attribute(&quot;OpenerDirector&quot;, &quot;urllib2&quot;, &quot;urllib.request&quot;), MovedAttribu\
+te(&quot;HTTPDefaultErrorHandler&quot;, &quot;urllib2&quot;, &quot;urllib.request&quot;), MovedAttri\
+...">[MovedAttribute(&quot;urlopen&quot;, <code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.six-module.html#_urllib_response_moved_attributes" class="summary-name" onclick="show_private();">_urllib_response_moved_attributes</a> = <code title="[MovedAttribute(&quot;addbase&quot;, &quot;urllib&quot;, &quot;urllib.response&quot;), MovedAttribut\
+e(&quot;addclosehook&quot;, &quot;urllib&quot;, &quot;urllib.response&quot;), MovedAttribute(&quot;addinf\
+o&quot;, &quot;urllib&quot;, &quot;urllib.response&quot;), MovedAttribute(&quot;addinfourl&quot;, &quot;urllib\
+&quot;, &quot;urllib.response&quot;),]">[MovedAttribute(&quot;addbase&quot;,<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.six-module.html#_urllib_robotparser_moved_attributes" class="summary-name" onclick="show_private();">_urllib_robotparser_moved_attributes</a> = <code title="[MovedAttribute(&quot;RobotFileParser&quot;, &quot;robotparser&quot;, &quot;urllib.robotparser&quot;\
+),]">[MovedAttribute(&quot;RobotF<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_meth_func"></a><span class="summary-name">_meth_func</span> = <code title="&quot;im_func&quot;">&quot;im_func&quot;</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_meth_self"></a><span class="summary-name">_meth_self</span> = <code title="&quot;im_self&quot;">&quot;im_self&quot;</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_func_closure"></a><span class="summary-name">_func_closure</span> = <code title="&quot;func_closure&quot;">&quot;func_closure&quot;</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_func_code"></a><span class="summary-name">_func_code</span> = <code title="&quot;func_code&quot;">&quot;func_code&quot;</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_func_defaults"></a><span class="summary-name">_func_defaults</span> = <code title="&quot;func_defaults&quot;">&quot;func_defaults&quot;</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_func_globals"></a><span class="summary-name">_func_globals</span> = <code title="&quot;func_globals&quot;">&quot;func_globals&quot;</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_iterkeys"></a><span class="summary-name">_iterkeys</span> = <code title="&quot;iterkeys&quot;">&quot;iterkeys&quot;</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_itervalues"></a><span class="summary-name">_itervalues</span> = <code title="&quot;itervalues&quot;">&quot;itervalues&quot;</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_iteritems"></a><span class="summary-name">_iteritems</span> = <code title="&quot;iteritems&quot;">&quot;iteritems&quot;</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_iterlists"></a><span class="summary-name">_iterlists</span> = <code title="&quot;iterlists&quot;">&quot;iterlists&quot;</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="get_method_function"></a><span class="summary-name">get_method_function</span> = <code title="operator.attrgetter(_meth_func)">operator.attrgetter(_meth_func)</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="get_method_self"></a><span class="summary-name">get_method_self</span> = <code title="operator.attrgetter(_meth_self)">operator.attrgetter(_meth_self)</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="get_function_closure"></a><span class="summary-name">get_function_closure</span> = <code title="operator.attrgetter(_func_closure)">operator.attrgetter(_func_closure)</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="get_function_code"></a><span class="summary-name">get_function_code</span> = <code title="operator.attrgetter(_func_code)">operator.attrgetter(_func_code)</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="get_function_defaults"></a><span class="summary-name">get_function_defaults</span> = <code title="operator.attrgetter(_func_defaults)">operator.attrgetter(_func_defaults)</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="get_function_globals"></a><span class="summary-name">get_function_globals</span> = <code title="operator.attrgetter(_func_globals)">operator.attrgetter(_func_globals)</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="BytesIO"></a><span class="summary-name">BytesIO</span> = <code title="StringIO.StringIO">StringIO.StringIO</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="StringIO"></a><span class="summary-name">StringIO</span> = <code title="StringIO.StringIO">StringIO.StringIO</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="intern"></a><span class="summary-name">intern</span> = <code title="__builtin__.intern">__builtin__.intern</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="file"></a><span class="summary-name">file</span> = <code title="__builtin__.file">__builtin__.file</code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES DETAILS ==================== -->
+<a name="section-VariablesDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-VariablesDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="_moved_attributes"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">_moved_attributes</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+[MovedAttribute(&quot;cStringIO&quot;, &quot;cStringIO&quot;, &quot;io&quot;, &quot;StringIO&quot;), MovedAttr<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ibute(&quot;filter&quot;, &quot;itertools&quot;, &quot;builtins&quot;, &quot;ifilter&quot;, &quot;filter&quot;), MovedAt<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+tribute(&quot;filterfalse&quot;, &quot;itertools&quot;, &quot;itertools&quot;, &quot;ifilterfalse&quot;, &quot;filt<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+erfalse&quot;), MovedAttribute(&quot;input&quot;, &quot;__builtin__&quot;, &quot;builtins&quot;, &quot;raw_inp<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ut&quot;, &quot;input&quot;), MovedAttribute(&quot;map&quot;, &quot;itertools&quot;, &quot;builtins&quot;, &quot;imap&quot;, <span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+&quot;map&quot;), MovedAttribute(&quot;range&quot;, &quot;__builtin__&quot;, &quot;builtins&quot;, &quot;xrange&quot;, &quot;<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+range&quot;), MovedAttribute(&quot;reload_module&quot;, &quot;__builtin__&quot;, &quot;imp&quot;, &quot;reload<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+&quot;), MovedAttribute(&quot;reduce&quot;, &quot;__builtin__&quot;, &quot;functools&quot;), MovedAttribu<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_urllib_parse_moved_attributes"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">_urllib_parse_moved_attributes</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+[MovedAttribute(&quot;ParseResult&quot;, &quot;urlparse&quot;, &quot;urllib.parse&quot;), MovedAttri<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+bute(&quot;parse_qs&quot;, &quot;urlparse&quot;, &quot;urllib.parse&quot;), MovedAttribute(&quot;parse_qs<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+l&quot;, &quot;urlparse&quot;, &quot;urllib.parse&quot;), MovedAttribute(&quot;urldefrag&quot;, &quot;urlparse<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+&quot;, &quot;urllib.parse&quot;), MovedAttribute(&quot;urljoin&quot;, &quot;urlparse&quot;, &quot;urllib.pars<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+e&quot;), MovedAttribute(&quot;urlparse&quot;, &quot;urlparse&quot;, &quot;urllib.parse&quot;), MovedAttr<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ibute(&quot;urlsplit&quot;, &quot;urlparse&quot;, &quot;urllib.parse&quot;), MovedAttribute(&quot;urlunpa<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+rse&quot;, &quot;urlparse&quot;, &quot;urllib.parse&quot;), MovedAttribute(&quot;urlunsplit&quot;, &quot;urlpa<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+rse&quot;, &quot;urllib.parse&quot;), MovedAttribute(&quot;quote&quot;, &quot;urllib&quot;, &quot;urllib.parse<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_urllib_error_moved_attributes"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">_urllib_error_moved_attributes</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+[MovedAttribute(&quot;URLError&quot;, &quot;urllib2&quot;, &quot;urllib.error&quot;), MovedAttribute<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+(&quot;HTTPError&quot;, &quot;urllib2&quot;, &quot;urllib.error&quot;), MovedAttribute(&quot;ContentTooSh<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ortError&quot;, &quot;urllib&quot;, &quot;urllib.error&quot;),]
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_urllib_request_moved_attributes"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">_urllib_request_moved_attributes</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+[MovedAttribute(&quot;urlopen&quot;, &quot;urllib2&quot;, &quot;urllib.request&quot;), MovedAttribut<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+e(&quot;install_opener&quot;, &quot;urllib2&quot;, &quot;urllib.request&quot;), MovedAttribute(&quot;buil<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+d_opener&quot;, &quot;urllib2&quot;, &quot;urllib.request&quot;), MovedAttribute(&quot;pathname2url&quot;<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+, &quot;urllib&quot;, &quot;urllib.request&quot;), MovedAttribute(&quot;url2pathname&quot;, &quot;urllib&quot;<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+, &quot;urllib.request&quot;), MovedAttribute(&quot;getproxies&quot;, &quot;urllib&quot;, &quot;urllib.re<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+quest&quot;), MovedAttribute(&quot;Request&quot;, &quot;urllib2&quot;, &quot;urllib.request&quot;), Moved<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+Attribute(&quot;OpenerDirector&quot;, &quot;urllib2&quot;, &quot;urllib.request&quot;), MovedAttribu<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+te(&quot;HTTPDefaultErrorHandler&quot;, &quot;urllib2&quot;, &quot;urllib.request&quot;), MovedAttri<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_urllib_response_moved_attributes"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">_urllib_response_moved_attributes</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+[MovedAttribute(&quot;addbase&quot;, &quot;urllib&quot;, &quot;urllib.response&quot;), MovedAttribut<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+e(&quot;addclosehook&quot;, &quot;urllib&quot;, &quot;urllib.response&quot;), MovedAttribute(&quot;addinf<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+o&quot;, &quot;urllib&quot;, &quot;urllib.response&quot;), MovedAttribute(&quot;addinfourl&quot;, &quot;urllib<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+&quot;, &quot;urllib.response&quot;),]
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_urllib_robotparser_moved_attributes"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">_urllib_robotparser_moved_attributes</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+[MovedAttribute(&quot;RobotFileParser&quot;, &quot;robotparser&quot;, &quot;urllib.robotparser&quot;<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+),]
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pyxb-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1
+    on Sun Oct 19 06:24:41 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

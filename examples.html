@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Examples &mdash; PyXB 1.2.3 documentation</title>
+    <title>Examples &mdash; PyXB 1.2.4 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.2.3',
+        VERSION:     '1.2.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyXB 1.2.3 documentation" href="index.html" />
+    <link rel="top" title="PyXB 1.2.4 documentation" href="index.html" />
     <link rel="next" title="Release History" href="releases.html" />
     <link rel="prev" title="Related Packages" href="related.html" /> 
   </head>
@@ -42,7 +42,7 @@
         <li class="right" >
           <a href="related.html" title="Related Packages"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+        <li><a href="index.html">PyXB 1.2.4 documentation</a> &raquo;</li>
     <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
     width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
      
@@ -84,9 +84,9 @@ information.</p>
 <p>The example <tt class="file docutils literal"><span class="pre">define.py</span></tt> looks up a word in all available dictionaries:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">dict</span>
-<span class="kn">import</span> <span class="nn">urllib2</span>
-<span class="kn">import</span> <span class="nn">pyxb.utils.domutils</span> <span class="kn">as</span> <span class="nn">domutils</span>
+<span class="kn">from</span> <span class="nn">pyxb.utils.six.moves.urllib.request</span> <span class="kn">import</span> <span class="n">urlopen</span>
 <span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">pyxb.utils</span> <span class="kn">import</span> <span class="n">domutils</span>
 
 <span class="n">word</span> <span class="o">=</span> <span class="s">&#39;xml&#39;</span>
 <span class="k">if</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">):</span>
@@ -94,7 +94,7 @@ information.</p>
 
 <span class="c"># Create a REST-style query to retrieve the information about this dictionary.</span>
 <span class="n">uri</span> <span class="o">=</span> <span class="s">&#39;http://services.aonaware.com/DictService/DictService.asmx/Define?word=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">word</span><span class="p">,)</span>
-<span class="n">rxml</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">rxml</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 <span class="n">resp</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">CreateFromDOM</span><span class="p">(</span><span class="n">domutils</span><span class="o">.</span><span class="n">StringToDOM</span><span class="p">(</span><span class="n">rxml</span><span class="p">))</span>
 
 <span class="k">print</span><span class="p">(</span><span class="s">&#39;Definitions of </span><span class="si">%s</span><span class="s">:&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">Word</span><span class="p">,))</span>
@@ -107,14 +107,14 @@ information.</p>
 <p>The example <tt class="file docutils literal"><span class="pre">showdict.py</span></tt> lists the available dictionaries:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">dict</span>
-<span class="kn">import</span> <span class="nn">urllib2</span>
+<span class="kn">from</span> <span class="nn">pyxb.utils.six.moves.urllib.request</span> <span class="kn">import</span> <span class="n">urlopen</span>
 <span class="kn">import</span> <span class="nn">pyxb.utils.domutils</span> <span class="kn">as</span> <span class="nn">domutils</span>
 <span class="kn">from</span> <span class="nn">xml.dom</span> <span class="kn">import</span> <span class="n">minidom</span>
 
 <span class="c"># Get the list of dictionaries available from the service.</span>
 <span class="n">port_uri</span> <span class="o">=</span> <span class="s">&#39;http://services.aonaware.com/DictService/DictService.asmx&#39;</span>
 <span class="n">uri</span> <span class="o">=</span> <span class="n">port_uri</span> <span class="o">+</span> <span class="s">&#39;/DictionaryList&#39;</span>
-<span class="n">dle_xml</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">dle_xml</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 <span class="n">dle_dom</span> <span class="o">=</span> <span class="n">domutils</span><span class="o">.</span><span class="n">StringToDOM</span><span class="p">(</span><span class="n">dle_xml</span><span class="p">)</span>
 <span class="n">dle</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">ArrayOfDictionary</span><span class="o">.</span><span class="n">createFromDOM</span><span class="p">(</span><span class="n">dle_dom</span><span class="p">)</span>
 
@@ -122,7 +122,7 @@ information.</p>
 <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dle</span><span class="o">.</span><span class="n">Dictionary</span><span class="p">:</span>
     <span class="c"># Create a REST-style query to retrieve the information about this dictionary.</span>
     <span class="n">uri</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s%s</span><span class="s">?dictId=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">port_uri</span><span class="p">,</span> <span class="n">op_path</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">Id</span><span class="p">)</span>
-    <span class="n">resp</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
     <span class="c"># The response is a simple type derived from string, so we can</span>
     <span class="c"># just extract and print it.</span>
     <span class="n">di_resp</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">CreateFromDOM</span><span class="p">(</span><span class="n">domutils</span><span class="o">.</span><span class="n">StringToDOM</span><span class="p">(</span><span class="n">resp</span><span class="p">))</span>
@@ -140,11 +140,11 @@ operations.  Next release, maybe.</p>
 The REST interface was demonstrated as the <a class="reference internal" href="index.html#thirty-sec-example"><em>Thirty Second Example</em></a>.  A
 SOAP interface example is in <tt class="docutils literal"><span class="pre">client.py</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
-<span class="kn">import</span> <span class="nn">weather</span>
-<span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">pyxb.utils.six.moves.urllib</span> <span class="kn">import</span> <span class="n">request</span> <span class="k">as</span> <span class="n">urllib_request</span>
 <span class="kn">import</span> <span class="nn">pyxb.bundles.wssplat.soap11</span> <span class="kn">as</span> <span class="nn">soapenv</span>
-<span class="kn">import</span> <span class="nn">urllib2</span>
+<span class="kn">import</span> <span class="nn">weather</span>
 
 <span class="nb">zip</span> <span class="o">=</span> <span class="mi">55113</span>
 <span class="k">if</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">):</span>
@@ -156,10 +156,10 @@ SOAP interface example is in <tt class="docutils literal"><span class="pre">clie
 <span class="nb">open</span><span class="p">(</span><span class="s">&#39;request.xml&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">))</span>
 
 <span class="c"># Invoke the service</span>
-<span class="n">uri</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="s">&#39;http://wsf.cdyne.com/WeatherWS/Weather.asmx&#39;</span><span class="p">,</span>
-                      <span class="n">env</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">),</span>
-                      <span class="p">{</span> <span class="s">&#39;SOAPAction&#39;</span> <span class="p">:</span> <span class="s">&quot;http://ws.cdyne.com/WeatherWS/GetCityForecastByZIP&quot;</span><span class="p">,</span> <span class="s">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s">&#39;text/xml&#39;</span> <span class="p">}</span> <span class="p">)</span>
-<span class="n">rxml</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">uri</span> <span class="o">=</span> <span class="n">urllib_request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="s">&#39;http://wsf.cdyne.com/WeatherWS/Weather.asmx&#39;</span><span class="p">,</span>
+                             <span class="n">env</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">),</span>
+                             <span class="p">{</span> <span class="s">&#39;SOAPAction&#39;</span> <span class="p">:</span> <span class="s">&quot;http://ws.cdyne.com/WeatherWS/GetCityForecastByZIP&quot;</span><span class="p">,</span> <span class="s">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s">&#39;text/xml&#39;</span> <span class="p">}</span> <span class="p">)</span>
+<span class="n">rxml</span> <span class="o">=</span> <span class="n">urllib_request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 <span class="nb">open</span><span class="p">(</span><span class="s">&#39;response.xml&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">rxml</span><span class="p">)</span>
 
 <span class="c"># Convert the response to a SOAP envelope, then extract the actual</span>
@@ -178,8 +178,6 @@ SOAP interface example is in <tt class="docutils literal"><span class="pre">clie
         <span class="n">low</span> <span class="o">=</span> <span class="n">fc</span><span class="o">.</span><span class="n">Temperatures</span><span class="o">.</span><span class="n">MorningLow</span>
         <span class="n">high</span> <span class="o">=</span> <span class="n">fc</span><span class="o">.</span><span class="n">Temperatures</span><span class="o">.</span><span class="n">DaytimeHigh</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;  </span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">, from </span><span class="si">%s</span><span class="s"> to </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">when</span><span class="p">,</span> <span class="n">outlook</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">))</span>
-        
-    
 </pre></div>
 </div>
 <p>Note the various misspellings in the schema (e.g., &#8220;Desciption&#8221;).  Also, be
@@ -208,13 +206,12 @@ binding to add a custom method, and parsing content with both DOM and SAX.
 It also provides timing information; the document is about 200KB, and takes
 several seconds to parse.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
-<span class="kn">import</span> <span class="nn">tmstvd</span>
-<span class="kn">import</span> <span class="nn">pyxb.utils.domutils</span> <span class="kn">as</span> <span class="nn">domutils</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">xml.dom.minidom</span>
 <span class="kn">import</span> <span class="nn">pyxb.utils.saxdom</span>
 <span class="kn">import</span> <span class="nn">pyxb.binding.saxer</span>
-<span class="kn">import</span> <span class="nn">io</span>
-<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">tmstvd</span>
 <span class="c">#import cProfile</span>
 
 <span class="c"># Extend the anonymous class used by the xtvd element to add a method</span>
@@ -310,13 +307,13 @@ discovered after too many tools had already worked around it.  Currently,
 PyXB also requires that you work around it manually, although a
 customization of the relevant SOAP encoding class could make it unnecessary.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">pyxb.utils.six.moves.urllib</span> <span class="kn">import</span> <span class="n">request</span> <span class="k">as</span> <span class="n">urllib_request</span>
 <span class="kn">import</span> <span class="nn">GeoCoder</span>
 <span class="kn">from</span> <span class="nn">pyxb</span> <span class="kn">import</span> <span class="n">BIND</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">pyxb.utils.domutils</span> <span class="kn">as</span> <span class="nn">domutils</span>
+<span class="kn">from</span> <span class="nn">pyxb.utils</span> <span class="kn">import</span> <span class="n">domutils</span>
 <span class="kn">import</span> <span class="nn">pyxb.bundles.wssplat.soap11</span> <span class="kn">as</span> <span class="nn">soapenv</span>
 <span class="kn">import</span> <span class="nn">pyxb.bundles.wssplat.soapenc</span> <span class="kn">as</span> <span class="nn">soapenc</span>
-<span class="kn">import</span> <span class="nn">urllib2</span>
 
 <span class="n">address</span> <span class="o">=</span> <span class="s">&#39;1600 Pennsylvania Ave., Washington, DC&#39;</span>
 <span class="k">if</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">):</span>
@@ -324,11 +321,11 @@ customization of the relevant SOAP encoding class could make it unnecessary.</p>
 
 <span class="n">env</span> <span class="o">=</span> <span class="n">soapenv</span><span class="o">.</span><span class="n">Envelope</span><span class="p">(</span><span class="n">Body</span><span class="o">=</span><span class="n">BIND</span><span class="p">(</span><span class="n">GeoCoder</span><span class="o">.</span><span class="n">geocode</span><span class="p">(</span><span class="n">address</span><span class="p">)))</span>
 
-<span class="n">uri</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="s">&#39;http://rpc.geocoder.us/service/soap/&#39;</span><span class="p">,</span>
+<span class="n">uri</span> <span class="o">=</span> <span class="n">urllib_request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="s">&#39;http://rpc.geocoder.us/service/soap/&#39;</span><span class="p">,</span>
                       <span class="n">env</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">),</span>
                       <span class="p">{</span> <span class="s">&#39;SOAPAction&#39;</span> <span class="p">:</span> <span class="s">&quot;http://rpc.geocoder.us/Geo/Coder/US#geocode&quot;</span><span class="p">,</span> <span class="s">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s">&#39;text/xml&#39;</span> <span class="p">}</span> <span class="p">)</span>
 
-<span class="n">rxml</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">rxml</span> <span class="o">=</span> <span class="n">urllib_request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 <span class="c">#open(&#39;response.xml&#39;, &#39;w&#39;).write(rxml)</span>
 <span class="c">#rxml = open(&#39;response.xml&#39;).read()</span>
 <span class="n">response</span> <span class="o">=</span> <span class="n">soapenv</span><span class="o">.</span><span class="n">CreateFromDocument</span><span class="p">(</span><span class="n">rxml</span><span class="p">)</span>
@@ -369,7 +366,6 @@ customization of the relevant SOAP encoding class could make it unnecessary.</p>
 <span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">number</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">street</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">suffix</span><span class="p">,</span>
             <span class="n">item</span><span class="o">.</span><span class="n">city</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">zip</span><span class="p">,</span>
             <span class="n">item</span><span class="o">.</span><span class="n">lat</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">long</span><span class="p">))</span>
-    
 </pre></div>
 </div>
 </div>
@@ -438,7 +434,7 @@ customization of the relevant SOAP encoding class could make it unnecessary.</p>
         <li class="right" >
           <a href="related.html" title="Related Packages"
              >previous</a> |</li>
-        <li><a href="index.html">PyXB 1.2.3 documentation</a> &raquo;</li>
+        <li><a href="index.html">PyXB 1.2.4 documentation</a> &raquo;</li>
     <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
     width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
      
@@ -446,7 +442,7 @@ customization of the relevant SOAP encoding class could make it unnecessary.</p>
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2009-2013, Peter A. Bigot.
+        &copy; Copyright 2009-2014, Peter A. Bigot.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
   </body>

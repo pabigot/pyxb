@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>pyxb.utils.types_</title>
+  <title>pyxb.utils.six._MovedItems</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 </head>
@@ -44,7 +44,8 @@
       <span class="breadcrumbs">
         <a href="pyxb-module.html">Package&nbsp;pyxb</a> ::
         <a href="pyxb.utils-module.html">Package&nbsp;utils</a> ::
-        Module&nbsp;types_
+        Module&nbsp;six ::
+        Class&nbsp;_MovedItems
       </span>
     </td>
     <td>
@@ -54,68 +55,95 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="pyxb.utils.types_-module.html"
+            >]&nbsp;|&nbsp;<a href="pyxb.utils.six._MovedItems-class.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
-<!-- ==================== MODULE DESCRIPTION ==================== -->
-<h1 class="epydoc">Module types_</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.utils.types_-pysrc.html">source&nbsp;code</a></span></p>
-<p>This module provides references to built-in Python types.</p>
-  <p>In Python 2.x these are in the types module.  In Python 3. those 
-  references have been removed in favor of explicit use of the natural 
-  Python type.  We need these in contexts where the binding of the type 
-  identifier (e.g., <code>int</code>) has changed to the class representing
-  the XML Schema datatype of the same name (viz., <code>xsd:int</code> or 
-  <a href="pyxb.binding.datatypes.int-class.html" 
-  class="link">pyxb.binding.datatypes.int</a>), so provide a way to get 
-  back to the underlying Python type.</p>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class _MovedItems</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.utils.six-pysrc.html#_MovedItems">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+type(sys) --+    
+            |    
+  <a href="pyxb.utils.six._LazyModule-class.html">_LazyModule</a> --+
+                |
+               <strong class="uidshort">_MovedItems</strong>
+</pre>
 
-<!-- ==================== VARIABLES ==================== -->
-<a name="section-Variables"></a>
+<hr />
+<p>Lazy loading of moved objects</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
 <table class="summary" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr bgcolor="#70b0f0" class="table-header">
   <td colspan="2" class="table-header">
     <table border="0" cellpadding="0" cellspacing="0" width="100%">
       <tr valign="top">
-        <td align="left"><span class="table-header">Variables</span></td>
+        <td align="left"><span class="table-header">Instance Methods</span></td>
         <td align="right" valign="top"
-         ><span class="options">[<a href="#section-Variables"
+         ><span class="options">[<a href="#section-InstanceMethods"
          class="privatelink" onclick="toggle_private();"
          >hide private</a>]</span></td>
       </tr>
     </table>
   </td>
 </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="pyxb.utils.types_-module.html#StringTypes" class="summary-name">StringTypes</a> = <code title="(&lt;type 'str'&gt;, &lt;type 'unicode'&gt;)"><code class="variable-group">(</code>&lt;type 'str'&gt;<code class="variable-op">, </code>&lt;type 'unicode'&gt;<code class="variable-group">)</code></code><br />
-      The type underlying generic text types.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'pyxb.utils'"><code class="variable-quote">'</code><code class="variable-string">pyxb.utils</code><code class="variable-quote">'</code></code>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.utils.six._LazyModule-class.html">_LazyModule</a></code></b>:
+      <code><a href="pyxb.utils.six._LazyModule-class.html#__dir__">__dir__</a></code>,
+      <code><a href="pyxb.utils.six._LazyModule-class.html#__init__">__init__</a></code>
+      </p>
     </td>
   </tr>
 </table>
-<!-- ==================== VARIABLES DETAILS ==================== -->
-<a name="section-VariablesDetails"></a>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.six._MovedItems-class.html#_moved_attributes" class="summary-name" onclick="show_private();">_moved_attributes</a> = <code title="[MovedAttribute(&quot;cStringIO&quot;, &quot;cStringIO&quot;, &quot;io&quot;, &quot;StringIO&quot;), MovedAttr\
+ibute(&quot;filter&quot;, &quot;itertools&quot;, &quot;builtins&quot;, &quot;ifilter&quot;, &quot;filter&quot;), MovedAt\
+tribute(&quot;filterfalse&quot;, &quot;itertools&quot;, &quot;itertools&quot;, &quot;ifilterfalse&quot;, &quot;filt\
+erfalse&quot;), MovedAttribute(&quot;input&quot;, &quot;__builtin__&quot;, &quot;builtins&quot;, &quot;raw_inp\
+ut&quot;, &quot;input&quot;), MovedAttribute(&quot;map&quot;, &quot;itertools&quot;, &quot;builtins&quot;, &quot;imap&quot;, \
+&quot;map&quot;), MovedAttribute(&quot;range&quot;, &quot;__builtin__&quot;, &quot;builtins&quot;, &quot;xrange&quot;, &quot;\
+range&quot;), MovedAttribute(&quot;reload_module&quot;, &quot;__builtin__&quot;, &quot;imp&quot;, &quot;reload\
+&quot;), MovedAttribute(&quot;reduce&quot;, &quot;__builtin__&quot;, &quot;functools&quot;), MovedAttribu\
+...">[MovedAttribute(&quot;cStringIO&quot;, &quot;cStringIO&quot;, <code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr bgcolor="#70b0f0" class="table-header">
   <td colspan="2" class="table-header">
     <table border="0" cellpadding="0" cellspacing="0" width="100%">
       <tr valign="top">
-        <td align="left"><span class="table-header">Variables Details</span></td>
+        <td align="left"><span class="table-header">Class Variable Details</span></td>
         <td align="right" valign="top"
-         ><span class="options">[<a href="#section-VariablesDetails"
+         ><span class="options">[<a href="#section-ClassVariableDetails"
          class="privatelink" onclick="toggle_private();"
          >hide private</a>]</span></td>
       </tr>
@@ -123,20 +151,27 @@
   </td>
 </tr>
 </table>
-<a name="StringTypes"></a>
-<div>
+<a name="_moved_attributes"></a>
+<div class="private">
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
-  <h3 class="epydoc">StringTypes</h3>
-  <p>The type underlying generic text types.  This changes from Python 2 
-  (<code>basestr</code>) to Python 3 (<code>str</code>).</p>
+  <h3 class="epydoc">_moved_attributes</h3>
+  
   <dl class="fields">
   </dl>
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-group">(</code>&lt;type 'str'&gt;<code class="variable-op">, </code>&lt;type 'unicode'&gt;<code class="variable-group">)</code>
+[MovedAttribute(&quot;cStringIO&quot;, &quot;cStringIO&quot;, &quot;io&quot;, &quot;StringIO&quot;), MovedAttr<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ibute(&quot;filter&quot;, &quot;itertools&quot;, &quot;builtins&quot;, &quot;ifilter&quot;, &quot;filter&quot;), MovedAt<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+tribute(&quot;filterfalse&quot;, &quot;itertools&quot;, &quot;itertools&quot;, &quot;ifilterfalse&quot;, &quot;filt<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+erfalse&quot;), MovedAttribute(&quot;input&quot;, &quot;__builtin__&quot;, &quot;builtins&quot;, &quot;raw_inp<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ut&quot;, &quot;input&quot;), MovedAttribute(&quot;map&quot;, &quot;itertools&quot;, &quot;builtins&quot;, &quot;imap&quot;, <span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+&quot;map&quot;), MovedAttribute(&quot;range&quot;, &quot;__builtin__&quot;, &quot;builtins&quot;, &quot;xrange&quot;, &quot;<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+range&quot;), MovedAttribute(&quot;reload_module&quot;, &quot;__builtin__&quot;, &quot;imp&quot;, &quot;reload<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+&quot;), MovedAttribute(&quot;reduce&quot;, &quot;__builtin__&quot;, &quot;functools&quot;), MovedAttribu<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -175,7 +210,7 @@
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Wed Sep 18 10:35:36 2013
+    on Sun Oct 19 06:24:43 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

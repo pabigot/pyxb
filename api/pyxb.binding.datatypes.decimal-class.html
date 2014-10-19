@@ -86,7 +86,13 @@
                                              |
                                 object --+   |
                                          |   |
-                                     float --+
+                           decimal.Decimal --+
+                                             |
+                            object --+       |
+                                     |       |
+                               <a href="pyxb.cscRoot-class.html">cscRoot</a> --+   |
+                                         |   |
+        <a href="pyxb.binding.basis._RepresentAsXsdLiteral_mixin-class.html" onclick="show_private();">basis._RepresentAsXsdLiteral_mixin</a> --+
                                              |
                                             <strong class="uidshort">decimal</strong>
 </pre>
@@ -94,14 +100,13 @@
 <hr />
 <p>XMLSchema datatype <a href="http://www.w3.org/TR/xmlschema-2/#decimal"
   target="_top">decimal</a>.</p>
+  <p>This class uses Python's <code class="link">decimal.Decimal</code> 
+  class to support (by default) 28 significant digits.  Only normal and 
+  zero values are valid; this means <code>NaN</code> and 
+  <code>Infinity</code> may be created during calculations, but cannot be 
+  expressed in XML documents.</p>
 
-<hr />
-<div class="fields">      <p><strong>To Do:</strong>
-        The Python base type for this is wrong. Consider <a 
-    href="http://code.google.com/p/mpmath/" 
-    target="_top">http://code.google.com/p/mpmath/</a>.
-      </p>
-</div><!-- ==================== NESTED CLASSES ==================== -->
+<!-- ==================== NESTED CLASSES ==================== -->
 <a name="section-NestedClasses"></a>
 <table class="summary" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
@@ -190,10 +195,12 @@
       <code><a href="pyxb.utils.utility.Locatable_mixin-class.html#_location" onclick="show_private();">_location</a></code>,
       <code><a href="pyxb.utils.utility.Locatable_mixin-class.html#_setLocation" onclick="show_private();">_setLocation</a></code>
       </p></div>
-    <p class="indent-wrapped-lines"><b>Inherited from <code>float</code></b>:
+    <p class="indent-wrapped-lines"><b>Inherited from <code>decimal.Decimal</code></b>:
       <code>__abs__</code>,
       <code>__add__</code>,
-      <code>__coerce__</code>,
+      <code>__complex__</code>,
+      <code>__copy__</code>,
+      <code>__deepcopy__</code>,
       <code>__div__</code>,
       <code>__divmod__</code>,
       <code>__eq__</code>,
@@ -201,9 +208,6 @@
       <code>__floordiv__</code>,
       <code>__format__</code>,
       <code>__ge__</code>,
-      <code>__getattribute__</code>,
-      <code>__getformat__</code>,
-      <code>__getnewargs__</code>,
       <code>__gt__</code>,
       <code>__hash__</code>,
       <code>__int__</code>,
@@ -220,6 +224,7 @@
       <code>__radd__</code>,
       <code>__rdiv__</code>,
       <code>__rdivmod__</code>,
+      <code>__reduce__</code>,
       <code>__repr__</code>,
       <code>__rfloordiv__</code>,
       <code>__rmod__</code>,
@@ -227,17 +232,90 @@
       <code>__rpow__</code>,
       <code>__rsub__</code>,
       <code>__rtruediv__</code>,
-      <code>__setformat__</code>,
       <code>__str__</code>,
       <code>__sub__</code>,
       <code>__truediv__</code>,
       <code>__trunc__</code>,
-      <code>as_integer_ratio</code>,
+      <code>adjusted</code>,
+      <code>as_tuple</code>,
+      <code>canonical</code>,
+      <code>compare</code>,
+      <code>compare_signal</code>,
+      <code>compare_total</code>,
+      <code>compare_total_mag</code>,
       <code>conjugate</code>,
-      <code>fromhex</code>,
-      <code>hex</code>,
-      <code>is_integer</code>
+      <code>copy_abs</code>,
+      <code>copy_negate</code>,
+      <code>copy_sign</code>,
+      <code>exp</code>,
+      <code>fma</code>,
+      <code>is_canonical</code>,
+      <code>is_finite</code>,
+      <code>is_infinite</code>,
+      <code>is_nan</code>,
+      <code>is_normal</code>,
+      <code>is_qnan</code>,
+      <code>is_signed</code>,
+      <code>is_snan</code>,
+      <code>is_subnormal</code>,
+      <code>is_zero</code>,
+      <code>ln</code>,
+      <code>log10</code>,
+      <code>logb</code>,
+      <code>logical_and</code>,
+      <code>logical_invert</code>,
+      <code>logical_or</code>,
+      <code>logical_xor</code>,
+      <code>max</code>,
+      <code>max_mag</code>,
+      <code>min</code>,
+      <code>min_mag</code>,
+      <code>next_minus</code>,
+      <code>next_plus</code>,
+      <code>next_toward</code>,
+      <code>normalize</code>,
+      <code>number_class</code>,
+      <code>quantize</code>,
+      <code>radix</code>,
+      <code>remainder_near</code>,
+      <code>rotate</code>,
+      <code>same_quantum</code>,
+      <code>scaleb</code>,
+      <code>shift</code>,
+      <code>sqrt</code>,
+      <code>to_eng_string</code>,
+      <code>to_integral</code>,
+      <code>to_integral_exact</code>,
+      <code>to_integral_value</code>
       </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code>decimal.Decimal</code></b> (private):
+      <code>_check_nans</code>,
+      <code>_cmp</code>,
+      <code>_compare_check_nans</code>,
+      <code>_divide</code>,
+      <code>_fill_logical</code>,
+      <code>_fix</code>,
+      <code>_fix_nan</code>,
+      <code>_iseven</code>,
+      <code>_isinfinity</code>,
+      <code>_isinteger</code>,
+      <code>_islogical</code>,
+      <code>_isnan</code>,
+      <code>_ln_exp_bound</code>,
+      <code>_log10_exp_bound</code>,
+      <code>_power_exact</code>,
+      <code>_power_modulo</code>,
+      <code>_rescale</code>,
+      <code>_round</code>,
+      <code>_round_05up</code>,
+      <code>_round_ceiling</code>,
+      <code>_round_down</code>,
+      <code>_round_floor</code>,
+      <code>_round_half_down</code>,
+      <code>_round_half_even</code>,
+      <code>_round_half_up</code>,
+      <code>_round_up</code>
+      </p></div>
     </td>
   </tr>
 </table>
@@ -258,6 +336,26 @@
     </table>
   </td>
 </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.datatypes.decimal-class.html#_CheckValidValue" class="summary-sig-name" onclick="show_private();">_CheckValidValue</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">value</span>)</span><br />
+      NB: Invoking this on a value that is a list will, if necessary, 
+      replace the members of the list with new values that are of the 
+      correct item type.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.datatypes-pysrc.html#decimal._CheckValidValue">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -286,7 +384,6 @@
       <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#XsdValueLength">XsdValueLength</a></code>
       </p>
     <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html">basis.simpleTypeDefinition</a></code></b> (private):
-      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_CheckValidValue" onclick="show_private();">_CheckValidValue</a></code>,
       <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_ConvertArguments" onclick="show_private();">_ConvertArguments</a></code>,
       <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_ConvertArguments_vx" onclick="show_private();">_ConvertArguments_vx</a></code>,
       <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_FacetMap" onclick="show_private();">_FacetMap</a></code>,
@@ -320,6 +417,9 @@
       <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_SetSupersedingClass" onclick="show_private();">_SetSupersedingClass</a></code>,
       <code><a href="pyxb.binding.basis._DynamicCreate_mixin-class.html#_SupersedingClass" onclick="show_private();">_SupersedingClass</a></code>
       </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>decimal.Decimal</code></b>:
+      <code>from_float</code>
+      </p>
     </td>
   </tr>
 </table>
@@ -340,11 +440,23 @@
     </table>
   </td>
 </tr>
-  <tr>
-    <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html">basis.simpleTypeDefinition</a></code></b>:
-      <code><a href="pyxb.binding.basis.simpleTypeDefinition-class.html#__new__">__new__</a></code>
-      </p>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.binding.datatypes.decimal-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kw</span>)</span><br />
+      Create a decimal point instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.binding.datatypes-pysrc.html#decimal.__new__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
     </td>
   </tr>
 </table>
@@ -377,84 +489,84 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="pyxb.binding.datatypes.decimal-class.html#_CF_enumeration" class="summary-name" onclick="show_private();">_CF_enumeration</a> = <code title="&lt;pyxb.binding.facets.CF_enumeration object at 0x2446c90&gt;">&lt;pyxb.binding.facets.CF_enumeration object a<code class="variable-ellipsis">...</code></code>
+        <a href="pyxb.binding.datatypes.decimal-class.html#_CF_enumeration" class="summary-name" onclick="show_private();">_CF_enumeration</a> = <code title="&lt;pyxb.binding.facets.CF_enumeration object at 0x19b1f90&gt;">&lt;pyxb.binding.facets.CF_enumeration object a<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="pyxb.binding.datatypes.decimal-class.html#_CF_fractionDigits" class="summary-name" onclick="show_private();">_CF_fractionDigits</a> = <code title="&lt;pyxb.binding.facets.CF_fractionDigits object at 0x2446d10&gt;">&lt;pyxb.binding.facets.CF_fractionDigits ob<code class="variable-ellipsis">...</code></code>
+        <a href="pyxb.binding.datatypes.decimal-class.html#_CF_fractionDigits" class="summary-name" onclick="show_private();">_CF_fractionDigits</a> = <code title="&lt;pyxb.binding.facets.CF_fractionDigits object at 0x19bc050&gt;">&lt;pyxb.binding.facets.CF_fractionDigits ob<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="pyxb.binding.datatypes.decimal-class.html#_CF_maxExclusive" class="summary-name" onclick="show_private();">_CF_maxExclusive</a> = <code title="&lt;pyxb.binding.facets.CF_maxExclusive object at 0x2446c10&gt;">&lt;pyxb.binding.facets.CF_maxExclusive object<code class="variable-ellipsis">...</code></code>
+        <a href="pyxb.binding.datatypes.decimal-class.html#_CF_maxExclusive" class="summary-name" onclick="show_private();">_CF_maxExclusive</a> = <code title="&lt;pyxb.binding.facets.CF_maxExclusive object at 0x19b1f10&gt;">&lt;pyxb.binding.facets.CF_maxExclusive object<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="pyxb.binding.datatypes.decimal-class.html#_CF_maxInclusive" class="summary-name" onclick="show_private();">_CF_maxInclusive</a> = <code title="&lt;pyxb.binding.facets.CF_maxInclusive object at 0x2446d50&gt;">&lt;pyxb.binding.facets.CF_maxInclusive object<code class="variable-ellipsis">...</code></code>
+        <a href="pyxb.binding.datatypes.decimal-class.html#_CF_maxInclusive" class="summary-name" onclick="show_private();">_CF_maxInclusive</a> = <code title="&lt;pyxb.binding.facets.CF_maxInclusive object at 0x19bc090&gt;">&lt;pyxb.binding.facets.CF_maxInclusive object<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="pyxb.binding.datatypes.decimal-class.html#_CF_minExclusive" class="summary-name" onclick="show_private();">_CF_minExclusive</a> = <code title="&lt;pyxb.binding.facets.CF_minExclusive object at 0x2446c50&gt;">&lt;pyxb.binding.facets.CF_minExclusive object<code class="variable-ellipsis">...</code></code>
+        <a href="pyxb.binding.datatypes.decimal-class.html#_CF_minExclusive" class="summary-name" onclick="show_private();">_CF_minExclusive</a> = <code title="&lt;pyxb.binding.facets.CF_minExclusive object at 0x19b1f50&gt;">&lt;pyxb.binding.facets.CF_minExclusive object<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="pyxb.binding.datatypes.decimal-class.html#_CF_minInclusive" class="summary-name" onclick="show_private();">_CF_minInclusive</a> = <code title="&lt;pyxb.binding.facets.CF_minInclusive object at 0x2446bd0&gt;">&lt;pyxb.binding.facets.CF_minInclusive object<code class="variable-ellipsis">...</code></code>
+        <a href="pyxb.binding.datatypes.decimal-class.html#_CF_minInclusive" class="summary-name" onclick="show_private();">_CF_minInclusive</a> = <code title="&lt;pyxb.binding.facets.CF_minInclusive object at 0x19b1ed0&gt;">&lt;pyxb.binding.facets.CF_minInclusive object<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="pyxb.binding.datatypes.decimal-class.html#_CF_pattern" class="summary-name" onclick="show_private();">_CF_pattern</a> = <code title="&lt;pyxb.binding.facets.CF_pattern object at 0x2446b90&gt;">&lt;pyxb.binding.facets.CF_pattern object at 0x2446<code class="variable-ellipsis">...</code></code>
+        <a href="pyxb.binding.datatypes.decimal-class.html#_CF_pattern" class="summary-name" onclick="show_private();">_CF_pattern</a> = <code title="&lt;pyxb.binding.facets.CF_pattern object at 0x19b1e90&gt;">&lt;pyxb.binding.facets.CF_pattern object at 0x19b1<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="pyxb.binding.datatypes.decimal-class.html#_CF_totalDigits" class="summary-name" onclick="show_private();">_CF_totalDigits</a> = <code title="&lt;pyxb.binding.facets.CF_totalDigits object at 0x2446b50&gt;">&lt;pyxb.binding.facets.CF_totalDigits object a<code class="variable-ellipsis">...</code></code>
+        <a href="pyxb.binding.datatypes.decimal-class.html#_CF_totalDigits" class="summary-name" onclick="show_private();">_CF_totalDigits</a> = <code title="&lt;pyxb.binding.facets.CF_totalDigits object at 0x19b1e50&gt;">&lt;pyxb.binding.facets.CF_totalDigits object a<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="pyxb.binding.datatypes.decimal-class.html#_CF_whiteSpace" class="summary-name" onclick="show_private();">_CF_whiteSpace</a> = <code title="&lt;pyxb.binding.facets.CF_whiteSpace object at 0x2446cd0&gt;">&lt;pyxb.binding.facets.CF_whiteSpace object at <code class="variable-ellipsis">...</code></code>
+        <a href="pyxb.binding.datatypes.decimal-class.html#_CF_whiteSpace" class="summary-name" onclick="show_private();">_CF_whiteSpace</a> = <code title="&lt;pyxb.binding.facets.CF_whiteSpace object at 0x19b1fd0&gt;">&lt;pyxb.binding.facets.CF_whiteSpace object at <code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="pyxb.binding.datatypes.decimal-class.html#__SimpleTypeDefinition" class="summary-name" onclick="show_private();">__SimpleTypeDefinition</a> = <code title="&lt;pyxb.xmlschema.structures.SimpleTypeDefinition object at 0x288d450&gt;">&lt;pyxb.xmlschema.structures.SimpleType<code class="variable-ellipsis">...</code></code>
+        <a href="pyxb.binding.datatypes.decimal-class.html#__SimpleTypeDefinition" class="summary-name" onclick="show_private();">__SimpleTypeDefinition</a> = <code title="&lt;pyxb.xmlschema.structures.SimpleTypeDefinition object at 0x17b7890&gt;">&lt;pyxb.xmlschema.structures.SimpleType<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="pyxb.binding.datatypes.decimal-class.html#_httpwww_w3_org2001XMLSchema_decimal_FacetMap" class="summary-name" onclick="show_private();">_httpwww_w3_org2001XMLSchema_decimal_FacetMap</a> = <code title="{&lt;class 'pyxb.binding.facets.CF_pattern'&gt;: &lt;pyxb.binding.facets.CF_pat\
-tern object at 0x2446b90&gt;,
- &lt;class 'pyxb.binding.facets.CF_enumeration'&gt;: &lt;pyxb.binding.facets.CF\
-_enumeration object at 0x2446c90&gt;,
+        <a href="pyxb.binding.datatypes.decimal-class.html#_httpwww_w3_org2001XMLSchema_decimal_FacetMap" class="summary-name" onclick="show_private();">_httpwww_w3_org2001XMLSchema_decimal_FacetMap</a> = <code title="{&lt;class 'pyxb.binding.facets.CF_whiteSpace'&gt;: &lt;pyxb.binding.facets.CF_\
+whiteSpace object at 0x19b1fd0&gt;,
+ &lt;class 'pyxb.binding.facets.CF_pattern'&gt;: &lt;pyxb.binding.facets.CF_pat\
+tern object at 0x19b1e90&gt;,
+ &lt;class 'pyxb.binding.facets.CF_minInclusive'&gt;: &lt;pyxb.binding.facets.C\
+F_minInclusive object at 0x19b1ed0&gt;,
  &lt;class 'pyxb.binding.facets.CF_maxInclusive'&gt;: &lt;pyxb.binding.facets.C\
-F_maxInclusive object at 0x2446d50&gt;,
- &lt;class 'pyxb.binding.facets.CF_minExclusive'&gt;: &lt;pyxb.binding.facets.C\
-F_minExclusive object at 0x2446c50&gt;,
+F_maxInclusive object at 0x19bc090&gt;,
 ..."><code class="variable-group">{</code>&lt;class 'pyxb.<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
@@ -477,6 +589,9 @@ F_minExclusive object at 0x2446c50&gt;,
       <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_TypeBinding_mixin__namespaceContext" onclick="show_private();">_TypeBinding_mixin__namespaceContext</a></code>,
       <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_TypeBinding_mixin__xsiNil" onclick="show_private();">_TypeBinding_mixin__xsiNil</a></code>,
       <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_XSDLocation" onclick="show_private();">_XSDLocation</a></code>
+      </p></div>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code>decimal.Decimal</code></b> (private):
+      <code>_pick_rounding_function</code>
       </p></div>
     </td>
   </tr>
@@ -503,10 +618,16 @@ F_minExclusive object at 0x2446c50&gt;,
     <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html" onclick="show_private();">basis._TypeBinding_mixin</a></code></b> (private):
       <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_validationConfig" onclick="show_private();">_validationConfig</a></code>
       </p></div>
-    <p class="indent-wrapped-lines"><b>Inherited from <code>float</code></b>:
+    <p class="indent-wrapped-lines"><b>Inherited from <code>decimal.Decimal</code></b>:
       <code>imag</code>,
       <code>real</code>
       </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code>decimal.Decimal</code></b> (private):
+      <code>_exp</code>,
+      <code>_int</code>,
+      <code>_is_special</code>,
+      <code>_sign</code>
+      </p></div>
     </td>
   </tr>
 </table>
@@ -528,6 +649,72 @@ F_minExclusive object at 0x2446c50&gt;,
   </td>
 </tr>
 </table>
+<a name="__new__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__new__</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kw</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.datatypes-pysrc.html#decimal.__new__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Create a decimal point instance.</p>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>Decimal(<span class="py-string">'3.14'</span>)              <span class="py-comment"># string input</span>
+<span class="py-output">Decimal('3.14')</span>
+<span class="py-output"></span><span class="py-prompt">&gt;&gt;&gt; </span>Decimal((0, (3, 1, 4), -2))  <span class="py-comment"># tuple (sign, digit_tuple, exponent)</span>
+<span class="py-output">Decimal('3.14')</span>
+<span class="py-output"></span><span class="py-prompt">&gt;&gt;&gt; </span>Decimal(314)                 <span class="py-comment"># int or long</span>
+<span class="py-output">Decimal('314')</span>
+<span class="py-output"></span><span class="py-prompt">&gt;&gt;&gt; </span>Decimal(Decimal(314))        <span class="py-comment"># another decimal instance</span>
+<span class="py-output">Decimal('314')</span>
+<span class="py-output"></span><span class="py-prompt">&gt;&gt;&gt; </span>Decimal(<span class="py-string">'  3.14  \n'</span>)        <span class="py-comment"># leading and trailing whitespace okay</span>
+<span class="py-output">Decimal('3.14')</span></pre>
+  <dl class="fields">
+    <dt>Overrides:
+        decimal.Decimal.__new__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_CheckValidValue"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_CheckValidValue</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">value</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.binding.datatypes-pysrc.html#decimal._CheckValidValue">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>NB: Invoking this on a value that is a list will, if necessary, 
+  replace the members of the list with new values that are of the correct 
+  item type.  This is permitted because only with lists is it possible to 
+  bypass the normal content validation (by invoking append/extend on the 
+  list instance).</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="pyxb.binding.basis.simpleTypeDefinition-class.html#_CheckValidValue" onclick="show_private();">basis.simpleTypeDefinition._CheckValidValue</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
 <a name="XsdLiteral"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -603,7 +790,7 @@ pyxb.namespace.XMLSchema.createExpandedName('decimal')
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-&lt;pyxb.binding.facets.CF_enumeration object at 0x2446c90&gt;
+&lt;pyxb.binding.facets.CF_enumeration object at 0x19b1f90&gt;
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -621,7 +808,7 @@ pyxb.namespace.XMLSchema.createExpandedName('decimal')
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-&lt;pyxb.binding.facets.CF_fractionDigits object at 0x2446d10&gt;
+&lt;pyxb.binding.facets.CF_fractionDigits object at 0x19bc050&gt;
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -639,7 +826,7 @@ pyxb.namespace.XMLSchema.createExpandedName('decimal')
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-&lt;pyxb.binding.facets.CF_maxExclusive object at 0x2446c10&gt;
+&lt;pyxb.binding.facets.CF_maxExclusive object at 0x19b1f10&gt;
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -657,7 +844,7 @@ pyxb.namespace.XMLSchema.createExpandedName('decimal')
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-&lt;pyxb.binding.facets.CF_maxInclusive object at 0x2446d50&gt;
+&lt;pyxb.binding.facets.CF_maxInclusive object at 0x19bc090&gt;
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -675,7 +862,7 @@ pyxb.namespace.XMLSchema.createExpandedName('decimal')
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-&lt;pyxb.binding.facets.CF_minExclusive object at 0x2446c50&gt;
+&lt;pyxb.binding.facets.CF_minExclusive object at 0x19b1f50&gt;
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -693,7 +880,7 @@ pyxb.namespace.XMLSchema.createExpandedName('decimal')
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-&lt;pyxb.binding.facets.CF_minInclusive object at 0x2446bd0&gt;
+&lt;pyxb.binding.facets.CF_minInclusive object at 0x19b1ed0&gt;
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -711,7 +898,7 @@ pyxb.namespace.XMLSchema.createExpandedName('decimal')
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-&lt;pyxb.binding.facets.CF_pattern object at 0x2446b90&gt;
+&lt;pyxb.binding.facets.CF_pattern object at 0x19b1e90&gt;
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -729,7 +916,7 @@ pyxb.namespace.XMLSchema.createExpandedName('decimal')
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-&lt;pyxb.binding.facets.CF_totalDigits object at 0x2446b50&gt;
+&lt;pyxb.binding.facets.CF_totalDigits object at 0x19b1e50&gt;
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -747,7 +934,7 @@ pyxb.namespace.XMLSchema.createExpandedName('decimal')
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-&lt;pyxb.binding.facets.CF_whiteSpace object at 0x2446cd0&gt;
+&lt;pyxb.binding.facets.CF_whiteSpace object at 0x19b1fd0&gt;
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -765,7 +952,7 @@ pyxb.namespace.XMLSchema.createExpandedName('decimal')
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-&lt;pyxb.xmlschema.structures.SimpleTypeDefinition object at 0x288d450&gt;
+&lt;pyxb.xmlschema.structures.SimpleTypeDefinition object at 0x17b7890&gt;
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -783,14 +970,14 @@ pyxb.namespace.XMLSchema.createExpandedName('decimal')
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-group">{</code>&lt;class 'pyxb.binding.facets.CF_pattern'&gt;<code class="variable-op">: </code>&lt;pyxb.binding.facets.CF_pat<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-tern object at 0x2446b90&gt;<code class="variable-op">,</code>
- &lt;class 'pyxb.binding.facets.CF_enumeration'&gt;<code class="variable-op">: </code>&lt;pyxb.binding.facets.CF<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-_enumeration object at 0x2446c90&gt;<code class="variable-op">,</code>
+<code class="variable-group">{</code>&lt;class 'pyxb.binding.facets.CF_whiteSpace'&gt;<code class="variable-op">: </code>&lt;pyxb.binding.facets.CF_<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+whiteSpace object at 0x19b1fd0&gt;<code class="variable-op">,</code>
+ &lt;class 'pyxb.binding.facets.CF_pattern'&gt;<code class="variable-op">: </code>&lt;pyxb.binding.facets.CF_pat<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+tern object at 0x19b1e90&gt;<code class="variable-op">,</code>
+ &lt;class 'pyxb.binding.facets.CF_minInclusive'&gt;<code class="variable-op">: </code>&lt;pyxb.binding.facets.C<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+F_minInclusive object at 0x19b1ed0&gt;<code class="variable-op">,</code>
  &lt;class 'pyxb.binding.facets.CF_maxInclusive'&gt;<code class="variable-op">: </code>&lt;pyxb.binding.facets.C<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-F_maxInclusive object at 0x2446d50&gt;<code class="variable-op">,</code>
- &lt;class 'pyxb.binding.facets.CF_minExclusive'&gt;<code class="variable-op">: </code>&lt;pyxb.binding.facets.C<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-F_minExclusive object at 0x2446c50&gt;<code class="variable-op">,</code>
+F_maxInclusive object at 0x19bc090&gt;<code class="variable-op">,</code>
 <code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
@@ -830,7 +1017,7 @@ F_minExclusive object at 0x2446c50&gt;<code class="variable-op">,</code>
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Wed Sep 18 10:35:36 2013
+    on Sun Oct 19 06:24:41 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

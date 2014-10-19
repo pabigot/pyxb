@@ -63,6 +63,7 @@ Binding Module                          Namespace
 ``pyxb.bundles.wssplat.ds``             ``http://www.w3.org/2000/09/xmldsig#``
 ``pyxb.bundles.wssplat.httpbind``       ``http://schemas.xmlsoap.org/wsdl/http/``
 ``pyxb.bundles.wssplat.mimebind``       ``http://schemas.xmlsoap.org/wsdl/mime/``
+``pyxb.bundles.wssplat.sawsdl``         ``http://www.w3.org/ns/sawsdl``
 ``pyxb.bundles.wssplat.soap11``         ``http://schemas.xmlsoap.org/soap/envelope/``
 ``pyxb.bundles.wssplat.soap12``         ``http://www.w3.org/2003/05/soap-envelope``
 ``pyxb.bundles.wssplat.soapbind11``     ``http://schemas.xmlsoap.org/wsdl/soap/``
@@ -348,6 +349,8 @@ script and re-running the commands above.
 Binding Module                                    Namespace
 ================================================  ==========================================================
 ``pyxb.bundles.opengis._ogc``                     ``http://www.opengis.net/ogc``
+``pyxb.bundles.opengis._sam``                     ``http://www.opengis.net/sampling/2.0``
+``pyxb.bundles.opengis._sams``                    ``http://www.opengis.net/samplingSpatial/2.0``
 ``pyxb.bundles.opengis.atom``                     ``http://www.w3.org/2005/Atom``
 ``pyxb.bundles.opengis.citygml.appearance``       ``http://www.opengis.net/citygml/appearance/1.0``
 ``pyxb.bundles.opengis.citygml.base``             ``http://www.opengis.net/citygml/1.0``
@@ -379,17 +382,17 @@ Binding Module                                    Namespace
 ``pyxb.bundles.opengis.gml``                      ``http://www.opengis.net/gml``
 ``pyxb.bundles.opengis.gmlsf``                    ``http://www.opengis.net/gmlsf``
 ``pyxb.bundles.opengis.ic_ism_2_1``               ``urn:us:gov:ic:ism:v2``
-``pyxb.bundles.opengis.iso19139.20070417.gco``    ``http://www.isotc211.org/2005/gco``
-``pyxb.bundles.opengis.iso19139.20070417.gmd``    ``http://www.isotc211.org/2005/gmd``
-``pyxb.bundles.opengis.iso19139.20070417.gmx``    ``http://www.isotc211.org/2005/gmx``
-``pyxb.bundles.opengis.iso19139.20070417.gsr``    ``http://www.isotc211.org/2005/gsr``
-``pyxb.bundles.opengis.iso19139.20070417.gss``    ``http://www.isotc211.org/2005/gss``
-``pyxb.bundles.opengis.iso19139.20070417.gts``    ``http://www.isotc211.org/2005/gts``
+``pyxb.bundles.opengis.iso19139.v20070417.gco``   ``http://www.isotc211.org/2005/gco``
+``pyxb.bundles.opengis.iso19139.v20070417.gmd``   ``http://www.isotc211.org/2005/gmd``
+``pyxb.bundles.opengis.iso19139.v20070417.gmx``   ``http://www.isotc211.org/2005/gmx``
+``pyxb.bundles.opengis.iso19139.v20070417.gsr``   ``http://www.isotc211.org/2005/gsr``
+``pyxb.bundles.opengis.iso19139.v20070417.gss``   ``http://www.isotc211.org/2005/gss``
+``pyxb.bundles.opengis.iso19139.v20070417.gts``   ``http://www.isotc211.org/2005/gts``
 ``pyxb.bundles.opengis.misc.xAL``                 ``urn:oasis:names:tc:ciq:xsdschema:xAL:2.0``
-``pyxb.bundles.opengis.misc.xlinks``              ``http://www.w3.org/1999/xlink``
 ``pyxb.bundles.opengis.ogckml22``                 ``http://www.opengis.net/kml/2.2``
 ``pyxb.bundles.opengis.om_1_0``                   ``http://www.opengis.net/om/1.0``
 ``pyxb.bundles.opengis.om_2_0``                   ``http://www.opengis.net/om/2.0``
+``pyxb.bundles.opengis.oseo_1_0``                 ``http://www.opengis.net/oseo/1.0``
 ``pyxb.bundles.opengis.ows_1_1``                  ``http://www.opengis.net/ows/1.1``
 ``pyxb.bundles.opengis.ows_2_0``                  ``http://www.opengis.net/ows/2.0``
 ``pyxb.bundles.opengis.ows``                      ``http://www.opengis.net/ows``
@@ -404,8 +407,10 @@ Binding Module                                    Namespace
 ``pyxb.bundles.opengis.swe_2_0``                  ``http://www.opengis.net/swe/2.0``
 ``pyxb.bundles.opengis.swes_2_0``                 ``http://www.opengis.net/swes/2.0``
 ``pyxb.bundles.opengis.tml``                      ``http://www.opengis.net/tml``
+``pyxb.bundles.opengis.waterml``                  ``http://www.opengis.net/waterml/2.0``
 ``pyxb.bundles.opengis.wcs_1_1``                  ``http://www.opengis.net/wcs/1.1``
 ``pyxb.bundles.opengis.wfs``                      ``http://www.opengis.net/wfs``
+``pyxb.bundles.opengis.wps_1_0_0``                ``http://www.opengis.net/wps/1.0.0``
 ================================================  ==========================================================
 
 .. _bundle_layout:
