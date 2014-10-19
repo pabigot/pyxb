@@ -96,7 +96,7 @@ def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
 
 def ticket_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     """
-    Role `:ticket:` generates references to Trac tickets.
+    Role `:ticket:` generates references to SourceForge tickets.
     """
     trac_root = 'https://sourceforge.net/p/pyxb/tickets'
 
@@ -111,7 +111,28 @@ def ticket_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
 
     uri = '%s/%s/' % (trac_root, ticket)
     if label is None:
-        label = '#%s' % (ticket,)
+        label = 'SF ticket %s' % (ticket,)
+    node = nodes.reference(rawtext, label, refuri=uri, **options)
+
+    return [node], []
+
+def issue_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
+    """
+    Role `:issue:` generates references to github issues.
+    """
+    issue_root = 'https://github.com/pabigot/pyxb/issues'
+
+    # assume module is references
+
+    mo = __Reference_re.match(text)
+    label = None
+    if mo is not None:
+        ( label, text ) = mo.group(1, 2)
+    ticket = text.strip()
+
+    uri = '%s/%s/' % (issue_root, ticket)
+    if label is None:
+        label = 'issue %s' % (ticket,)
     node = nodes.reference(rawtext, label, refuri=uri, **options)
 
     return [node], []
@@ -142,5 +163,6 @@ def setup(app):
     app.add_config_value('epydoc_basedir', 'api', False)
     app.add_config_value('epydoc_prefix', 'doc/html/', False)
     app.add_role('ticket', ticket_role)
+    app.add_role('issue', issue_role)
     app.add_role('pyex', pyex_role)
 
