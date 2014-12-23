@@ -1750,7 +1750,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
     # The type resolved from the base attribute.
     __baseTypeDefinition = None
     def baseTypeDefinition (self):
-        "The type resolved from the base attribute."""
+        """The type resolved from the base attribute."""
         return self.__baseTypeDefinition
 
     DM_empty = 0                #<<< No derivation method specified
