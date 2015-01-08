@@ -1162,6 +1162,7 @@ class BindingIO (object):
                                     'binding_module' : binding_module,
                                     'binding_tag' : binding_module.bindingTag(),
                                     'pyxbVersion' : pyxb.__version__,
+                                    'pyxb_version' : repr2to3(pyxb.__version__),
                                     'pythonVersion' : '.'.join(map(str, sys.version_info))})
         self.__stringIO = io.StringIO()
         if self.__bindingFile:
@@ -1180,6 +1181,23 @@ class BindingIO (object):
         tm = self.__templateMap.copy()
         tm.update(kw)
         return templates.replaceInText(template, **tm)
+
+    def appendPrologBoilerplate (self, tm):
+        self.prolog().append(self.expand('''# Unique identifier for bindings created at the same time
+_GenerationUID = %{generation_uid_expr}
+
+# Version of PyXB used to generate the bindings
+_PyXBVersion = %{pyxb_version}
+# Generated bindings are not compatible across PyXB versions
+if pyxb.__version__ != _PyXBVersion:
+    raise pyxb.PyXBVersionError(_PyXBVersion)
+
+# Import bindings for namespaces imported into schema
+%{aux_imports}
+
+# NOTE: All namespace declarations are reserved within the binding
+%{namespace_decls}
+''', **tm))
 
     def write (self, template, **kw):
         txt = self.expand(template, **kw)
@@ -1625,13 +1643,12 @@ class NamespaceModule (_ModuleNaming_mixin):
              , 'targetNamespace' : repr2to3(self.__namespace.uri())
              , 'namespaceURI' : self.__namespace.uri()
              , 'namespaceReference' : self.referenceNamespace(self.__namespace)
-             , 'pyxb_version' : repr2to3(pyxb.__version__)
              }
         return kw
 
     def _finalizeModuleContents_vx (self, template_map):
         template_map['_TextType'] = '_six.text_type'
-        self.bindingIO().prolog().append(self.bindingIO().expand('''
+        self.bindingIO().prolog().append('''
 from __future__ import unicode_literals
 import pyxb
 import pyxb.binding
@@ -1641,22 +1658,9 @@ import pyxb.utils.utility
 import pyxb.utils.domutils
 import sys
 import pyxb.utils.six as _six
-
-# Unique identifier for bindings created at the same time
-_GenerationUID = %{generation_uid_expr}
-
-# Version of PyXB used to generate the bindings
-_PyXBVersion = %{pyxb_version}
-# Generated bindings are not compatible across PyXB versions
-if pyxb.__version__ != _PyXBVersion:
-    raise pyxb.PyXBVersionError(_PyXBVersion)
-
-# Import bindings for namespaces imported into schema
-%{aux_imports}
-
-# NOTE: All namespace declarations are reserved within the binding
-%{namespace_decls}
-
+''')
+        self.bindingIO().appendPrologBoilerplate(template_map)
+        self.bindingIO().prolog().append(self.bindingIO().expand('''
 def CreateFromDocument (xml_text, default_namespace=None, location_base=None):
     """Parse the given XML and use the document element to create a
     Python instance.
@@ -1762,22 +1766,14 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
         return ''.join(rvl)
 
     def _finalizeModuleContents_vx (self, template_map):
-        self.bindingIO().prolog().append(self.bindingIO().expand('''
+        self.bindingIO().prolog().append('''
 from __future__ import unicode_literals
 import pyxb
 import pyxb.binding
 import pyxb.utils.utility
 import pyxb.utils.six as _six
-
-# Unique identifier for bindings created at the same time
-_GenerationUID = %{generation_uid_expr}
-
-# Import bindings for schemas in group
-%{aux_imports}
-
-# NOTE: All namespace declarations are reserved within the binding
-%{namespace_decls}
-''', **template_map))
+''')
+        self.bindingIO().appendPrologBoilerplate(template_map)
 
     def _moduleUID_vx (self):
         nss = []
