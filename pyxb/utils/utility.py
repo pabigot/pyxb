@@ -27,6 +27,14 @@ from pyxb.utils import six
 
 _log = logging.getLogger(__name__)
 
+class Object (object):
+    """A dummy class used to hold arbitrary attributes.
+
+    Essentially this gives us a map without having to worry about
+    converting names to text to use as keys.
+    """
+    pass
+
 def BackfillComparisons (cls):
     """Class decorator that fills in missing ordering methods.
 

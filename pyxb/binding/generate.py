@@ -119,8 +119,9 @@ class ReferenceSchemaComponent (ReferenceLiteral):
     def __init__ (self, component, **kw):
         self.__component = component
         binding_module = kw['binding_module']
+        in_class = kw.get('in_class', False)
         super(ReferenceSchemaComponent, self).__init__(**kw)
-        rv = binding_module.referenceSchemaComponent(component)
+        rv = binding_module.referenceSchemaComponent(component, in_class)
         self.setLiteral(rv)
 
 class ReferenceNamespace (ReferenceLiteral):
@@ -557,6 +558,7 @@ class %{std} (pyxb.binding.basis.STD_union):
     if std.name() is not None:
         outf.write(templates.replaceInText("%{namespaceReference}.addCategoryObject('typeBinding', %{localName}, %{std})\n",
                                            localName=binding_module.literal(std.name(), **kw), **template_map))
+    outf.write(templates.replaceInText('_module_typeBindings.%{std} = %{std}\n', **template_map))
 
 def elementDeclarationMap (ed, binding_module, **kw):
     template_map = { }
@@ -1019,7 +1021,7 @@ class %{ctd} (%{superclass}):
     # Attribute %{id} is restricted from parent''', **au_map))
 
         assert ad.typeDefinition() is not None
-        au_map['attr_type'] = binding_module.literal(ad.typeDefinition(), **kw)
+        au_map['attr_type'] = binding_module.literal(ad.typeDefinition(), in_class=True, **kw)
         au_map['decl_location'] = repr2to3(ad._location())
         au_map['use_location'] = repr2to3(au._location())
 
@@ -1062,10 +1064,10 @@ class %{ctd} (%{superclass}):
     template_map['attribute_uses'] = ",\n        ".join(attribute_uses)
     template_map['element_uses'] = ",\n        ".join(element_uses)
 
-    template_map['registration'] = ''
+    template_map['registration'] = templates.replaceInText('_module_typeBindings.%{ctd} = %{ctd}', **template_map)
     if ctd.name() is not None:
-        template_map['registration'] = templates.replaceInText("%{namespaceReference}.addCategoryObject('typeBinding', %{localName}, %{ctd})",
-                                                               localName=binding_module.literal(ctd.name(), **kw), **template_map)
+        template_map['registration'] += templates.replaceInText("\n%{namespaceReference}.addCategoryObject('typeBinding', %{localName}, %{ctd})",
+                                                                localName=binding_module.literal(ctd.name(), **kw), **template_map)
 
     template = ''.join([prolog_template,
                "    ", "\n    ".join(definitions), "\n",
@@ -1192,6 +1194,10 @@ _PyXBVersion = %{pyxb_version}
 if pyxb.__version__ != _PyXBVersion:
     raise pyxb.PyXBVersionError(_PyXBVersion)
 
+# A holder for module-level binding classes so we can access them from
+# inside class definitions where property names may conflict.
+_module_typeBindings = pyxb.utils.utility.Object()
+
 # Import bindings for namespaces imported into schema
 %{aux_imports}
 
@@ -1229,7 +1235,7 @@ class _ModuleNaming_mixin (object):
     __uniqueInClass = None
     __referencedFromClass = None
 
-    _UniqueInModule = set([ 'pyxb', 'sys' ])
+    _UniqueInModule = set([ 'pyxb', 'sys', '_module_typeBindings' ])
     """Identifiers that are reserved within a module.
 
     Subclasses extend this with the identifiers they add to the
@@ -1237,7 +1243,7 @@ class _ModuleNaming_mixin (object):
     definition and element names) are deconflicted from this set and
     from each other."""
 
-    _ReferencedFromClass = set([ 'pyxb', 'sys' ])
+    _ReferencedFromClass = set([ 'pyxb', 'sys', '_module_typeBindings' ])
     """Identifiers defined in module that are accessed unqualified from class.
 
     These include standard import module names and globals such as
@@ -1428,7 +1434,7 @@ class _ModuleNaming_mixin (object):
     def nameInModule (self, component):
         return self.__componentNameMap.get(component)
 
-    def referenceSchemaComponent (self, component):
+    def referenceSchemaComponent (self, component, in_class=False):
         origin = component._objectOrigin()
         assert origin is not None
         module_record = origin.moduleRecord()
@@ -1445,6 +1451,8 @@ class _ModuleNaming_mixin (object):
         if self != component_module:
             self._importModule(component_module)
             name = self.pathFromImport(component_module, name)
+        elif in_class:
+            name = '_module_typeBindings.%s' %(name,)
         return name
 
     def _referencedNamespaces (self): return self.__referencedNamespaces
