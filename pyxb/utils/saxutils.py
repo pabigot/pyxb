@@ -569,5 +569,3 @@ if '__main__' == __name__:
 ## Local Variables:
 ## fill-column:78
 ## End:
-
-

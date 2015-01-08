@@ -276,4 +276,3 @@ The major goals of PyXB are:
                       , 'Programming Language :: Python :: 3.3'
                       , 'Programming Language :: Python :: 3.4'
                       ] )
-

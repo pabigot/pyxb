@@ -33,4 +33,3 @@ except pyxb.ValidationError as e:
     print(e.details())
     raise
 open('genout.xhtml', 'w').write(xmls)
-

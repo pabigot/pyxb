@@ -586,4 +586,3 @@ class BindingDOMSupport (object):
 ## Local Variables:
 ## fill-column:78
 ## End:
-

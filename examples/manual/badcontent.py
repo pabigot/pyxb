@@ -7,4 +7,3 @@ try:
     order = po1.CreateFromDocument(xml, location_base='badcontent.xml')
 except pyxb.ValidationError as e:
     print(e.details())
-

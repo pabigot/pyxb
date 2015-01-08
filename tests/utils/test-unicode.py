@@ -152,5 +152,3 @@ class TestXML1p0e2 (unittest.TestCase):
 
 if '__main__' == __name__:
     unittest.main()
-
-

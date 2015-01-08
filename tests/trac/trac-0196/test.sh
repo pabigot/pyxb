@@ -36,5 +36,3 @@ pyxbgen --archive-path .:+ -m mix -u mix.xsd || fail generating mix
 
 python check.py || fail validating forms
 echo ${test_name} passed
-
-

@@ -165,4 +165,3 @@ def setup(app):
     app.add_role('ticket', ticket_role)
     app.add_role('issue', issue_role)
     app.add_role('pyex', pyex_role)
-

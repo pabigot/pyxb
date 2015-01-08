@@ -5,5 +5,3 @@
     >
     <xs:element name="e1" type="xs:string"/>
 </xs:schema>
-
-

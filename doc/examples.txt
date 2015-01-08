@@ -136,4 +136,3 @@ OpenGIS (http://www.opengeospatial.org)
 =======================================
 
 See the directory ``examples/OpenGIS`` in the distribution.
-

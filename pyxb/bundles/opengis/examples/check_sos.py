@@ -19,4 +19,3 @@ for f in sys.argv[1:]:
     except Exception as e:
         print('%s failed: %s' % (f, e))
         traceback.print_exception(*sys.exc_info())
-

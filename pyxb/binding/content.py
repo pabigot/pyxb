@@ -1239,4 +1239,3 @@ class Wildcard (object):
 ## Local Variables:
 ## fill-column:78
 ## End:
-

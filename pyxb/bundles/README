@@ -23,4 +23,4 @@ With a bundle directory, the following are expected:
 
 Each directory also has a .svnignore file which is used to set the
 corresponding directory property in a development workspace.  It is
-recommended that you NOT add to this 
+recommended that you NOT add to this

@@ -44,4 +44,3 @@ for fn in sys.argv[1:]:
 # LocalVariables:
 # mode:python
 # End:
-

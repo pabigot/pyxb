@@ -24,7 +24,7 @@ echo '**************************'
 pyxbgen \
   --schema-location=extend.xsd --module=common4app \
   --archive-to-file=common4app.wxs || fail bindings for extended
-  
+
 # pyxbdump common4app.wxs
 python tst-extend.py || exit 1
 

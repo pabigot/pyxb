@@ -22,4 +22,3 @@ http://www.w3.org/2002/08/xhtml/xhtml1-strict.xsd xhtml1 --allow-builtin-generat
 http://www.w3.org/1999/xlink.xsd xlink
 EOList
 ) | generateBindings
-

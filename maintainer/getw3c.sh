@@ -27,4 +27,3 @@ wget \
   http://www.w3.org/TR/wsdl20-adjuncts \
   http://www.w3.org/TR/ws-policy \
   http://www.w3.org/TR/ws-policy-attach \
-

@@ -37,5 +37,3 @@ if fc_return.Success:
         low = fc.Temperatures.MorningLow
         high = fc.Temperatures.DaytimeHigh
         print('  %s: %s, from %s to %s' % (when, outlook, low, high))
-
-

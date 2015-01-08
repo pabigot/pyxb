@@ -101,7 +101,7 @@
 
   <!-- wsdl:service names a new service "EndorsementSearchService" -->
   <wsdl:service name="EndorsementSearchService">
-    <wsdl:documentation>snowboarding-info.com Endorsement Service</wsdl:documentation> 
+    <wsdl:documentation>snowboarding-info.com Endorsement Service</wsdl:documentation>
 
     <!-- connect it to the binding "EndorsementSearchSoapBinding" above -->
     <wsdl:port name="GetEndorsingBoarderPort"

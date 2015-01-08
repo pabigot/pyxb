@@ -50,4 +50,3 @@ class TestTrac0099a (unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

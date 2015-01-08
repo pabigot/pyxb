@@ -8,4 +8,3 @@ python tst-1.py || exit 1
 python tst-2.py || exit 1
 
 echo Trac32 tests passed
-

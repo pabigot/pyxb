@@ -388,4 +388,3 @@ Generate bindings for the ``types`` stanza of the WSDL at this location.
 This option is equivalent to retrieving the WSDL, extracting the schema
 part of its ``types`` block to a file, and using that file as a
 ``--schema-location``.
-

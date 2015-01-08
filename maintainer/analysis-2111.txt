@@ -77,4 +77,3 @@ Several changes must be made to decrease memory use and time:
 
 * The runtime system will need to be updated to perform validation on the
   primitive types, which will not have the necessary mix-in classes.
-

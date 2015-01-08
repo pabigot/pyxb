@@ -120,4 +120,3 @@ class TestTrac0099 (unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

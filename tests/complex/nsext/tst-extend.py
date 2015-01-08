@@ -21,4 +21,3 @@ class Test (unittest.TestCase):
 
 if '__main__' == __name__:
     unittest.main()
-

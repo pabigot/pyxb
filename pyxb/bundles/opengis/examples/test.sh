@@ -39,4 +39,3 @@ pyxbgen \
   --schema-location=gmlapp.xsd --module=gmlapp \
   --write-for-customization
 python testgml.py || exit 1
-

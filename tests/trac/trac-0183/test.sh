@@ -18,4 +18,3 @@ pyxbgen \
 python check.py || fail binding validation failed
 
 echo 1>&2 "${test_name} passed"
-

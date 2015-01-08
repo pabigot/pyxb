@@ -51,7 +51,7 @@ instance:
    if r is None:
        pyxb.RequireValidWhenParsing(False)
        r = DWML.CreateFromDocument(rxml)
-   
+
 When invoking the program, the following diagnostic output is provided
 through the :api:`details <pyxb.exceptions_.ValidationError.details>`
 method:
@@ -123,4 +123,3 @@ the :api:`API Documentation <pyxb.exceptions_.ValidationError>`.
    ## fill-column:78
    ## indent-tabs-mode:nil
    ## End:
-

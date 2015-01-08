@@ -53,4 +53,3 @@ class TestTrac0126 (unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

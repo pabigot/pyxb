@@ -7,7 +7,7 @@ touch raw/__init__.py
 pyxbgen \
    -m "${PREFIX}" \
    -u "${URI}" \
-   -r 
+   -r
 if [ ! -f ${PREFIX}.py ] ; then
   echo "from raw.${PREFIX} import *" > ${PREFIX}.py
 fi

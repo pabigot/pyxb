@@ -2,7 +2,7 @@
 #
 
 # You can set these variables from the command line.
-SPHINXOPTS    = 
+SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
 
@@ -48,4 +48,3 @@ html: $(GENERATED_TXT)
 
 clean:
 	-rm -rf html _build ${GENERATED_TXT}
-

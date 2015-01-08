@@ -1,9 +1,9 @@
-<xsd:schema 
-	elementFormDefault="qualified"
-	attributeFormDefault="unqualified"
-	targetNamespace="http://www.example.com/PO1"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns:po="http://www.example.com/PO1">
+<xsd:schema
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified"
+    targetNamespace="http://www.example.com/PO1"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:po="http://www.example.com/PO1">
   <xsd:element name="purchaseOrder" type="po:PurchaseOrderType"/>
   <xsd:element name="comment" type="xsd:string"/>
   <xsd:complexType name="PurchaseOrderType">
@@ -38,12 +38,12 @@
                 </xsd:restriction>
               </xsd:simpleType>
             </xsd:element>
-			<xsd:choice>
-            	<xsd:element name="USPrice"  type="xsd:decimal" minOccurs="0"/>
-				<xsd:element ref="po:comment"   minOccurs="0"/>
-			</xsd:choice>
+            <xsd:choice>
+              <xsd:element name="USPrice"  type="xsd:decimal" minOccurs="0"/>
+              <xsd:element ref="po:comment"   minOccurs="0"/>
+            </xsd:choice>
             <xsd:element name="shipDate" type="xsd:date" minOccurs="0"/>
-			<!--<xsd:element name="shipTo" type="po:USAddress" minOccurs="0"/>-->
+            <!--<xsd:element name="shipTo" type="po:USAddress" minOccurs="0"/>-->
           </xsd:sequence>
           <xsd:attribute name="partNum" type="po:SKU" use="required"/>
         </xsd:complexType>

@@ -58,4 +58,3 @@ for item in items:
 %s %s''' % (item.number, item.prefix, item.street, item.type, item.suffix,
             item.city, item.state, item.zip,
             item.lat, item.long))
-

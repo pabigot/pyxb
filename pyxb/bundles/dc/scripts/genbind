@@ -24,4 +24,4 @@ pyxbgen \
  --schema-root=${SCHEMA_DIR} \
  -u dc.xsd -m dc \
  -u dcmitype.xsd -m dcmitype \
- -u dcterms.xsd -m dcterms 
+ -u dcterms.xsd -m dcterms

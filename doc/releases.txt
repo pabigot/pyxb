@@ -190,7 +190,7 @@ The following reported `defects/enhancements
 - Wide unicode mis-defines XML1p0e2 Char class. :ticket:`187`
 - Improve contents of StructuralBadDocumentError. :ticket:`189`
 - Generate exception details correctly with unicode content. :ticket:`190`
-- Namespace must be a reserved symbol within CTD instances. 
+- Namespace must be a reserved symbol within CTD instances.
 - PyXB rejects restriction that changes element type. :ticket:`193`
 - Multiple cases where names (from imported bindings, namespaces, and
   top-level classes and elements) resulted in conflicts with other top-level
@@ -773,9 +773,9 @@ First usable public release.
 - Use the finite automaton content model for generation as well as
   parsing. :ticket:`2`
 
-- Support xsi:type and xsi:nil. :ticket:`3` 
+- Support xsi:type and xsi:nil. :ticket:`3`
 
-- Support substitution groups. :ticket:`4` 
+- Support substitution groups. :ticket:`4`
 
 - Fix many problems in QName resolution
 

@@ -26,4 +26,3 @@
   </xsd:complexType>
   <xsd:element name="ComplexElt" type="tns:tComplexElt"/>
 </xsd:schema>
-

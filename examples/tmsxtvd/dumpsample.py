@@ -64,4 +64,3 @@ print('SAXDOM-based parse %f, bind %f, total %f' % (dt2-dt1, dt3-dt2, dt3-dt1))
 print('SAX-based read %f, parse and bind %f, total %f' % (st2-st1, st3-st2, st3-st1))
 print("Equality test on DOM vs SAX: %s" % (dom_instance.equal(sax_instance),))
 print("Equality test on SAXDOM vs SAX: %s" % (saxdom_instance.equal(sax_instance, verbose=True),))
-

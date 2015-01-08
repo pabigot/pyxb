@@ -63,4 +63,3 @@ targetNamespace="http://example.com/stockquote.wsdl"
     </service>
 
 </definitions>
-

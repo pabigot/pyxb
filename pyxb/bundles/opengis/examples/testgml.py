@@ -30,5 +30,3 @@ xml2 = instance.toxml("utf-8", bds=bds)
 
 assert xml == xml2
 print(xml2)
-
-

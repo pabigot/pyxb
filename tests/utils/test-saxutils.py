@@ -121,4 +121,3 @@ class TestInScopeNames (unittest.TestCase):
 
 if '__main__' == __name__:
     unittest.main()
-

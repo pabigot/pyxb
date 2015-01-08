@@ -70,4 +70,3 @@ while parts and nodes:
 #dom_support =  req.toDOM(pyxb.utils.domutils.BindingDOMSupport())
 #dom_support.finalize()
 #print dom_support.document().toxml("utf-8")
-

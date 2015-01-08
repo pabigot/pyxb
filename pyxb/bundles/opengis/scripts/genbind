@@ -15,7 +15,7 @@ export PYXB_ARCHIVE_PATH=${RAW_DIR}//:${PYXB_ROOT}/pyxb/bundles/common//:${PYXB_
 
 (
 mkdir -p ${SCHEMA_DIR}
-cd ${SCHEMA_DIR} ; 
+cd ${SCHEMA_DIR} ;
 if [ ! -d gml ] ; then
   rm -rf [a-z]*
 fi
@@ -106,7 +106,7 @@ pyxbgen \
   --write-for-customization \
   --archive-to-file=${ARCHIVE_DIR}/kml_2_2.wxs \
  || failure kml_2_2
- 
+
 # Catalog schema has some external namespaces
 pyxbgen \
   --location-prefix-rewrite=http://schemas.opengis.net/=${SCHEMA_DIR}/ \

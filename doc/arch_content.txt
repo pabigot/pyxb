@@ -8,7 +8,7 @@ PyXB's content model is used to complete the link between the
 ones that:
 
 - determine what Python class attribute is used to store which XML
-  element or attribute; 
+  element or attribute;
 - distinguish those elements that can occur at most once from those that
   require an aggregation; and
 - ensure that the ordering and occurrence constraints imposed by the XML
@@ -61,7 +61,7 @@ The information associated with an `attribute use
 - Whether the attribute value is :api:`fixed <pyxb.binding.content.AttributeUse.fixed>`
 
 - Whether the `attribute use
-  <http://www.w3.org/TR/xmlschema-1/#cAttributeUse>`_ is 
+  <http://www.w3.org/TR/xmlschema-1/#cAttributeUse>`_ is
   :api:`required <pyxb.binding.content.AttributeUse.required>`
   or :api:`prohibited <pyxb.binding.content.AttributeUse.prohibited>`
 
@@ -199,4 +199,3 @@ document when multiple orderings are valid.
    ## fill-column:78
    ## indent-tabs-mode:nil
    ## End:
-

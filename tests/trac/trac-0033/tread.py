@@ -54,5 +54,3 @@ for size in xrange(1, max_reps):
     # Should not take more than a second (really, less than 10ms)
     assert (ct1 - ct0) < 1.0
     #open('code.py', 'w').write(code)
-
-

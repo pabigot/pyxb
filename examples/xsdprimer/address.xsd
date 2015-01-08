@@ -50,7 +50,7 @@
     </restriction>
   </simpleType>
 
-  
+
 
   <!-- simple type definition for UKPostcode -->
   <!-- *** pyxb mod: provide missing STD *** -->

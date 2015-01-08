@@ -18,18 +18,18 @@ def _isSupersedable (cls):
 def _injectClasses ():
     import sys
     import pyxb.binding.basis
-    
+
     # All PyXB complex type definitions in the original module
     raw_classes = set([_o for (_, _o) in inspect.getmembers(raw_custom) if _isSupersedable(_o)])
     #print 'Original classes: %s' % (raw_classes,)
-    
+
     # PyXB complex type definitions in this module that did not come
     # from the original import *.
     this_module = sys.modules[__name__]
     this_classes = set([_o for (_, _o) in inspect.getmembers(this_module) if _isSupersedable(_o) and _o not in raw_classes])
     this_classes_tuple = tuple(this_classes)
     #print 'This classes: %s' % (this_classes,)
-    
+
     # Raw classes superseded by something in this module
     superseded_classes = set([ _o for _o in raw_classes if _o._SupersedingClass() in this_classes ])
     superseded_classes_tuple = tuple(superseded_classes)
