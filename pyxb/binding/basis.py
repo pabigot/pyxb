@@ -327,7 +327,21 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         if cls._IsUrType():
             # Require xsi:type if value refines xs:anyType
             return value_type != cls
-        return cls._Abstract and value_type != cls._SupersedingClass()
+        if cls._Abstract:
+            # You can't instantiate an abstract class, so if the element
+            # declaration expects one we're gonna need to be told what type
+            # this really is.
+            return True
+        # For unions delegate to whether the selected member type requires
+        # the attribute.  Most times they won't.
+        if issubclass(cls, STD_union):
+            for mt in cls._MemberTypes:
+                if issubclass(value_type, mt):
+                    return mt._RequireXSIType(value_type)
+            raise pyxb.LogicError('Union %s instance type %s not sublass of member type?' % (cls, value_type))
+        # Otherwise we need the qualifier if the value type extends or
+        # restricts the type schema expects.
+        return value_type != cls._SupersedingClass()
 
     @classmethod
     def _CompatibleValue (cls, value, **kw):
