@@ -331,7 +331,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
             # You can't instantiate an abstract class, so if the element
             # declaration expects one we're gonna need to be told what type
             # this really is.
-            return True
+            return value_type != cls._SupersedingClass()
         # For unions delegate to whether the selected member type requires
         # the attribute.  Most times they won't.
         if issubclass(cls, STD_union):
