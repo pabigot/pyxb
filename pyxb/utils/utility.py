@@ -24,6 +24,7 @@ import time
 import datetime
 import logging
 from pyxb.utils import six
+import sys
 
 _log = logging.getLogger(__name__)
 
@@ -706,7 +707,14 @@ def NormalizeLocation (uri, parent_uri=None, prefix_map=None):
     else:
         #if (0 > parent_uri.find(':')) and (not parent_uri.endswith(os.sep)):
         #    parent_uri = parent_uri + os.sep
-        abs_uri = urlparse.urljoin(parent_uri, uri)
+
+        # 'urljoin' doesn't work on windows file system paths.
+        # This should not affect actual URIs as they should not contain
+        # '\'; they should be percent encoded as %5C.
+        if sys.platform == 'win32' and os.sep in parent_uri:
+            abs_uri = os.path.join(os.path.dirname(parent_uri), uri)
+        else:
+            abs_uri = urlparse.urljoin(parent_uri, uri)
     if prefix_map is None:
         prefix_map = LocationPrefixRewriteMap_
     for (pfx, sub) in six.iteritems(prefix_map):
