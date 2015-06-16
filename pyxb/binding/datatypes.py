@@ -354,6 +354,9 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta, basis._Represent
         if 0 < len(time_elts):
             elts.append('T')
             elts.extend(time_elts)
+        if 1 == len(elts):
+            # Value must have zero duration.  Pick something short.
+            elts.append('0D')
         return ''.join(elts)
 
 _PrimitiveDatatypes.append(duration)

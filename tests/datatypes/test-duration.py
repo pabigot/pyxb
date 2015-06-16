@@ -89,6 +89,12 @@ class Test_duration (unittest.TestCase):
         delta_date = xsd.dateTime(base_date + v)
         self.assertEqual('2000-01-09T00:00:00', delta_date.xsdLiteral())
 
+    def testZero (self):
+        xmlt = 'P0D';
+        v = xsd.duration(xmlt)
+        self.assertEqual(0, v.total_seconds())
+        self.assertEqual(xmlt, v.xsdLiteral())
+
     def testAddition (self):
         date = xsd.dateTime(2002, 10, 27, 12, 14, 32)
         duration = xsd.duration('P3DT5H3M')
