@@ -47,6 +47,7 @@ import logging
 import re
 import binascii
 import base64
+import math
 import decimal as python_decimal
 from pyxb.exceptions_ import *
 import pyxb.namespace
@@ -183,25 +184,28 @@ class decimal (basis.simpleTypeDefinition, python_decimal.Decimal, basis._Repres
 
 _PrimitiveDatatypes.append(decimal)
 
-class float (basis.simpleTypeDefinition, six.float_type):
-    """XMLSchema datatype U{float<http://www.w3.org/TR/xmlschema-2/#float>}."""
+class _fp (basis.simpleTypeDefinition, six.float_type):
     _XsdBaseType = anySimpleType
-    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('float')
 
     @classmethod
     def XsdLiteral (cls, value):
+        if math.isinf(value):
+            if (0 > value):
+                return '-INF'
+            return 'INF'
+        if math.isnan(value):
+            return 'NaN'
         return '%s' % (value,)
+
+class float (_fp):
+    """XMLSchema datatype U{float<http://www.w3.org/TR/xmlschema-2/#float>}."""
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('float')
 
 _PrimitiveDatatypes.append(float)
 
-class double (basis.simpleTypeDefinition, six.float_type):
+class double (_fp):
     """XMLSchema datatype U{double<http://www.w3.org/TR/xmlschema-2/#double>}."""
-    _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('double')
-
-    @classmethod
-    def XsdLiteral (cls, value):
-        return '%s' % (value,)
 
 _PrimitiveDatatypes.append(double)
 
