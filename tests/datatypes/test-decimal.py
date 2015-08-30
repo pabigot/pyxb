@@ -11,9 +11,6 @@ import decimal
 from pyxb.exceptions_ import *
 
 class Test_decimal (unittest.TestCase):
-    def tearDown (self):
-        decimal.setcontext(decimal.BasicContext)
-
     def assertAlmostEqual (self, v1, v2, *args, **kw):
         if (isinstance(v1, Decimal)
             or isinstance(v2, Decimal)):
