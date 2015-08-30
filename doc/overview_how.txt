@@ -4,11 +4,11 @@ How to use it
 Installation
 ------------
 
-PyXB 1.2.x requires Python version 2.6 or higher (not including 3.x).  Among
-other things the implementation relies on decorators (:PEP:`318`) like
-``@classref`` that are not present in earlier versions.  The distribution is
-tested with the latest release in each of the 2.6, and 2.7 series prior to
-release.
+PyXB 1.2.x requires Python version 2.6 or higher (including 3.x as of PyXB
+1.2.4).  Among other things the implementation relies on decorators
+(:PEP:`318`) like ``@classref`` that are not present in earlier versions.  The
+distribution is tested with the latest release in the Python version 2.6, 2.7,
+and 3.4 series prior to release.
 
 PyXB is distributed through `SourceForge
 <https://sourceforge.net/projects/pyxb/files/>`_.  As of the 1.1.4 release,
