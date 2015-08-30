@@ -38,7 +38,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'PyXB'
-copyright = '2009-2014, Peter A. Bigot'
+copyright = '2009-2015, Peter A. Bigot'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
