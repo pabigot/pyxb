@@ -704,8 +704,6 @@ def NormalizeLocation (uri, parent_uri=None, prefix_map=None):
     if parent_uri is None:
         abs_uri = uri
     else:
-        #if (0 > parent_uri.find(':')) and (not parent_uri.endswith(os.sep)):
-        #    parent_uri = parent_uri + os.sep
         abs_uri = urlparse.urljoin(parent_uri, uri)
     if prefix_map is None:
         prefix_map = LocationPrefixRewriteMap_
