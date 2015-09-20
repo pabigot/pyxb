@@ -5,7 +5,7 @@ from pyxb.utils import six
 # Provide a way to reference the raw bindings that we're going to override
 import raw.ipo as raw_ipo
 
-@six.unicode_convertible
+@six.python_2_unicode_compatible
 class USAddress (raw_ipo.USAddress):
     def __str__ (self):
         return six.u('''%s
