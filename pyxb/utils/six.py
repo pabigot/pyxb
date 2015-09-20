@@ -243,6 +243,10 @@ _moved_attributes = [
     MovedModule("xmlrpc_client", "xmlrpclib", "xmlrpc.client"),
     MovedModule("winreg", "_winreg"),
 ]
+
+if sys.platform == "win32":
+    _moved_attributes.append(MovedModule("winreg", "_winreg"))
+
 for attr in _moved_attributes:
     setattr(_MovedItems, attr.name, attr)
     if isinstance(attr, MovedModule):
