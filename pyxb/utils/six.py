@@ -253,6 +253,7 @@ class _MovedItems(_LazyModule):
 
 _moved_attributes = [
     MovedAttribute("cStringIO", "cStringIO", "io", "StringIO"),
+    MovedAttribute("file", "__builtin__", "io", "IOBase"),
     MovedAttribute("filter", "itertools", "builtins", "ifilter", "filter"),
     MovedAttribute("filterfalse", "itertools", "itertools", "ifilterfalse", "filterfalse"),
     MovedAttribute("input", "__builtin__", "builtins", "raw_input", "input"),
@@ -650,6 +651,7 @@ if PY3:
     import io
     StringIO = io.StringIO
     BytesIO = io.BytesIO
+    file = io.IOBase
     _assertCountEqual = "assertCountEqual"
     if sys.version_info[1] <= 1:
         _assertRaisesRegex = "assertRaisesRegexp"
