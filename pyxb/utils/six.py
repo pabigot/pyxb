@@ -241,9 +241,9 @@ _moved_attributes = [
     MovedModule("urllib", __name__ + ".moves.urllib", __name__ + ".moves.urllib"),
     MovedModule("urllib_robotparser", "robotparser", "urllib.robotparser"),
     MovedModule("xmlrpc_client", "xmlrpclib", "xmlrpc.client"),
-    MovedModule("winreg", "_winreg"),
 ]
 
+# prevenf for 
 if sys.platform == "win32":
     _moved_attributes.append(MovedModule("winreg", "_winreg"))
 
