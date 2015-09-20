@@ -44,6 +44,15 @@ if PY3:
     text_type = str
     binary_type = bytes
 
+    none_type = type(None)
+    boolean_type = bool
+    float_type = float
+    int_type = int
+    long_type = int
+    list_type = list
+    tuple_type = tuple
+    dictionary_type = dict
+
     MAXSIZE = sys.maxsize
 else:
     string_types = basestring,
@@ -51,6 +60,16 @@ else:
     class_types = (type, types.ClassType)
     text_type = unicode
     binary_type = str
+
+    import types
+    none_type = types.NoneType
+    boolean_type = types.BooleanType
+    int_type = types.IntType
+    long_type = types.LongType
+    float_type = types.FloatType
+    list_type = types.ListType
+    tuple_type = types.TupleType
+    dictionary_type = types.DictionaryType
 
     if sys.platform.startswith("java"):
         # Jython always uses 32 bits.
