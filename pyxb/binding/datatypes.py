@@ -93,7 +93,7 @@ _PrimitiveDatatypes.append(string)
 
 # It is illegal to subclass the bool type in Python, so we subclass
 # int instead.
-@six.unicode_convertible
+@six.python_2_unicode_compatible
 class boolean (basis.simpleTypeDefinition, six.int_type):
     """XMLSchema datatype U{boolean<http://www.w3.org/TR/xmlschema-2/#boolean>}."""
     _XsdBaseType = anySimpleType

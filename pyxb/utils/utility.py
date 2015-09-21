@@ -754,7 +754,7 @@ def DataFromURI (uri, archive_directory=None):
     try:
         # Protect this in case whatever stream is doesn't have an fp
         # attribute.
-        if isinstance(stream, six.file) or isinstance(stream.fp, six.file):
+        if isinstance(stream, six.moves.file) or isinstance(stream.fp, six.moves.file):
             archive_directory = None
     except:
         pass
@@ -1213,7 +1213,7 @@ class Location (object):
 
     def __init__ (self, location_base=None, line_number=None, column_number=None):
         if isinstance(location_base, str):
-            location_base = six.intern(location_base)
+            location_base = six.moves.intern(location_base)
         self.__locationBase = location_base
         self.__lineNumber = line_number
         self.__columnNumber = column_number
