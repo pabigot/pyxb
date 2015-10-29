@@ -1102,6 +1102,9 @@ class ElementDeclaration (object):
         elif isinstance(value, six.string_types):
             element = dom_support.createChildElement(self.name(), parent)
             element.appendChild(dom_support.document().createTextNode(value))
+        elif isinstance(value, _PluralBinding):
+            for v in value:
+                self.toDOM(dom_support, parent, v)
         else:
             raise pyxb.LogicError('toDOM with unrecognized value type %s: %s' % (type(value), value))
 
