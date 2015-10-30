@@ -45,7 +45,7 @@ class TestIssue0047 (unittest.TestCase):
         pyxb.RequireValidWhenGenerating(False);
         self.assertEqual(six.u('<req><conf>c1</conf></req>'), inst.toxml('utf-8', root_only=True));
 
-    def testOne (self):
+    def testTwo (self):
         inst = req('c1', 'c2');
         self.assertTrue(pyxb.RequireValidWhenGenerating());
         self.assertEqual(six.u('<req><conf>c1</conf><conf>c2</conf></req>'), inst.toxml('utf-8', root_only=True));
