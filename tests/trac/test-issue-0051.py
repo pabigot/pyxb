@@ -19,6 +19,7 @@ xsd='''
         </xs:complexType>
     </xs:element>
     <xs:element name="bin" type="xs:hexBinary"/>
+    <xs:element name="u64" type="xs:base64Binary"/>
 </xs:schema>
 '''
 
@@ -49,6 +50,12 @@ class TestIssue0051 (unittest.TestCase):
         i = CreateFromDocument('<bin> </bin>')
         self.assertEqual(0, len(i))
         i = CreateFromDocument('<bin/>')
+        self.assertEqual(0, len(i))
+        i = CreateFromDocument('<u64>Zg==</u64>')
+        self.assertEqual(1, len(i))
+        i = CreateFromDocument('<u64> </u64>')
+        self.assertEqual(0, len(i))
+        i = CreateFromDocument('<u64/>')
         self.assertEqual(0, len(i))
 
 if __name__ == '__main__':
