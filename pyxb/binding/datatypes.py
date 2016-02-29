@@ -813,7 +813,7 @@ class hexBinary (basis.simpleTypeDefinition, six.binary_type):
 
     @classmethod
     def _ConvertArguments_vx (cls, args, kw):
-        if kw.get('_from_xml', False):
+        if (1 <= len(args)) and kw.get('_from_xml', False):
             xmlt = args[0]
             try:
                 xmld = xmlt.encode('utf-8')
@@ -860,7 +860,7 @@ class base64Binary (basis.simpleTypeDefinition, six.binary_type):
 
     @classmethod
     def _ConvertArguments_vx (cls, args, kw):
-        if kw.get('_from_xml', False):
+        if (1 <= len(args)) and kw.get('_from_xml', False):
             xmlt = args[0]
             try:
                 xmld = xmlt.encode('utf-8')

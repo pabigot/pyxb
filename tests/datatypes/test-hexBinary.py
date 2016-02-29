@@ -26,6 +26,10 @@ class Test_hexBinary (unittest.TestCase):
             v = xsd.hexBinary.Factory(et, _from_xml=True)
             self.assertEqual(len(et)//2, len(v))
             self.assertEqual(et.upper(), v.xsdLiteral())
+        v = xsd.hexBinary.Factory(six.u(''), _from_xml=True)
+        self.assertEqual(0, len(v))
+        v = xsd.hexBinary.Factory(six.u(' '), _from_xml=True)
+        self.assertEqual(0, len(v))
 
     def testBadStrings (self):
         self.assertRaises(SimpleTypeValueError, xsd.hexBinary.Factory, six.u('0'), _from_xml=True)
