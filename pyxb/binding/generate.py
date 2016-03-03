@@ -290,8 +290,10 @@ def %{name} ():
         st = xit.consumingState()
 
         # Transitions into/out-of subautomata might not include a
-        # consuming state.  Give those a sort value None.
-        ssk = None
+        # consuming state.  Give those a sort value -1, which python3
+        # considers comparable with the non-negative integer sort key
+        # used for states.
+        ssk = -1
         if st is not None:
             ssk = stateSortKey(st)
         keys = [ ssk ]
