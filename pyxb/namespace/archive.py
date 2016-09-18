@@ -701,8 +701,11 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
     def modulePath (self):
         return self.__modulePath
     def setModulePath (self, module_path):
-        assert (module_path is None) or isinstance(module_path, six.string_types)
-        self.__modulePath = module_path
+        if isinstance(module_path, six.string_types):
+            self.__modulePath = '.'.join(map(pyxb.utils.utility.MakeModuleElement, module_path.split('.')))
+        else:
+            assert (module_path is None)
+            self.__modulePath = module_path
         return self
     __modulePath = None
 

@@ -1893,7 +1893,7 @@ from %s import *
                 raise pyxb.BindingGenerationError('Generation of namespace groups requires generate-to-files')
             module_elts = []
             if self.modulePrefix():
-                module_elts.extend(self.modulePrefix().split('.'))
+                module_elts.extend(map(utility.MakeModuleElement, self.modulePrefix().split('.')))
             if self.writeForCustomization():
                 module_elts.append('raw')
             in_use = set()

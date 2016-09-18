@@ -188,6 +188,15 @@ def MakeIdentifier (s, camel_case=False):
         s = 'emptyString'
     return s
 
+def MakeModuleElement (s):
+    """Convert a string into something that can be a valid element in a
+    Python module path.
+
+    Module path elements are similar to identifiers, but may begin
+    with numbers and should not have leading underscores removed.
+    """
+    return _UnderscoreSubstitute_re.sub('_', _XMLIdentifierToPython(s))
+
 _PythonKeywords = frozenset( (
         "and", "as", "assert", "break", "class", "continue", "def", "del",
         "elif", "else", "except", "exec", "finally", "for", "from", "global",
