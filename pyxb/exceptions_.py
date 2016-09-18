@@ -932,9 +932,11 @@ class AttributeValidationError (ValidationError):
         self.location = location
         super(AttributeValidationError, self).__init__(type, tag, instance, location)
 
+@six.python_2_unicode_compatible
 class UnrecognizedAttributeError (AttributeValidationError):
     """Attempt to reference an attribute not sanctioned by content model."""
-    pass
+    def __str__ (self):
+        return six.u('Attempt to reference unrecognized attribute %s in type %s') % (self.tag, self.type)
 
 @six.python_2_unicode_compatible
 class ProhibitedAttributeError (AttributeValidationError):
