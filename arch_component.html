@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,15 +6,15 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Component Model &mdash; PyXB 1.2.4 documentation</title>
+    <title>Component Model &mdash; PyXB 1.2.5 documentation</title>
     
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
-        VERSION:     '1.2.4',
+        URL_ROOT:    './',
+        VERSION:     '1.2.5',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,13 +23,13 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyXB 1.2.4 documentation" href="index.html" />
+    <link rel="top" title="PyXB 1.2.5 documentation" href="index.html" />
     <link rel="up" title="Architecture" href="architecture.html" />
     <link rel="next" title="Binding Model" href="arch_binding.html" />
     <link rel="prev" title="Namespaces" href="arch_namespaces.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -43,10 +41,9 @@
         <li class="right" >
           <a href="arch_namespaces.html" title="Namespaces"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">PyXB 1.2.4 documentation</a> &raquo;</li>
-          <li><a href="architecture.html" accesskey="U">Architecture</a> &raquo;</li>
-    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
-    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.5 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="architecture.html" accesskey="U">Architecture</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></li>
      
 
       </ul>
@@ -55,7 +52,7 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="component-model">
 <span id="componentmodel"></span><h1>Component Model<a class="headerlink" href="#component-model" title="Permalink to this headline">¶</a></h1>
@@ -70,7 +67,7 @@ reference, but don&#8217;t look for consistency.</p>
 <img alt="_images/ComponentModel.jpg" src="_images/ComponentModel.jpg" />
 <div class="section" id="component-model-mix-ins">
 <h2>Component Model Mix-ins<a class="headerlink" href="#component-model-mix-ins" title="Permalink to this headline">¶</a></h2>
-<p>A variety of <a class="reference internal" href="maintref.html#mixins"><em>Mix-in classes</em></a> are used to allow common code to be abstracted or
+<p>A variety of <a class="reference internal" href="maintref.html#mixins"><span>Mix-in classes</span></a> are used to allow common code to be abstracted or
 to mark objects as having certain capabilities.  These mixins are:</p>
 <ul class="simple">
 <li><a class="reference external" href="api/pyxb.xmlschema.structures._SchemaComponent_mixin-class.html">_SchemaComponent_mixin</a> marks the object
@@ -80,7 +77,7 @@ components in a global definition and their clones where those definitions
 are expanded.</li>
 <li><a class="reference external" href="api/pyxb.xmlschema.structures._Singleton_mixin-class.html">_Singleton_mixin</a> is used to ensure there is only one instance each
 of the <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#simple-ur-type-itself">simple ur-type</a> and <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#ur-type-itself">ur-type</a>.  It overloads
-<tt class="docutils literal"><span class="pre">__new__</span></tt> to ensure that only one instance of the class is ever
+<code class="docutils literal"><span class="pre">__new__</span></code> to ensure that only one instance of the class is ever
 constructed.</li>
 <li><a class="reference external" href="api/pyxb.xmlschema.structures._Annotated_mixin-class.html">_Annotated_mixin</a> provides the support for all components that
 contain an <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#cAnnotations">annotation</a>
@@ -111,7 +108,7 @@ from the <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#c
 from the <a class="reference external" href="api/pyxb.xmlschema.structures-module.html">PyXB component model API</a>.
 Tidbits of other relevant information:</p>
 <ul class="simple">
-<li>An understanding of <a class="reference internal" href="arch_namespaces.html#resolution"><em>Namespace Resolution</em></a> is important.</li>
+<li>An understanding of <a class="reference internal" href="arch_namespaces.html#resolution"><span>Namespace Resolution</span></a> is important.</li>
 <li>Element and attribute declarations that are incorporated by reference are
 represented in local scope by a copy of the global declaration.  This aids
 in the infrastructure that binds declarations from model and attribute
@@ -134,7 +131,7 @@ single Python field in the binding.</li>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
@@ -151,12 +148,14 @@ single Python field in the binding.</li>
   <h4>Next topic</h4>
   <p class="topless"><a href="arch_binding.html"
                         title="next chapter">Binding Model</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/arch_component.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/arch_component.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -173,7 +172,7 @@ single Python field in the binding.</li>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -185,17 +184,16 @@ single Python field in the binding.</li>
         <li class="right" >
           <a href="arch_namespaces.html" title="Namespaces"
              >previous</a> |</li>
-        <li><a href="index.html">PyXB 1.2.4 documentation</a> &raquo;</li>
-          <li><a href="architecture.html" >Architecture</a> &raquo;</li>
-    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
-    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.5 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="architecture.html" >Architecture</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></li>
      
 
       </ul>
     </div>
-    <div class="footer">
-        &copy; Copyright 2009-2014, Peter A. Bigot.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2009-2016, Peter A. Bigot.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
   </body>
 </html>

@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+            >PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -61,8 +61,8 @@
     </td>
   </tr>
 </table>
-<!-- ==================== TYPE DESCRIPTION ==================== -->
-<h1 class="epydoc">type Node</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.utils.saxdom-pysrc.html#Node">source&nbsp;code</a></span></p>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class Node</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.utils.saxdom-pysrc.html#Node">source&nbsp;code</a></span></p>
 <pre class="base-tree">
            xml.dom.Node --+
                           |
@@ -109,7 +109,8 @@
         <tr>
           <td><span class="summary-sig"><a href="pyxb.utils.saxdom.Node-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">node_type</span>,
-        <span class="summary-sig-arg">**kw</span>)</span></td>
+        <span class="summary-sig-arg">**kw</span>)</span><br />
+      x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="pyxb.utils.saxdom-pysrc.html#Node.__init__">source&nbsp;code</a></span>
             
@@ -264,6 +265,20 @@
       <code><a href="pyxb.utils.utility.Locatable_mixin-class.html#_location" onclick="show_private();">_location</a></code>,
       <code><a href="pyxb.utils.utility.Locatable_mixin-class.html#_setLocation" onclick="show_private();">_setLocation</a></code>
       </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
     </td>
   </tr>
 </table>
@@ -288,7 +303,8 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__expandedName"></a><span class="summary-name">__expandedName</span> = <code title="None">None</code>
+        <a name="__expandedName"></a><span class="summary-name">__expandedName</span> = <code title="None">None</code><br />
+      hash(x)
     </td>
   </tr>
 <tr class="private">
@@ -309,28 +325,32 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__namespaceURI"></a><span class="summary-name">__namespaceURI</span> = <code title="None">None</code>
+        <a name="__namespaceURI"></a><span class="summary-name">__namespaceURI</span> = <code title="None">None</code><br />
+      hash(x)
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__localName"></a><span class="summary-name">__localName</span> = <code title="None">None</code>
+        <a name="__localName"></a><span class="summary-name">__localName</span> = <code title="None">None</code><br />
+      hash(x)
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__value"></a><span class="summary-name">__value</span> = <code title="None">None</code>
+        <a name="__value"></a><span class="summary-name">__value</span> = <code title="None">None</code><br />
+      hash(x)
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__attributes"></a><span class="summary-name">__attributes</span> = <code title="None">None</code>
+        <a name="__attributes"></a><span class="summary-name">__attributes</span> = <code title="None">None</code><br />
+      hash(x)
     </td>
   </tr>
   <tr>
@@ -460,6 +480,13 @@
         <a href="pyxb.utils.saxdom.Node-class.html#nextSibling" class="summary-name">nextSibling</a>
     </td>
   </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
 </table>
 <!-- ==================== METHOD DETAILS ==================== -->
 <a name="section-MethodDetails"></a>
@@ -496,10 +523,11 @@
     </td>
   </tr></table>
   
-  
+  <p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
   <dl class="fields">
     <dt>Overrides:
-        <a href="pyxb.cscRoot-class.html#__init__">cscRoot.__init__</a>
+        object.__init__
+        <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
   </dl>
 </td></tr></table>
@@ -531,6 +559,9 @@
   <h3 class="epydoc">location</h3>
   
   <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>(<span class="summary-sig-arg">_s</span>)</span>
+    </dd>
   </dl>
 </td></tr></table>
 </div>
@@ -542,6 +573,9 @@
   <h3 class="epydoc">_expandedName</h3>
   
   <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>(<span class="summary-sig-arg">_s</span>)</span>
+    </dd>
   </dl>
 </td></tr></table>
 </div>
@@ -553,6 +587,9 @@
   <h3 class="epydoc">prefix</h3>
   
   <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>(<span class="summary-sig-arg">_s</span>)</span>
+    </dd>
   </dl>
 </td></tr></table>
 </div>
@@ -564,6 +601,9 @@
   <h3 class="epydoc">tagName</h3>
   
   <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>(<span class="summary-sig-arg">_s</span>)</span>
+    </dd>
   </dl>
 </td></tr></table>
 </div>
@@ -575,6 +615,9 @@
   <h3 class="epydoc">namespaceURI</h3>
   
   <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>(<span class="summary-sig-arg">_s</span>)</span>
+    </dd>
   </dl>
 </td></tr></table>
 </div>
@@ -586,6 +629,9 @@
   <h3 class="epydoc">localName</h3>
   
   <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>(<span class="summary-sig-arg">_s</span>)</span>
+    </dd>
   </dl>
 </td></tr></table>
 </div>
@@ -597,6 +643,9 @@
   <h3 class="epydoc">value</h3>
   
   <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>(<span class="summary-sig-arg">_s</span>)</span>
+    </dd>
   </dl>
 </td></tr></table>
 </div>
@@ -608,6 +657,9 @@
   <h3 class="epydoc">nodeType</h3>
   
   <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>(<span class="summary-sig-arg">_s</span>)</span>
+    </dd>
   </dl>
 </td></tr></table>
 </div>
@@ -619,6 +671,9 @@
   <h3 class="epydoc">parentNode</h3>
   
   <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>(<span class="summary-sig-arg">_s</span>)</span>
+    </dd>
   </dl>
 </td></tr></table>
 </div>
@@ -630,6 +685,9 @@
   <h3 class="epydoc">firstChild</h3>
   
   <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>(<span class="summary-sig-arg">_s</span>)</span>
+    </dd>
   </dl>
 </td></tr></table>
 </div>
@@ -641,6 +699,9 @@
   <h3 class="epydoc">childNodes</h3>
   
   <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>(<span class="summary-sig-arg">_s</span>)</span>
+    </dd>
   </dl>
 </td></tr></table>
 </div>
@@ -652,6 +713,9 @@
   <h3 class="epydoc">attributes</h3>
   
   <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>(<span class="summary-sig-arg">_s</span>)</span>
+    </dd>
   </dl>
 </td></tr></table>
 </div>
@@ -663,6 +727,9 @@
   <h3 class="epydoc">nextSibling</h3>
   
   <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>(<span class="summary-sig-arg">_s</span>)</span>
+    </dd>
   </dl>
 </td></tr></table>
 </div>
@@ -691,7 +758,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+            >PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -699,7 +766,7 @@
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Sun Oct 19 06:24:42 2014
+    on Sun Sep 18 23:14:46 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

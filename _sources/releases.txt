@@ -41,10 +41,39 @@ dropped for Python 2.4 and 2.5.  The 1.2.x release works with Python 2.6 and
 skipped under Python 2.6 due to insufficient support for validating exception
 attributes.
 
+.. _pyxb-1.2.5:
+
+1.2.5 (18 Sep 2016)
+-------------------
+
+This is a roll-up aggregating all fixes since the last major release nearly
+two years ago.
+
+The following reported `defects/enhancements
+<https://github.net/pabigot/pyxb/issues/>`_ have been addressed:
+
+- Deconflict class properties from module identifiers.  :issue:`27`
+- Correct handling of `xsi:type <http://www.w3.org/TR/xmlschema-1/#xsi_type>`_
+  on non-abstract types.  :issue:`32`
+- Fix generation of zero-span durations.  :issue:`38`
+- Document how to use file URIs on Windows.  :issue:`34`
+- Document need for common bindings when generating OpenGIS bindings.
+  :issue:`28`
+- Fix literal representation of not-a-number and infinite values. :issue:`43`
+- Document that Python 3 is supported.  :issue:`36`
+- Fix processing of empty binary data tpyes.  :issue:`51`
+- Fix transition sort key to support Python 3.  :issue:`52`
+- Fix generation of modules that cannot be imported due to use of invalid
+  characters in the module path.  :issue:`48`
+- Add a method to xsd.base64Binary to allow a heavy-weight validation step to
+  be bypassed.  :issue:`50`
+
 .. _pyxb-1.2.4:
 
 1.2.4 (19 Oct 2014)
 -------------------
+
+Documentation: http://pyxb.sourceforge.net/PyXB-1.2.4
 
 The major feature of this release is a new approach to Python 3 support based
 on the `six <https://pypi.python.org/pypi/six/>`_ module.  This resolves
@@ -190,7 +219,7 @@ The following reported `defects/enhancements
 - Wide unicode mis-defines XML1p0e2 Char class. :ticket:`187`
 - Improve contents of StructuralBadDocumentError. :ticket:`189`
 - Generate exception details correctly with unicode content. :ticket:`190`
-- Namespace must be a reserved symbol within CTD instances. 
+- Namespace must be a reserved symbol within CTD instances.
 - PyXB rejects restriction that changes element type. :ticket:`193`
 - Multiple cases where names (from imported bindings, namespaces, and
   top-level classes and elements) resulted in conflicts with other top-level
@@ -773,9 +802,9 @@ First usable public release.
 - Use the finite automaton content model for generation as well as
   parsing. :ticket:`2`
 
-- Support xsi:type and xsi:nil. :ticket:`3` 
+- Support xsi:type and xsi:nil. :ticket:`3`
 
-- Support substitution groups. :ticket:`4` 
+- Support substitution groups. :ticket:`4`
 
 - Fix many problems in QName resolution
 

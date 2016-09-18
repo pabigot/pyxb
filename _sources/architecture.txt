@@ -19,4 +19,3 @@ documents and Python bindings.
    arch_component
    arch_binding
    arch_content
-

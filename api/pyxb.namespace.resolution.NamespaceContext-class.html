@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+            >PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -61,8 +61,8 @@
     </td>
   </tr>
 </table>
-<!-- ==================== TYPE DESCRIPTION ==================== -->
-<h1 class="epydoc">type NamespaceContext</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext">source&nbsp;code</a></span></p>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class NamespaceContext</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.namespace.resolution-pysrc.html#NamespaceContext">source&nbsp;code</a></span></p>
 <pre class="base-tree">
 object --+
          |
@@ -95,7 +95,8 @@ object --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="pyxb.namespace.resolution.NamespaceContext-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">_s</span>)</span></td>
+          <td><span class="summary-sig"><a href="pyxb.namespace.resolution.NamespaceContext-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      str(x)</td>
           <td align="right" valign="top">
             
             
@@ -426,6 +427,23 @@ object --+
       
     </td>
   </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
 </table>
 <!-- ==================== CLASS METHODS ==================== -->
 <a name="section-ClassMethods"></a>
@@ -599,21 +617,24 @@ object --+
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__TargetNamespaceAttributes"></a><span class="summary-name">__TargetNamespaceAttributes</span> = <code title="{}">{}</code>
+        <a href="pyxb.namespace.resolution.NamespaceContext-class.html#__TargetNamespaceAttributes" class="summary-name" onclick="show_private();">__TargetNamespaceAttributes</a> = <code title="{&lt;pyxb.namespace.ExpandedName object&gt;: &lt;pyxb.namespace.ExpandedName ob\
+ject&gt;}"><code class="variable-group">{</code>&lt;pyxb.namespace.ExpandedName ob<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__pendingReferencedNamespaces"></a><span class="summary-name">__pendingReferencedNamespaces</span> = <code title="None">None</code>
+        <a name="__pendingReferencedNamespaces"></a><span class="summary-name">__pendingReferencedNamespaces</span> = <code title="None">None</code><br />
+      hash(x)
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__defaultNamespace"></a><span class="summary-name">__defaultNamespace</span> = <code title="None">None</code>
+        <a name="__defaultNamespace"></a><span class="summary-name">__defaultNamespace</span> = <code title="None">None</code><br />
+      hash(x)
     </td>
   </tr>
 <tr class="private">
@@ -627,7 +648,8 @@ object --+
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__targetNamespace"></a><span class="summary-name">__targetNamespace</span> = <code title="None">None</code>
+        <a name="__targetNamespace"></a><span class="summary-name">__targetNamespace</span> = <code title="None">None</code><br />
+      hash(x)
     </td>
   </tr>
 <tr class="private">
@@ -644,42 +666,73 @@ object --+
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__inScopePrefixes"></a><span class="summary-name">__inScopePrefixes</span> = <code title="None">None</code>
+        <a name="__inScopePrefixes"></a><span class="summary-name">__inScopePrefixes</span> = <code title="None">None</code><br />
+      hash(x)
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__InitialScopeNamespaces"></a><span class="summary-name">__InitialScopeNamespaces</span> = <code title="{}">{}</code>
+        <a href="pyxb.namespace.resolution.NamespaceContext-class.html#__InitialScopeNamespaces" class="summary-name" onclick="show_private();">__InitialScopeNamespaces</a> = <code title="{'xml': &lt;pyxb.namespace.builtin._XML object&gt;,
+ 'xmlns': &lt;pyxb.namespace.Namespace object&gt;}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">xml</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;pyxb.namespace.builtin._XM<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__InitialScopePrefixes"></a><span class="summary-name">__InitialScopePrefixes</span> = <code title="None">None</code>
+        <a href="pyxb.namespace.resolution.NamespaceContext-class.html#__InitialScopePrefixes" class="summary-name" onclick="show_private();">__InitialScopePrefixes</a> = <code title="{&lt;pyxb.namespace.Namespace object&gt;: set(['xmlns']),
+ &lt;pyxb.namespace.builtin._XML object&gt;: set(['xml'])}"><code class="variable-group">{</code>&lt;pyxb.namespace.Namespace object&gt;<code class="variable-op">: </code><code class="variable-group">s</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__initialScopeNamespaces"></a><span class="summary-name">__initialScopeNamespaces</span> = <code title="None">None</code>
+        <a name="__initialScopeNamespaces"></a><span class="summary-name">__initialScopeNamespaces</span> = <code title="None">None</code><br />
+      hash(x)
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__initialScopePrefixes"></a><span class="summary-name">__initialScopePrefixes</span> = <code title="None">None</code>
+        <a name="__initialScopePrefixes"></a><span class="summary-name">__initialScopePrefixes</span> = <code title="None">None</code><br />
+      hash(x)
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__namespacePrefixCounter"></a><span class="summary-name">__namespacePrefixCounter</span> = <code title="None">None</code>
+        <a name="__namespacePrefixCounter"></a><span class="summary-name">__namespacePrefixCounter</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
     </td>
   </tr>
 </table>
@@ -708,7 +761,7 @@ object --+
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__str__</span>(<span class="sig-arg">_s</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__str__</span>(<span class="sig-arg">self</span>)</span>
     <br /><em class="fname">(Informal representation operator)</em>
   </h3>
   </td><td align="right" valign="top"
@@ -716,7 +769,7 @@ object --+
     </td>
   </tr></table>
   
-  
+  <p>str(x)</p>
   <dl class="fields">
     <dt>Overrides:
         object.__str__
@@ -1128,6 +1181,25 @@ object --+
   </td>
 </tr>
 </table>
+<a name="__TargetNamespaceAttributes"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">__TargetNamespaceAttributes</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code>&lt;pyxb.namespace.ExpandedName object&gt;<code class="variable-op">: </code>&lt;pyxb.namespace.ExpandedName ob<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ject&gt;<code class="variable-group">}</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="__inScopeNamespaces"></a>
 <div class="private">
 <table class="details" border="1" cellpadding="3"
@@ -1143,6 +1215,44 @@ object --+
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
 None
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__InitialScopeNamespaces"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">__InitialScopeNamespaces</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">xml</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;pyxb.namespace.builtin._XML object&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">xmlns</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;pyxb.namespace.Namespace object&gt;<code class="variable-group">}</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__InitialScopePrefixes"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">__InitialScopePrefixes</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code>&lt;pyxb.namespace.Namespace object&gt;<code class="variable-op">: </code><code class="variable-group">set([</code><code class="variable-quote">'</code><code class="variable-string">xmlns</code><code class="variable-quote">'</code><code class="variable-group">])</code><code class="variable-op">,</code>
+ &lt;pyxb.namespace.builtin._XML object&gt;<code class="variable-op">: </code><code class="variable-group">set([</code><code class="variable-quote">'</code><code class="variable-string">xml</code><code class="variable-quote">'</code><code class="variable-group">])</code><code class="variable-group">}</code>
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -1173,7 +1283,7 @@ None
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+            >PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -1181,7 +1291,7 @@ None
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Sun Oct 19 06:24:42 2014
+    on Sun Sep 18 23:14:46 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

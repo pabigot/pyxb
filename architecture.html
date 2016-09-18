@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,15 +6,15 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Architecture &mdash; PyXB 1.2.4 documentation</title>
+    <title>Architecture &mdash; PyXB 1.2.5 documentation</title>
     
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
-        VERSION:     '1.2.4',
+        URL_ROOT:    './',
+        VERSION:     '1.2.5',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,12 +23,12 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyXB 1.2.4 documentation" href="index.html" />
+    <link rel="top" title="PyXB 1.2.5 documentation" href="index.html" />
     <link rel="next" title="Namespaces" href="arch_namespaces.html" />
     <link rel="prev" title="Release History" href="releases.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -42,9 +40,8 @@
         <li class="right" >
           <a href="releases.html" title="Release History"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">PyXB 1.2.4 documentation</a> &raquo;</li>
-    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
-    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.5 documentation</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></li>
      
 
       </ul>
@@ -53,16 +50,16 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="architecture">
 <h1>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h1>
 <p>The architecture of PyXB requires an understanding of four models.
-<a class="reference internal" href="arch_namespaces.html#namespaces"><em>Namespaces</em></a> describe how objects are aggregated by name and kind.  The
-<a class="reference internal" href="arch_component.html#componentmodel"><em>Component Model</em></a> represents XML schema using the thirteen component
-types defined in the <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/">XML schema specification</a>.  The <a class="reference internal" href="arch_binding.html#bindingmodel"><em>Binding Model</em></a> describes
+<a class="reference internal" href="arch_namespaces.html#namespaces"><span>Namespaces</span></a> describe how objects are aggregated by name and kind.  The
+<a class="reference internal" href="arch_component.html#componentmodel"><span>Component Model</span></a> represents XML schema using the thirteen component
+types defined in the <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/">XML schema specification</a>.  The <a class="reference internal" href="arch_binding.html#bindingmodel"><span>Binding Model</span></a> describes
 how Python classes provide a Pythonic representation of the information
-within specific components.  Finally, the <a class="reference internal" href="arch_content.html#contentmodel"><em>Content Model</em></a> describes how
+within specific components.  Finally, the <a class="reference internal" href="arch_content.html#contentmodel"><span>Content Model</span></a> describes how
 the component model of a specific schema supports translation between XML
 documents and Python bindings.</p>
 <div class="toctree-wrapper compound">
@@ -102,7 +99,7 @@ documents and Python bindings.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
   <p class="topless"><a href="releases.html"
@@ -110,12 +107,14 @@ documents and Python bindings.</p>
   <h4>Next topic</h4>
   <p class="topless"><a href="arch_namespaces.html"
                         title="next chapter">Namespaces</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/architecture.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/architecture.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -132,7 +131,7 @@ documents and Python bindings.</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -144,16 +143,15 @@ documents and Python bindings.</p>
         <li class="right" >
           <a href="releases.html" title="Release History"
              >previous</a> |</li>
-        <li><a href="index.html">PyXB 1.2.4 documentation</a> &raquo;</li>
-    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
-    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.5 documentation</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></li>
      
 
       </ul>
     </div>
-    <div class="footer">
-        &copy; Copyright 2009-2014, Peter A. Bigot.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2009-2016, Peter A. Bigot.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
   </body>
 </html>

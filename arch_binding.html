@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,15 +6,15 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Binding Model &mdash; PyXB 1.2.4 documentation</title>
+    <title>Binding Model &mdash; PyXB 1.2.5 documentation</title>
     
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
-        VERSION:     '1.2.4',
+        URL_ROOT:    './',
+        VERSION:     '1.2.5',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,13 +23,13 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyXB 1.2.4 documentation" href="index.html" />
+    <link rel="top" title="PyXB 1.2.5 documentation" href="index.html" />
     <link rel="up" title="Architecture" href="architecture.html" />
     <link rel="next" title="Content Model" href="arch_content.html" />
     <link rel="prev" title="Component Model" href="arch_component.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -43,10 +41,9 @@
         <li class="right" >
           <a href="arch_component.html" title="Component Model"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">PyXB 1.2.4 documentation</a> &raquo;</li>
-          <li><a href="architecture.html" accesskey="U">Architecture</a> &raquo;</li>
-    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
-    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.5 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="architecture.html" accesskey="U">Architecture</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></li>
      
 
       </ul>
@@ -55,7 +52,7 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="binding-model">
 <span id="bindingmodel"></span><h1>Binding Model<a class="headerlink" href="#binding-model" title="Permalink to this headline">¶</a></h1>
@@ -84,7 +81,7 @@ the data type definition was found.  This is used in diagnostics.</li>
 <li>The <a class="reference external" href="api/pyxb.binding.basis._TypeBinding_mixin-class.html#_namespaceContext">namespace context</a> of the type
 definition is recorded to allow users to perform QName resolution of values
 within instance documents (see, for example, the customized bindings in
-<tt class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wsdl11</span></tt>).</li>
+<code class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wsdl11</span></code>).</li>
 <li>Each instance records the <a class="reference external" href="api/pyxb.binding.basis.element-class.html">element</a> instance that
 determines where the type came from.  The element is required in order to
 provide the correct name when converting the binding instance to a DOM
@@ -94,7 +91,7 @@ is stored.</li>
 <li>A <a class="reference external" href="api/pyxb.binding.basis._TypeBinding_mixin-class.html">Factory</a> infrastructure is
 provided to allow creation of new instances of the binding while permitting
 developers to customize the generated binding classes; see
-<a class="reference internal" href="#binding-customization"><em>Support for Customization</em></a>.</li>
+<a class="reference internal" href="#binding-customization"><span>Support for Customization</span></a>.</li>
 </ul>
 </div></blockquote>
 </div>
@@ -102,10 +99,10 @@ developers to customize the generated binding classes; see
 <span id="binding-deconflictingnames"></span><h3>Deconflicting Names<a class="headerlink" href="#deconflicting-names" title="Permalink to this headline">¶</a></h3>
 <p>In XML schema, the namespaces for element declarations, type definitions, and
 attribute definitions are all distinct.  Python uses the same namespace for
-everything.  So, if you have a schema that defines a simple type <tt class="docutils literal"><span class="pre">color</span></tt>,
-the schema can also have an element named <tt class="docutils literal"><span class="pre">color</span></tt> with a complex type that
-itself has both a child element named <tt class="docutils literal"><span class="pre">color</span></tt> and a distinct attribute (of
-type <tt class="docutils literal"><span class="pre">color</span></tt>) that is also named <tt class="docutils literal"><span class="pre">color</span></tt>.  Since the natural
+everything.  So, if you have a schema that defines a simple type <code class="docutils literal"><span class="pre">color</span></code>,
+the schema can also have an element named <code class="docutils literal"><span class="pre">color</span></code> with a complex type that
+itself has both a child element named <code class="docutils literal"><span class="pre">color</span></code> and a distinct attribute (of
+type <code class="docutils literal"><span class="pre">color</span></code>) that is also named <code class="docutils literal"><span class="pre">color</span></code>.  Since the natural
 representation of elements and attributes inside complex types is also by
 their XML name, the chances of conflict are high.</p>
 <p>PyXB resolves this by ensuring every identifiable object has a unique
@@ -114,10 +111,10 @@ identifier within its context.  The steps involved are:</p>
 <li>Make object name into an <a class="reference external" href="api/pyxb.utils.utility-module.html#MakeIdentifier">identifier</a> by stripping out non-printable
 characters, replacing characters that cannot appear in identifiers with
 underscores, stripping leading underscores, and prefixing an initial
-digit with the character <tt class="docutils literal"><span class="pre">n</span></tt>.</li>
+digit with the character <code class="docutils literal"><span class="pre">n</span></code>.</li>
 <li><a class="reference external" href="api/pyxb.utils.utility-module.html#DeconflictKeyword">Deconflict</a> the resulting
 identifier from Python <a class="reference external" href="api/pyxb.utils.utility-module.html#_Keywords">reserved identifiers</a> and other context-specific keywords.</li>
-<li>Prepend the standard prefix that denotes the identifier&#8217;s <a class="reference internal" href="maintref.html#identifier-naming"><em>visibility</em></a> (public, protected, private)</li>
+<li>Prepend the standard prefix that denotes the identifier&#8217;s <a class="reference internal" href="maintref.html#identifier-naming"><span>visibility</span></a> (public, protected, private)</li>
 <li>Make the resulting identifier <a class="reference external" href="api/pyxb.utils.utility-module.html#MakeUnique">unique</a>
 within its context (containing class or module).</li>
 </ol>
@@ -131,7 +128,7 @@ public field or method names in the class.  The
 <a class="reference external" href="api/pyxb.utils.utility._DeconflictSymbols_mixin-class.html">_DeconflictSymbols_mixin</a> is used to refine the set
 of type-specific public names.  If you customize a generated binding class by
 extending from it, you must specify your own class variable
-<tt class="docutils literal"><span class="pre">_ReservedSymbols</span></tt> with a value that is the union of your symbols and those
+<code class="docutils literal"><span class="pre">_ReservedSymbols</span></code> with a value that is the union of your symbols and those
 of the superclass(es) (see <a class="reference external" href="api/pyxb.utils.utility._DeconflictSymbols_mixin-class.html">_DeconflictSymbols_mixin</a>
 for details).</p>
 <p>Deconfliction of module-level names occurs prior to <a class="reference external" href="api/pyxb.binding.generate-module.html#GeneratePython">code generation</a>.  Identifiers are deconflicted in
@@ -155,29 +152,29 @@ from the automatically-generated modules.  This is supported by the
 <a class="reference external" href="api/pyxb.binding.basis._DynamicCreate_mixin-class.html">_DynamicCreate_mixin</a> class.</p>
 <p>This class provides a <a class="reference external" href="api/pyxb.binding.basis._DynamicCreate_mixin-class.html#_DynamicCreate">method</a> which is used by
 the generated bindings to create new instances of themselves.  The raw
-bindings are generated into a sub-module with the prefix <tt class="docutils literal"><span class="pre">raw</span></tt>, and the
+bindings are generated into a sub-module with the prefix <code class="docutils literal"><span class="pre">raw</span></code>, and the
 extensions modify the generated class to record the real class that should
 be used when new instances are created as a result of converting an XML
 document into a binding object.</p>
-<p>For example, if a binding is to be created in a module <tt class="docutils literal"><span class="pre">dinner</span></tt>, the
-<tt class="docutils literal"><span class="pre">--generate-raw-binding</span></tt> flag would be used on <a class="reference internal" href="userref_pyxbgen.html#pyxbgen"><em>pyxbgen</em></a> to
-generate the binding in a file named <tt class="docutils literal"><span class="pre">raw/dinner.py</span></tt>.  The wrapper module
-<tt class="docutils literal"><span class="pre">dinner.py</span></tt> would contain the following code (assuming that the class
-<tt class="docutils literal"><span class="pre">parsnip</span></tt> was to be extended):</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># Bring all public symbols up from the generated one</span>
+<p>For example, if a binding is to be created in a module <code class="docutils literal"><span class="pre">dinner</span></code>, the
+<code class="docutils literal"><span class="pre">--generate-raw-binding</span></code> flag would be used on <a class="reference internal" href="userref_pyxbgen.html#pyxbgen"><span>pyxbgen</span></a> to
+generate the binding in a file named <code class="docutils literal"><span class="pre">raw/dinner.py</span></code>.  The wrapper module
+<code class="docutils literal"><span class="pre">dinner.py</span></code> would contain the following code (assuming that the class
+<code class="docutils literal"><span class="pre">parsnip</span></code> was to be extended):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># Bring all public symbols up from the generated one</span>
 <span class="kn">from</span> <span class="nn">raw.dinner</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="c"># Bring them in again, but left with their original module path</span>
+<span class="c1"># Bring them in again, but left with their original module path</span>
 <span class="kn">import</span> <span class="nn">raw.dinner</span>
-<span class="c"># Replace the generated parsnip with a customizing extension</span>
+<span class="c1"># Replace the generated parsnip with a customizing extension</span>
 <span class="k">class</span> <span class="nc">parsnip</span> <span class="p">(</span><span class="n">raw</span><span class="o">.</span><span class="n">dinner</span><span class="o">.</span><span class="n">parsnip</span><span class="p">):</span>
-  <span class="c"># Customization here</span>
+  <span class="c1"># Customization here</span>
   <span class="k">pass</span>
-<span class="c"># Register the customization for use by the binding infrastructure</span>
+<span class="c1"># Register the customization for use by the binding infrastructure</span>
 <span class="n">raw</span><span class="o">.</span><span class="n">dinner</span><span class="o">.</span><span class="n">parsnip</span><span class="o">.</span><span class="n">_SetSupersedingClass</span><span class="p">(</span><span class="n">parsnip</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>With this pattern, objects created by the user through <tt class="docutils literal"><span class="pre">dinner.parsnip()</span></tt>
-and from XML documents by the <tt class="docutils literal"><span class="pre">CreateFromDOM</span></tt> infrastructure will both be
+<p>With this pattern, objects created by the user through <code class="docutils literal"><span class="pre">dinner.parsnip()</span></code>
+and from XML documents by the <code class="docutils literal"><span class="pre">CreateFromDOM</span></code> infrastructure will both be
 instances of the extending wrapper class.</p>
 </div>
 </div>
@@ -194,7 +191,7 @@ is validated against the <a class="reference external" href="http://www.w3.org/T
 <p>Each class corresponding to a simple type definition has class variables for
 the <a class="reference external" href="http://www.w3.org/TR/xmlschema-2/#rf-facets">constraining facets</a>
 that are valid for that class.  These variables are named by prefixing the
-facet name with <tt class="docutils literal"><span class="pre">_CF_</span></tt>, and have a value that is an instance of the
+facet name with <code class="docutils literal"><span class="pre">_CF_</span></code>, and have a value that is an instance of the
 corresponding <a class="reference external" href="api/pyxb.binding.facets-module.html">facet class</a>.  Where possible, the
 variables are inherited from the parent class; when a simple type is derived
 by restriction, the restricted class overrides its parent with a new value
@@ -223,7 +220,7 @@ validate the constraints before allowing a new instance to be returned.</p>
 <h3>List Types<a class="headerlink" href="#list-types" title="Permalink to this headline">¶</a></h3>
 <p>Simple types that derive by <a class="reference external" href="http://www.w3.org/TR/xmlschema-2/#atomic-vs-list">list</a> extend from
 <a class="reference external" href="api/pyxb.binding.basis.STD_list-class.html">STD_list</a> which in turn descends from the Python
-<tt class="docutils literal"><span class="pre">list</span></tt> type.  These derived classes must override the base class
+<code class="docutils literal"><span class="pre">list</span></code> type.  These derived classes must override the base class
 <a class="reference external" href="api/pyxb.binding.basis.STD_list-class.html#_ItemType">STD_list._ItemType</a> value with the appropriate
 class to use when creating or validating list members.</p>
 <p>When constructing an instance of a simple list type, you can provide a list as
@@ -241,7 +238,7 @@ passed into it.  The returned value is the first instance that was
 successfully created.</p>
 <p>Note that this means the fact that a particular attribute in an element is a
 member of a union is not recorded in the attribute value.  See
-<a class="reference internal" href="arch_content.html#attributeuse"><em>Attribute Uses</em></a>.</p>
+<a class="reference internal" href="arch_content.html#attributeuse"><span>Attribute Uses</span></a>.</p>
 <p>It is not possible to construct an instance of a union type directly.  You
 must use the <a class="reference external" href="api/pyxb.binding.basis.STD_union-class.html#Factory">Factory</a> method,
 with an argument that is acceptable as an initializer for one of the member
@@ -268,11 +265,11 @@ unicode value of the attribute.</p>
 attributes and fields through arguments and keywords.  Keywords whose name
 matches an attribute or element identifier are used to set that element,
 bypassing the content model.  Arguments are processed in order using the
-content model for identification and validation.  See the <a class="reference internal" href="#ex-showcontent"><em>example below</em></a>.</p>
+content model for identification and validation.  See the <a class="reference internal" href="#ex-showcontent"><span>example below</span></a>.</p>
 <div class="section" id="elements">
 <h3>Elements<a class="headerlink" href="#elements" title="Permalink to this headline">¶</a></h3>
 <p>Each element corresponds to a field in the binding instance; the field is
-managed through a <a class="reference internal" href="arch_content.html#elementuse"><em>element declaration</em></a> structure.  Element
+managed through a <a class="reference internal" href="arch_content.html#elementuse"><span>element declaration</span></a> structure.  Element
 names are disambiguated, and a Python property is defined to retrieve and set
 the element value.</p>
 <p>When the content model permits multiple occurrences of the element, its value
@@ -281,11 +278,11 @@ is a Python list.  The order in this list is significant.</p>
 <div class="section" id="attributes">
 <h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
 <p>Each attribute corresponds to a field in the binding instance; the field is
-managed through a <a class="reference internal" href="arch_content.html#attributeuse"><em>attribute use</em></a> structure.  Attribute
+managed through a <a class="reference internal" href="arch_content.html#attributeuse"><span>attribute use</span></a> structure.  Attribute
 names are disambiguated, and a Python property is defined to retrieve and set
 each attribute value.</p>
 <p>Note that if the same name is used for both an attribute and an element, the
-element use takes priority.  See <a class="reference internal" href="#binding-deconflictingnames"><em>Deconflicting Names</em></a>.</p>
+element use takes priority.  See <a class="reference internal" href="#binding-deconflictingnames"><span>Deconflicting Names</span></a>.</p>
 </div>
 <div class="section" id="simple-content">
 <h3>Simple Content<a class="headerlink" href="#simple-content" title="Permalink to this headline">¶</a></h3>
@@ -299,29 +296,29 @@ the object.</p>
 <p>Users of bindings must be aware of whether a particular value is a true simple
 type, or a complex type with simple content.  In the former case, the value
 descends from the corresponding Python type and can be used directly in Python
-expressions.  In the latter, the value must be retrieved using the <tt class="docutils literal"><span class="pre">value</span></tt>
+expressions.  In the latter, the value must be retrieved using the <code class="docutils literal"><span class="pre">value</span></code>
 method before it can be used.</p>
-<p>As an example, consider this schema (available in <tt class="file docutils literal"><span class="pre">examples/content</span></tt>):</p>
-<div class="highlight-python"><pre>&lt;xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"&gt;
-  &lt;xs:element name="numbers"&gt;
+<p>As an example, consider this schema (available in <code class="file docutils literal"><span class="pre">examples/content</span></code>):</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;xs:schema xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
+  &lt;xs:element name=&quot;numbers&quot;&gt;
     &lt;xs:complexType&gt;
       &lt;xs:sequence&gt;
-        &lt;xs:element name="simple" type="xs:integer"/&gt;
-        &lt;xs:element name="complex"&gt;
+        &lt;xs:element name=&quot;simple&quot; type=&quot;xs:integer&quot;/&gt;
+        &lt;xs:element name=&quot;complex&quot;&gt;
           &lt;xs:complexType&gt;
             &lt;xs:simpleContent&gt;
-              &lt;xs:extension base="xs:integer"&gt;
-                &lt;xs:attribute name="style" type="xs:string"/&gt;
+              &lt;xs:extension base=&quot;xs:integer&quot;&gt;
+                &lt;xs:attribute name=&quot;style&quot; type=&quot;xs:string&quot;/&gt;
               &lt;/xs:extension&gt;
             &lt;/xs:simpleContent&gt;
           &lt;/xs:complexType&gt;
         &lt;/xs:element&gt;
       &lt;/xs:sequence&gt;
-      &lt;xs:attribute name="attribute" type="xs:integer"/&gt;
+      &lt;xs:attribute name=&quot;attribute&quot; type=&quot;xs:integer&quot;/&gt;
     &lt;/xs:complexType&gt;
   &lt;/xs:element&gt;
 &lt;/xs:schema&gt;
-</pre>
+</pre></div>
 </div>
 <p>With the generated bindings, the following program:</p>
 <div class="highlight-python" id="ex-showcontent"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
@@ -329,25 +326,25 @@ method before it can be used.</p>
 <span class="kn">import</span> <span class="nn">content</span>
 
 <span class="n">v</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">numbers</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">BIND</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">attribute</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-<span class="n">v</span><span class="o">.</span><span class="n">complex</span><span class="o">.</span><span class="n">style</span> <span class="o">=</span> <span class="s">&quot;decimal&quot;</span>
-<span class="k">print</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+<span class="n">v</span><span class="o">.</span><span class="n">complex</span><span class="o">.</span><span class="n">style</span> <span class="o">=</span> <span class="s2">&quot;decimal&quot;</span>
+<span class="k">print</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">toxml</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
 <span class="k">print</span><span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">simple</span><span class="p">)</span>
 <span class="k">print</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">complex</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>
 <span class="k">print</span><span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">attribute</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>produces the following output:</p>
-<div class="highlight-python"><pre>&lt;?xml version="1.0" encoding="utf-8"?&gt;&lt;numbers attribute="3"&gt;&lt;simple&gt;1&lt;/simple&gt;&lt;complex style="decimal"&gt;2&lt;/complex&gt;&lt;/numbers&gt;
+<div class="highlight-python"><div class="highlight"><pre>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;&lt;numbers attribute=&quot;3&quot;&gt;&lt;simple&gt;1&lt;/simple&gt;&lt;complex style=&quot;decimal&quot;&gt;2&lt;/complex&gt;&lt;/numbers&gt;
 3
 8
 15
-</pre>
+</pre></div>
 </div>
-<p>Note that it was necessary to indicate that the second member (<tt class="docutils literal"><span class="pre">complex</span></tt>) of
-the <tt class="docutils literal"><span class="pre">numbers</span></tt> element needs to be wrapped in an instance of the appropriate
-complex type.  Similarly, it was necessary to add the call to <tt class="docutils literal"><span class="pre">value()</span></tt> on
-the value of <tt class="docutils literal"><span class="pre">v.complex</span></tt> in order to get a valid Python numeric value.  This
-was not necessary for <tt class="docutils literal"><span class="pre">v.simple</span></tt> or <tt class="docutils literal"><span class="pre">v.attribute</span></tt>.</p>
+<p>Note that it was necessary to indicate that the second member (<code class="docutils literal"><span class="pre">complex</span></code>) of
+the <code class="docutils literal"><span class="pre">numbers</span></code> element needs to be wrapped in an instance of the appropriate
+complex type.  Similarly, it was necessary to add the call to <code class="docutils literal"><span class="pre">value()</span></code> on
+the value of <code class="docutils literal"><span class="pre">v.complex</span></code> in order to get a valid Python numeric value.  This
+was not necessary for <code class="docutils literal"><span class="pre">v.simple</span></code> or <code class="docutils literal"><span class="pre">v.attribute</span></code>.</p>
 </div>
 <div class="section" id="mixed-and-element-only-content">
 <h3>Mixed and Element-Only Content<a class="headerlink" href="#mixed-and-element-only-content" title="Permalink to this headline">¶</a></h3>
@@ -357,7 +354,7 @@ to manage the mapping from XML schema element names to class members.  The
 element and attribute names are distinct.  Instances of complex types also
 reference a <a class="reference external" href="api/pyxb.binding.content.AutomatonConfiguration-class.html">content automaton</a> to ensure the constraints of
 the schema are satisfied.  These structures are described in
-<a class="reference internal" href="arch_content.html#contentmodel"><em>Content Model</em></a>.</p>
+<a class="reference internal" href="arch_content.html#contentmodel"><span>Content Model</span></a>.</p>
 <p>For these types, the <a class="reference external" href="api/pyxb.binding.basis.complexTypeDefinition-class.html#content">complexTypeDefinition.content</a>
 method returns a list, in parsed order, of the Python objects and (if mixed)
 non-element content that belong to the instance.  Be aware that this order
@@ -375,7 +372,7 @@ the element.  Elements are used in the content model to identify transitions
 through a finite automaton.</p>
 <p>You can use elements just like types in that they are invokable, with
 arguments corresponding to the arguments of the constructor of the
-corresponding type.  See <a class="reference internal" href="#ex-showcontent"><em>the example above</em></a>.</p>
+corresponding type.  See <a class="reference internal" href="#ex-showcontent"><span>the example above</span></a>.</p>
 </div>
 </div>
 
@@ -383,7 +380,7 @@ corresponding type.  See <a class="reference internal" href="#ex-showcontent"><e
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
@@ -418,12 +415,14 @@ corresponding type.  See <a class="reference internal" href="#ex-showcontent"><e
   <h4>Next topic</h4>
   <p class="topless"><a href="arch_content.html"
                         title="next chapter">Content Model</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/arch_binding.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/arch_binding.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -440,7 +439,7 @@ corresponding type.  See <a class="reference internal" href="#ex-showcontent"><e
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -452,17 +451,16 @@ corresponding type.  See <a class="reference internal" href="#ex-showcontent"><e
         <li class="right" >
           <a href="arch_component.html" title="Component Model"
              >previous</a> |</li>
-        <li><a href="index.html">PyXB 1.2.4 documentation</a> &raquo;</li>
-          <li><a href="architecture.html" >Architecture</a> &raquo;</li>
-    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
-    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.5 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="architecture.html" >Architecture</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></li>
      
 
       </ul>
     </div>
-    <div class="footer">
-        &copy; Copyright 2009-2014, Peter A. Bigot.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2009-2016, Peter A. Bigot.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
   </body>
 </html>

@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+            >PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -93,7 +93,7 @@
 
 <hr />
 <div class="fields">      <p><strong>Version:</strong>
-        1.2.4
+        1.2.5
       </p>
       <p><strong>License:</strong>
         Apache License 2.0
@@ -164,11 +164,7 @@
     <li> <strong class="uidlink"><a href="pyxb.utils.saxdom-module.html">pyxb.utils.saxdom</a></strong>: <em class="summary">This module contains support for a DOM tree representation from an 
         XML document using a SAX parser.</em>    </li>
     <li> <strong class="uidlink"><a href="pyxb.utils.saxutils-module.html">pyxb.utils.saxutils</a></strong>: <em class="summary">This module contains support for processing XML using a SAX parser.</em>    </li>
-    <li> <strong class="uidlink">pyxb.utils.six</strong>
-    <ul>
-    <li> <strong class="uidlink">pyxb.utils.six.moves</strong>    </li>
-    </ul>
-    </li>
+    <li> <strong class="uidlink">pyxb.utils.six</strong>    </li>
     <li> <strong class="uidlink"><a href="pyxb.utils.templates-module.html">pyxb.utils.templates</a></strong>: <em class="summary">Functions that aid with generating text from templates and maps.</em>    </li>
     <li> <strong class="uidlink"><a href="pyxb.utils.unicode-module.html">pyxb.utils.unicode</a></strong>: <em class="summary">This module contains support for Unicode characters as required to 
         support the regular expression syntax defined in <a 
@@ -208,19 +204,25 @@
   </td>
 </tr>
 <tr>
-    <td class="summary" colspan="2">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="pyxb.BIND-class.html" class="summary-name">BIND</a><br />
       Bundle data for automated binding generation.
     </td>
   </tr>
 <tr>
-    <td class="summary" colspan="2">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="pyxb.ValidationConfig-class.html" class="summary-name">ValidationConfig</a><br />
       Class holding configuration related to validation.
     </td>
   </tr>
 <tr>
-    <td class="summary" colspan="2">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="pyxb.cscRoot-class.html" class="summary-name">cscRoot</a><br />
       This little bundle of joy exists because in Python 2.6 it became an
         error to invoke <code>object.__init__</code> with parameters 
@@ -355,49 +357,61 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="GlobalValidationConfig"></a><span class="summary-name">GlobalValidationConfig</span> = <code title="pyxb.GlobalValidationConfig">pyxb.GlobalValidationConfig</code>
+        <a name="GlobalValidationConfig"></a><span class="summary-name">GlobalValidationConfig</span> = <code title="&lt;pyxb.ValidationConfig object&gt;">&lt;pyxb.ValidationConfig object&gt;</code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="XMLStyle_minidom"></a><span class="summary-name">XMLStyle_minidom</span> = <code title="0">0</code>
+        <a href="pyxb-module.html#XMLStyle_minidom" class="summary-name">XMLStyle_minidom</a> = <code title="0">0</code><br />
+      Use xml.dom.minidom for XML processing.
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="XMLStyle_saxdom"></a><span class="summary-name">XMLStyle_saxdom</span> = <code title="1">1</code>
+        <a href="pyxb-module.html#XMLStyle_saxdom" class="summary-name">XMLStyle_saxdom</a> = <code title="1">1</code><br />
+      Use pyxb.utils.saxdom for XML processing.
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="XMLStyle_saxer"></a><span class="summary-name">XMLStyle_saxer</span> = <code title="2">2</code>
+        <a href="pyxb-module.html#XMLStyle_saxer" class="summary-name">XMLStyle_saxer</a> = <code title="2">2</code><br />
+      Use pyxb.binding.saxer when converting documents to binding 
+      instances.
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="_CorruptionDetectionEnabled"></a><span class="summary-name">_CorruptionDetectionEnabled</span> = <code title="True">True</code>
+        <a href="pyxb-module.html#_CorruptionDetectionEnabled" class="summary-name" onclick="show_private();">_CorruptionDetectionEnabled</a> = <code title="True">True</code><br />
+      If <code>True</code>, blocks attempts to assign to attributes that 
+      are reserved for PyXB methods.
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="_GenerationRequiresValid"></a><span class="summary-name">_GenerationRequiresValid</span> = <code title="True">True</code>
+        <a name="_GenerationRequiresValid"></a><span class="summary-name">_GenerationRequiresValid</span> = <code title="True">True</code><br />
+      Legacy flag; prefer <a 
+      href="pyxb.ValidationConfig-class.html#forDocument" 
+      class="link">forDocument</a> in <a 
+      href="pyxb-module.html#GlobalValidationConfig" 
+      class="link">GlobalValidationConfig</a>.
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="_InputEncoding"></a><span class="summary-name">_InputEncoding</span> = <code title="'utf-8'"><code class="variable-quote">'</code><code class="variable-string">utf-8</code><code class="variable-quote">'</code></code>
+        <a href="pyxb-module.html#_InputEncoding" class="summary-name" onclick="show_private();">_InputEncoding</a> = <code title="'utf-8'"><code class="variable-quote">'</code><code class="variable-string">utf-8</code><code class="variable-quote">'</code></code><br />
+      Default unicode encoding to assume when decoding input.
     </td>
   </tr>
 <tr class="private">
@@ -411,14 +425,20 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="_OutputEncoding"></a><span class="summary-name">_OutputEncoding</span> = <code title="'utf-8'"><code class="variable-quote">'</code><code class="variable-string">utf-8</code><code class="variable-quote">'</code></code>
+        <a href="pyxb-module.html#_OutputEncoding" class="summary-name" onclick="show_private();">_OutputEncoding</a> = <code title="'utf-8'"><code class="variable-quote">'</code><code class="variable-string">utf-8</code><code class="variable-quote">'</code></code><br />
+      Default unicode encoding to use when creating output.
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="_ParsingRequiresValid"></a><span class="summary-name">_ParsingRequiresValid</span> = <code title="True">True</code>
+        <a name="_ParsingRequiresValid"></a><span class="summary-name">_ParsingRequiresValid</span> = <code title="True">True</code><br />
+      Legacy flag; prefer <a 
+      href="pyxb.ValidationConfig-class.html#forBinding" 
+      class="link">forBinding</a> in <a 
+      href="pyxb-module.html#GlobalValidationConfig" 
+      class="link">GlobalValidationConfig</a>.
     </td>
   </tr>
 <tr class="private">
@@ -432,7 +452,8 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="_XMLStyle"></a><span class="summary-name">_XMLStyle</span> = <code title="2">2</code>
+        <a name="_XMLStyle"></a><span class="summary-name">_XMLStyle</span> = <code title="2">2</code><br />
+      The current XML processing style.
     </td>
   </tr>
 <tr class="private">
@@ -467,7 +488,16 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__url__"></a><span class="summary-name">__url__</span> = <code title="'http://pyxb.sourceforge.net'"><code class="variable-quote">'</code><code class="variable-string">http://pyxb.sourceforge.net</code><code class="variable-quote">'</code></code>
+        <a name="__url__"></a><span class="summary-name">__url__</span> = <code title="'http://pyxb.sourceforge.net'"><code class="variable-quote">'</code><code class="variable-string">http://pyxb.sourceforge.net</code><code class="variable-quote">'</code></code><br />
+      The URL for PyXB's homepage
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__version__"></a><span class="summary-name">__version__</span> = <code title="'1.2.5'"><code class="variable-quote">'</code><code class="variable-string">1.2.5</code><code class="variable-quote">'</code></code><br />
+      The version of PyXB
     </td>
   </tr>
 <tr class="private">
@@ -481,7 +511,7 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="_log"></a><span class="summary-name">_log</span> = <code title="&lt;logging.Logger object at 0x1444e90&gt;">&lt;logging.Logger object at 0x1444e90&gt;</code>
+        <a name="_log"></a><span class="summary-name">_log</span> = <code title="&lt;logging.Logger object&gt;">&lt;logging.Logger object&gt;</code>
     </td>
   </tr>
 <tr class="private">
@@ -679,6 +709,145 @@
 </td></tr></table>
 </div>
 <br />
+<!-- ==================== VARIABLES DETAILS ==================== -->
+<a name="section-VariablesDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-VariablesDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="XMLStyle_minidom"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">XMLStyle_minidom</h3>
+  <p>Use xml.dom.minidom for XML processing.  This is the fastest, but does
+  not provide location information.  It produces DOM instances.</p>
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+0
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="XMLStyle_saxdom"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">XMLStyle_saxdom</h3>
+  <p>Use pyxb.utils.saxdom for XML processing.  This is the slowest, but 
+  both provides location information and generates a DOM instance.</p>
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+1
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="XMLStyle_saxer"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">XMLStyle_saxer</h3>
+  <p>Use pyxb.binding.saxer when converting documents to binding instances.
+  This style supports location information in the bindings.  It produces 
+  binding instances directly, without going through a DOM stage, so is 
+  faster than XMLStyle_saxdom.  However, since the 
+  pyxb.xmlschema.structures classes require a DOM model, XMLStyle_saxdom 
+  will be used for pyxb.utils.domutils.StringToDOM if this style is 
+  selected.</p>
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+2
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_CorruptionDetectionEnabled"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">_CorruptionDetectionEnabled</h3>
+  <p>If <code>True</code>, blocks attempts to assign to attributes that are
+  reserved for PyXB methods.</p>
+  <p>Applies only at compilation time; dynamic changes are ignored.</p>
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+True
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_InputEncoding"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">_InputEncoding</h3>
+  <p>Default unicode encoding to assume when decoding input.</p>
+  <p>Material being written to an XML parser is treated as input.</p>
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-quote">'</code><code class="variable-string">utf-8</code><code class="variable-quote">'</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_OutputEncoding"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">_OutputEncoding</h3>
+  <p>Default unicode encoding to use when creating output.</p>
+  <p>Material being written to an XML parser is not output.</p>
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-quote">'</code><code class="variable-string">utf-8</code><code class="variable-quote">'</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
@@ -703,7 +872,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+            >PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -711,7 +880,7 @@
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Sun Oct 19 06:24:41 2014
+    on Sun Sep 18 23:14:46 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

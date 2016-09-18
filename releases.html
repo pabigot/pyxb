@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,15 +6,15 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Release History &mdash; PyXB 1.2.4 documentation</title>
+    <title>Release History &mdash; PyXB 1.2.5 documentation</title>
     
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
-        VERSION:     '1.2.4',
+        URL_ROOT:    './',
+        VERSION:     '1.2.5',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,12 +23,12 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyXB 1.2.4 documentation" href="index.html" />
+    <link rel="top" title="PyXB 1.2.5 documentation" href="index.html" />
     <link rel="next" title="Architecture" href="architecture.html" />
     <link rel="prev" title="Examples" href="examples.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -42,9 +40,8 @@
         <li class="right" >
           <a href="examples.html" title="Examples"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">PyXB 1.2.4 documentation</a> &raquo;</li>
-    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
-    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.5 documentation</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></li>
      
 
       </ul>
@@ -53,7 +50,7 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="release-history">
 <span id="releases"></span><h1>Release History<a class="headerlink" href="#release-history" title="Permalink to this headline">¶</a></h1>
@@ -70,7 +67,7 @@ stability or interface, the second or even first integer will be
 incremented</li>
 <li>Critical bug fixes may result in new releases in older series, but this is
 expected to be extremely unusual.  Such fixes will be made on a branch of
-the <a class="reference internal" href="maintref.html#git-repository"><em>git repository</em></a>.</li>
+the <a class="reference internal" href="maintref.html#git-repository"><span>git repository</span></a>.</li>
 <li>All packaged releases are intended to be of comparable stability, with bug
 fixes and most enhancements causing an increment in the third integer</li>
 </ul>
@@ -86,12 +83,36 @@ dropped for Python 2.4 and 2.5.  The 1.2.x release works with Python 2.6 and
 2.7 and as of PyXB 1.2.4 also with Python 3.1 and later.  Some unit tests are
 skipped under Python 2.6 due to insufficient support for validating exception
 attributes.</p>
+<div class="section" id="sep-2016">
+<span id="pyxb-1-2-5"></span><h3>1.2.5 (18 Sep 2016)<a class="headerlink" href="#sep-2016" title="Permalink to this headline">¶</a></h3>
+<p>This is a roll-up aggregating all fixes since the last major release nearly
+two years ago.</p>
+<p>The following reported <a class="reference external" href="https://github.net/pabigot/pyxb/issues/">defects/enhancements</a> have been addressed:</p>
+<ul class="simple">
+<li>Deconflict class properties from module identifiers.  <a class="reference external" href="https://github.com/pabigot/pyxb/issues/27/">issue 27</a></li>
+<li>Correct handling of <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#xsi_type">xsi:type</a>
+on non-abstract types.  <a class="reference external" href="https://github.com/pabigot/pyxb/issues/32/">issue 32</a></li>
+<li>Fix generation of zero-span durations.  <a class="reference external" href="https://github.com/pabigot/pyxb/issues/38/">issue 38</a></li>
+<li>Document how to use file URIs on Windows.  <a class="reference external" href="https://github.com/pabigot/pyxb/issues/34/">issue 34</a></li>
+<li>Document need for common bindings when generating OpenGIS bindings.
+<a class="reference external" href="https://github.com/pabigot/pyxb/issues/28/">issue 28</a></li>
+<li>Fix literal representation of not-a-number and infinite values. <a class="reference external" href="https://github.com/pabigot/pyxb/issues/43/">issue 43</a></li>
+<li>Document that Python 3 is supported.  <a class="reference external" href="https://github.com/pabigot/pyxb/issues/36/">issue 36</a></li>
+<li>Fix processing of empty binary data tpyes.  <a class="reference external" href="https://github.com/pabigot/pyxb/issues/51/">issue 51</a></li>
+<li>Fix transition sort key to support Python 3.  <a class="reference external" href="https://github.com/pabigot/pyxb/issues/52/">issue 52</a></li>
+<li>Fix generation of modules that cannot be imported due to use of invalid
+characters in the module path.  <a class="reference external" href="https://github.com/pabigot/pyxb/issues/48/">issue 48</a></li>
+<li>Add a method to xsd.base64Binary to allow a heavy-weight validation step to
+be bypassed.  <a class="reference external" href="https://github.com/pabigot/pyxb/issues/50/">issue 50</a></li>
+</ul>
+</div>
 <div class="section" id="oct-2014">
 <span id="pyxb-1-2-4"></span><h3>1.2.4 (19 Oct 2014)<a class="headerlink" href="#oct-2014" title="Permalink to this headline">¶</a></h3>
+<p>Documentation: <a class="reference external" href="http://pyxb.sourceforge.net/PyXB-1.2.4">http://pyxb.sourceforge.net/PyXB-1.2.4</a></p>
 <p>The major feature of this release is a new approach to Python 3 support based
 on the <a class="reference external" href="https://pypi.python.org/pypi/six/">six</a> module.  This resolves
 <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/150/">support for Python 3</a> and allows one release of PyXB to support
-Python versions from 2.6 through 3.4, excluding 3.0.  The <tt class="docutils literal"><span class="pre">maintainer/2to3</span></tt>
+Python versions from 2.6 through 3.4, excluding 3.0.  The <code class="docutils literal"><span class="pre">maintainer/2to3</span></code>
 script used in PyXB 1.2.3 is no longer supported.  Both the core
 implementation and the bindings are compatible with Python 2 and 3.</p>
 <p>A second important feature was correct handling of QName by changing the
@@ -136,7 +157,8 @@ module to work on binding instances.  <a class="reference external" href="https:
 <p>This is primarily a bug-fix and clean-up release.  One new feature is that
 starting with this release a Python 3 compatible version of PyXB will be
 available in the git repository.  For this version, it may be obtained by:</p>
-<div class="highlight-python"><pre>git clone -b python3/pyxb-1.2.3 git://git.code.sf.net/p/pyxb/code pyxb3-1.2.3</pre>
+<div class="highlight-python"><div class="highlight"><pre>git clone -b python3/pyxb-1.2.3 git://git.code.sf.net/p/pyxb/code pyxb3-1.2.3
+</pre></div>
 </div>
 <p>The Python 3 code in this branch is created by automatic conversion of the
 Python 2 code using the maintainer/2to3 script.  While not officially
@@ -149,7 +171,7 @@ generated invalid documents when the particular element should have been
 absent for some content.  The feature has been removed so fixed elements
 initialize to absent just like every other element.</li>
 <li>The former <cite>&#8211;pre-load-archives</cite> option to pyxbgen has been removed and
-replaced by <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-import-augmentable-namespace"><em>&#8211;import-augmentable-namespace</em></a> which has more
+replaced by <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-import-augmentable-namespace"><span>&#8211;import-augmentable-namespace</span></a> which has more
 consistent semantics.  Schema import directives related to a non-augmentable
 namespace (one for which the referenced option has not been provided) will
 be ignored if content for the namespace can be located in any archive or
@@ -186,7 +208,7 @@ respect to in-scope namespace declarations.  <a class="reference external" href=
 <li>Rework how to specify that imported namespaces should be processed to extend
 the content model.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/209/">SF ticket 209</a></li>
 <li>Removed redundant code in pyxbgen relevant to
-<a class="reference internal" href="pyxbgen_cli.html#pyxbgen-wsdl-location"><em>&#8211;wsdl-location</em></a>.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/210/">SF ticket 210</a></li>
+<a class="reference internal" href="pyxbgen_cli.html#pyxbgen-wsdl-location"><span>&#8211;wsdl-location</span></a>.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/210/">SF ticket 210</a></li>
 <li>Refine diagnostics when an element with simple type appears in a context
 that expects non-element content.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/211/">SF ticket 211</a></li>
 <li>Add <a class="reference external" href="api/pyxb-module.html#NonElementContent">NonElementContent</a> to simplify access to non-element content
@@ -243,7 +265,7 @@ likely to be removed in the next release.</p>
 <li>Full support for mixed content schema through a new method
 <a class="reference external" href="api/pyxb.binding.basis.complexTypeDefinition-class.html#orderedContent">orderedContent</a> on complex
 binding instances and flags that control when that list affects document
-generation.  See <a class="reference internal" href="userref_usebind.html#mixed-content"><em>Influencing Element and Mixed Content Order</em></a>.  This is particularly relevant to
+generation.  See <a class="reference internal" href="userref_usebind.html#mixed-content"><span>Influencing Element and Mixed Content Order</span></a>.  This is particularly relevant to
 XHTML.</li>
 <li>Immediate validation of values assigned to plural elements.</li>
 <li>A first step to providing finer control of validation, using
@@ -251,7 +273,7 @@ XHTML.</li>
 </ul>
 <p>The following reported <a class="reference external" href="http://sourceforge.net/p/pyxb/tickets/">defects/enhancements</a> have been addressed:</p>
 <ul class="simple">
-<li>Validate <a class="reference internal" href="userref_usebind.html#pyxb-bind"><em>pyxb.BIND</em></a> at point of use.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/69/">SF ticket 69</a></li>
+<li>Validate <a class="reference internal" href="userref_usebind.html#pyxb-bind"><span>pyxb.BIND</span></a> at point of use.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/69/">SF ticket 69</a></li>
 <li>Issues with renamed element (most of which were mis-use of pyxb.BIND).  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/71/">SF ticket 71</a></li>
 <li>Support for default and fixed values in elements. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/99/">SF ticket 99</a></li>
 <li>Support for mixed content.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/153/">SF ticket 153</a>, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/154/">SF ticket 154</a></li>
@@ -260,10 +282,10 @@ to show how to take advantage of PyXB 1.2.x improved diagnostics.
 <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/158/">SF ticket 158</a></li>
 <li>Improve interpretation of Python native type values when used in element
 constructors.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/175/">SF ticket 175</a></li>
-<li>Add <a class="reference internal" href="bundles.html#bundle-ecma376"><em>ECMA-376 (Office Open XML)</em></a> as an optional bundle.
+<li>Add <a class="reference internal" href="bundles.html#bundle-ecma376"><span>ECMA-376 (Office Open XML)</span></a> as an optional bundle.
 <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/178/">SF ticket 178</a></li>
 <li>Fix invalid error when an all model group had minOccurs=0.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/179/">SF ticket 179</a></li>
-<li>Add <a class="reference internal" href="bundles.html#bundle-dc"><em>Dublin Core</em></a> to the standard bundles.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/180/">SF ticket 180</a></li>
+<li>Add <a class="reference internal" href="bundles.html#bundle-dc"><span>Dublin Core</span></a> to the standard bundles.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/180/">SF ticket 180</a></li>
 <li>Allow control of element order in generated documents.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/181/">SF ticket 181</a></li>
 <li>Include wildcard elements in content.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/182/">SF ticket 182</a></li>
 </ul>
@@ -277,7 +299,7 @@ available through PyPI until such verification is satisfactory.</p>
 <p>Key feature of the release:</p>
 <ul class="simple">
 <li>Use of an advanced content model which provides more accurate validation and
-<a class="reference internal" href="userref_validating.html#validating"><em>much better diagnostics</em></a> when validation fails.</li>
+<a class="reference internal" href="userref_validating.html#validating"><span>much better diagnostics</span></a> when validation fails.</li>
 <li>Elimination of support for Python 2.4 and 2.5 (necessary to ease the path to
 a future Python3 implementation of PyXB).</li>
 <li>Complete rework of the exceptions that normally arise when using binding
@@ -299,14 +321,14 @@ strings for the generated complex type bindings.  <a class="reference external" 
 </ul>
 </div>
 </div>
-<div class="section" id="id4">
-<h2>1.1.x<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id5">
+<h2>1.1.x<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <p>The 1.1.x release series entered maintenance mode with release 1.1.5.  It is
 unlikely that further releases will occur, though critical bugs fixes may be
 made available in the <a class="reference external" href="http://pyxb.git.sourceforge.net/git/gitweb.cgi?p=pyxb/pyxb;a=shortlog;h=refs/heads/pyxb-1.1/next">release branch</a>.
 Bugs reported against 1.1.5 will generally be fixed in the 1.2.x series.</p>
 <div class="section" id="pyxb-1-1-5">
-<span id="id5"></span><h3>1.1.5 (01 Nov 2012)<a class="headerlink" href="#pyxb-1-1-5" title="Permalink to this headline">¶</a></h3>
+<span id="id6"></span><h3>1.1.5 (01 Nov 2012)<a class="headerlink" href="#pyxb-1-1-5" title="Permalink to this headline">¶</a></h3>
 <p>Documentation: <a class="reference external" href="http://pyxb.sourceforge.net/PyXB-1.1.5">http://pyxb.sourceforge.net/PyXB-1.1.5</a></p>
 <p>This is a maintenance release to finalize the 1.1.x series before starting the
 1.2.x series.</p>
@@ -339,21 +361,21 @@ scripts, have been incorporated.  <a class="reference external" href="https://so
 Naive uses of unicode have mostly been eliminated.</li>
 <li>Corrections and improvements to date and time-related types, especially with
 respect to timezones.</li>
-<li>More namespaces have been added in the <a class="reference internal" href="bundles.html#bundle-common"><em>common</em></a>,
-<a class="reference internal" href="bundles.html#bundle-wssplat"><em>WS-*</em></a>, and <a class="reference internal" href="bundles.html#bundle-opengis"><em>OpenGIS</em></a> bundles.</li>
+<li>More namespaces have been added in the <a class="reference internal" href="bundles.html#bundle-common"><span>common</span></a>,
+<a class="reference internal" href="bundles.html#bundle-wssplat"><span>WS-*</span></a>, and <a class="reference internal" href="bundles.html#bundle-opengis"><span>OpenGIS</span></a> bundles.</li>
 <li>This release eliminates the separate packages for different bundles; all
 bundles and documentation except for OpenGIS are incorporated into the
 release file.  OpenGIS is present but must be built manually; see
-<a class="reference internal" href="bundles.html#bundle-opengis"><em>OpenGIS</em></a></li>
+<a class="reference internal" href="bundles.html#bundle-opengis"><span>OpenGIS</span></a></li>
 </ul>
 <p>Examples have been added:</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">examples/customization</span></tt> shows advanced customization, including injecting
+<li><code class="docutils literal"><span class="pre">examples/customization</span></code> shows advanced customization, including injecting
 behavior into binding classes corresponding to types from which other XML
 types are extended or restricted.  It also demonstrates how to introspect
 the bindings within a module, automating much of the process of extending
 multiple bindings with the same functionality.</li>
-<li><tt class="docutils literal"><span class="pre">examples/unicode_jp</span></tt> demonstrates internationalization features including
+<li><code class="docutils literal"><span class="pre">examples/unicode_jp</span></code> demonstrates internationalization features including
 the ability to intercept PyXB&#8217;s construction of Python identifiers from XML
 identifiers to produce meaningful identifiers when the schema language is
 not compatible with the Python 2 requirement that identifiers be ASCII.</li>
@@ -403,7 +425,7 @@ not compatible with the Python 2 requirement that identifiers be ASCII.</li>
 <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/89/">SF ticket 89</a></li>
 <li>Use the Python string type as the basis for <a class="reference external" href="http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/#hexBinary">xs:hexBinary</a>.
 <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/90/">SF ticket 90</a></li>
-<li>Support <tt class="docutils literal"><span class="pre">+</span></tt> in <tt class="docutils literal"><span class="pre">PYXB_ARCHIVE_PATH</span></tt> like the documentation says.
+<li>Support <code class="docutils literal"><span class="pre">+</span></code> in <code class="docutils literal"><span class="pre">PYXB_ARCHIVE_PATH</span></code> like the documentation says.
 <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/92/">SF ticket 92</a></li>
 <li>Correct exception reference.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/93/">SF ticket 93</a></li>
 <li>Correct handling of the <a class="reference external" href="http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType">ur-type</a>.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/94/">SF ticket 94</a></li>
@@ -415,11 +437,11 @@ attribute when the schema uses the ur-type.  <a class="reference external" href=
 <li>Correct extensions that involve wildcards.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/100/">SF ticket 100</a></li>
 <li>Do a better job resolving circular dependencies, and don&#8217;t try to write two
 namespace groups to the same binding file.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/104/">SF ticket 104</a>, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/105/">SF ticket 105</a></li>
-<li>Add a bundle for <a class="reference internal" href="bundles.html#bundle-saml20"><em>Security Assertion Markup Language</em></a>.
+<li>Add a bundle for <a class="reference internal" href="bundles.html#bundle-saml20"><span>Security Assertion Markup Language</span></a>.
 Thanks to Michael van der Westhuizen for providing this (sixteen months
 ago).  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/106/">SF ticket 106</a></li>
-<li>Avoid overwrite of Python <a class="reference external" href="http://docs.python.org/library/constants.html">built-in constants</a>, including <tt class="docutils literal"><span class="pre">None</span></tt>,
-<tt class="docutils literal"><span class="pre">True</span></tt>, and <tt class="docutils literal"><span class="pre">False</span></tt>.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/107/">SF ticket 107</a></li>
+<li>Avoid overwrite of Python <a class="reference external" href="http://docs.python.org/library/constants.html">built-in constants</a>, including <code class="docutils literal"><span class="pre">None</span></code>,
+<code class="docutils literal"><span class="pre">True</span></code>, and <code class="docutils literal"><span class="pre">False</span></code>.  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/107/">SF ticket 107</a></li>
 </ul>
 </div>
 <div class="section" id="may-2010">
@@ -445,16 +467,16 @@ the validation portion of the content model is completely out of date.</p>
 <p>Documentation: <a class="reference external" href="http://pyxb.sourceforge.net/PyXB-1.1.1">http://pyxb.sourceforge.net/PyXB-1.1.1</a></p>
 <p>Major feature is significantly improved ability to determine what content is
 not acceptable to the validating parser, and where it can be found in the
-document.  See <a class="reference internal" href="userref_usebind.html#invalid-content"><em>Locating Invalid Content</em></a>.</p>
+document.  See <a class="reference internal" href="userref_usebind.html#invalid-content"><span>Locating Invalid Content</span></a>.</p>
 <p>Also, using keyword parameters in binding instance constructors will now raise
 an <a class="reference external" href="api/pyxb.exceptions_-module.html#ExtraContentError">ExtraContentError</a> in the case where the keyword does not
 correspond to the PyXB-generated identifier associated with an attribute or
 element of the class being instantiated.</p>
 <ul class="simple">
-<li>Eliminate complaints about reference to deprecated <tt class="xref py py-mod docutils literal"><span class="pre">sha</span></tt> module in Python
+<li>Eliminate complaints about reference to deprecated <code class="xref py py-mod docutils literal"><span class="pre">sha</span></code> module in Python
 2.6.</li>
-<li>Fix assorted problems with mixtures of <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-binding-root"><em>&#8211;binding-root</em></a>,
-<a class="reference internal" href="pyxbgen_cli.html#pyxbgen-module-prefix"><em>&#8211;module-prefix</em></a>, and <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-write-for-customization"><em>&#8211;write-for-customization</em></a>.
+<li>Fix assorted problems with mixtures of <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-binding-root"><span>&#8211;binding-root</span></a>,
+<a class="reference internal" href="pyxbgen_cli.html#pyxbgen-module-prefix"><span>&#8211;module-prefix</span></a>, and <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-write-for-customization"><span>&#8211;write-for-customization</span></a>.
 <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/64/">SF ticket 64</a>, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/65/">SF ticket 65</a></li>
 <li>Eliminate unnecessary attempts to download schema for builtin namespaces.
 <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/63/">SF ticket 63</a></li>
@@ -523,12 +545,12 @@ exception if an attempt is made to assign to the original name.
 <li><p class="first">Split distribution into multiple files to reduce download size:</p>
 <blockquote>
 <div><ul class="simple">
-<li><tt class="docutils literal"><span class="pre">PyXB-base-&#64;VERSION&#64;.tar.gz</span></tt> &#8211; Complete release, nothing pre-built</li>
-<li><tt class="docutils literal"><span class="pre">PyXB-doc-&#64;VERSION&#64;.tar.gz</span></tt> &#8211; Overlay with pre-built documentation</li>
-<li><tt class="docutils literal"><span class="pre">PyXB-common-&#64;VERSION&#64;.tar.gz</span></tt> &#8211; Overlay with XHTML bindings</li>
-<li><tt class="docutils literal"><span class="pre">PyXB-opengis-&#64;VERSION&#64;.tar.gz</span></tt> &#8211; Overlay with OpenGIS bindings</li>
-<li><tt class="docutils literal"><span class="pre">PyXB-wsspat-&#64;VERSION&#64;.tar.gz</span></tt> &#8211; Overlay with WS-* bindings</li>
-<li><tt class="docutils literal"><span class="pre">PyXB-full-&#64;VERSION&#64;.tar.gz</span></tt> &#8211; Complete release with all overlays</li>
+<li><code class="docutils literal"><span class="pre">PyXB-base-&#64;VERSION&#64;.tar.gz</span></code> &#8211; Complete release, nothing pre-built</li>
+<li><code class="docutils literal"><span class="pre">PyXB-doc-&#64;VERSION&#64;.tar.gz</span></code> &#8211; Overlay with pre-built documentation</li>
+<li><code class="docutils literal"><span class="pre">PyXB-common-&#64;VERSION&#64;.tar.gz</span></code> &#8211; Overlay with XHTML bindings</li>
+<li><code class="docutils literal"><span class="pre">PyXB-opengis-&#64;VERSION&#64;.tar.gz</span></code> &#8211; Overlay with OpenGIS bindings</li>
+<li><code class="docutils literal"><span class="pre">PyXB-wsspat-&#64;VERSION&#64;.tar.gz</span></code> &#8211; Overlay with WS-* bindings</li>
+<li><code class="docutils literal"><span class="pre">PyXB-full-&#64;VERSION&#64;.tar.gz</span></code> &#8211; Complete release with all overlays</li>
 </ul>
 </div></blockquote>
 </li>
@@ -596,8 +618,8 @@ elt.attr).  <a class="reference external" href="https://sourceforge.net/p/pyxb/t
 </ul>
 </div>
 </div>
-<div class="section" id="id8">
-<h2>0.5.x (Beta)<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id10">
+<h2>0.5.x (Beta)<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="aug-2009-rev-1706">
 <h3>0.5.2 (03 Aug 2009, rev 1706)<a class="headerlink" href="#aug-2009-rev-1706" title="Permalink to this headline">¶</a></h3>
 <p>Mostly changes to namespaces in support of profiles and application schemas
@@ -656,9 +678,9 @@ module.</li>
 ogckml22, om, ows, sensorML, sos, swe, tml, ...).</p>
 <ul class="simple">
 <li>Completely rework include and import directives to correctly handle relative
-paths in <tt class="docutils literal"><span class="pre">schemaLocation</span></tt> attributes and to only import from a given
+paths in <code class="docutils literal"><span class="pre">schemaLocation</span></code> attributes and to only import from a given
 location once per namespace. <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/9/">SF ticket 9</a>, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/8/">SF ticket 8</a>, <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/5/">SF ticket 5</a></li>
-<li>Parse <tt class="docutils literal"><span class="pre">final</span></tt> attribute on type definitions (though this has no effect on
+<li>Parse <code class="docutils literal"><span class="pre">final</span></code> attribute on type definitions (though this has no effect on
 the bindings).  <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/10/">SF ticket 10</a></li>
 <li>Complete missing implementations in complex types with simple content.
 <a class="reference external" href="https://sourceforge.net/p/pyxb/tickets/6/">SF ticket 6</a></li>
@@ -672,13 +694,13 @@ namespaces that depend on each other.</li>
 <ul class="simple">
 <li>Most of the classes in the new code generation model are undocumented.</li>
 <li>The interface to <cite>pyxbgen</cite> has changed completely.  Look at
-<tt class="docutils literal"><span class="pre">examples/OpenGIS/makebind.sh</span></tt> or other scripts in the <tt class="docutils literal"><span class="pre">examples</span></tt>
+<code class="docutils literal"><span class="pre">examples/OpenGIS/makebind.sh</span></code> or other scripts in the <code class="docutils literal"><span class="pre">examples</span></code>
 directory.</li>
 </ul>
 </div>
 </div>
-<div class="section" id="id9">
-<h2>0.4.x (Stable)<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id11">
+<h2>0.4.x (Stable)<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="jun-2009-rev-1204">
 <h3>0.4.0 (20 Jun 2009, rev 1204)<a class="headerlink" href="#jun-2009-rev-1204" title="Permalink to this headline">¶</a></h3>
 <p>First usable public release.</p>
@@ -697,8 +719,8 @@ instance</li>
 </ul>
 </div>
 </div>
-<div class="section" id="id10">
-<h2>0.2.x (Stable)<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id12">
+<h2>0.2.x (Stable)<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="may-2009-rev-818">
 <h3>0.2.0 (30 May 2009, rev 818)<a class="headerlink" href="#may-2009-rev-818" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
@@ -712,12 +734,13 @@ instance</li>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Release History</a><ul>
 <li><a class="reference internal" href="#x">1.2.x</a><ul>
+<li><a class="reference internal" href="#sep-2016">1.2.5 (18 Sep 2016)</a></li>
 <li><a class="reference internal" href="#oct-2014">1.2.4 (19 Oct 2014)</a></li>
 <li><a class="reference internal" href="#sep-2013">1.2.3 (18 Sep 2013)</a></li>
 <li><a class="reference internal" href="#apr-2013">1.2.2 (17 Apr 2013)</a></li>
@@ -725,7 +748,7 @@ instance</li>
 <li><a class="reference internal" href="#nov-2012">1.2.0 (07 Nov 2012)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id4">1.1.x</a><ul>
+<li><a class="reference internal" href="#id5">1.1.x</a><ul>
 <li><a class="reference internal" href="#pyxb-1-1-5">1.1.5 (01 Nov 2012)</a></li>
 <li><a class="reference internal" href="#jun-2012">1.1.4 (15 Jun 2012)</a></li>
 <li><a class="reference internal" href="#sep-2011">1.1.3 (09 Sep 2011)</a></li>
@@ -745,17 +768,17 @@ instance</li>
 <li><a class="reference internal" href="#aug-2009-rev-1715">0.7.0 (03 Aug 2009, rev 1715)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id8">0.5.x (Beta)</a><ul>
+<li><a class="reference internal" href="#id10">0.5.x (Beta)</a><ul>
 <li><a class="reference internal" href="#aug-2009-rev-1706">0.5.2 (03 Aug 2009, rev 1706)</a></li>
 <li><a class="reference internal" href="#jul-2009-rev-1502">0.5.1 (16 Jul 2009, rev 1502)</a></li>
 <li><a class="reference internal" href="#jul-2009-rev-1446">0.5.0 (07 Jul 2009, rev 1446)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id9">0.4.x (Stable)</a><ul>
+<li><a class="reference internal" href="#id11">0.4.x (Stable)</a><ul>
 <li><a class="reference internal" href="#jun-2009-rev-1204">0.4.0 (20 Jun 2009, rev 1204)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id10">0.2.x (Stable)</a><ul>
+<li><a class="reference internal" href="#id12">0.2.x (Stable)</a><ul>
 <li><a class="reference internal" href="#may-2009-rev-818">0.2.0 (30 May 2009, rev 818)</a></li>
 </ul>
 </li>
@@ -769,12 +792,14 @@ instance</li>
   <h4>Next topic</h4>
   <p class="topless"><a href="architecture.html"
                         title="next chapter">Architecture</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/releases.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/releases.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -791,7 +816,7 @@ instance</li>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -803,16 +828,15 @@ instance</li>
         <li class="right" >
           <a href="examples.html" title="Examples"
              >previous</a> |</li>
-        <li><a href="index.html">PyXB 1.2.4 documentation</a> &raquo;</li>
-    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
-    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.5 documentation</a> &raquo;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></li>
      
 
       </ul>
     </div>
-    <div class="footer">
-        &copy; Copyright 2009-2014, Peter A. Bigot.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2009-2016, Peter A. Bigot.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
   </body>
 </html>

@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+            >PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -61,8 +61,8 @@
     </td>
   </tr>
 </table>
-<!-- ==================== TYPE DESCRIPTION ==================== -->
-<h1 class="epydoc">type _PyXBDateTime_base</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.binding.datatypes-pysrc.html#_PyXBDateTime_base">source&nbsp;code</a></span></p>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class _PyXBDateTime_base</h1><p class="nomargin-top"><span class="codelink"><a href="pyxb.binding.datatypes-pysrc.html#_PyXBDateTime_base">source&nbsp;code</a></span></p>
 <pre class="base-tree">
                     object --+                
                              |                
@@ -123,7 +123,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a href="pyxb.binding.datatypes._PyXBDateTime_base-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      helper for pickle</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="pyxb.binding.datatypes-pysrc.html#_PyXBDateTime_base.__reduce__">source&nbsp;code</a></span>
             
@@ -179,6 +180,17 @@
       <code><a href="pyxb.utils.utility.Locatable_mixin-class.html#_location" onclick="show_private();">_location</a></code>,
       <code><a href="pyxb.utils.utility.Locatable_mixin-class.html#_setLocation" onclick="show_private();">_setLocation</a></code>
       </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
     </td>
   </tr>
 </table>
@@ -416,7 +428,7 @@ d': '(?P&lt;day&gt;\d{2})', '%H': '(?P&lt;hour&gt;\d{2})', '%M': '(?P&lt;minute&
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="_UTCTimeZone"></a><span class="summary-name">_UTCTimeZone</span> = <code title="pyxb.utils.utility.UTCOffsetTimeZone(0)">pyxb.utils.utility.UTCOffsetTimeZone(0)</code><br />
+        <a name="_UTCTimeZone"></a><span class="summary-name">_UTCTimeZone</span> = <code title="&lt;pyxb.utils.utility.UTCOffsetTimeZone object&gt;">&lt;pyxb.utils.utility.UTCOffsetTimeZone object&gt;</code><br />
       A <code class="link">datetime.tzinfo</code> instance representing 
       UTC.
     </td>
@@ -425,7 +437,7 @@ d': '(?P&lt;day&gt;\d{2})', '%H': '(?P&lt;hour&gt;\d{2})', '%M': '(?P&lt;minute&
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="_LocalTimeZone"></a><span class="summary-name">_LocalTimeZone</span> = <code title="pyxb.utils.utility.LocalTimeZone()">pyxb.utils.utility.LocalTimeZone()</code><br />
+        <a name="_LocalTimeZone"></a><span class="summary-name">_LocalTimeZone</span> = <code title="&lt;pyxb.utils.utility.LocalTimeZone object&gt;">&lt;pyxb.utils.utility.LocalTimeZone object&gt;</code><br />
       A <code class="link">datetime.tzinfo</code> instance representing the
       local time zone.
     </td>
@@ -524,6 +536,9 @@ d': '(?P&lt;day&gt;\d{2})', '%H': '(?P&lt;hour&gt;\d{2})', '%M': '(?P&lt;minute&
     <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html" onclick="show_private();">basis._TypeBinding_mixin</a></code></b> (private):
       <code><a href="pyxb.binding.basis._TypeBinding_mixin-class.html#_validationConfig" onclick="show_private();">_validationConfig</a></code>
       </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
     </td>
   </tr>
 </table>
@@ -559,7 +574,7 @@ d': '(?P&lt;day&gt;\d{2})', '%H': '(?P&lt;hour&gt;\d{2})', '%M': '(?P&lt;minute&
     </td>
   </tr></table>
   
-  
+  <p>helper for pickle</p>
   <dl class="fields">
     <dt>Overrides:
         object.__reduce__
@@ -772,7 +787,7 @@ d': '(?P&lt;day&gt;\d{2})', '%H': '(?P&lt;hour&gt;\d{2})', '%M': '(?P&lt;minute&
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+            >PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -780,7 +795,7 @@ d': '(?P&lt;day&gt;\d{2})', '%H': '(?P&lt;hour&gt;\d{2})', '%M': '(?P&lt;minute&
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Sun Oct 19 06:24:41 2014
+    on Sun Sep 18 23:14:46 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -151,7 +151,7 @@ the deeper elements of the purchase order:
    single: BIND
 
 In particular, there is no global ``item`` element that can be used to
-create the individual items.  For situations like this, we use 
+create the individual items.  For situations like this, we use
 :api:`pyxb.BIND`:
 
 .. literalinclude:: ../examples/manual/demo4c1.py
@@ -301,4 +301,3 @@ flags.
    ## fill-column:78
    ## indent-tabs-mode:nil
    ## End:
-

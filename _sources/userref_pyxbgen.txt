@@ -4,7 +4,27 @@ Generating Binding Classes
 ==========================
 
 The following sections reference example schema and programs that are
-available in the ``examples/manual`` subdirectory of the PyXB distribution.
+available in the ``examples/manual`` subdirectory of the PyXB
+distribution.
+
+.. note::
+   PyXB is developed and tested assuming a POSIX file system, as is used
+   on Linux.  While PyXB works perfectly well on Windows, some
+   accommodation is required.  In particular, when providing file URIs
+   as command-line arguments to ``pyxbgen`` it may be necessary to
+   explicitly note that the parameter is a URI by using the `Windows
+   file URI form
+   <http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx>`_
+   of the file path.
+
+   For example, something like this will generally not work::
+
+     pyxbgen -m x -u "c:\\Windows\My Documents\x.xsd" # DO NOT USE
+
+   This should be expressed as::
+
+     pyxbgen -m x -u file://c:/Windows/My%20Documents/x.xsd
+
 
 Self-contained schema
 ---------------------

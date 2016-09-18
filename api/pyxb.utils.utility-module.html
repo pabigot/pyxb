@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+            >PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -81,53 +81,77 @@
     </table>
   </td>
 </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pyxb.utils.utility.Object-class.html" class="summary-name">Object</a><br />
+      A dummy class used to hold arbitrary attributes.
+    </td>
+  </tr>
 <tr class="private">
-    <td class="summary" colspan="2">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="pyxb.utils.utility._DeconflictSymbols_mixin-class.html" class="summary-name" onclick="show_private();">_DeconflictSymbols_mixin</a><br />
       Mix-in used to deconflict public symbols in classes that may be 
         inherited by generated binding classes.
     </td>
   </tr>
 <tr>
-    <td class="summary" colspan="2">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="pyxb.utils.utility.Graph-class.html" class="summary-name">Graph</a><br />
       Represent a directed graph with arbitrary objects as nodes.
     </td>
   </tr>
 <tr>
-    <td class="summary" colspan="2">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="pyxb.utils.utility.UniqueIdentifier-class.html" class="summary-name">UniqueIdentifier</a><br />
       Records a unique identifier, generally associated with a binding 
         generation action.
     </td>
   </tr>
 <tr>
-    <td class="summary" colspan="2">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="pyxb.utils.utility.UTCOffsetTimeZone-class.html" class="summary-name">UTCOffsetTimeZone</a><br />
       A <code>datetime.tzinfo</code> subclass that helps deal with UTC 
         conversions in an ISO8601 world.
     </td>
   </tr>
 <tr>
-    <td class="summary" colspan="2">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="pyxb.utils.utility.LocalTimeZone-class.html" class="summary-name">LocalTimeZone</a><br />
       A <code>datetime.tzinfo</code> subclass for the local time zone.
     </td>
   </tr>
 <tr>
-    <td class="summary" colspan="2">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="pyxb.utils.utility.PrivateTransient_mixin-class.html" class="summary-name">PrivateTransient_mixin</a><br />
       Emulate the <b>transient</b> keyword from Java for private member 
         variables.
     </td>
   </tr>
 <tr>
-    <td class="summary" colspan="2">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="pyxb.utils.utility.Location-class.html" class="summary-name">Location</a>
     </td>
   </tr>
 <tr>
-    <td class="summary" colspan="2">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="pyxb.utils.utility.Locatable_mixin-class.html" class="summary-name">Locatable_mixin</a>
     </td>
   </tr>
@@ -268,6 +292,24 @@
       Convert a string into something suitable to be a Python identifier.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#MakeIdentifier">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pyxb.utils.utility-module.html#MakeModuleElement" class="summary-sig-name">MakeModuleElement</a>(<span class="summary-sig-arg">s</span>)</span><br />
+      Convert a string into something that can be a valid element in a 
+      Python module path.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pyxb.utils.utility-pysrc.html#MakeModuleElement">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -527,7 +569,7 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="_log"></a><span class="summary-name">_log</span> = <code title="logging.getLogger(__name__)">logging.getLogger(__name__)</code>
+        <a name="_log"></a><span class="summary-name">_log</span> = <code title="&lt;logging.Logger object&gt;">&lt;logging.Logger object&gt;</code>
     </td>
   </tr>
 <tr class="private">
@@ -883,6 +925,28 @@
           effect.</li>
     </ul></dd>
     <dt>Returns: <code>str</code></dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="MakeModuleElement"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">MakeModuleElement</span>(<span class="sig-arg">s</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pyxb.utils.utility-pysrc.html#MakeModuleElement">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Convert a string into something that can be a valid element in a 
+  Python module path.</p>
+  <p>Module path elements are similar to identifiers, but may begin with 
+  numbers and should not have leading underscores removed.</p>
+  <dl class="fields">
   </dl>
 </td></tr></table>
 </div>
@@ -1413,7 +1477,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9" width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></th>
+            >PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -1421,7 +1485,7 @@
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Sun Oct 19 06:24:41 2014
+    on Sun Sep 18 23:14:46 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

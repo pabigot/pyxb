@@ -51,7 +51,7 @@ instance:
    if r is None:
        pyxb.RequireValidWhenParsing(False)
        r = DWML.CreateFromDocument(rxml)
-   
+
 When invoking the program, the following diagnostic output is provided
 through the :api:`details <pyxb.exceptions_.ValidationError.details>`
 method:
@@ -105,7 +105,7 @@ In cases where the service generating the documents is under your control,
 you can use this information to correct the documents.  In cases like this
 where the error is in a production server, the proper approach is to `report
 the error
-<http://tech.groups.yahoo.com/group/NDFD_SOAP_Service/message/2218>`_,
+<http://groups.yahoo.com/neo/groups/NDFD_SOAP_Service/conversations/messages/2218>`_,
 disable validation, and move on with ones life.
 
 Runtime Exception Hierarchy
@@ -123,4 +123,3 @@ the :api:`API Documentation <pyxb.exceptions_.ValidationError>`.
    ## fill-column:78
    ## indent-tabs-mode:nil
    ## End:
-

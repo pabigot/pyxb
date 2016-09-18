@@ -370,4 +370,3 @@ corresponding type.  See :ref:`the example above <ex_showcontent>`.
    ## fill-column:78
    ## indent-tabs-mode:nil
    ## End:
-
