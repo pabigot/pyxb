@@ -66,11 +66,8 @@ paths will be read.
 ``--schema-stripped-prefix``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Optional string that is stripped from the beginning of schemaLocation
-values before loading from them. This applies only to the values of
-schemaLocation attributes in ``import`` and ``include`` elements.  Its
-purpose is to convert absolute schema locations into relative ones to
-allow offline processing when all schema are available in a local
-directory.  See ``schemaRoot``.
+values before loading from them. This now applies only to URIs specified
+on the command line so is unlikely to be useful.
 
 .. _pyxbgen--location-prefix-rewrite:
 
@@ -79,6 +76,10 @@ directory.  See ``schemaRoot``.
 Add a rewrite entry for schema locations. Parameter values are strings
 of the form ``pfx=sub``.  The effect is that a schema location that
 begins with ``pfx`` is rewritten so that it instead begins with ``sub``.
+This applies to schemaLocation attributes in ``import`` and ``include``
+elements.  It may be used to convert absolute schema locations into
+relative ones to allow offline processing when all schema are available
+in a local directory.  See ``schemaRoot``.
 
 .. _pyxbgen--uri-content-archive-directory:
 
