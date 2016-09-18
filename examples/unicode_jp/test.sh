@@ -11,7 +11,7 @@ fail () {
 export PYXB_ARCHIVE_PATH='&pyxb/bundles/opengis//:&pyxb/bundles/common//:+'
 
 # Attempt to get romkan.py if not already available
-[ -f romkan.py ] || wget http://mhagiwara.googlecode.com/svn/trunk/nltk/jpbook/romkan.py
+[ -f romkan.py ] || wget https://raw.githubusercontent.com/mhagiwara/nltk/master/jpbook/romkan.py
 
 python -c 'import drv_libxml2' || fail python-libxml2 not installed
 
