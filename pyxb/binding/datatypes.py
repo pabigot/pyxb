@@ -845,9 +845,10 @@ class base64Binary (basis.simpleTypeDefinition, six.binary_type):
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('base64Binary')
 
-    # base64 is too lenient: it accepts 'ZZZ=' as an encoding of 'e', while
-    # the required XML Schema production requires 'ZQ=='.  Define a regular
-    # expression per section 3.2.16.
+    # base64 is too lenient: it accepts 'ZZZ=' as an encoding of
+    # 'e\x96', while the required XML Schema production requires
+    # 'ZZY='.  Define a regular expression per section 3.2.16.
+
     _B04 = '[AQgw]'
     _B04S = '(%s ?)' % (_B04,)
     _B16 = '[AEIMQUYcgkosw048]'
@@ -857,6 +858,31 @@ class base64Binary (basis.simpleTypeDefinition, six.binary_type):
 
     __Pattern = '^((' + _B64S + '{4})*((' + _B64S + '{3}' + _B64 + ')|(' + _B64S + '{2}' + _B16S + '=)|(' + _B64S + _B04S + '= ?=)))?$'
     __Lexical_re = re.compile(__Pattern)
+
+    __ValidateLength = None
+
+    @classmethod
+    def XsdValidateLength (cls, length):
+        """Control the maximum encoded size that is checked for XML literal validity.
+
+        Python's base64 module allows some literals that are invalid
+        according to XML rules.  PyXB verifies the validity using a
+        regular expression, which is costly for something that is
+        unlikely to occur.  Use this function to inhibit checks for
+        validity based on the length of the XML literal.
+
+        @param length: C{None} (default) to check all literals,
+        otherwise the maximum length literal that will be checked.
+        Pass C{-1} to disable the validity check.
+
+        @return: the previous validation length
+
+        """
+        rv = cls.__ValidateLength
+        if (length is None) or isinstance(length, six.integer_types):
+            cls.__ValidateLength = length
+            return rv
+        raise TypeError('must provide None or integer length')
 
     @classmethod
     def _ConvertArguments_vx (cls, args, kw):
@@ -868,9 +894,10 @@ class base64Binary (basis.simpleTypeDefinition, six.binary_type):
                 args = (arg0,) + args[1:]
             except (TypeError, binascii.Error):
                 raise SimpleTypeValueError(cls, xmlt)
-            # This is what it costs to try to be a validating processor.
-            if cls.__Lexical_re.match(xmlt) is None:
-                raise SimpleTypeValueError(cls, xmlt)
+            if (cls.__ValidateLength is None) or (cls.__ValidateLength >= len(xmlt)):
+                # This is what it costs to try to be a validating processor.
+                if cls.__Lexical_re.match(xmlt) is None:
+                    raise SimpleTypeValueError(cls, xmlt)
         return args
 
     @classmethod
