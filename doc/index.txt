@@ -100,10 +100,9 @@ And run it::
   Monday, August 18 2014: Partly Cloudy, from 67 to 83
   Tuesday, August 19 2014: Partly Cloudy, from 65 to 84
 
-That's it.  (Note: The `CDYNE Weather Service
-<http://wsf.cdyne.com/WeatherWS/Weather.asmx?op=GetCityForecastByZIP>`_
-sometimes provides out-of-date information.  When notified of this they will
-fix the problem quickly.)
+That's it.  (Note: Although the `CDYNE Weather Service
+<http://wsf.cdyne.com/WeatherWS/Weather.asmx?op=GetCityForecastByZIP>`_ is
+still available, the data underlying it is no longer updated.)
 
 ******************
 Indices and tables
