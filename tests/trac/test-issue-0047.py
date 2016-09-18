@@ -41,16 +41,16 @@ class TestIssue0047 (unittest.TestCase):
 
     def testOne (self):
         inst = req('c1');
-        self.assertEqual(six.u('<req><conf>c1</conf></req>'), inst.toxml('utf-8', root_only=True));
+        self.assertEqual(six.b('<req><conf>c1</conf></req>'), inst.toxml('utf-8', root_only=True));
         pyxb.RequireValidWhenGenerating(False);
-        self.assertEqual(six.u('<req><conf>c1</conf></req>'), inst.toxml('utf-8', root_only=True));
+        self.assertEqual(six.b('<req><conf>c1</conf></req>'), inst.toxml('utf-8', root_only=True));
 
     def testTwo (self):
         inst = req('c1', 'c2');
         self.assertTrue(pyxb.RequireValidWhenGenerating());
-        self.assertEqual(six.u('<req><conf>c1</conf><conf>c2</conf></req>'), inst.toxml('utf-8', root_only=True));
+        self.assertEqual(six.b('<req><conf>c1</conf><conf>c2</conf></req>'), inst.toxml('utf-8', root_only=True));
         pyxb.RequireValidWhenGenerating(False);
-        self.assertEqual(six.u('<req><conf>c1</conf><conf>c2</conf></req>'), inst.toxml('utf-8', root_only=True));
+        self.assertEqual(six.b('<req><conf>c1</conf><conf>c2</conf></req>'), inst.toxml('utf-8', root_only=True));
 
 if __name__ == '__main__':
     unittest.main()

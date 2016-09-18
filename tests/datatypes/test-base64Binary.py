@@ -40,13 +40,13 @@ class Test_base64Binary (unittest.TestCase):
         self.assertRaises(TypeError, xsd.base64Binary.XsdValidateLength, 'hi')
 
     def testLimitOverride (self):
-        self.assertEqual('e', xsd.base64Binary(six.u('ZQ=='), _from_xml=True))
-        self.assertEqual('e\x96', xsd.base64Binary(six.u('ZZY='), _from_xml=True))
+        self.assertEqual(six.b('e'), xsd.base64Binary(six.u('ZQ=='), _from_xml=True))
+        self.assertEqual(six.b('e\x96'), xsd.base64Binary(six.u('ZZY='), _from_xml=True))
         self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, six.u('ZZZ='), _from_xml=True)
         xsd.base64Binary.XsdValidateLength(-1)
-        self.assertEqual('e\x96', xsd.base64Binary(six.u('ZZZ='), _from_xml=True))
+        self.assertEqual(six.b('e\x96'), xsd.base64Binary(six.u('ZZZ='), _from_xml=True))
         xsd.base64Binary.XsdValidateLength(3)
-        self.assertEqual('e\x96', xsd.base64Binary(six.u('ZZZ='), _from_xml=True))
+        self.assertEqual(six.b('e\x96'), xsd.base64Binary(six.u('ZZZ='), _from_xml=True))
         xsd.base64Binary.XsdValidateLength(4)
         self.assertRaises(pyxb.SimpleTypeValueError, xsd.base64Binary, six.u('ZZZ='), _from_xml=True)
 

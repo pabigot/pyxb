@@ -4,11 +4,12 @@ from __future__ import unicode_literals
 import ucum
 import pyxb
 import sys
+from pyxb.utils import six
 
 def ucumHTML (u):
     """Convert mixed content to UCUM's version of HTML"""
     txt = []
-    if isinstance(u, unicode):
+    if isinstance(u, six.text_type):
         return u.strip()
     for c in u.orderedContent():
         if isinstance(c, pyxb.binding.basis.NonElementContent):
@@ -19,7 +20,7 @@ def ucumHTML (u):
     return ''.join(txt)
 
 try:
-    instance = ucum.CreateFromDocument(file('ucum-essence.xml').read())
+    instance = ucum.CreateFromDocument(open('ucum-essence.xml').read())
 except pyxb.ValidationError as e:
     print(e.details())
     sys.exit(1)
