@@ -2332,7 +2332,7 @@ from %s import *
         if argv is not None:
             kw = {}
         self.__bindingRoot = kw.get('binding_root', self._DEFAULT_bindingRoot)
-        self.__schemaRoot = kw.get('schema_root', '.')
+        self.__schemaRoot = kw.get('schema_root', os.getcwd() + os.path.sep)
         self.__schemaStrippedPrefix = kw.get('schema_stripped_prefix')
         self.__locationPrefixRewriteMap = kw.get('location_prefix_rewrite_map', {})
         self.__schemas = []
