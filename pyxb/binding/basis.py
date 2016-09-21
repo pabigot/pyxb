@@ -23,6 +23,7 @@ import pyxb
 from pyxb.utils import domutils, utility, six
 import pyxb.namespace
 from pyxb.namespace.builtin import XMLSchema_instance as XSI
+import decimal
 
 _log = logging.getLogger(__name__)
 
@@ -427,6 +428,10 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
             # input.
             rv = cls.Factory(value)
             if isinstance(rv, simpleTypeDefinition) and (rv == value):
+                return rv
+            # Python decimal instances do not compare equal to float values;
+            # test whether the string representation is equal instead.
+            if isinstance(rv, decimal.Decimal) and (str(rv) == str(value)):
                 return rv
             if isinstance(rv, complexTypeDefinition) and (rv.value() == value):
                 return rv
