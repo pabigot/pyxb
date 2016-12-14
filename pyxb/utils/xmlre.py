@@ -288,7 +288,7 @@ def XMLToPython (pattern):
     that matches the same language as C{pattern}."""
     assert isinstance(pattern, six.text_type)
     new_pattern_elts = []
-    new_pattern_elts.append('^')
+    new_pattern_elts.append('^(')
     position = 0
     while position < len(pattern):
         cg = MaybeMatchCharacterClass(pattern, position)
@@ -305,5 +305,5 @@ def XMLToPython (pattern):
         else:
             (cps, position) = cg
             new_pattern_elts.append(cps.asPattern())
-    new_pattern_elts.append('$')
+    new_pattern_elts.append(')$')
     return ''.join(new_pattern_elts)
