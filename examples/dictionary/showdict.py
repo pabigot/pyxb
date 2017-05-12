@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import print_function
+import sys
 import dict
 from pyxb.utils.six.moves.urllib.request import urlopen
 import pyxb.utils.domutils as domutils
@@ -16,9 +19,12 @@ for d in dle.Dictionary:
     # Create a REST-style query to retrieve the information about this dictionary.
     uri = '%s%s?dictId=%s' % (port_uri, op_path, d.Id)
     resp = urlopen(uri).read()
+    print("%s (%s) : %d chars" % (d.Name.encode('utf-8'), d.Id.encode('utf-8'), len(resp)));
+
     # The response is a simple type derived from string, so we can
-    # just extract and print it.
+    # just extract and print it.  Excluded by default since it has
+    # leading and trailing whitespace that causes problems with using
+    # git to store the expected output.
     di_resp = dict.CreateFromDOM(domutils.StringToDOM(resp))
-    # Do the "encode" garbage because one of these dictionaries has a
-    # non-ASCII character
-    print("%s (%s)\n%s\n" % (d.Name.encode('utf-8'), d.Id.encode('utf-8'), di_resp.encode('utf-8')))
+    if sys.stdout.isatty():
+        print("%s\n" % di_resp.encode('utf-8'));

@@ -1,9 +1,6 @@
 #!/bin/sh
 
-fail () {
-  echo 1>&2 "${test_name} FAILED: ${@}"
-  exit 1
-}
+. ${PYXB_ROOT}/tests/support.sh
 
 # Because this is an OpenGIS application, the OpenGIS bundle must be
 # made available during binding generation.  OpenGIS also depends
@@ -27,14 +24,12 @@ opengis bundle directory.
 EOText
 fi
 
-# This allows this script to run under the autotest environment, where
-# output is sent to a file.
-export PYTHONIOENCODING='utf-8'
-
-rm fgd_gml.*
+rm -f fgd_gml.*
 # A customized pyxbgen is required to do the translation
 ./pyxbgen_jp \
-   --schema-location=data/shift_jis/FGD_GMLSchema.xsd --module=fgd_gml
+    --schema-location=data/shift_jis/FGD_GMLSchema.xsd --module=fgd_gml \
+    || fail generating bindings
 
 # Make sure it worked
-python check.py
+python check.py || fail check
+passed

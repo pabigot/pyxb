@@ -1,0 +1,4 @@
+Robert Smith is sending Mary Jones 1 thing(s):
+  Quantity 1 of Lapis necklace at $99.95
+Too many: Type <class 'raw.ipo.STD_ANON'> maxExclusive constraint violated by value 100
+Increased quantity to 10

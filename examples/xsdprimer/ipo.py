@@ -10,6 +10,6 @@ class USAddress (raw_ipo.USAddress):
     def __str__ (self):
         return six.u('''%s
 %s
-%s %s, %s''') % (self.name(), self.street(), self.city(), self.state(), self.zip())
+%s %s, %s''') % (self.name, self.street, self.city, self.state, self.zip)
     pass
 raw_ipo.USAddress._SetSupersedingClass(USAddress)

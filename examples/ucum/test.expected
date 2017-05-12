@@ -1,0 +1,511 @@
+m
+	prints as: m
+s
+	prints as: s
+g
+	prints as: g
+rad
+	prints as: rad
+K
+	prints as: K
+C
+	prints as: C
+cd
+	prints as: cd
+10*	as 10 times 1
+	prints as: 10
+10^	as 10 times 1
+	prints as: 10
+[pi]	as 3.1415926535897932384626433832795028841971693993751058209749445923 times 1
+	prints as: π
+%	alias 10*-2
+	prints as: %
+[ppth]	alias 10*-3
+	prints as: ppth
+[ppm]	alias 10*-6
+	prints as: ppm
+[ppb]	alias 10*-9
+	prints as: ppb
+[pptr]	alias 10*-12
+	prints as: pptr
+mol	as 6.0221367 times 10*23
+	prints as: mol
+sr	alias rad2
+	prints as: sr
+Hz	alias s-1
+	prints as: Hz
+N	alias kg.m/s2
+	prints as: N
+Pa	alias N/m2
+	prints as: Pa
+J	alias N.m
+	prints as: J
+W	alias J/s
+	prints as: W
+A	alias C/s
+	prints as: A
+V	alias J/C
+	prints as: V
+F	alias C/V
+	prints as: F
+Ohm	alias V/A
+	prints as: Ω
+S	alias Ohm-1
+	prints as: S
+Wb	alias V.s
+	prints as: Wb
+Cel	as value cel(1 K)
+	prints as: °C
+T	alias Wb/m2
+	prints as: T
+H	alias Wb/A
+	prints as: H
+lm	alias cd.sr
+	prints as: lm
+lx	alias lm/m2
+	prints as: lx
+Bq	alias s-1
+	prints as: Bq
+Gy	alias J/kg
+	prints as: Gy
+Sv	alias J/kg
+	prints as: Sv
+gon	as 0.9 times deg
+	prints as: □<sup>g</sup>
+deg	as 2 times [pi].rad/360
+	prints as: °
+'	alias deg/60
+	prints as: '
+''	alias '/60
+	prints as: ''
+l	alias dm3
+	prints as: l
+L	alias l
+	prints as: L
+ar	as 100 times m2
+	prints as: a
+min	as 60 times s
+	prints as: min
+h	as 60 times min
+	prints as: h
+d	as 24 times h
+	prints as: d
+a_t	as 365.24219 times d
+	prints as: a<sub>t</sub>
+a_j	as 365.25 times d
+	prints as: a<sub>j</sub>
+a_g	as 365.2425 times d
+	prints as: a<sub>g</sub>
+a	alias a_j
+	prints as: a
+wk	as 7 times d
+	prints as: wk
+mo_s	as 29.53059 times d
+	prints as: mo<sub>s</sub>
+mo_j	alias a_j/12
+	prints as: mo<sub>j</sub>
+mo_g	alias a_g/12
+	prints as: mo<sub>g</sub>
+mo	alias mo_j
+	prints as: mo
+t	as 1E+3 times kg
+	prints as: t
+bar	as 1E+5 times Pa
+	prints as: bar
+u	as 1.6605402E-24 times g
+	prints as: u
+eV	alias [e].V
+	prints as: eV
+AU	as 149597.870691 times Mm
+	prints as: AU
+pc	as 3.085678E+16 times m
+	prints as: pc
+[c]	as 299792458 times m/s
+	prints as: <i>c</i>
+[h]	as 6.6260755E-34 times J.s
+	prints as: <i>h</i>
+[k]	as 1.380658E-23 times J/K
+	prints as: <i>k</i>
+[eps_0]	as 8.854187817E-12 times F/m
+	prints as: <i>ε<sub><r>0</r></sub></i>
+[mu_0]	alias 4.[pi].10*-7.N/A2
+	prints as: <i>μ<sub><r>0</r></sub></i>
+[e]	as 1.60217733E-19 times C
+	prints as: <i>e</i>
+[m_e]	as 9.1093897E-28 times g
+	prints as: <i>m<sub><r>e</r></sub></i>
+[m_p]	as 1.6726231E-24 times g
+	prints as: <i>m<sub><r>p</r></sub></i>
+[G]	as 6.67259E-11 times m3.kg-1.s-2
+	prints as: <i>G</i>
+[g]	as 9.80665 times m/s2
+	prints as: <i>g<sub>n</sub></i>
+atm	as 101325 times Pa
+	prints as: atm
+[ly]	alias [c].a_j
+	prints as: l.y.
+gf	alias g.[g]
+	prints as: gf
+[lbf_av]	alias [lb_av].[g]
+	prints as: lbf
+Ky	alias cm-1
+	prints as: K
+Gal	alias cm/s2
+	prints as: Gal
+dyn	alias g.cm/s2
+	prints as: dyn
+erg	alias dyn.cm
+	prints as: erg
+P	alias dyn.s/cm2
+	prints as: P
+Bi	as 10 times A
+	prints as: Bi
+St	alias cm2/s
+	prints as: St
+Mx	as 1E-8 times Wb
+	prints as: Mx
+G	as 0.0001 times T
+	prints as: Gs
+Oe	as 250 times /[pi].A/m
+	prints as: Oe
+Gb	alias Oe.cm
+	prints as: Gb
+sb	alias cd/cm2
+	prints as: sb
+Lmb	alias cd/cm2/[pi]
+	prints as: L
+ph	as 0.0001 times lx
+	prints as: ph
+Ci	as 3.7E+10 times Bq
+	prints as: Ci
+R	as 0.000258 times C/kg
+	prints as: R
+RAD	as 100 times erg/g
+	prints as: RAD
+REM	alias RAD
+	prints as: REM
+[in_i]	as 2.54 times cm
+	prints as: in
+[ft_i]	as 12 times [in_i]
+	prints as: ft
+[yd_i]	as 3 times [ft_i]
+	prints as: yd
+[mi_i]	as 5280 times [ft_i]
+	prints as: mi
+[fth_i]	as 6 times [ft_i]
+	prints as: fth
+[nmi_i]	as 1852 times m
+	prints as: n.mi
+[kn_i]	alias [nmi_i]/h
+	prints as: knot
+[sin_i]	alias [in_i]2
+[sft_i]	alias [ft_i]2
+[syd_i]	alias [yd_i]2
+[cin_i]	alias [in_i]3
+[cft_i]	alias [ft_i]3
+[cyd_i]	alias [yd_i]3
+	prints as: cu.yd
+[bf_i]	as 144 times [in_i]3
+[cr_i]	as 128 times [ft_i]3
+[mil_i]	as 0.001 times [in_i]
+	prints as: mil
+[cml_i]	alias [pi]/4.[mil_i]2
+	prints as: circ.mil
+[hd_i]	as 4 times [in_i]
+	prints as: hd
+[ft_us]	as 1200 times m/3937
+	prints as: ft<sub>us</sub>
+[yd_us]	as 3 times [ft_us]
+[in_us]	alias [ft_us]/12
+[rd_us]	as 16.5 times [ft_us]
+[ch_us]	as 4 times [rd_us]
+[lk_us]	alias [ch_us]/100
+[rch_us]	as 100 times [ft_us]
+[rlk_us]	alias [rch_us]/100
+[fth_us]	as 6 times [ft_us]
+[fur_us]	as 40 times [rd_us]
+[mi_us]	as 8 times [fur_us]
+[acr_us]	as 160 times [rd_us]2
+[srd_us]	alias [rd_us]2
+[smi_us]	alias [mi_us]2
+[sct]	alias [mi_us]2
+[twp]	as 36 times [sct]
+[mil_us]	as 0.001 times [in_us]
+[in_br]	as 2.539998 times cm
+[ft_br]	as 12 times [in_br]
+[rd_br]	as 16.5 times [ft_br]
+[ch_br]	as 4 times [rd_br]
+[lk_br]	alias [ch_br]/100
+[fth_br]	as 6 times [ft_br]
+[pc_br]	as 2.5 times [ft_br]
+[yd_br]	as 3 times [ft_br]
+[mi_br]	as 5280 times [ft_br]
+[nmi_br]	as 6080 times [ft_br]
+[kn_br]	alias [nmi_br]/h
+[acr_br]	as 4840 times [yd_br]2
+[gal_us]	as 231 times [in_i]3
+[bbl_us]	as 42 times [gal_us]
+[qt_us]	alias [gal_us]/4
+[pt_us]	alias [qt_us]/2
+[gil_us]	alias [pt_us]/4
+[foz_us]	alias [gil_us]/4
+	prints as: oz fl
+[fdr_us]	alias [foz_us]/8
+[min_us]	alias [fdr_us]/60
+[crd_us]	as 128 times [ft_i]3
+[bu_us]	as 2150.42 times [in_i]3
+[gal_wi]	alias [bu_us]/8
+[pk_us]	alias [bu_us]/4
+[dqt_us]	alias [pk_us]/8
+[dpt_us]	alias [dqt_us]/2
+[tbs_us]	alias [foz_us]/2
+[tsp_us]	alias [tbs_us]/3
+[cup_us]	as 16 times [tbs_us]
+[foz_m]	as 30 times mL
+	prints as: oz fl
+[cup_m]	as 240 times mL
+[tsp_m]	as 5 times mL
+[tbs_m]	as 15 times mL
+[gal_br]	as 4.54609 times l
+[pk_br]	as 2 times [gal_br]
+[bu_br]	as 4 times [pk_br]
+[qt_br]	alias [gal_br]/4
+[pt_br]	alias [qt_br]/2
+[gil_br]	alias [pt_br]/4
+[foz_br]	alias [gil_br]/5
+[fdr_br]	alias [foz_br]/8
+[min_br]	alias [fdr_br]/60
+[gr]	as 64.79891 times mg
+[lb_av]	as 7000 times [gr]
+	prints as: lb
+[oz_av]	alias [lb_av]/16
+	prints as: oz
+[dr_av]	alias [oz_av]/16
+[scwt_av]	as 100 times [lb_av]
+[lcwt_av]	as 112 times [lb_av]
+[ston_av]	as 20 times [scwt_av]
+[lton_av]	as 20 times [lcwt_av]
+[stone_av]	as 14 times [lb_av]
+[pwt_tr]	as 24 times [gr]
+[oz_tr]	as 20 times [pwt_tr]
+[lb_tr]	as 12 times [oz_tr]
+[sc_ap]	as 20 times [gr]
+[dr_ap]	as 3 times [sc_ap]
+[oz_ap]	as 8 times [dr_ap]
+[lb_ap]	as 12 times [oz_ap]
+[oz_m]	as 28 times g
+[lne]	alias [in_i]/12
+[pnt]	alias [lne]/6
+[pca]	as 12 times [pnt]
+[pnt_pr]	as 0.013837 times [in_i]
+[pca_pr]	as 12 times [pnt_pr]
+[pied]	as 32.48 times cm
+[pouce]	alias [pied]/12
+[ligne]	alias [pouce]/12
+[didot]	alias [ligne]/6
+[cicero]	as 12 times [didot]
+[degF]	as value degf(5 K/9)
+	prints as: °F
+[degR]	as 5 times K/9
+	prints as: °R
+[degRe]	as value degre(5 K/4)
+	prints as: °Ré
+cal_[15]	as 4.18580 times J
+	prints as: cal<sub>15°C</sub>
+cal_[20]	as 4.18190 times J
+	prints as: cal<sub>20°C</sub>
+cal_m	as 4.19002 times J
+	prints as: cal<sub>m</sub>
+cal_IT	as 4.1868 times J
+	prints as: cal<sub>IT</sub>
+cal_th	as 4.184 times J
+	prints as: cal<sub>th</sub>
+cal	alias cal_th
+	prints as: cal
+[Cal]	alias kcal_th
+	prints as: Cal
+[Btu_39]	as 1.05967 times kJ
+	prints as: Btu<sub>39°F</sub>
+[Btu_59]	as 1.05480 times kJ
+	prints as: Btu<sub>59°F</sub>
+[Btu_60]	as 1.05468 times kJ
+	prints as: Btu<sub>60°F</sub>
+[Btu_m]	as 1.05587 times kJ
+	prints as: Btu<sub>m</sub>
+[Btu_IT]	as 1.05505585262 times kJ
+	prints as: Btu<sub>IT</sub>
+[Btu_th]	as 1.054350 times kJ
+	prints as: Btu<sub>th</sub>
+[Btu]	alias [Btu_th]
+	prints as: btu
+[HP]	as 550 times [ft_i].[lbf_av]/s
+tex	alias g/km
+	prints as: tex
+[den]	alias g/9/km
+	prints as: den
+m[H2O]	as 9.80665 times kPa
+	prints as: m H<sub><r>2</r></sub>O
+m[Hg]	as 133.3220 times kPa
+	prints as: m Hg
+[in_i'H2O]	alias m[H2O].[in_i]/m
+	prints as: in H<sub><r>2</r></sub>O
+[in_i'Hg]	alias m[Hg].[in_i]/m
+	prints as: in Hg
+[PRU]	alias mm[Hg].s/ml
+	prints as: P.R.U.
+[wood'U]	alias mm[Hg].min/L
+	prints as: Wood U.
+[diop]	alias /m
+	prints as: dpt
+[p'diop]	as value 100tan(1 rad)
+	prints as: PD
+%[slope]	as value 100tan(1 rad)
+	prints as: %
+[mesh_i]	alias /[in_i]
+[Ch]	alias mm/3
+	prints as: Ch
+[drp]	alias ml/20
+	prints as: drp
+[hnsf'U]	alias 1
+	prints as: HF
+[MET]	as 3.5 times mL/min/kg
+	prints as: MET
+[hp'_X]	as value hpX(1 1)
+	prints as: X
+[hp'_C]	as value hpC(1 1)
+	prints as: C
+[hp'_M]	as value hpM(1 1)
+	prints as: M
+[hp'_Q]	as value hpQ(1 1)
+	prints as: Q
+[hp_X]	alias 1
+	prints as: X
+[hp_C]	alias 1
+	prints as: C
+[hp_M]	alias 1
+	prints as: M
+[hp_Q]	alias 1
+	prints as: Q
+[kp_X]	alias 1
+	prints as: X
+[kp_C]	alias 1
+	prints as: C
+[kp_M]	alias 1
+	prints as: M
+[kp_Q]	alias 1
+	prints as: Q
+eq	alias mol
+	prints as: eq
+osm	alias mol
+	prints as: osm
+[pH]	as value pH(1 mol/l)
+	prints as: pH
+g%	alias g/dl
+	prints as: g%
+[S]	alias 10*-13.s
+	prints as: S
+[HPF]	alias 1
+	prints as: HPF
+[LPF]	as 100 times 1
+	prints as: LPF
+kat	alias mol/s
+	prints as: kat
+U	alias umol/min
+	prints as: U
+[iU]	alias 1
+	prints as: IU
+[IU]	alias [iU]
+	prints as: i.U.
+[arb'U]	alias 1
+	prints as: arb. U
+[USP'U]	alias 1
+	prints as: U.S.P.
+[GPL'U]	alias 1
+[MPL'U]	alias 1
+[APL'U]	alias 1
+[beth'U]	alias 1
+[anti'Xa'U]	alias 1
+[todd'U]	alias 1
+[dye'U]	alias 1
+[smgy'U]	alias 1
+[bdsk'U]	alias 1
+[ka'U]	alias 1
+[knk'U]	alias 1
+[mclg'U]	alias 1
+[tb'U]	alias 1
+[CCID_50]	alias 1
+	prints as: CCID<sub>50</sub>
+[TCID_50]	alias 1
+	prints as: TCID<sub>50</sub>
+[EID_50]	alias 1
+	prints as: EID<sub>50</sub>
+[PFU]	alias 1
+	prints as: PFU
+[FFU]	alias 1
+	prints as: FFU
+[CFU]	alias 1
+	prints as: CFU
+[IR]	alias 1
+	prints as: IR
+[BAU]	alias 1
+	prints as: BAU
+[AU]	alias 1
+	prints as: AU
+[Amb'a'1'U]	alias 1
+	prints as: Amb a 1 U
+[PNU]	alias 1
+	prints as: PNU
+[Lf]	alias 1
+	prints as: Lf
+[D'ag'U]	alias 1
+[FEU]	alias 1
+[ELU]	alias 1
+[EU]	alias 1
+Np	as value ln(1 1)
+	prints as: Np
+B	as value lg(1 1)
+	prints as: B
+B[SPL]	as value 2lg(2 10*-5.Pa)
+	prints as: B(SPL)
+B[V]	as value 2lg(1 V)
+	prints as: B(V)
+B[mV]	as value 2lg(1 mV)
+	prints as: B(mV)
+B[uV]	as value 2lg(1 uV)
+	prints as: B(μV)
+B[10.nV]	as value 2lg(10 nV)
+	prints as: B(10 nV)
+B[W]	as value lg(1 W)
+	prints as: B(W)
+B[kW]	as value lg(1 kW)
+	prints as: B(kW)
+st	alias m3
+	prints as: st
+Ao	as 0.1 times nm
+	prints as: Å
+b	as 100 times fm2
+	prints as: b
+att	alias kgf/cm2
+	prints as: at
+mho	alias S
+	prints as: mho
+[psi]	alias [lbf_av]/[in_i]2
+	prints as: psi
+circ	as 2 times [pi].rad
+	prints as: circ
+sph	as 4 times [pi].sr
+	prints as: sph
+[car_m]	as 0.2 times g
+	prints as: ct<sub>m</sub>
+[car_Au]	alias /24
+	prints as: ct<sub><r>Au</r></sub>
+[smoot]	as 67 times [in_i]
+[m/s2/Hz^(1/2)]	as value sqrt(1 m2/s4/Hz)
+bit_s	as value ld(1 1)
+	prints as: bit<sub>s</sub>
+bit	alias 1
+	prints as: bit
+By	as 8 times bit
+	prints as: B
+Bd	alias /s
+	prints as: Bd
