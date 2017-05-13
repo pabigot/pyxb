@@ -36,7 +36,7 @@ apihtml:
 
 pyxbgen_cli.txt: ../pyxb/binding/generate.py ../maintainer/gendoc
 	PYTHONPATH=.. ../maintainer/gendoc \
-        | sed -e 's@  *$$@@' \
+        | sed -e 's@  *$$@@' -e '$${/^$$/d;}' \
         > $@
 
 GENERATED_TXT += pyxbgen_cli.txt
