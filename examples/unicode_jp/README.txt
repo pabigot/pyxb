@@ -66,6 +66,13 @@ the bindings.
 Many thanks to Hiroaki Itoh for providing the schemas, example document, and
 romanization code.
 
+If you are interested in other languages, consider replacing the
+ConvertJPIdentifier() function in the modified pyxbgen script with one
+that uses unidecode: https://pypi.python.org/pypi/Unidecode
+
+See this comment for further details:
+https://sourceforge.net/p/pyxb/discussion/956708/thread/5246b205/#1c7f
+
 Note: Because the package depends on OpenGIS, and OpenGIS bindings are no
 longer provided in the PyXB distribution, you should generate these bindings
 first.  If they are missing, the test script will emit a warning and PyXB
