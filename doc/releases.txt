@@ -188,7 +188,7 @@ The following reported `defects/enhancements
   :ref:`pyxbgen--wsdl-location`.  :ticket:`210`
 - Refine diagnostics when an element with simple type appears in a context
   that expects non-element content.  :ticket:`211`
-- Add :api:`pyxb.NonElementContent` to simplify access to non-element content
+- Add :py:obj:`pyxb.NonElementContent` to simplify access to non-element content
   in a mixed-content instance.  :ticket:`212`
 - Convert assert failures to diagnostic exceptions when generating DOM
   expressions of complex types with simple content where the content is
@@ -239,9 +239,9 @@ Documentation: http://pyxb.sourceforge.net/PyXB-1.2.1
 
 .. warning::
 
-   This release has an interface change: the :api:`content
+   This release has an interface change: the :py:obj:`content
    <pyxb.binding.basis.complexTypeDefinition.content>` method on complex types
-   is now deprecated in favor of the :api:`orderedContent
+   is now deprecated in favor of the :py:obj:`orderedContent
    <pyxb.binding.basis.complexTypeDefinition.orderedContent>` method.  The
    members in the new list have wrapper classes to correctly associate
    instance bindings with the element declaration and to distinguish instances
@@ -252,7 +252,7 @@ Documentation: http://pyxb.sourceforge.net/PyXB-1.2.1
 Key features of the release:
 
 - Full support for mixed content schema through a new method
-  :api:`orderedContent <pyxb.binding.basis.complexTypeDefinition.orderedContent>` on complex
+  :py:obj:`orderedContent <pyxb.binding.basis.complexTypeDefinition.orderedContent>` on complex
   binding instances and flags that control when that list affects document
   generation.  See :ref:`mixed_content`.  This is particularly relevant to
   XHTML.
@@ -260,7 +260,7 @@ Key features of the release:
 - Immediate validation of values assigned to plural elements.
 
 - A first step to providing finer control of validation, using
-  :api:`pyxb.ValidationConfig`
+  :py:obj:`pyxb.ValidationConfig`
 
 The following reported `defects/enhancements
 <http://sourceforge.net/p/pyxb/tickets/>`_ have been addressed:
@@ -513,7 +513,7 @@ not acceptable to the validating parser, and where it can be found in the
 document.  See :ref:`invalid-content`.
 
 Also, using keyword parameters in binding instance constructors will now raise
-an :api:`pyxb.exceptions_.ExtraContentError` in the case where the keyword does not
+an :py:obj:`pyxb.exceptions_.ExtraContentError` in the case where the keyword does not
 correspond to the PyXB-generated identifier associated with an attribute or
 element of the class being instantiated.
 

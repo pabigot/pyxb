@@ -22,7 +22,12 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.todo', 'extapi' ]
+extensions = [
+    'sphinx.ext.todo',
+    'sphinx.ext.autodoc',
+    'sphinx_epytext',
+    'extapi',
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -85,6 +90,9 @@ pygments_style = 'sphinx'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
+
+# Show everything useful in the API
+autodoc_default_flags = ['members', 'private-members', 'undoc-members', 'show-inheritance'];
 
 
 # -- Options for HTML output ---------------------------------------------------

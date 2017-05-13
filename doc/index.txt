@@ -59,6 +59,7 @@ Contents
    releases
    architecture
    userref_index
+   pyxb
    maintref
 
 .. _thirty_sec_example:

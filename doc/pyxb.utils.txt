@@ -1,0 +1,102 @@
+pyxb\.utils package
+===================
+
+Submodules
+----------
+
+pyxb\.utils\.activestate module
+-------------------------------
+
+.. automodule:: pyxb.utils.activestate
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyxb\.utils\.domutils module
+----------------------------
+
+.. automodule:: pyxb.utils.domutils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyxb\.utils\.fac module
+-----------------------
+
+.. automodule:: pyxb.utils.fac
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyxb\.utils\.saxdom module
+--------------------------
+
+.. automodule:: pyxb.utils.saxdom
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyxb\.utils\.saxutils module
+----------------------------
+
+.. automodule:: pyxb.utils.saxutils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyxb\.utils\.six module
+-----------------------
+
+.. automodule:: pyxb.utils.six
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyxb\.utils\.templates module
+-----------------------------
+
+.. automodule:: pyxb.utils.templates
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyxb\.utils\.unicode module
+---------------------------
+
+.. automodule:: pyxb.utils.unicode
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyxb\.utils\.unicode\_data module
+---------------------------------
+
+.. automodule:: pyxb.utils.unicode_data
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyxb\.utils\.utility module
+---------------------------
+
+.. automodule:: pyxb.utils.utility
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyxb\.utils\.xmlre module
+-------------------------
+
+.. automodule:: pyxb.utils.xmlre
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: pyxb.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:

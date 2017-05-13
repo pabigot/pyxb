@@ -1,0 +1,70 @@
+pyxb\.binding package
+=====================
+
+Submodules
+----------
+
+pyxb\.binding\.basis module
+---------------------------
+
+.. automodule:: pyxb.binding.basis
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyxb\.binding\.content module
+-----------------------------
+
+.. automodule:: pyxb.binding.content
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyxb\.binding\.datatypes module
+-------------------------------
+
+.. automodule:: pyxb.binding.datatypes
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyxb\.binding\.facets module
+----------------------------
+
+.. automodule:: pyxb.binding.facets
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyxb\.binding\.generate module
+------------------------------
+
+.. automodule:: pyxb.binding.generate
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyxb\.binding\.saxer module
+---------------------------
+
+.. automodule:: pyxb.binding.saxer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyxb\.binding\.xml\_ module
+---------------------------
+
+.. automodule:: pyxb.binding.xml_
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: pyxb.binding
+    :members:
+    :undoc-members:
+    :show-inheritance:

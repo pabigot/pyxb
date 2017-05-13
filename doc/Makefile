@@ -6,16 +6,12 @@ SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
 
-EPYDOC        = epydoc
-EPYDOCOPTS    = --config documentation.cfg
-
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -d _build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
 .PHONY: help clean html dirhtml pickle json htmlhelp qthelp latex changes linkcheck doctest
-.PHONY: apihtml
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -30,10 +26,6 @@ help:
 	@echo "  linkcheck to check all external links for integrity"
 	@echo "  doctest   to run all doctests embedded in the documentation (if enabled)"
 
-apihtml:
-	mkdir -p html/api
-	PYTHONPATH=.. $(EPYDOC) $(EPYDOCOPTS)
-
 pyxbgen_cli.txt: ../pyxb/binding/generate.py ../maintainer/gendoc
 	PYTHONPATH=.. ../maintainer/gendoc \
         | sed -e 's@  *$$@@' -e '$${/^$$/d;}' \
@@ -42,7 +34,7 @@ pyxbgen_cli.txt: ../pyxb/binding/generate.py ../maintainer/gendoc
 GENERATED_TXT += pyxbgen_cli.txt
 
 html: $(GENERATED_TXT)
-	PYTHONPATH=. $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) html
+	PYTHONPATH=.:.. $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) html
 	@echo
 	@echo "Build finished. The HTML pages are in _build/html."
 
