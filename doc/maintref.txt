@@ -7,20 +7,17 @@ Maintainer Reference
 Git Repository
 **************
 
-PyXB is developed using `git <http://gitscm.org>`_.  You can check out the
-development branch with::
-
- git clone git://pyxb.git.sourceforge.net/gitroot/pyxb/pyxb
-
+PyXB is developed using `git <http://gitscm.org>`_ with active
+development hosted on `Github <https://github.com/pabigot/pyxb>`_.
 Public development is mostly done on the ``next`` branch, which is the
-default for checkouts from SourceForge.  The ``master`` branch contains
-material integrated into the release, and follows ``next``.  Tags for each
+default for cloned checkouts.  The ``master`` branch contains material
+integrated into the release, and follows ``next``.  Tags for each
 release are in the format ``PyXB-X.Y.Z``.
 
-Bug fixes with unit tests are pushed to the ``next`` branch as soon as they
-are fixed.  Users whose reported issues have been fixed are encouraged to
-use the development branch until the fix has been made available in a tagged
-and packaged release.
+Bug fixes with unit tests are pushed to the ``next`` branch as soon as
+they are fixed.  Users whose reported issues have been fixed are
+encouraged to use the development branch until the fix has been made
+available in a tagged and packaged release.
 
 Coding Practices
 ****************
