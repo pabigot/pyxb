@@ -1932,13 +1932,9 @@ from %s import *
 
     def schemaStrippedPrefix (self):
         """Optional string that is stripped from the beginning of
-        schemaLocation values before loading from them.
-
-        This applies only to the values of schemaLocation attributes
-        in C{import} and C{include} elements.  Its purpose is to
-        convert absolute schema locations into relative ones to allow
-        offline processing when all schema are available in a local
-        directory.  See C{schemaRoot}.
+        schemaLocation values before loading from them. This now
+        applies only to URIs specified on the command line so is
+        unlikely to be useful.
         """
         return self.__schemaStrippedPrefix
     def setSchemaStrippedPrefix (self, schema_stripped_prefix):
@@ -1977,7 +1973,15 @@ from %s import *
 
         Parameter values are strings of the form C{pfx=sub}.  The
         effect is that a schema location that begins with C{pfx} is
-        rewritten so that it instead begins with C{sub}."""
+        rewritten so that it instead begins with C{sub}.
+
+        This applies to schemaLocation attributes in C{import} and
+        C{include} elements.  It may be used to convert absolute
+        schema locations into relative ones to allow offline
+        processing when all schema are available in a local
+        directory.  See C{schemaRoot}.
+        """
+
         try:
             (prefix, substituent) = prefix_rewrite.split('=', 1)
         except:
