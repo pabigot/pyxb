@@ -150,7 +150,7 @@ namespace, so they can be referenced in independent generation activities.
 To generate the archive, you add the :ref:`pyxbgen--archive-to-file`
 flag to the binding generation command:
 
-.. literalinclude:: ../examples/manual/demo3c.sh
+.. literalinclude:: ../examples/manual/demo3c1.sh
 
 In addition to generating the ``address`` Python module, this causes a
 :ref:`archive <namespace-archive>` of the schema contents to be saved in the
@@ -161,7 +161,7 @@ in this archive, so that cross-namespace extension works correctly.
 You can then generate bindings for importing namespaces by providing PyXB
 with the information necessary to locate this archive:
 
-.. literalinclude:: ../examples/manual/demo3d.sh
+.. literalinclude:: ../examples/manual/demo3c2.sh
 
 The :ref:`pyxbgen--archive-path` directive indicates that the current
 directory (``.``) should be searched for files that end in ``.wxs``, and any
