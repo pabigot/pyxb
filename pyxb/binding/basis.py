@@ -1649,7 +1649,8 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             if not isinstance(value, collections.Iterable):
                 raise pyxb.SimplePluralValueError(self.typeDefinition(), value)
             return [ self.compatibleValue(_v) for _v in value ]
-        if self.__fixed and (value != self.__defaultValue):
+        compValue = self.typeDefinition()._CompatibleValue(value, **kw);
+        if self.__fixed and (compValue != self.__defaultValue):
             raise pyxb.ElementChangeError(self, value)
         if isinstance(value, _TypeBinding_mixin) and (value._element() is not None) and value._element().substitutesFor(self):
             return value
@@ -1658,7 +1659,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             if isinstance(value, utility.Locatable_mixin):
                 location = value._location()
             raise pyxb.AbstractElementError(self, location, value)
-        return self.typeDefinition()._CompatibleValue(value, **kw)
+        return compValue
 
     @classmethod
     def CreateDOMBinding (cls, node, element_binding, **kw):

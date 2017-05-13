@@ -6,7 +6,7 @@ Traceback (most recent call last):
   File "/mnt/devel/pyxb/pyxb/binding/content.py", line #, in set
     value = self.__elementBinding.compatibleValue(value, is_plural=self.isPlural())
   File "/mnt/devel/pyxb/pyxb/binding/basis.py", line #, in compatibleValue
-    return self.typeDefinition()._CompatibleValue(value, **kw)
+    compValue = self.typeDefinition()._CompatibleValue(value, **kw);
   File "/mnt/devel/pyxb/pyxb/binding/basis.py", line #, in _CompatibleValue
     return cls(value)
   File "/mnt/devel/pyxb/pyxb/binding/basis.py", line #, in __init__
