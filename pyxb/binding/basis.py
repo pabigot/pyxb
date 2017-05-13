@@ -705,6 +705,14 @@ class _RepresentAsXsdLiteral_mixin (pyxb.cscRoot):
     e.g. duration, decimal, and any of the date/time types."""
     pass
 
+class _NoNullaryNonNillableNew_mixin (pyxb.cscRoot):
+    """Marker class indicating that a simple data type cannot construct
+    a value from XML through an empty string.
+
+    This class should appear immediately L{simpleTypeDefinition} (or whatever
+    inherits from L{simpleTypeDefinition} in cases where it applies."""
+    pass
+
 class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """L{simpleTypeDefinition} is a base class that is part of the
     hierarchy of any class that represents the Python datatype for a
@@ -886,11 +894,16 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         kw.pop('_element', None)
         kw.pop('_fallback_namespace', None)
         kw.pop('_apply_attributes', None)
-        kw.pop('_nil', None)
-        # ConvertArguments will remove _element and _apply_whitespace_facet
-        dom_node = kw.get('_dom_node')
+        is_nil = kw.pop('_nil', None)
+        # ConvertArguments will remove _dom_node, _element, and
+        # _apply_whitespace_facet, and it will set _from_xml.
         args = cls._ConvertArguments(args, kw)
-        kw.pop('_from_xml', dom_node is not None)
+        from_xml = kw.pop('_from_xml', False)
+        if ((0 == len(args))
+            and from_xml
+            and not is_nil
+            and issubclass(cls, _NoNullaryNonNillableNew_mixin)):
+            raise pyxb.SimpleTypeValueError(cls, args);
         kw.pop('_location', None)
         assert issubclass(cls, _TypeBinding_mixin)
         try:

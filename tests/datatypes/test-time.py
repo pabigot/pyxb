@@ -24,6 +24,7 @@ class Test_time (unittest.TestCase):
         self.assertRaises(pyxb.SimpleTypeValueError, xsd.time, '12:14:32.Z')
         self.assertRaises(pyxb.SimpleTypeValueError, xsd.time, '12:14:32.123405:00')
         self.assertRaises(pyxb.SimpleTypeValueError, xsd.time, '12:14:32.1234+05')
+        self.assertRaises(pyxb.SimpleTypeValueError, xsd.time, _from_xml=True)
 
     def testFromText (self):
         self.verifyTime(xsd.time('12:14:32'), with_usec=False, with_tzinfo=False)
