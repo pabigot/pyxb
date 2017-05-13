@@ -1427,6 +1427,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvabl
     def isResolved (self):
         return self.__attributeDeclaration is not None
 
+    # res:AU res:AttributeUse
     def _resolve (self):
         if self.isResolved():
             return self
@@ -1490,10 +1491,13 @@ class ElementDeclaration (_ParticleTree_mixin, _SchemaComponent_mixin, _NamedCom
                 # complex.
                 ct = type_definition.contentType()
                 if ct is None:
-                    if False == self.__typeDefinition._isComplexContent():
-                        failed = False
-                    else:
-                        _log.error('Unable to check value constraint on %s due to incomplete resolution of type', self.expandedName())
+                    # Either it's not complex, or we can't tell yet; neither
+                    # are failures, but in the latter case delay assigning the
+                    # type until we know.
+                    failed = False
+                    if False != self.__typeDefinition._isComplexContent():
+                        self.__typeDefinition = None
+                        self._queueForResolution('unresolved base type');
                 else:
                     failed = not (isinstance(ct, tuple) and (ComplexTypeDefinition.CT_SIMPLE == ct[0]))
             if failed:
@@ -1726,13 +1730,19 @@ class ElementDeclaration (_ParticleTree_mixin, _SchemaComponent_mixin, _NamedCom
                 raise pyxb.SchemaValidationError('Element declaration refers to unrecognized substitution group %s' % (self.__substitutionGroupExpandedName,))
             self.__substitutionGroupAffiliation = sga
 
+        resolved = True
         if self.__typeDefinition is None:
             assert self.__typeExpandedName is not None
             td = self.__typeExpandedName.typeDefinition()
             if td is None:
                 raise pyxb.SchemaValidationError('Type declaration %s cannot be found' % (self.__typeExpandedName,))
+            # Type definition may be delayed for default value validation; if
+            # so, we're not really resolved.
             self._typeDefinition(td)
-        self.__isResolved = True
+            resolved = self.typeDefinition() is not None
+
+        self.__isResolved = resolved
+
         return self
 
     def _walkParticleTree (self, visit, arg):
