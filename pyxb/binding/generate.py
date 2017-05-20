@@ -1136,6 +1136,7 @@ def _SetNameWithAccessors (component, container, is_plural, binding_module, nsm,
     assert component._scope() == container
     assert component.nameInBinding() is None, 'Use %s but binding name %s for %s' % (use_map['use'], component.nameInBinding(), component.expandedName())
     component.setNameInBinding(use_map['use'])
+    component.setUniqueNameInBinding(use_map['id'])
     key_name = six.u('%s_%s_%s') % (six.text_type(nsm.namespace()), container.nameInBinding(), component.expandedName())
     use_map['key'] = utility.PrepareIdentifier(key_name, class_unique, private=True)
     use_map['qname'] = six.text_type(component.expandedName())

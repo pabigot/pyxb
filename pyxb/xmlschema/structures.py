@@ -97,6 +97,10 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
     # represent them, so need a binding-level name.
     __nameInBinding = None
 
+    # The public unique name by which this component is referenced within the
+    # binding class (as opposed to the binding module).
+    __uniqueNameInBinding = None
+
     # The schema component that owns this.  If C{None}, the component is owned
     # directly by the schema.
     __owner = None
@@ -241,6 +245,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         assert self.__cloneSource is not None
         owner = kw['owner']
         self.__nameInBinding = None
+        self.__uniqueNameInBinding = None
         self.__owner = owner
         assert not (isinstance(self, ComplexTypeDefinition) and isinstance(owner, Schema))
         self.__ownedComponents = set()
@@ -304,8 +309,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         return None
 
     def nameInBinding (self):
-        """Return the name by which this component is known in the generated
-        binding.
+        """Return the name by which this component is known in the binding module.
 
         @note: To support builtin datatypes, type definitions with an
         associated L{pythonSupport<SimpleTypeDefinition.pythonSupport>} class
@@ -313,6 +317,10 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         association is created.  As long as no built-in datatype conflicts
         with a language keyword, this should be fine."""
         return self.__nameInBinding
+
+    def uniqueNameInBinding (self):
+        """Return the name by which this component is known in the binding class."""
+        return self.__uniqueNameInBinding
 
     def hasBinding (self):
         """Return C{True} iff this is a component which has a user-visible
@@ -324,8 +332,13 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         return self.isTypeDefinition() or (isinstance(self, ElementDeclaration) and self._scopeIsGlobal())
 
     def setNameInBinding (self, name_in_binding):
-        """Set the name by which this component shall be known in the XSD binding."""
+        """Set the name by which this component shall be known in the binding module."""
         self.__nameInBinding = name_in_binding
+        return self
+
+    def setUniqueNameInBinding (self, unique_name):
+        """Set the name by which this component shall be known in the binding class."""
+        self.__uniqueNameInBinding = unique_name
         return self
 
     def _updateFromOther_csc (self, other):
