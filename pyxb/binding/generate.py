@@ -1128,7 +1128,10 @@ def _SetNameWithAccessors (component, container, is_plural, binding_module, nsm,
     use_map = component._templateMap()
     class_unique = nsm.uniqueInClass(container)
     assert isinstance(component, xs.structures._ScopedDeclaration_mixin)
-    unique_name = utility.PrepareIdentifier(component.expandedName().localName(), class_unique)
+    unique_name = component.expandedName().localName()
+    if component.overridesParentScope():
+        class_unique.discard(component.overriddenDeclaration().uniqueNameInBinding())
+    unique_name = utility.PrepareIdentifier(unique_name, class_unique)
     use_map['id'] = unique_name
     use_map['inspector'] = unique_name
     use_map['mutator'] = utility.PrepareIdentifier('set' + unique_name[0].upper() + unique_name[1:], class_unique)

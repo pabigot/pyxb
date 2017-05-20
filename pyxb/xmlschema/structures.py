@@ -1077,6 +1077,18 @@ class _ScopedDeclaration_mixin (pyxb.cscRoot):
         self.__baseDeclaration = referenced_declaration.baseDeclaration()
         return self.__baseDeclaration
 
+    # Indicates that declaration replaces a (compatible) declaration with the
+    # same name within its scope.  Also provide access to the declaration it
+    # replaces.
+    __overridesParentScope = False
+    def overridesParentScope (self):
+        return self.__overridesParentScope
+    def _overrideParentScope (self, value):
+        self.__overriddenDeclaration = value;
+        self.__overridesParentScope = True
+    def overriddenDeclaration (self):
+        return self.__overriddenDeclaration
+
 class _AttributeWildcard_mixin (pyxb.cscRoot):
     """Support for components that accept attribute wildcards.
 
@@ -1868,6 +1880,14 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 pending_type = decl.typeDefinition()
                 if not pending_type.isDerivationConsistent(existing_type):
                     raise pyxb.SchemaValidationError('Conflicting element declarations for %s: existing %s versus new %s' % (decl.expandedName(), existing_type, pending_type))
+                # If we're deriving by restriction and the declaration has a
+                # different type than the one in the parent scope, discard the
+                # parent scope declaration and replace it with this one rather
+                # than treating the parent as a base.
+                if (existing_type != pending_type) and (self.DM_restriction == self.derivationMethod()):
+                    decl._overrideParentScope(existing_decl);
+                    scope_map[decl_en] = decl;
+                    existing_decl = decl
             elif isinstance(decl, AttributeDeclaration):
                 raise pyxb.SchemaValidationError('Multiple attribute declarations for %s' % (decl.expandedName(),))
             else:
