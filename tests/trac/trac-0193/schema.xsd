@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="urn:foo" targetNamespace="urn:foo">
-  <simpleType name="SimpleOpenDeliveries">
+  <simpleType name="Value">
     <restriction base="int"/>
   </simpleType>
   <simpleType name="Currency">
@@ -13,7 +13,7 @@
     <complexContent>
       <restriction base="tns:Money">
         <sequence>
-          <element name="Value" type="tns:SimpleOpenDeliveries"/>
+          <element name="Value" type="tns:Value"/>
           <element name="Currency" type="tns:Currency"/>
           <element name="Season" type="tns:Season"/>
         </sequence>
