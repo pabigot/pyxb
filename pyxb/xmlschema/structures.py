@@ -1950,7 +1950,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
         if not other.isResolved():
             if pyxb.namespace.BuiltInObjectUID != self._objectOrigin().generationUID():
-                self.__derivationMethod = None
+                self.__isResolved = False
 
         return self
 
@@ -2015,7 +2015,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             bi.setNameInBinding(bi.name())
 
             # The ur-type is always resolved
-            bi.__derivationMethod = cls.DM_restriction
+            bi.__isResolved = True
 
             cls.__UrTypeDefinition = bi
         return cls.__UrTypeDefinition
@@ -2210,10 +2210,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         del self.__attributeGroups
         self.__ckw = None
 
-        # Only now that we've succeeded do we store the method, which
-        # marks this component resolved.
-
-        self.__derivationMethod = method
+        # Mark the type resolved
+        self.__isResolved = True
         return self
 
     def __simpleContent (self, method, **kw):
@@ -2252,7 +2250,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
     __PrivateTransient.update(['ctscRestrictionNode' ])
     __effectiveMixed = None
     __effectiveContent = None
-    __pendingDerivationMethod = None
     __isComplexContent = None
     def _isComplexContent (self):
         return self.__isComplexContent
@@ -2371,6 +2368,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         assert (self.CT_EMPTY == content_type) or ((type(content_type) == tuple) and (content_type[1] is not None))
         return content_type
 
+    __isResolved = False
     def isResolved (self):
         """Indicate whether this complex type is fully defined.
 
@@ -2388,13 +2386,13 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         latter in the list of type definitions to be resolved.  See
         Schema._addNamedComponent.
         """
-        # Only unresolved nodes have an unset derivationMethod
-        return (self.__derivationMethod is not None)
+        return self.__isResolved
 
     # Back door to allow the ur-type to re-resolve itself.  Only needed when
     # we're generating bindings for XMLSchema itself.
     def _setDerivationMethod (self, derivation_method):
         self.__derivationMethod = derivation_method
+        self.__isResolved = True
         return self
 
     def __setContentFromDOM (self, node, **kw):
@@ -2459,8 +2457,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 self.__baseTypeDefinition = None
                 # The content is defined by the restriction/extension element
                 definition_node_list = ions.childNodes
-        # deriviationMethod is assigned after resolution completes
-        self.__pendingDerivationMethod = method
+        self.__derivationMethod = method
         self.__isComplexContent = is_complex_content
         self.__ctscRestrictionNode = ctsc_restriction_node
         self.__ctscClause2STD = clause2_std
@@ -2474,7 +2471,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         self.__anyAttribute = any_attribute
 
         if self.__isComplexContent:
-            self.__setComplexContentFromDOM(node, content_node, definition_node_list, self.__pendingDerivationMethod, **kw)
+            self.__setComplexContentFromDOM(node, content_node, definition_node_list, self.__derivationMethod, **kw)
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
@@ -2523,11 +2520,11 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # depends on the base type which we know is good.
         if self.__contentType is None:
             if self.__isComplexContent:
-                content_type = self.__complexContent(self.__pendingDerivationMethod)
+                content_type = self.__complexContent(self.__derivationMethod)
                 self.__contentStyle = 'complex'
             else:
                 # The definition node list is not relevant to simple content
-                content_type = self.__simpleContent(self.__pendingDerivationMethod)
+                content_type = self.__simpleContent(self.__derivationMethod)
                 if content_type is None:
                     self._queueForResolution('restriction of unresolved simple type')
                     return self
@@ -2547,7 +2544,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 return self
             self.__contentType = (self.__contentType[0], prt._adaptForScope(self, self))
 
-        return self.__completeProcessing(self.__pendingDerivationMethod, self.__contentStyle)
+        return self.__completeProcessing(self.__derivationMethod, self.__contentStyle)
 
     def pythonSupport (self):
         """Complex type definitions have no built-in type support."""
