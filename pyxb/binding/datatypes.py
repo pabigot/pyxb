@@ -363,7 +363,7 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta, basis._Represent
                 time_elts.append('%d%s' % (v, k[0].upper()))
         v = value.__durationData.get('seconds', 0)
         if 0 != v:
-            time_elts.append('%gS' % (v,))
+            time_elts.append(('%f' % (v,)).rstrip('0').rstrip('.') + 'S')
         if 0 < len(time_elts):
             elts.append('T')
             elts.extend(time_elts)
