@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 import logging
 if __name__ == '__main__':
     logging.basicConfig()
@@ -30,7 +31,9 @@ import unittest
 class TestIssue0066 (unittest.TestCase):
     def test (self):
         instance = elt(4);
-        self.assertEqual(instance.toxml('utf-8', root_only=True), '<ns1:elt xmlns:ns1="urn:issue-0066">4</ns1:elt>');
+        xmlt = '<ns1:elt xmlns:ns1="urn:issue-0066">4</ns1:elt>';
+        xmld = xmlt.encode('utf-8');
+        self.assertEqual(instance.toxml('utf-8', root_only=True), xmld);
         self.assertRaises(UsageError, Namespace.setPrefix, '');
 
 if __name__ == '__main__':

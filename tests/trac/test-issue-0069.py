@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 import logging
 if __name__ == '__main__':
     logging.basicConfig()
@@ -45,8 +46,9 @@ class TestIssue0069 (unittest.TestCase):
         with self.assertRaises(SimpleFacetValueError) as cm:
             address.Country = 'USA'
         address.Country = 'US'
-        xmls = address.toxml('utf8', root_only=True);
-        self.assertEqual(xmls, '<Address><City>New-York</City><Country>US</Country></Address>')
+        xmlt = '<Address><City>New-York</City><Country>US</Country></Address>';
+        xmld = xmlt.encode('utf-8');
+        self.assertEqual(address.toxml('utf8', root_only=True), xmld)
 
 if __name__ == '__main__':
     unittest.main()

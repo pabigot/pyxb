@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 import logging
 if __name__ == '__main__':
     logging.basicConfig()
@@ -52,7 +53,7 @@ from pyxb.exceptions_ import *
 import unittest
 import sys
 
-class TestTrac0078 (unittest.TestCase):
+class TestIssue0078 (unittest.TestCase):
     def testInheritance (self):
         self.assertTrue(issubclass(lctla_, tla_))
         self.assertTrue(issubclass(lcenv_, env_))
@@ -65,12 +66,16 @@ class TestTrac0078 (unittest.TestCase):
     def testBase (self):
         instance = env();
         instance.tla = 'FOO';
-        self.assertEqual(instance.toxml('utf-8', root_only=True), '<env><tla>FOO</tla></env>')
+        xmlt = '<env><tla>FOO</tla></env>';
+        xmld = xmlt.encode('utf-8');
+        self.assertEqual(instance.toxml('utf-8', root_only=True), xmld);
 
     def testRestr (self):
         instance = lcenv();
         instance.tla = 'foo';
-        self.assertEqual(instance.toxml('utf-8', root_only=True), '<lcenv><tla>foo</tla></lcenv>')
+        xmlt = '<lcenv><tla>foo</tla></lcenv>';
+        xmld = xmlt.encode('utf-8');
+        self.assertEqual(instance.toxml('utf-8', root_only=True), xmld)
 
     def testRestrValidation (self):
         instance = lcenv();

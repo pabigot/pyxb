@@ -39,7 +39,7 @@ from pyxb.exceptions_ import *
 import unittest
 import sys
 
-class TestTrac0073 (unittest.TestCase):
+class TestIssue0073 (unittest.TestCase):
     def testDefault (self):
         xmlt = six.u('<di/>');
         self.assertEqual(CreateFromDocument(xmlt), 32)

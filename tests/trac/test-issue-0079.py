@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 import logging
 if __name__ == '__main__':
     logging.basicConfig()
@@ -47,25 +48,29 @@ from pyxb.exceptions_ import *
 import unittest
 import sys
 
-class TestTrac0078 (unittest.TestCase):
+class TestIssue0079 (unittest.TestCase):
     def testPresent (self):
-        xmlt = six.u('<sel><present><pContent/></present></sel>');
+        xmlt = '<sel><present><pContent/></present></sel>';
+        xmld = xmlt.encode('utf-8');
         doc = CreateFromDocument(xmlt);
-        self.assertEqual(xmlt, doc.toxml('utf-8', root_only=True))
+        self.assertEqual(xmld, doc.toxml('utf-8', root_only=True))
 
     def testOptional (self):
-        xmlt = six.u('<sel><optional><oContent/></optional></sel>');
+        xmlt = '<sel><optional><oContent/></optional></sel>';
+        xmld = xmlt.encode('utf-8');
         doc = CreateFromDocument(xmlt);
-        self.assertEqual(xmlt, doc.toxml('utf-8', root_only=True))
-        xmlt = six.u('<sel><optional/></sel>');
+        self.assertEqual(xmld, doc.toxml('utf-8', root_only=True))
+        xmlt = '<sel><optional/></sel>';
+        xmld = xmlt.encode('utf-8');
         doc = CreateFromDocument(xmlt);
-        self.assertEqual(xmlt, doc.toxml('utf-8', root_only=True))
+        self.assertEqual(xmld, doc.toxml('utf-8', root_only=True))
 
     def testAbsent (self):
-        xmlt = six.u('<sel><absent/></sel>');
+        xmlt = '<sel><absent/></sel>';
+        xmld = xmlt.encode('utf-8');
         doc = CreateFromDocument(xmlt);
-        self.assertEqual(xmlt, doc.toxml('utf-8', root_only=True))
-        xmlt = six.u('<sel><absent><aContent/></absent></sel>');
+        self.assertEqual(xmld, doc.toxml('utf-8', root_only=True))
+        xmlt = '<sel><absent><aContent/></absent></sel>';
         with self.assertRaises(pyxb.UnrecognizedContentError) as cm:
             doc = CreateFromDocument(xmlt);
 
