@@ -30,11 +30,11 @@ print(binding.name)
 port_type = spec.portType[0]
 print(port_type.name)
 bop = binding.operationMap()[body_dom.localName]
-print(bop.toxml("utf-8"))
+print(bop.toxml("utf-8").decode('utf-8'))
 pop = port_type.operationMap()[body_dom.localName]
-print(pop.toxml("utf-8"))
+print(pop.toxml("utf-8").decode('utf-8'))
 input = pop.input
-print(input.toxml("utf-8"))
+print(input.toxml("utf-8").decode('utf-8'))
 print(type(input))
 print(input.message)
 im_en = input.message
@@ -42,7 +42,7 @@ print(im_en)
 msg = im_en.message()
 #print(msg) # contains varying text in object description
 for p in msg.part:
-    print(p.toxml("utf-8"))
+    print(p.toxml("utf-8").decode('utf-8'))
 msg_ns = pyxb.namespace.NamespaceForURI(body_dom.namespaceURI)
 print('%s %s' % (body_dom.namespaceURI, msg_ns))
 

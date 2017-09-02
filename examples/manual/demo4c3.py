@@ -22,4 +22,4 @@ import pyxb.utils.domutils
 pyxb.utils.domutils.BindingDOMSupport.DeclareNamespace(address.Namespace, 'addr')
 pyxb.utils.domutils.BindingDOMSupport.DeclareNamespace(po4.Namespace, 'po')
 
-print(po.toxml("utf-8"))
+print(po.toxml("utf-8").decode('utf-8'))

@@ -19,7 +19,7 @@ for d in dle.Dictionary:
     # Create a REST-style query to retrieve the information about this dictionary.
     uri = '%s%s?dictId=%s' % (port_uri, op_path, d.Id)
     resp = urlopen(uri).read()
-    print("%s (%s) : %d chars" % (d.Name.encode('utf-8'), d.Id.encode('utf-8'), len(resp)));
+    print("%s (%s) : %d chars" % (d.Name, d.Id, len(resp)));
 
     # The response is a simple type derived from string, so we can
     # just extract and print it.  Excluded by default since it has
@@ -27,4 +27,4 @@ for d in dle.Dictionary:
     # git to store the expected output.
     di_resp = dict.CreateFromDOM(domutils.StringToDOM(resp))
     if sys.stdout.isatty():
-        print("%s\n" % di_resp.encode('utf-8'));
+        print("%s\n" % di_resp);
