@@ -2932,7 +2932,11 @@ class ModelGroup (_ParticleTree_mixin, _SchemaComponent_mixin, _Annotated_mixin)
                 continue
             if Particle.IsParticleNode(cn):
                 # NB: Ancestor of particle is set in the ModelGroup constructor
-                particles.append(Particle.CreateFromDOM(node=cn, **kw))
+                particle = Particle.CreateFromDOM(node=cn, **kw);
+                if 0 == particle.maxOccurs():
+                    _log.warning('Particle at %s discarded due to maxOccurs 0' % (cn._location(),))
+                else:
+                    particles.append(particle)
             elif not xsd.nodeIsNamed(cn, 'annotation'):
                 raise pyxb.SchemaValidationError('Unexpected element %s in model group' % (cn.nodeName,))
         rv = cls(compositor, particles, node=node, **kw)
