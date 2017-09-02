@@ -2934,7 +2934,11 @@ class ModelGroup (_ParticleTree_mixin, _SchemaComponent_mixin, _Annotated_mixin)
                 # NB: Ancestor of particle is set in the ModelGroup constructor
                 particle = Particle.CreateFromDOM(node=cn, **kw);
                 if 0 == particle.maxOccurs():
-                    _log.warning('Particle at %s discarded due to maxOccurs 0' % (cn._location(),))
+                    if getattr(cn, '_location', False):
+                        location = ' at ' + str(cn._location());
+                    else:
+                        location = '';
+                    _log.warning('Particle %s%s discarded due to maxOccurs 0' % (particle, location))
                 else:
                     particles.append(particle)
             elif not xsd.nodeIsNamed(cn, 'annotation'):
