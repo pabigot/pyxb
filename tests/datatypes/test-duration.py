@@ -39,6 +39,16 @@ class Test_duration (unittest.TestCase):
         self.assertEqual(1347, v.durationData()['months'])
         self.assertEqual('P1347M', v.xsdLiteral())
 
+        v = xsd.duration('PT2000000000S')
+        self.assertEqual(int(2000000000 / 60 / 60 / 24), v.days)
+        self.assertEqual(int(round(((2000000000.0 / 60.0 / 60.0 / 24.0) - int(2000000000 / 60 / 60 / 24)) *24 *60 *60)), v.seconds)
+        self.assertEqual('PT2000000000S', v.xsdLiteral())
+
+        v = xsd.duration('PT2000000000.2S')
+        self.assertEqual(int(2000000000.2 / 60 / 60 / 24), v.days)
+        self.assertEqual(int(round(((2000000000.2 / 60.0 / 60.0 / 24.0) - int(2000000000.2 / 60 / 60 / 24)) *24 *60 *60)), v.seconds)
+        self.assertEqual('PT2000000000.2S', v.xsdLiteral())
+
         v = xsd.duration('P0Y1347M0D')
         self.assertEqual(0, v.days)
         self.assertEqual(0, v.seconds)
