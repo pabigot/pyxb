@@ -54,7 +54,9 @@ python demo4b.py > demo4b.out || fail running demo4b
 cat demo4b.out
 cmp demo4b.out demo4.expected || fail demo4b output check
 
-for dc in 4c 4c1 4c2 4c3 ; do
+# 4c disables validation on output, so comparison is not
+# reliable.
+for dc in 4c1 4c2 4c3 ; do
     python demo${dc}.py | xmllint --format - > demo${dc}.out
     cmp demo${dc}.out demo${dc}.expected || fail demo${dc} output check
 done
