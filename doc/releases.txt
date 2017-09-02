@@ -41,10 +41,41 @@ dropped for Python 2.4 and 2.5.  The 1.2.x release works with Python 2.6 and
 skipped under Python 2.6 due to insufficient support for validating exception
 attributes.
 
+.. _pyxb-1.2.6:
+
+1.2.6 (04 Sep 2017)
+-------------------
+
+This is a roll-up aggregating all fixes since the last major release one year
+ago.  Release testing has been performed with Python 2.7.12, 3.4.7, 3.5.4, and
+3.6.2.
+
+Behavioral changes:
+
+- Overriding the DOM implementation via `PYXB_XML_STYLE` is deprecated.  See
+  :issue:`87`.
+
+The following reported `defects/enhancements
+<https://github.net/pabigot/pyxb/issues/>`_ have been addressed:
+
+- Examples were not in the test suite.  :issue:`61`
+- Disallow setting an empty namespace prefix. :issue:`66`
+- Support unicode identifiers under Python 3. :issue:`67`
+- Do not use default value when constructing empty scalar values. :issue:`71`
+- Defer validation when type is not yet available. :issue:`72`
+- Correct validation of fixed values from XML. :issue:`73`
+- Remove GPL code from PyXB. :issue:`77`
+- Fix identification of restricted complex type. :issue:`78`
+- Discard schema elements that cannot produce content. :issue:`79`
+- Demonstrate use of overriding built-in bindings so XHTML model groups can be
+  referenced. :issue:`81`
+
 .. _pyxb-1.2.5:
 
 1.2.5 (18 Sep 2016)
 -------------------
+
+Documentation: http://pyxb.sourceforge.net/PyXB-1.2.5
 
 This is a roll-up aggregating all fixes since the last major release nearly
 two years ago.
