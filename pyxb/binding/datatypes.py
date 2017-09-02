@@ -455,6 +455,11 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition, basis._RepresentAsXsdLiter
     def __reduce__ (self):
         return (self.__class__, (self.xsdLiteral(),))
 
+    # In Python 3.6 datetime started using __reduce_ex__ which is
+    # higher priority.  Override it too.
+    def __reduce_ex__ (self, protocol):
+        return (self.__class__, (self.xsdLiteral(),))
+
     @classmethod
     def _AdjustForTimezone (cls, kw):
         """Update datetime keywords to account for timezone effects.
