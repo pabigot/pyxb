@@ -1,6 +1,7 @@
 #!/bin/sh
 
-. ${PYXB_ROOT}/tests/support.sh
+: ${PYXB_TEST_ROOT:=${PYXB_ROOT}/tests}
+. ${PYXB_TEST_ROOT}/support.sh
 
 TEST_URI=http://www.w3.org/People/mimasa/test/xhtml/media-types/test.xhtml
 

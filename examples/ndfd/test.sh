@@ -1,6 +1,7 @@
 #!/bin/sh
 
-. ${PYXB_ROOT}/tests/support.sh
+: ${PYXB_TEST_ROOT:=${PYXB_ROOT}/tests}
+. ${PYXB_TEST_ROOT}/support.sh
 
 PYXB_ARCHIVE_PATH="&pyxb/bundles/wssplat//"
 export PYXB_ARCHIVE_PATH

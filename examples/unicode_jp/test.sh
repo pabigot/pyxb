@@ -1,6 +1,7 @@
 #!/bin/sh
 
-. ${PYXB_ROOT}/tests/support.sh
+: ${PYXB_TEST_ROOT:=${PYXB_ROOT}/tests}
+. ${PYXB_TEST_ROOT}/support.sh
 
 # Because this is an OpenGIS application, the OpenGIS bundle must be
 # made available during binding generation.  OpenGIS also depends
