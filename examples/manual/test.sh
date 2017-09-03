@@ -42,7 +42,9 @@ python demo4a1.py 2>demo4a1.err 1>demo4a1.out || true
 test -s demo4a1.out && fail demo4a1 stdout check
 # Do output comparison without checking line numbers in trace
 cat demo4a1.err \
-    | sed -r -e 's@line [0-9]+@line #@' \
+    | sed -r \
+        -e "s@${PYXB_ROOT}@PYXB_ROOT@g" \
+	-e 's@line [0-9]+@line #@' \
     > demo4a1.errc
 cmp demo4a1.errc demo4a1.expected || fail demo4a1 error check
 

@@ -1,18 +1,18 @@
 Traceback (most recent call last):
   File "demo4a1.py", line #, in <module>
     addr.state = 'NY'
-  File "/mnt/devel/pyxb/pyxb/binding/basis.py", line #, in __setattr__
+  File "PYXB_ROOT/pyxb/binding/basis.py", line #, in __setattr__
     return super(_TypeBinding_mixin, self).__setattr__(name, value)
-  File "/mnt/devel/pyxb/pyxb/binding/content.py", line #, in set
+  File "PYXB_ROOT/pyxb/binding/content.py", line #, in set
     value = self.__elementBinding.compatibleValue(value, is_plural=self.isPlural())
-  File "/mnt/devel/pyxb/pyxb/binding/basis.py", line #, in compatibleValue
+  File "PYXB_ROOT/pyxb/binding/basis.py", line #, in compatibleValue
     compValue = self.typeDefinition()._CompatibleValue(value, **kw);
-  File "/mnt/devel/pyxb/pyxb/binding/basis.py", line #, in _CompatibleValue
+  File "PYXB_ROOT/pyxb/binding/basis.py", line #, in _CompatibleValue
     return cls(value)
-  File "/mnt/devel/pyxb/pyxb/binding/basis.py", line #, in __init__
+  File "PYXB_ROOT/pyxb/binding/basis.py", line #, in __init__
     self.xsdConstraintsOK(location)
-  File "/mnt/devel/pyxb/pyxb/binding/basis.py", line #, in xsdConstraintsOK
+  File "PYXB_ROOT/pyxb/binding/basis.py", line #, in xsdConstraintsOK
     return self.XsdConstraintsOK(self, location)
-  File "/mnt/devel/pyxb/pyxb/binding/basis.py", line #, in XsdConstraintsOK
+  File "PYXB_ROOT/pyxb/binding/basis.py", line #, in XsdConstraintsOK
     raise pyxb.SimpleFacetValueError(cls, value, f, location)
 pyxb.exceptions_.SimpleFacetValueError: Type {URN:address}USState enumeration constraint violated by value NY
