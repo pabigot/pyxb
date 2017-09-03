@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Generating Binding Classes &mdash; PyXB 1.2.5 documentation</title>
+    <title>Generating Binding Classes &#8212; PyXB 1.2.6 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,17 +14,18 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '1.2.5',
+        VERSION:     '1.2.6',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyXB 1.2.5 documentation" href="index.html" />
-    <link rel="up" title="User Reference" href="userref_index.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Using Binding Classes" href="userref_usebind.html" />
     <link rel="prev" title="User Reference" href="userref_index.html" /> 
   </head>
@@ -36,14 +37,18 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="userref_usebind.html" title="Using Binding Classes"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="userref_index.html" title="User Reference"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.5 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="userref_index.html" accesskey="U">User Reference</a> &raquo;</li>
-    <li style="margin-left: 20px">PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="userref_index.html" accesskey="U">User Reference</a> &#187;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
      
 
       </ul>
@@ -69,11 +74,11 @@ explicitly note that the parameter is a URI by using the <a class="reference ext
 file URI form</a>
 of the file path.</p>
 <p>For example, something like this will generally not work:</p>
-<div class="highlight-python"><div class="highlight"><pre>pyxbgen -m x -u &quot;c:\\Windows\My Documents\x.xsd&quot; # DO NOT USE
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pyxbgen</span> <span class="o">-</span><span class="n">m</span> <span class="n">x</span> <span class="o">-</span><span class="n">u</span> <span class="s2">&quot;c:</span><span class="se">\\</span><span class="s2">Windows\My Documents\x.xsd&quot;</span> <span class="c1"># DO NOT USE</span>
 </pre></div>
 </div>
 <p>This should be expressed as:</p>
-<div class="last highlight-python"><div class="highlight"><pre>pyxbgen -m x -u file://c:/Windows/My%20Documents/x.xsd
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="n">pyxbgen</span> <span class="o">-</span><span class="n">m</span> <span class="n">x</span> <span class="o">-</span><span class="n">u</span> <span class="n">file</span><span class="p">:</span><span class="o">//</span><span class="n">c</span><span class="p">:</span><span class="o">/</span><span class="n">Windows</span><span class="o">/</span><span class="n">My</span><span class="o">%</span><span class="mi">20</span><span class="n">Documents</span><span class="o">/</span><span class="n">x</span><span class="o">.</span><span class="n">xsd</span>
 </pre></div>
 </div>
 </div>
@@ -82,7 +87,7 @@ of the file path.</p>
 <p>The following schema <code class="docutils literal"><span class="pre">po1.xsd</span></code> is a condensed version of the <a class="reference external" href="http://www.w3.org/TR/xmlschema-0/#POSchema">purchase
 order schema</a> in the XMLSchema
 Primer:</p>
-<div class="highlight-python"><div class="highlight"><pre>&lt;xsd:schema xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
+<div class="highlight-default"><div class="highlight"><pre><span></span>&lt;xsd:schema xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
   &lt;xsd:element name=&quot;purchaseOrder&quot; type=&quot;PurchaseOrderType&quot;/&gt;
   &lt;xsd:element name=&quot;comment&quot; type=&quot;xsd:string&quot;/&gt;
   &lt;xsd:complexType name=&quot;PurchaseOrderType&quot;&gt;
@@ -137,32 +142,32 @@ Primer:</p>
 </pre></div>
 </div>
 <p>Translate this into Python with the following command:</p>
-<div class="highlight-python"><div class="highlight"><pre>pyxbgen \
-  -u po1.xsd  -m po1
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pyxbgen</span> \
+  <span class="o">-</span><span class="n">u</span> <span class="n">po1</span><span class="o">.</span><span class="n">xsd</span>  <span class="o">-</span><span class="n">m</span> <span class="n">po1</span>
 </pre></div>
 </div>
-<p>The <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-schema-location"><span>-u</span></a> parameter identifies a schema
+<p>The <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-schema-location"><span class="std std-ref">-u</span></a> parameter identifies a schema
 document describing contents of a namespace.  The parameter may be a path to
 a file on the local system, or a URL to a network-accessible location like
 <a class="reference external" href="http://www.weather.gov/forecasts/xml/DWMLgen/schema/DWML.xsd">http://www.weather.gov/forecasts/xml/DWMLgen/schema/DWML.xsd</a>.  The
-<a class="reference internal" href="pyxbgen_cli.html#pyxbgen-module"><span>-m</span></a> parameter specifies the name to be used by the
+<a class="reference internal" href="pyxbgen_cli.html#pyxbgen-module"><span class="std std-ref">-m</span></a> parameter specifies the name to be used by the
 Python module holding the bindings generated for the namespace in the
 preceding schema.  After running this, the Python bindings will be in a
 file named <code class="docutils literal"><span class="pre">po1.py</span></code>.</p>
 <p>With the bindings available, this program (<code class="docutils literal"><span class="pre">demo1.py</span></code>):</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">po1</span>
 
 <span class="n">xml</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;po1.xml&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 <span class="n">order</span> <span class="o">=</span> <span class="n">po1</span><span class="o">.</span><span class="n">CreateFromDocument</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
 
-<span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is sending </span><span class="si">%s</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> thing(s):&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">billTo</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">shipTo</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">item</span><span class="p">)))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is sending </span><span class="si">%s</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> thing(s):&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">billTo</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">shipTo</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">item</span><span class="p">)))</span>
 <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">order</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">item</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;  Quantity </span><span class="si">%d</span><span class="s1"> of </span><span class="si">%s</span><span class="s1"> at $</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">quantity</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">productName</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">USPrice</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  Quantity </span><span class="si">%d</span><span class="s1"> of </span><span class="si">%s</span><span class="s1"> at $</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">quantity</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">productName</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">USPrice</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>processing this document:</p>
-<div class="highlight-python"><div class="highlight"><pre>&lt;?xml version=&quot;1.0&quot;?&gt;
+<div class="highlight-default"><div class="highlight"><pre><span></span>&lt;?xml version=&quot;1.0&quot;?&gt;
 &lt;purchaseOrder orderDate=&quot;1999-10-20&quot;&gt;
   &lt;shipTo country=&quot;US&quot;&gt;
     &lt;name&gt;Alice Smith&lt;/name&gt;
@@ -193,7 +198,7 @@ file named <code class="docutils literal"><span class="pre">po1.py</span></code>
 </pre></div>
 </div>
 <p>produces the following output:</p>
-<div class="highlight-python"><div class="highlight"><pre>Robert Smith is sending Alice Smith 2 thing(s):
+<div class="highlight-default"><div class="highlight"><pre><span></span>Robert Smith is sending Alice Smith 2 thing(s):
   Quantity 1 of Lapis necklace at $99.95
   Quantity 4 of Plastic necklace at $3.95
 </pre></div>
@@ -205,7 +210,7 @@ file named <code class="docutils literal"><span class="pre">po1.py</span></code>
 documents, each of which contains a cohesive set of types.  In the example
 above, the <code class="docutils literal"><span class="pre">USAddress</span></code> type can be abstracted to handle a variety of
 addresses, and maintained as its own document <code class="docutils literal"><span class="pre">address.xsd</span></code>:</p>
-<div class="highlight-python" id="address-xsd"><div class="highlight"><pre>&lt;xsd:schema xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
+<div class="highlight-default" id="address-xsd"><div class="highlight"><pre><span></span>&lt;xsd:schema xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
   &lt;xsd:complexType name=&quot;Address&quot;&gt;
     &lt;xsd:sequence&gt;
       &lt;xsd:element name=&quot;name&quot;   type=&quot;xsd:string&quot;/&gt;
@@ -262,7 +267,7 @@ addresses, and maintained as its own document <code class="docutils literal"><sp
 </div>
 <p>The XMLSchema <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#compound-schema">include directive</a> can be used to
 incorporate this document into <code class="docutils literal"><span class="pre">po2.xsd</span></code>:</p>
-<div class="highlight-python"><div class="highlight"><pre>&lt;xsd:schema xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
+<div class="highlight-default"><div class="highlight"><pre><span></span>&lt;xsd:schema xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
   &lt;xsd:include schemaLocation=&quot;file:address.xsd&quot;/&gt;
   &lt;xsd:element name=&quot;purchaseOrder&quot; type=&quot;PurchaseOrderType&quot;/&gt;
   &lt;xsd:element name=&quot;comment&quot; type=&quot;xsd:string&quot;/&gt;
@@ -309,8 +314,8 @@ incorporate this document into <code class="docutils literal"><span class="pre">
 </div>
 <p>Translation of this document and execution of the test program is just as it
 was in the previous section:</p>
-<div class="highlight-python"><div class="highlight"><pre>pyxbgen \
-  -u po2.xsd -m po2
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pyxbgen</span> \
+  <span class="o">-</span><span class="n">u</span> <span class="n">po2</span><span class="o">.</span><span class="n">xsd</span> <span class="o">-</span><span class="n">m</span> <span class="n">po2</span>
 </pre></div>
 </div>
 <p>Note that you do not need to explicitly list the <code class="docutils literal"><span class="pre">address.xsd</span></code> file.  PyXB
@@ -323,57 +328,57 @@ their combined bindings are placed into the <code class="docutils literal"><span
 <h2>Working with Namespaces<a class="headerlink" href="#working-with-namespaces" title="Permalink to this headline">¶</a></h2>
 <p>Documents of significant complexity are likely to require references to
 multiple namespaces.  Notice that the schemas we&#8217;ve looked at so far have
-<a class="reference internal" href="arch_namespaces.html#absentnamespaces"><span>no namespace</span></a> for both their target and default
+<a class="reference internal" href="arch_namespaces.html#absentnamespaces"><span class="std std-ref">no namespace</span></a> for both their target and default
 namespaces.  The following schema <code class="docutils literal"><span class="pre">nsaddress.xsd</span></code> places the types that
-are in <a class="reference internal" href="#address-xsd"><span>address.xsd</span></a> into the namespace <code class="docutils literal"><span class="pre">URN:address</span></code>
+are in <a class="reference internal" href="#address-xsd"><span class="std std-ref">address.xsd</span></a> into the namespace <code class="docutils literal"><span class="pre">URN:address</span></code>
 by defining a <a class="reference external" href="http://www/Documentation/W3C/www.w3.org/TR/xmlschema-0/index.html#QualLocals">target namespace</a>
 then including the namespace-less schema:</p>
-<div class="highlight-python" id="nsaddress-xsd"><div class="highlight"><pre>&lt;xsd:schema
-   targetNamespace=&quot;URN:address&quot;
-   xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
-  &lt;xsd:include schemaLocation=&quot;address.xsd&quot;/&gt;
-&lt;/xsd:schema&gt;
+<div class="highlight-default" id="nsaddress-xsd"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">xsd</span><span class="p">:</span><span class="n">schema</span>
+   <span class="n">targetNamespace</span><span class="o">=</span><span class="s2">&quot;URN:address&quot;</span>
+   <span class="n">xmlns</span><span class="p">:</span><span class="n">xsd</span><span class="o">=</span><span class="s2">&quot;http://www.w3.org/2001/XMLSchema&quot;</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">xsd</span><span class="p">:</span><span class="n">include</span> <span class="n">schemaLocation</span><span class="o">=</span><span class="s2">&quot;address.xsd&quot;</span><span class="o">/&gt;</span>
+<span class="o">&lt;/</span><span class="n">xsd</span><span class="p">:</span><span class="n">schema</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>Note that this technique takes advantage of the <a class="reference external" href="http://www.xfront.com/ZeroOneOrManyNamespaces.html#mixed">chameleon schema</a> pattern.</p>
 <p>There are several ways you can prepare to process documents with multiple
 namespaces.  If you have no expectation of using the imported namespace
 directly, you can process the importing schema just as before:</p>
-<div class="highlight-python"><div class="highlight"><pre>pyxbgen \
-  -u po3.xsd -m po3
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pyxbgen</span> \
+  <span class="o">-</span><span class="n">u</span> <span class="n">po3</span><span class="o">.</span><span class="n">xsd</span> <span class="o">-</span><span class="n">m</span> <span class="n">po3</span>
 </pre></div>
 </div>
 <p>PyXB will detect the <code class="docutils literal"><span class="pre">import</span></code> statement, read the corresponding schema,
 and create bindings for its types.  However, since the <code class="docutils literal"><span class="pre">pyxbgen</span></code>
 invocation did not mention the <code class="docutils literal"><span class="pre">URN:address</span></code> namespace, the bindings are
-written into a <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-private-namespace"><span>private</span></a> binding file.
+written into a <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-private-namespace"><span class="std std-ref">private</span></a> binding file.
 The generated module file <code class="docutils literal"><span class="pre">_address.py</span></code> is created with a prefixed
 underscore indicating that it is not expected to be referenced directly.
 The public module <code class="docutils literal"><span class="pre">po3.py</span></code> will locally import module <code class="docutils literal"><span class="pre">_address</span></code> so that
 the required classes are available, but will not expose them to code that
 imports only module <code class="docutils literal"><span class="pre">po3</span></code>.  The demonstration program <code class="docutils literal"><span class="pre">demo3.py</span></code> shows
 that things work as expected without the new namespace being made explicit.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">po3</span>
 
 <span class="n">order</span> <span class="o">=</span> <span class="n">po3</span><span class="o">.</span><span class="n">CreateFromDocument</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s1">&#39;po3.xml&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
 
-<span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is sending </span><span class="si">%s</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> thing(s):&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">billTo</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">shipTo</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">item</span><span class="p">)))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is sending </span><span class="si">%s</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> thing(s):&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">billTo</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">shipTo</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">item</span><span class="p">)))</span>
 <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">order</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">item</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;  Quantity </span><span class="si">%d</span><span class="s1"> of </span><span class="si">%s</span><span class="s1"> at $</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">quantity</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">productName</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">USPrice</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  Quantity </span><span class="si">%d</span><span class="s1"> of </span><span class="si">%s</span><span class="s1"> at $</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">quantity</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">productName</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">USPrice</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>More often, you will want to be able to import the module defining bindings
 from the additional namespaces.  To do this, explicitly reference the
 additional schema and provide it with a module name:</p>
-<div class="highlight-python"><div class="highlight"><pre>pyxbgen \
-  -u po3.xsd -m po3 \
-  -u nsaddress.xsd -m address
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pyxbgen</span> \
+  <span class="o">-</span><span class="n">u</span> <span class="n">po3</span><span class="o">.</span><span class="n">xsd</span> <span class="o">-</span><span class="n">m</span> <span class="n">po3</span> \
+  <span class="o">-</span><span class="n">u</span> <span class="n">nsaddress</span><span class="o">.</span><span class="n">xsd</span> <span class="o">-</span><span class="n">m</span> <span class="n">address</span>
 </pre></div>
 </div>
 <p>Here each namespace is represented in its own module (<code class="docutils literal"><span class="pre">address</span></code> for
 <code class="docutils literal"><span class="pre">URN:address</span></code> and <code class="docutils literal"><span class="pre">po3</span></code> for module with an absent namespace).  In this
-case, the demonstration program is unchanged; see <a class="reference internal" href="userref_usebind.html#from-python"><span>Creating Instances in Python Code</span></a> for
+case, the demonstration program is unchanged; see <a class="reference internal" href="userref_usebind.html#from-python"><span class="std std-ref">Creating Instances in Python Code</span></a> for
 additional examples.</p>
 </div>
 <div class="section" id="sharing-namespace-bindings">
@@ -383,26 +388,26 @@ will want to generate its bindings once, and reference them in other schema
 without regenerating them.  To do this, PyXB must be provided with an
 archive containing the schema components that were defined in that
 namespace, so they can be referenced in independent generation activities.</p>
-<p>To generate the archive, you add the <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-archive-to-file"><span>&#8211;archive-to-file</span></a>
+<p>To generate the archive, you add the <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-archive-to-file"><span class="std std-ref">&#8211;archive-to-file</span></a>
 flag to the binding generation command:</p>
-<div class="highlight-python"><div class="highlight"><pre>pyxbgen \
-  -u nsaddress.xsd -m address \
-  --archive-to-file address.wxs
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pyxbgen</span> \
+  <span class="o">-</span><span class="n">u</span> <span class="n">nsaddress</span><span class="o">.</span><span class="n">xsd</span> <span class="o">-</span><span class="n">m</span> <span class="n">address</span> \
+  <span class="o">--</span><span class="n">archive</span><span class="o">-</span><span class="n">to</span><span class="o">-</span><span class="n">file</span> <span class="n">address</span><span class="o">.</span><span class="n">wxs</span>
 </pre></div>
 </div>
 <p>In addition to generating the <code class="docutils literal"><span class="pre">address</span></code> Python module, this causes a
-<a class="reference internal" href="arch_namespaces.html#namespace-archive"><span>archive</span></a> of the schema contents to be saved in the
+<a class="reference internal" href="arch_namespaces.html#namespace-archive"><span class="std std-ref">archive</span></a> of the schema contents to be saved in the
 corresponding file, which by convention ends with the extension <code class="docutils literal"><span class="pre">.wxs</span></code>.
 Any anonymous names that were generated with the bindings are also recorded
 in this archive, so that cross-namespace extension works correctly.</p>
 <p>You can then generate bindings for importing namespaces by providing PyXB
 with the information necessary to locate this archive:</p>
-<div class="highlight-python"><div class="highlight"><pre>pyxbgen \
-  -u po3.xsd -m po3 \
-  --archive-path .:+
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pyxbgen</span> \
+  <span class="o">-</span><span class="n">u</span> <span class="n">po3</span><span class="o">.</span><span class="n">xsd</span> <span class="o">-</span><span class="n">m</span> <span class="n">po3</span> \
+  <span class="o">--</span><span class="n">archive</span><span class="o">-</span><span class="n">path</span> <span class="o">.</span><span class="p">:</span><span class="o">+</span>
 </pre></div>
 </div>
-<p>The <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-archive-path"><span>&#8211;archive-path</span></a> directive indicates that the current
+<p>The <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-archive-path"><span class="std std-ref">&#8211;archive-path</span></a> directive indicates that the current
 directory (<code class="docutils literal"><span class="pre">.</span></code>) should be searched for files that end in <code class="docutils literal"><span class="pre">.wxs</span></code>, and any
 namespaces found in such files implicitly made available for reference when
 they are encountered in an <code class="docutils literal"><span class="pre">import</span></code> instruction.  (The second path
@@ -422,17 +427,17 @@ demonstration program is unchanged.</p>
 structure of their documents using XML schema elements encoded directly into
 a <code class="docutils literal"><span class="pre">types</span></code> element of a WSDL specification rather than having that elements
 import complete standalone schema.  To accommodate this, pyxbgen supports
-the <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-wsdl-location"><span>&#8211;wsdl-location</span></a> argument as an alternative to
-<a class="reference internal" href="pyxbgen_cli.html#pyxbgen-schema-location"><span>&#8211;schema-location</span></a>.  For example, the following will generate a
+the <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-wsdl-location"><span class="std std-ref">&#8211;wsdl-location</span></a> argument as an alternative to
+<a class="reference internal" href="pyxbgen_cli.html#pyxbgen-schema-location"><span class="std std-ref">&#8211;schema-location</span></a>.  For example, the following will generate a
 module <code class="docutils literal"><span class="pre">ndfd</span></code> containing bindings required to communicate with the
 <a class="reference external" href="http://www.nws.noaa.gov/xml">National Digital Forecast Database</a>:</p>
-<div class="highlight-python"><div class="highlight"><pre>pyxbgen \
+<div class="highlight-default"><div class="highlight"><pre><span></span>pyxbgen \
  --wsdl-location=http://www.weather.gov/forecasts/xml/DWMLgen/wsdl/ndfdXML.wsdl --module=ndfd \
  --archive-path=${PYXB_ROOT}/pyxb/bundles/wssplat//:+
 </pre></div>
 </div>
-<p>Note that it will be necessary to have the <a class="reference internal" href="bundles.html#bundle-wssplat"><span>WS-*</span></a>
-bindings available, as provided by the <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-archive-path"><span>&#8211;archive-path</span></a> option
+<p>Note that it will be necessary to have the <a class="reference internal" href="bundles.html#bundle-wssplat"><span class="std std-ref">WS-*</span></a>
+bindings available, as provided by the <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-archive-path"><span class="std std-ref">&#8211;archive-path</span></a> option
 above.</p>
 </div>
 <div class="section" id="customizing-binding-classes">
@@ -442,7 +447,7 @@ module that imports the generated classes and instances, then extends them
 with subclasses with additional behavior.  As long as you do not make major
 changes to the structure and names used in your namespaces, you can
 fine-tune the schema without changing the custom code.</p>
-<p>The <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-write-for-customization"><span>&#8211;write-for-customization</span></a> option causes PyXB to generate
+<p>The <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-write-for-customization"><span class="std std-ref">&#8211;write-for-customization</span></a> option causes PyXB to generate
 all the Python modules in a subdirectory <code class="docutils literal"><span class="pre">raw</span></code>.  Then you write a module
 that imports the generated bindings and extends them.</p>
 <p>Until this documentation is enhanced significantly, users interested in
@@ -450,15 +455,15 @@ generating custom bindings are referred to the extensions for WSDL 1.1 that
 are provided in the WS-* support bundle as
 <code class="docutils literal"><span class="pre">pyxb.bundles.wssplat.wsdl11.py</span></code>.  An excerpt of the sort of thing done
 there is:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">pyxb.bundles.wssplat.raw.wsdl11</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">import</span> <span class="nn">pyxb.bundles.wssplat.raw.wsdl11</span> <span class="kn">as</span> <span class="nn">raw_wsdl11</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyxb.bundles.wssplat.raw.wsdl11</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">pyxb.bundles.wssplat.raw.wsdl11</span> <span class="k">as</span> <span class="nn">raw_wsdl11</span>
 
 <span class="k">class</span> <span class="nc">tParam</span> <span class="p">(</span><span class="n">raw_wsdl11</span><span class="o">.</span><span class="n">tParam</span><span class="p">):</span>
   <span class="k">def</span> <span class="nf">__getMessageReference</span> <span class="p">(</span><span class="bp">self</span><span class="p">):</span>
       <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__messageReference</span>
   <span class="k">def</span> <span class="nf">_setMessageReference</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_reference</span><span class="p">):</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">__messageReference</span> <span class="o">=</span> <span class="n">message_reference</span>
-  <span class="n">__messageReference</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">__messageReference</span> <span class="o">=</span> <span class="kc">None</span>
   <span class="n">messageReference</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">__getMessageReference</span><span class="p">)</span>
 <span class="n">raw_wsdl11</span><span class="o">.</span><span class="n">tParam</span><span class="o">.</span><span class="n">_SetSupersedingClass</span><span class="p">(</span><span class="n">tParam</span><span class="p">)</span>
 </pre></div>
@@ -473,9 +478,9 @@ of <code class="docutils literal"><span class="pre">tMessage</span></code> that 
 create instances of the customized class when automatically generating
 <code class="docutils literal"><span class="pre">tParam</span></code> instances from XML documents.</p>
 <p>To customize bindings, you will need to be familiar with the
-<a class="reference external" href="api/pyxb.binding.basis._DynamicCreate_mixin-class.html">_DynamicCreate_mixin</a> class.</p>
-<p>Be aware that <a class="reference external" href="api/pyxb.binding.basis._DynamicCreate_mixin-class.html">_SetSupersedingClass</a> only affects the behavior of
-<a class="reference external" href="api/pyxb.binding.basis._TypeBinding_mixin-class.html">Factory</a>, and does not change
+<a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._DynamicCreate_mixin" title="pyxb.binding.basis._DynamicCreate_mixin"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis._DynamicCreate_mixin</span></code></a> class.</p>
+<p>Be aware that <a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._DynamicCreate_mixin" title="pyxb.binding.basis._DynamicCreate_mixin"><code class="xref py py-obj docutils literal"><span class="pre">_SetSupersedingClass</span></code></a> only affects the behavior of
+<a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._TypeBinding_mixin" title="pyxb.binding.basis._TypeBinding_mixin"><code class="xref py py-obj docutils literal"><span class="pre">Factory</span></code></a>, and does not change
 the Python inheritance tree.  This means that the superseding class is only
 invoked when the content model requires an instance of the original type.
 When an instance of a subclass of a superseded class (that is not itself
@@ -494,11 +499,11 @@ module more compact and stable.</p>
 </div>
 <div class="section" id="generating-related-namespaces">
 <h3>Generating Related Namespaces<a class="headerlink" href="#generating-related-namespaces" title="Permalink to this headline">¶</a></h3>
-<p>The <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-module-prefix"><span>&#8211;module-prefix</span></a> option permits you to add a fixed prefix
+<p>The <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-module-prefix"><span class="std std-ref">&#8211;module-prefix</span></a> option permits you to add a fixed prefix
 to the generated modules.  For example, when generating bindings for the
 OpenGIS schemas it is desirable to aggregate them into a Python module
 hierarchy so the imported name incorporates the namespace collection:</p>
-<div class="highlight-python"><div class="highlight"><pre>pyxbgen \
+<div class="highlight-default"><div class="highlight"><pre><span></span>pyxbgen \
   --schema-location=${SCHEMA_DIR}/gml/3.2.1/gml.xsd --module=gml_3_2 \
   --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gmd/gmd.xsd --module=iso19139.gmd \
   --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gts/gts.xsd --module=iso19139.gts \
@@ -511,13 +516,13 @@ hierarchy so the imported name incorporates the namespace collection:</p>
 </div>
 <p>When generated this way, your Python code imports these modules with
 directives like:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">opengis.gml_3_2</span> <span class="kn">as</span> <span class="nn">gml</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">opengis.gml_3_2</span> <span class="k">as</span> <span class="nn">gml</span>
 <span class="kn">import</span> <span class="nn">opengis.iso19139.gmd</span>
 </pre></div>
 </div>
-<p>PyXB comes with <a class="reference internal" href="bundles.html#bundles"><span>pre-defined bundles</span></a> for related namespaces
+<p>PyXB comes with <a class="reference internal" href="bundles.html#bundles"><span class="std std-ref">pre-defined bundles</span></a> for related namespaces
 in the <code class="docutils literal"><span class="pre">pyxb.bundles</span></code> module hierarchy.  The command above is an excerpt
-from an early version of the script that generates the <a class="reference internal" href="bundles.html#bundle-opengis"><span>OpenGIS</span></a> bundles.  See <a class="reference internal" href="bundles.html#bundle-layout"><span>Layout of a Bundle Directory</span></a> for more information and the location of the current
+from an early version of the script that generates the <a class="reference internal" href="bundles.html#bundle-opengis"><span class="std std-ref">OpenGIS</span></a> bundles.  See <a class="reference internal" href="bundles.html#bundle-layout"><span class="std std-ref">Layout of a Bundle Directory</span></a> for more information and the location of the current
 version of the script.</p>
 </div>
 <div class="section" id="fine-grained-namespace-control">
@@ -537,13 +542,13 @@ namespace are redundant with the contents of that archive, and would ignore
 the import directive.  In this case, that assumption is mistaken, and the
 <code class="docutils literal"><span class="pre">ogc4sos.xsd</span></code> schema must be read to define the additional elements and
 types.  The required build command is:</p>
-<div class="highlight-python"><div class="highlight"><pre>pyxbgen \
+<div class="highlight-default"><div class="highlight"><pre><span></span>pyxbgen \
   --schema-location=${SCHEMA_DIR}/sos/1.0.0/sosAll.xsd --module sos_1_0 \
   --archive-path=${ARCHIVE_DIR} \
   --import-augmentable-namespace=http://www.opengis.net/ogc
 </pre></div>
 </div>
-<p>The <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-import-augmentable-namespace"><span>&#8211;import-augmentable-namespace</span></a> directive causes PyXB to
+<p>The <a class="reference internal" href="pyxbgen_cli.html#pyxbgen-import-augmentable-namespace"><span class="std std-ref">&#8211;import-augmentable-namespace</span></a> directive causes PyXB to
 allow import directives within the schema to add material to the content
 already loaded from an archive.  Consequently, when reference to the
 <code class="docutils literal"><span class="pre">ogc4sos.xsd</span></code> schema is encountered, PyXB detects that, although it
@@ -595,14 +600,11 @@ generates bindings for the additional material into a private module
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -616,21 +618,25 @@ generates bindings for the additional material into a private module
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="userref_usebind.html" title="Using Binding Classes"
              >next</a> |</li>
         <li class="right" >
           <a href="userref_index.html" title="User Reference"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.5 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="userref_index.html" >User Reference</a> &raquo;</li>
-    <li style="margin-left: 20px">PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="userref_index.html" >User Reference</a> &#187;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
      
 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2009-2016, Peter A. Bigot.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
+        &#169; Copyright 2009-2017, Peter A. Bigot.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.5.
     </div>
   </body>
 </html>

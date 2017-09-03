@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Component Model &mdash; PyXB 1.2.5 documentation</title>
+    <title>Component Model &#8212; PyXB 1.2.6 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,17 +14,18 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '1.2.5',
+        VERSION:     '1.2.6',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyXB 1.2.5 documentation" href="index.html" />
-    <link rel="up" title="Architecture" href="architecture.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Binding Model" href="arch_binding.html" />
     <link rel="prev" title="Namespaces" href="arch_namespaces.html" /> 
   </head>
@@ -36,14 +37,18 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="arch_binding.html" title="Binding Model"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="arch_namespaces.html" title="Namespaces"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.5 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="architecture.html" accesskey="U">Architecture</a> &raquo;</li>
-    <li style="margin-left: 20px">PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="architecture.html" accesskey="U">Architecture</a> &#187;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
      
 
       </ul>
@@ -60,41 +65,41 @@
 complex relation of data objects.  Each object class corresponds to one of
 the thirteen <a class="reference external" href="www.w3.org/TR/xmlschema-1/index.html#components">XML Schema Components</a>, and names of components
 and their properties follow those definitions.  All classes specific to the
-component model are found in the <a class="reference external" href="api/pyxb.xmlschema.structures-module.html">pyxb.xmlschema.structures</a> module.</p>
+component model are found in the <a class="reference internal" href="pyxb.xmlschema.html#module-pyxb.xmlschema.structures" title="pyxb.xmlschema.structures"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.xmlschema.structures</span></code></a> module.</p>
 <p>The relationships amongst components is depicted in the following diagram.
 Composite aggregation generally denotes ownership and shared aggregation
 reference, but don&#8217;t look for consistency.</p>
 <img alt="_images/ComponentModel.jpg" src="_images/ComponentModel.jpg" />
 <div class="section" id="component-model-mix-ins">
 <h2>Component Model Mix-ins<a class="headerlink" href="#component-model-mix-ins" title="Permalink to this headline">¶</a></h2>
-<p>A variety of <a class="reference internal" href="maintref.html#mixins"><span>Mix-in classes</span></a> are used to allow common code to be abstracted or
+<p>A variety of <a class="reference internal" href="maintref.html#mixins"><span class="std std-ref">Mix-in classes</span></a> are used to allow common code to be abstracted or
 to mark objects as having certain capabilities.  These mixins are:</p>
 <ul class="simple">
-<li><a class="reference external" href="api/pyxb.xmlschema.structures._SchemaComponent_mixin-class.html">_SchemaComponent_mixin</a> marks the object
+<li><a class="reference internal" href="pyxb.xmlschema.html#pyxb.xmlschema.structures._SchemaComponent_mixin" title="pyxb.xmlschema.structures._SchemaComponent_mixin"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.xmlschema.structures._SchemaComponent_mixin</span></code></a> marks the object
 as being a schema component and holds its
-<a class="reference external" href="api/pyxb.namespace-module.html#NamespaceContext">NamespaceContext</a>.  It also records relations between
+<code class="xref py py-obj docutils literal"><span class="pre">pyxb.namespace.NamespaceContext</span></code>.  It also records relations between
 components in a global definition and their clones where those definitions
 are expanded.</li>
-<li><a class="reference external" href="api/pyxb.xmlschema.structures._Singleton_mixin-class.html">_Singleton_mixin</a> is used to ensure there is only one instance each
+<li><a class="reference internal" href="pyxb.xmlschema.html#pyxb.xmlschema.structures._Singleton_mixin" title="pyxb.xmlschema.structures._Singleton_mixin"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.xmlschema.structures._Singleton_mixin</span></code></a> is used to ensure there is only one instance each
 of the <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#simple-ur-type-itself">simple ur-type</a> and <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#ur-type-itself">ur-type</a>.  It overloads
 <code class="docutils literal"><span class="pre">__new__</span></code> to ensure that only one instance of the class is ever
 constructed.</li>
-<li><a class="reference external" href="api/pyxb.xmlschema.structures._Annotated_mixin-class.html">_Annotated_mixin</a> provides the support for all components that
+<li><a class="reference internal" href="pyxb.xmlschema.html#pyxb.xmlschema.structures._Annotated_mixin" title="pyxb.xmlschema.structures._Annotated_mixin"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.xmlschema.structures._Annotated_mixin</span></code></a> provides the support for all components that
 contain an <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#cAnnotations">annotation</a>
 as a child element.</li>
-<li><a class="reference external" href="api/pyxb.xmlschema.structures._NamedComponent_mixin-class.html">_NamedComponent_mixin</a> supports components
+<li><a class="reference internal" href="pyxb.xmlschema.html#pyxb.xmlschema.structures._NamedComponent_mixin" title="pyxb.xmlschema.structures._NamedComponent_mixin"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.xmlschema.structures._NamedComponent_mixin</span></code></a> supports components
 that can be identified by name.  This includes the target namespace (which
 may be anonymous) if the component is global, and the <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#Complex_Type_Definitions">complex type
 definition</a>
 that serves as the component&#8217;s <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#e-scope">scope</a> when it is local.</li>
-<li><a class="reference external" href="api/pyxb.xmlschema.structures._ValueConstraint_mixin-class.html">_ValueConstraint_mixin</a> provides support
+<li><a class="reference internal" href="pyxb.xmlschema.html#pyxb.xmlschema.structures._ValueConstraint_mixin" title="pyxb.xmlschema.structures._ValueConstraint_mixin"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.xmlschema.structures._ValueConstraint_mixin</span></code></a> provides support
 for components that have <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#e-value_constraint">value constraints</a> : that is,
 provide a default value and optionally require a fixed value.</li>
-<li><a class="reference external" href="api/pyxb.xmlschema.structures._ScopedDeclaration_mixin-class.html">_ScopedDeclaration_mixin</a> is used by
+<li><a class="reference internal" href="pyxb.xmlschema.html#pyxb.xmlschema.structures._ScopedDeclaration_mixin" title="pyxb.xmlschema.structures._ScopedDeclaration_mixin"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.xmlschema.structures._ScopedDeclaration_mixin</span></code></a> is used by
 <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#cElement_Declarations">element declarations</a> and <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#Complex_Type_Definitions">complex
 type definitions</a> which may be
 named but only referenceable within a specific <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#e-scope">scope</a>.</li>
-<li><a class="reference external" href="api/pyxb.xmlschema.structures._AttributeWildcard_mixin-class.html">_AttributeWildcard_mixin</a> provides support
+<li><a class="reference internal" href="pyxb.xmlschema.html#pyxb.xmlschema.structures._AttributeWildcard_mixin" title="pyxb.xmlschema.structures._AttributeWildcard_mixin"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.xmlschema.structures._AttributeWildcard_mixin</span></code></a> provides support
 for <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#cAttribute_Group_Definitions">attribute group definitions</a> and
 <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#Complex_Type_Definitions">complex type definitions</a>, both of
 which allow <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#Wildcards">wildcard</a>
@@ -105,10 +110,10 @@ attributes.</li>
 <h2>Other Information<a class="headerlink" href="#other-information" title="Permalink to this headline">¶</a></h2>
 <p>Most of the important information about the component model is best obtained
 from the <a class="reference external" href="http://www.w3.org/TR/xmlschema-1/#components">specification</a> or
-from the <a class="reference external" href="api/pyxb.xmlschema.structures-module.html">PyXB component model API</a>.
+from the <a class="reference internal" href="pyxb.xmlschema.html#module-pyxb.xmlschema.structures" title="pyxb.xmlschema.structures"><code class="xref py py-obj docutils literal"><span class="pre">PyXB</span> <span class="pre">component</span> <span class="pre">model</span> <span class="pre">API</span></code></a>.
 Tidbits of other relevant information:</p>
 <ul class="simple">
-<li>An understanding of <a class="reference internal" href="arch_namespaces.html#resolution"><span>Namespace Resolution</span></a> is important.</li>
+<li>An understanding of <a class="reference internal" href="arch_namespaces.html#resolution"><span class="std std-ref">Namespace Resolution</span></a> is important.</li>
 <li>Element and attribute declarations that are incorporated by reference are
 represented in local scope by a copy of the global declaration.  This aids
 in the infrastructure that binds declarations from model and attribute
@@ -158,14 +163,11 @@ single Python field in the binding.</li>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -179,21 +181,25 @@ single Python field in the binding.</li>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="arch_binding.html" title="Binding Model"
              >next</a> |</li>
         <li class="right" >
           <a href="arch_namespaces.html" title="Namespaces"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.5 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="architecture.html" >Architecture</a> &raquo;</li>
-    <li style="margin-left: 20px">PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="architecture.html" >Architecture</a> &#187;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
      
 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2009-2016, Peter A. Bigot.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
+        &#169; Copyright 2009-2017, Peter A. Bigot.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.5.
     </div>
   </body>
 </html>

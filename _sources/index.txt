@@ -59,6 +59,7 @@ Contents
    releases
    architecture
    userref_index
+   pyxb
    maintref
 
 .. _thirty_sec_example:
@@ -68,7 +69,7 @@ Thirty Second Example
 *********************
 
 An example of a program using PyXB to interact with a `web service
-<http://wiki.cdyne.com/wiki/index.php?title=CDYNE_Weather>`_ using an
+<http://wiki.cdyne.com/wiki/index.php?title=CDYNE_Weather>`_ [*]_ using an
 automatically-generated module.  First, retrieve the WSDL and generate the
 bindings::
 
@@ -100,9 +101,14 @@ And run it::
   Monday, August 18 2014: Partly Cloudy, from 67 to 83
   Tuesday, August 19 2014: Partly Cloudy, from 65 to 84
 
-That's it.  (Note: Although the `CDYNE Weather Service
-<http://wsf.cdyne.com/WeatherWS/Weather.asmx?op=GetCityForecastByZIP>`_ is
-still available, the data underlying it is no longer updated.)
+That's it.
+
+.. [*] **Note**: Sometime between 2014 and 2017 the CDYNE Weather Service
+       disappeared, although as of 2017-05-13 the link to its description
+       above was still present.  If you care about weather, there is a more
+       complex example interfacing with the `National Digital Forecast
+       Database <http://www.nws.noaa.gov/ndfd/>`_ in the ``examples/ndfd``
+       directory.
 
 ******************
 Indices and tables

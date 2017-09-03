@@ -1,0 +1,46 @@
+pyxb\.namespace package
+=======================
+
+Submodules
+----------
+
+pyxb\.namespace\.archive module
+-------------------------------
+
+.. automodule:: pyxb.namespace.archive
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyxb\.namespace\.builtin module
+-------------------------------
+
+.. automodule:: pyxb.namespace.builtin
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyxb\.namespace\.resolution module
+----------------------------------
+
+.. automodule:: pyxb.namespace.resolution
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyxb\.namespace\.utility module
+-------------------------------
+
+.. automodule:: pyxb.namespace.utility
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: pyxb.namespace
+    :members:
+    :undoc-members:
+    :show-inheritance:

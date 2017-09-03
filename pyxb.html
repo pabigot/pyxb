@@ -1,0 +1,1995 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyxb package &#8212; PyXB 1.2.6 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.2.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pyxb.binding package" href="pyxb.binding.html" />
+    <link rel="prev" title="pyxbgen Command Line Options" href="pyxbgen_cli.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pyxb.binding.html" title="pyxb.binding package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pyxbgen_cli.html" title="pyxbgen Command Line Options"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.6 documentation</a> &#187;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-pyxb">
+<span id="pyxb-package"></span><h1>pyxb package<a class="headerlink" href="#module-pyxb" title="Permalink to this headline">¶</a></h1>
+<p>PyXB stands for Python U{W3C XML
+Schema&lt;<a class="reference external" href="http://www.w3.org/XML/Schema">http://www.w3.org/XML/Schema</a>&gt;} Bindings, and is pronounced
+&#8220;pixbee&#8221;.  It enables translation between XML instance documents and
+Python objects following rules specified by an XML Schema document.</p>
+<p>This is the top-level entrypoint to the PyXB system.  Importing this
+gets you all the <a class="reference internal" href="#pyxb.exceptions_.PyXBException" title="pyxb.exceptions_.PyXBException"><code class="xref py py-obj docutils literal"><span class="pre">exceptions</span></code></a>, and
+<a class="reference internal" href="pyxb.namespace.html#module-pyxb.namespace" title="pyxb.namespace"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.namespace</span></code></a>.  For more functionality, delve into these
+submodules:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference internal" href="pyxb.xmlschema.html#module-pyxb.xmlschema" title="pyxb.xmlschema"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.xmlschema</span></code></a> Module holding the
+<a class="reference internal" href="pyxb.xmlschema.html#module-pyxb.xmlschema.structures" title="pyxb.xmlschema.structures"><code class="xref py py-obj docutils literal"><span class="pre">structures</span></code></a> that convert XMLSchema
+from a DOM model to a Python class model based on the XMLSchema
+components.  Use this when you need to operate on the component
+model.</li>
+<li><a class="reference internal" href="pyxb.binding.html#module-pyxb.binding" title="pyxb.binding"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding</span></code></a> Module used to generate the bindings and at runtime
+to support the generated bindings.  Use this if you need to use the
+binding model or content model.</li>
+<li><a class="reference internal" href="pyxb.utils.html#module-pyxb.utils" title="pyxb.utils"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.utils</span></code></a> Common utilities used in parsing, generating, and
+executing.  The submodules must be imported separately.</li>
+</ul>
+</div></blockquote>
+<dl class="class">
+<dt id="pyxb.BIND">
+<em class="property">class </em><code class="descclassname">pyxb.</code><code class="descname">BIND</code><span class="sig-paren">(</span><em>*args</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.BIND" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Bundle data for automated binding generation.</p>
+<p>Instances of this class capture positional and keyword arguments that are
+used to create binding instances based on context.  For example, if <code class="xref py py-obj docutils literal"><span class="pre">w</span></code>
+is an instance of a complex type whose <code class="xref py py-obj docutils literal"><span class="pre">option</span></code> element is declared to be
+an anonymous class with simple content of type integer and an attribute of
+<code class="xref py py-obj docutils literal"><span class="pre">units</span></code>, a correct assignment to that element could be achieved with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">w</span><span class="o">.</span><span class="n">option</span> <span class="o">=</span> <span class="n">BIND</span><span class="p">(</span><span class="mi">54</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="pyxb.BIND._BIND__args">
+<code class="descname">_BIND__args</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.BIND._BIND__args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.BIND._BIND__kw">
+<code class="descname">_BIND__kw</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.BIND._BIND__kw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyxb.BIND.createInstance">
+<code class="descname">createInstance</code><span class="sig-paren">(</span><em>factory</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.BIND.createInstance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invoke the given factory method.</p>
+<p>Position arguments to the factory are those cached in this instance.
+Keyword arguments are the ones on the command line, updated from the
+ones in this instance.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pyxb.NonElementContent">
+<code class="descclassname">pyxb.</code><code class="descname">NonElementContent</code><span class="sig-paren">(</span><em>instance</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.NonElementContent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an iterator producing the non-element content of the provided instance.</p>
+<p>The catenated text of the non-element content of an instance can
+be obtained with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">text</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">u</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pyxb</span><span class="o">.</span><span class="n">NonElementContent</span><span class="p">(</span><span class="n">instance</span><span class="p">))</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>instance</strong> &#8211; An instance of <a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis.complexTypeDefinition" title="pyxb.binding.basis.complexTypeDefinition"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis.complexTypeDefinition</span></code></a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an iterator producing text values</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyxb.PreserveInputTimeZone">
+<code class="descclassname">pyxb.</code><code class="descname">PreserveInputTimeZone</code><span class="sig-paren">(</span><em>value=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.PreserveInputTimeZone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Control whether time values are converted to UTC during input.</p>
+<p>The specification &lt;<a class="reference external" href="http://www.w3.org/TR/xmlschema-2/#dateTime">http://www.w3.org/TR/xmlschema-2/#dateTime</a>&gt; makes
+clear that timezoned times are in UTC and that times in other timezones
+are to be translated to UTC when converted from literal to value form.
+Provide an option to bypass this step, so the input timezone is preserved.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">Naive processing of unnormalized times&#8211;i.e., ignoring the</td>
+</tr>
+</tbody>
+</table>
+<p><code class="xref py py-obj docutils literal"><span class="pre">tzinfo</span></code> field&#8211;may result in errors.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyxb.RequireValidWhenGenerating">
+<code class="descclassname">pyxb.</code><code class="descname">RequireValidWhenGenerating</code><span class="sig-paren">(</span><em>value=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.RequireValidWhenGenerating" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query or set a flag that controls validation checking in XML generation.</p>
+<p>Normally any attempts to convert a binding instance to a DOM or XML
+representation requires that the binding validate against the content
+model, since only in this way can the content be generated in the correct
+order.  In some cases it may be necessary or useful to generate a document
+from a binding that is incomplete.  If validation is not required, the
+generated documents may not validate even if the content validates,
+because ordering constraints will be ignored.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; If absent or <code class="xref py py-obj docutils literal"><span class="pre">None</span></code>, no change is made; otherwise, this</td>
+</tr>
+</tbody>
+</table>
+<p>enables (<code class="xref py py-obj docutils literal"><span class="pre">True</span></code>) or disables (<code class="xref py py-obj docutils literal"><span class="pre">False</span></code>) the requirement that instances
+validate before being converted to XML.
+:type value: <code class="xref py py-obj docutils literal"><span class="pre">bool</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-obj docutils literal"><span class="pre">True</span></code> iff attempts to generate XML for a binding that does not</td>
+</tr>
+</tbody>
+</table>
+<p>validate should raise an exception.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyxb.RequireValidWhenParsing">
+<code class="descclassname">pyxb.</code><code class="descname">RequireValidWhenParsing</code><span class="sig-paren">(</span><em>value=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.RequireValidWhenParsing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query or set a flag that controls validation checking in XML parsing.</p>
+<p>Normally any attempts to convert XML to a binding instance to a binding
+instance requires that the document validate against the content model.
+In some cases it may be necessary or useful to process a document that is
+incomplete.  If validation is not required, the generated documents may
+not validate even if the content validates, because ordering constraints
+will be ignored.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; If absent or <code class="xref py py-obj docutils literal"><span class="pre">None</span></code>, no change is made; otherwise, this</td>
+</tr>
+</tbody>
+</table>
+<p>enables (<code class="xref py py-obj docutils literal"><span class="pre">True</span></code>) or disables (<code class="xref py py-obj docutils literal"><span class="pre">False</span></code>) the requirement that documents
+validate when being converted to bindings.
+:type value: <code class="xref py py-obj docutils literal"><span class="pre">bool</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-obj docutils literal"><span class="pre">True</span></code> iff attempts to generate bindings for a document that</td>
+</tr>
+</tbody>
+</table>
+<p>does not validate should raise an exception.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyxb.ValidationConfig">
+<em class="property">class </em><code class="descclassname">pyxb.</code><code class="descname">ValidationConfig</code><a class="headerlink" href="#pyxb.ValidationConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Class holding configuration related to validation.</p>
+<p><code class="xref py py-obj docutils literal"><span class="pre">pyxb.GlobalValidationConfig</span></code> is available to influence validation in all
+contexts.  Each binding class has a reference to an instance of this
+class, which can be inspected using
+<a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._TypeBinding_mixin._GetValidationConfig" title="pyxb.binding.basis._TypeBinding_mixin._GetValidationConfig"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis._TypeBinding_mixin._GetValidationConfig</span></code></a> and changed
+using <a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._TypeBinding_mixin._SetValidationConfig" title="pyxb.binding.basis._TypeBinding_mixin._SetValidationConfig"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis._TypeBinding_mixin._SetValidationConfig</span></code></a>.  Each
+binding instance has a reference inherited from its class which can be
+inspected using <a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._TypeBinding_mixin._validationConfig" title="pyxb.binding.basis._TypeBinding_mixin._validationConfig"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis._TypeBinding_mixin._validationConfig</span></code></a>
+and changed using
+<a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._TypeBinding_mixin._setValidationConfig" title="pyxb.binding.basis._TypeBinding_mixin._setValidationConfig"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis._TypeBinding_mixin._setValidationConfig</span></code></a>.</p>
+<p>This allows fine control on a per class and per-instance basis.</p>
+<p><a class="reference internal" href="#pyxb.ValidationConfig.forBinding" title="pyxb.ValidationConfig.forBinding"><code class="xref py py-obj docutils literal"><span class="pre">forBinding</span></code></a> replaces <a class="reference internal" href="#pyxb.RequireValidWhenParsing" title="pyxb.RequireValidWhenParsing"><code class="xref py py-obj docutils literal"><span class="pre">RequireValidWhenParsing</span></code></a>.</p>
+<p><a class="reference internal" href="#pyxb.ValidationConfig.forDocument" title="pyxb.ValidationConfig.forDocument"><code class="xref py py-obj docutils literal"><span class="pre">forDocument</span></code></a> replaces <a class="reference internal" href="#pyxb.RequireValidWhenGenerating" title="pyxb.RequireValidWhenGenerating"><code class="xref py py-obj docutils literal"><span class="pre">RequireValidWhenGenerating</span></code></a>.</p>
+<p><a class="reference internal" href="#pyxb.ValidationConfig.contentInfluencesGeneration" title="pyxb.ValidationConfig.contentInfluencesGeneration"><code class="xref py py-obj docutils literal"><span class="pre">contentInfluencesGeneration</span></code></a>, <a class="reference internal" href="#pyxb.ValidationConfig.orphanElementInContent" title="pyxb.ValidationConfig.orphanElementInContent"><code class="xref py py-obj docutils literal"><span class="pre">orphanElementInContent</span></code></a>, and
+<a class="reference internal" href="#pyxb.ValidationConfig.invalidElementInContent" title="pyxb.ValidationConfig.invalidElementInContent"><code class="xref py py-obj docutils literal"><span class="pre">invalidElementInContent</span></code></a> control how
+<a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis.complexTypeDefinition.orderedContent" title="pyxb.binding.basis.complexTypeDefinition.orderedContent"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis.complexTypeDefinition.orderedContent</span></code></a> affects
+generated documents.</p>
+<dl class="attribute">
+<dt id="pyxb.ValidationConfig.ALWAYS">
+<code class="descname">ALWAYS</code><em class="property"> = -1</em><a class="headerlink" href="#pyxb.ValidationConfig.ALWAYS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Always do it.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.ValidationConfig.GIVE_UP">
+<code class="descname">GIVE_UP</code><em class="property"> = 2</em><a class="headerlink" href="#pyxb.ValidationConfig.GIVE_UP" title="Permalink to this definition">¶</a></dt>
+<dd><p>If an error occurs ignore it and stop using whatever provided the cause
+of the error.  (E.g., if an element in a content list fails stop
+processing the content list and execute as though it was absent).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.ValidationConfig.IGNORE_ONCE">
+<code class="descname">IGNORE_ONCE</code><em class="property"> = 1</em><a class="headerlink" href="#pyxb.ValidationConfig.IGNORE_ONCE" title="Permalink to this definition">¶</a></dt>
+<dd><p>If an error occurs ignore it and continue with the next one.  (E.g., if
+an element in a content list fails skip it and continue with the next
+element in the list.)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.ValidationConfig.MIXED_ONLY">
+<code class="descname">MIXED_ONLY</code><em class="property"> = 4</em><a class="headerlink" href="#pyxb.ValidationConfig.MIXED_ONLY" title="Permalink to this definition">¶</a></dt>
+<dd><p>Only when content type is mixed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.ValidationConfig.NEVER">
+<code class="descname">NEVER</code><em class="property"> = 0</em><a class="headerlink" href="#pyxb.ValidationConfig.NEVER" title="Permalink to this definition">¶</a></dt>
+<dd><p>Never do it.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.ValidationConfig.RAISE_EXCEPTION">
+<code class="descname">RAISE_EXCEPTION</code><em class="property"> = 3</em><a class="headerlink" href="#pyxb.ValidationConfig.RAISE_EXCEPTION" title="Permalink to this definition">¶</a></dt>
+<dd><p>If an error occurs, raise an exception.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.ValidationConfig._ValidationConfig__contentInfluencesGeneration">
+<code class="descname">_ValidationConfig__contentInfluencesGeneration</code><em class="property"> = 4</em><a class="headerlink" href="#pyxb.ValidationConfig._ValidationConfig__contentInfluencesGeneration" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.ValidationConfig._ValidationConfig__forBinding">
+<code class="descname">_ValidationConfig__forBinding</code><em class="property"> = True</em><a class="headerlink" href="#pyxb.ValidationConfig._ValidationConfig__forBinding" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.ValidationConfig._ValidationConfig__forDocument">
+<code class="descname">_ValidationConfig__forDocument</code><em class="property"> = True</em><a class="headerlink" href="#pyxb.ValidationConfig._ValidationConfig__forDocument" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyxb.ValidationConfig._ValidationConfig__getContentInfluencesGeneration">
+<code class="descname">_ValidationConfig__getContentInfluencesGeneration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.ValidationConfig._ValidationConfig__getContentInfluencesGeneration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine whether complex type content influences element order in
+document generation.</p>
+<p>The value is one of <a class="reference internal" href="#pyxb.ValidationConfig.ALWAYS" title="pyxb.ValidationConfig.ALWAYS"><code class="xref py py-obj docutils literal"><span class="pre">ALWAYS</span></code></a>, <a class="reference internal" href="#pyxb.ValidationConfig.NEVER" title="pyxb.ValidationConfig.NEVER"><code class="xref py py-obj docutils literal"><span class="pre">NEVER</span></code></a>, <a class="reference internal" href="#pyxb.ValidationConfig.MIXED_ONLY" title="pyxb.ValidationConfig.MIXED_ONLY"><code class="xref py py-obj docutils literal"><span class="pre">MIXED_ONLY</span></code></a> (default).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxb.ValidationConfig._ValidationConfig__getInvalidElementInContent">
+<code class="descname">_ValidationConfig__getInvalidElementInContent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.ValidationConfig._ValidationConfig__getInvalidElementInContent" title="Permalink to this definition">¶</a></dt>
+<dd><p>How to handle invalid elements in content lists.</p>
+<p>The value is one of <a class="reference internal" href="#pyxb.ValidationConfig.IGNORE_ONCE" title="pyxb.ValidationConfig.IGNORE_ONCE"><code class="xref py py-obj docutils literal"><span class="pre">IGNORE_ONCE</span></code></a> (default), <a class="reference internal" href="#pyxb.ValidationConfig.GIVE_UP" title="pyxb.ValidationConfig.GIVE_UP"><code class="xref py py-obj docutils literal"><span class="pre">GIVE_UP</span></code></a>,
+<a class="reference internal" href="#pyxb.ValidationConfig.RAISE_EXCEPTION" title="pyxb.ValidationConfig.RAISE_EXCEPTION"><code class="xref py py-obj docutils literal"><span class="pre">RAISE_EXCEPTION</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxb.ValidationConfig._ValidationConfig__getOrphanElementInContent">
+<code class="descname">_ValidationConfig__getOrphanElementInContent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.ValidationConfig._ValidationConfig__getOrphanElementInContent" title="Permalink to this definition">¶</a></dt>
+<dd><p>How to handle unrecognized elements in content lists.</p>
+<p>This is used when consulting a complex type instance content list to
+influence the generation of documents from a binding instance.</p>
+<p>The value is one of <a class="reference internal" href="#pyxb.ValidationConfig.IGNORE_ONCE" title="pyxb.ValidationConfig.IGNORE_ONCE"><code class="xref py py-obj docutils literal"><span class="pre">IGNORE_ONCE</span></code></a> (default), <a class="reference internal" href="#pyxb.ValidationConfig.GIVE_UP" title="pyxb.ValidationConfig.GIVE_UP"><code class="xref py py-obj docutils literal"><span class="pre">GIVE_UP</span></code></a>,
+<a class="reference internal" href="#pyxb.ValidationConfig.RAISE_EXCEPTION" title="pyxb.ValidationConfig.RAISE_EXCEPTION"><code class="xref py py-obj docutils literal"><span class="pre">RAISE_EXCEPTION</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.ValidationConfig._ValidationConfig__invalidElementInContent">
+<code class="descname">_ValidationConfig__invalidElementInContent</code><em class="property"> = 1</em><a class="headerlink" href="#pyxb.ValidationConfig._ValidationConfig__invalidElementInContent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.ValidationConfig._ValidationConfig__orphanElementInContent">
+<code class="descname">_ValidationConfig__orphanElementInContent</code><em class="property"> = 1</em><a class="headerlink" href="#pyxb.ValidationConfig._ValidationConfig__orphanElementInContent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyxb.ValidationConfig._getForBinding">
+<code class="descname">_getForBinding</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.ValidationConfig._getForBinding" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">True</span></code> iff validation should be performed when manipulating a
+binding instance.</p>
+<p>This includes parsing a document or DOM tree, using a binding instance
+class constructor, or assigning to an element or attribute field of a
+binding instance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxb.ValidationConfig._getForDocument">
+<code class="descname">_getForDocument</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.ValidationConfig._getForDocument" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">True</span></code> iff validation should be performed when creating a document
+from a binding instance.</p>
+<p>This applies at invocation of
+<a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._TypeBinding_mixin.toDOM" title="pyxb.binding.basis._TypeBinding_mixin.toDOM"><code class="xref py py-obj docutils literal"><span class="pre">toDOM()</span></code></a>.
+<a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._TypeBinding_mixin.toDOM" title="pyxb.binding.basis._TypeBinding_mixin.toDOM"><code class="xref py py-obj docutils literal"><span class="pre">toxml()</span></code></a> invokes <code class="xref py py-obj docutils literal"><span class="pre">toDOM()</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxb.ValidationConfig._setContentInfluencesGeneration">
+<code class="descname">_setContentInfluencesGeneration</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.ValidationConfig._setContentInfluencesGeneration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the value of <a class="reference internal" href="#pyxb.ValidationConfig.contentInfluencesGeneration" title="pyxb.ValidationConfig.contentInfluencesGeneration"><code class="xref py py-obj docutils literal"><span class="pre">contentInfluencesGeneration</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxb.ValidationConfig._setForBinding">
+<code class="descname">_setForBinding</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.ValidationConfig._setForBinding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure whether validation should be performed when manipulating
+a binding instance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxb.ValidationConfig._setForDocument">
+<code class="descname">_setForDocument</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.ValidationConfig._setForDocument" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure whether validation should be performed when generating
+a document from a binding instance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxb.ValidationConfig._setInvalidElementInContent">
+<code class="descname">_setInvalidElementInContent</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.ValidationConfig._setInvalidElementInContent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the value of <a class="reference internal" href="#pyxb.ValidationConfig.invalidElementInContent" title="pyxb.ValidationConfig.invalidElementInContent"><code class="xref py py-obj docutils literal"><span class="pre">invalidElementInContent</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxb.ValidationConfig._setOrphanElementInContent">
+<code class="descname">_setOrphanElementInContent</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.ValidationConfig._setOrphanElementInContent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the value of <a class="reference internal" href="#pyxb.ValidationConfig.orphanElementInContent" title="pyxb.ValidationConfig.orphanElementInContent"><code class="xref py py-obj docutils literal"><span class="pre">orphanElementInContent</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.ValidationConfig.contentInfluencesGeneration">
+<code class="descname">contentInfluencesGeneration</code><a class="headerlink" href="#pyxb.ValidationConfig.contentInfluencesGeneration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine whether complex type content influences element order in
+document generation.</p>
+<p>The value is one of <a class="reference internal" href="#pyxb.ValidationConfig.ALWAYS" title="pyxb.ValidationConfig.ALWAYS"><code class="xref py py-obj docutils literal"><span class="pre">ALWAYS</span></code></a>, <a class="reference internal" href="#pyxb.ValidationConfig.NEVER" title="pyxb.ValidationConfig.NEVER"><code class="xref py py-obj docutils literal"><span class="pre">NEVER</span></code></a>, <a class="reference internal" href="#pyxb.ValidationConfig.MIXED_ONLY" title="pyxb.ValidationConfig.MIXED_ONLY"><code class="xref py py-obj docutils literal"><span class="pre">MIXED_ONLY</span></code></a> (default).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxb.ValidationConfig.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.ValidationConfig.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a copy of this instance.</p>
+<p>Use this to get a starting point when you need to customize validation
+on a per-instance/per-class basis.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.ValidationConfig.forBinding">
+<code class="descname">forBinding</code><a class="headerlink" href="#pyxb.ValidationConfig.forBinding" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">True</span></code> iff validation should be performed when manipulating a
+binding instance.</p>
+<p>This includes parsing a document or DOM tree, using a binding instance
+class constructor, or assigning to an element or attribute field of a
+binding instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.ValidationConfig.forDocument">
+<code class="descname">forDocument</code><a class="headerlink" href="#pyxb.ValidationConfig.forDocument" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">True</span></code> iff validation should be performed when creating a document
+from a binding instance.</p>
+<p>This applies at invocation of
+<a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._TypeBinding_mixin.toDOM" title="pyxb.binding.basis._TypeBinding_mixin.toDOM"><code class="xref py py-obj docutils literal"><span class="pre">toDOM()</span></code></a>.
+<a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._TypeBinding_mixin.toDOM" title="pyxb.binding.basis._TypeBinding_mixin.toDOM"><code class="xref py py-obj docutils literal"><span class="pre">toxml()</span></code></a> invokes <code class="xref py py-obj docutils literal"><span class="pre">toDOM()</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.ValidationConfig.invalidElementInContent">
+<code class="descname">invalidElementInContent</code><a class="headerlink" href="#pyxb.ValidationConfig.invalidElementInContent" title="Permalink to this definition">¶</a></dt>
+<dd><p>How to handle invalid elements in content lists.</p>
+<p>The value is one of <a class="reference internal" href="#pyxb.ValidationConfig.IGNORE_ONCE" title="pyxb.ValidationConfig.IGNORE_ONCE"><code class="xref py py-obj docutils literal"><span class="pre">IGNORE_ONCE</span></code></a> (default), <a class="reference internal" href="#pyxb.ValidationConfig.GIVE_UP" title="pyxb.ValidationConfig.GIVE_UP"><code class="xref py py-obj docutils literal"><span class="pre">GIVE_UP</span></code></a>,
+<a class="reference internal" href="#pyxb.ValidationConfig.RAISE_EXCEPTION" title="pyxb.ValidationConfig.RAISE_EXCEPTION"><code class="xref py py-obj docutils literal"><span class="pre">RAISE_EXCEPTION</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.ValidationConfig.orphanElementInContent">
+<code class="descname">orphanElementInContent</code><a class="headerlink" href="#pyxb.ValidationConfig.orphanElementInContent" title="Permalink to this definition">¶</a></dt>
+<dd><p>How to handle unrecognized elements in content lists.</p>
+<p>This is used when consulting a complex type instance content list to
+influence the generation of documents from a binding instance.</p>
+<p>The value is one of <a class="reference internal" href="#pyxb.ValidationConfig.IGNORE_ONCE" title="pyxb.ValidationConfig.IGNORE_ONCE"><code class="xref py py-obj docutils literal"><span class="pre">IGNORE_ONCE</span></code></a> (default), <a class="reference internal" href="#pyxb.ValidationConfig.GIVE_UP" title="pyxb.ValidationConfig.GIVE_UP"><code class="xref py py-obj docutils literal"><span class="pre">GIVE_UP</span></code></a>,
+<a class="reference internal" href="#pyxb.ValidationConfig.RAISE_EXCEPTION" title="pyxb.ValidationConfig.RAISE_EXCEPTION"><code class="xref py py-obj docutils literal"><span class="pre">RAISE_EXCEPTION</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="data">
+<dt id="pyxb.XMLStyle_minidom">
+<code class="descclassname">pyxb.</code><code class="descname">XMLStyle_minidom</code><em class="property"> = 0</em><a class="headerlink" href="#pyxb.XMLStyle_minidom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use xml.dom.minidom for XML processing.  This is the fastest, but does not
+provide location information.  It produces DOM instances.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pyxb.XMLStyle_saxdom">
+<code class="descclassname">pyxb.</code><code class="descname">XMLStyle_saxdom</code><em class="property"> = 1</em><a class="headerlink" href="#pyxb.XMLStyle_saxdom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use pyxb.utils.saxdom for XML processing.  This is the slowest, but both
+provides location information and generates a DOM instance.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pyxb.XMLStyle_saxer">
+<code class="descclassname">pyxb.</code><code class="descname">XMLStyle_saxer</code><em class="property"> = 2</em><a class="headerlink" href="#pyxb.XMLStyle_saxer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use pyxb.binding.saxer when converting documents to binding instances.
+This style supports location information in the bindings.  It produces binding
+instances directly, without going through a DOM stage, so is faster than
+XMLStyle_saxdom.  However, since the pyxb.xmlschema.structures classes require
+a DOM model, XMLStyle_saxdom will be used for pyxb.utils.domutils.StringToDOM
+if this style is selected.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyxb._SetXMLStyle">
+<code class="descclassname">pyxb.</code><code class="descname">_SetXMLStyle</code><span class="sig-paren">(</span><em>style=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb._SetXMLStyle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the interface used to parse XML content.</p>
+<p>This can be invoked within code.  The system default of <a class="reference internal" href="#pyxb.XMLStyle_saxer" title="pyxb.XMLStyle_saxer"><code class="xref py py-obj docutils literal"><span class="pre">XMLStyle_saxer</span></code></a>
+can also be overridden at runtime by setting the environment variable
+<code class="xref py py-obj docutils literal"><span class="pre">PYXB_XML_STYLE</span></code> to one of <code class="xref py py-obj docutils literal"><span class="pre">minidom</span></code>, <code class="xref py py-obj docutils literal"><span class="pre">saxdom</span></code>, or <code class="xref py py-obj docutils literal"><span class="pre">saxer</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>style</strong> &#8211; One of <a class="reference internal" href="#pyxb.XMLStyle_minidom" title="pyxb.XMLStyle_minidom"><code class="xref py py-obj docutils literal"><span class="pre">XMLStyle_minidom</span></code></a>, <a class="reference internal" href="#pyxb.XMLStyle_saxdom" title="pyxb.XMLStyle_saxdom"><code class="xref py py-obj docutils literal"><span class="pre">XMLStyle_saxdom</span></code></a>,</td>
+</tr>
+</tbody>
+</table>
+<p><a class="reference internal" href="#pyxb.XMLStyle_saxer" title="pyxb.XMLStyle_saxer"><code class="xref py py-obj docutils literal"><span class="pre">XMLStyle_saxer</span></code></a>.  If not provided, the system default is used.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyxb.cscRoot">
+<em class="property">class </em><code class="descclassname">pyxb.</code><code class="descname">cscRoot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.cscRoot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>This little bundle of joy exists because in Python 2.6 it
+became an error to invoke <code class="xref py py-obj docutils literal"><span class="pre">object.__init__</span></code> with parameters (unless
+you also override <code class="xref py py-obj docutils literal"><span class="pre">__new__</span></code>, in which case it&#8217;s only a warning.
+Whatever.).  Since I&#8217;m bloody not going to check in every class
+whether <code class="xref py py-obj docutils literal"><span class="pre">super(Myclass,self)</span></code> refers to <code class="xref py py-obj docutils literal"><span class="pre">object</span></code> (even if I could
+figure out how to do that, &#8216;cuz the obvious solutions don&#8217;t work),
+we&#8217;ll just make this thing the root of all U{cooperative super
+calling&lt;<a class="reference external" href="http://www.geocities.com/foetsch/python/new_style_classes.htm#super">http://www.geocities.com/foetsch/python/new_style_classes.htm#super</a>&gt;}
+hierarchies.  The standard syntax in PyXB for this pattern is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">method_csc</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+  <span class="n">self_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">_args</span><span class="p">,</span> <span class="o">**</span><span class="n">_kw</span><span class="p">:</span> <span class="bp">self</span>
+  <span class="n">super_fn</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">super</span><span class="p">(</span><span class="n">ThisClass</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span> <span class="s1">&#39;method_csc&#39;</span><span class="p">,</span> <span class="n">self_fn</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">super_fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<div class="section" id="subpackages">
+<h2>subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pyxb.binding.html">pyxb.binding package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.binding.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.binding.html#module-pyxb.binding.basis">pyxb.binding.basis module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.binding.html#pyxb-binding-content-module">pyxb.binding.content module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.binding.html#module-pyxb.binding.datatypes">pyxb.binding.datatypes module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.binding.html#module-pyxb.binding.facets">pyxb.binding.facets module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.binding.html#module-pyxb.binding.generate">pyxb.binding.generate module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.binding.html#module-pyxb.binding.saxer">pyxb.binding.saxer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.binding.html#module-pyxb.binding.xml_">pyxb.binding.xml_ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.binding.html#module-pyxb.binding">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pyxb.namespace.html">pyxb.namespace package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.namespace.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.namespace.html#pyxb-namespace-archive-module">pyxb.namespace.archive module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.namespace.html#module-pyxb.namespace.builtin">pyxb.namespace.builtin module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.namespace.html#pyxb-namespace-resolution-module">pyxb.namespace.resolution module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.namespace.html#module-pyxb.namespace.utility">pyxb.namespace.utility module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.namespace.html#module-pyxb.namespace">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pyxb.utils.html">pyxb.utils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.utils.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.utils.html#module-pyxb.utils.activestate">pyxb.utils.activestate module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.utils.html#module-pyxb.utils.domutils">pyxb.utils.domutils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.utils.html#pyxb-utils-fac-module">pyxb.utils.fac module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.utils.html#module-pyxb.utils.saxdom">pyxb.utils.saxdom module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.utils.html#module-pyxb.utils.saxutils">pyxb.utils.saxutils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.utils.html#module-pyxb.utils.six">pyxb.utils.six module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.utils.html#module-pyxb.utils.templates">pyxb.utils.templates module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.utils.html#module-pyxb.utils.unicode">pyxb.utils.unicode module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.utils.html#module-pyxb.utils.unicode_data">pyxb.utils.unicode_data module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.utils.html#module-pyxb.utils.utility">pyxb.utils.utility module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.utils.html#module-pyxb.utils.xmlre">pyxb.utils.xmlre module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.utils.html#module-pyxb.utils">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pyxb.xmlschema.html">pyxb.xmlschema package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.xmlschema.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.xmlschema.html#module-pyxb.xmlschema.structures">pyxb.xmlschema.structures module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyxb.xmlschema.html#module-pyxb.xmlschema">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pyxb.exceptions_">
+<span id="pyxb-exceptions-module"></span><h2>pyxb.exceptions_ module<a class="headerlink" href="#module-pyxb.exceptions_" title="Permalink to this headline">¶</a></h2>
+<p>Extensions of standard exceptions for PyXB events.</p>
+<p>Yeah, I&#8217;d love this module to be named exceptions.py, but it can&#8217;t
+because the standard library has one of those, and we need to
+reference it below.</p>
+<dl class="exception">
+<dt id="pyxb.exceptions_.AbstractElementError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">AbstractElementError</code><span class="sig-paren">(</span><em>element</em>, <em>location</em>, <em>value=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.AbstractElementError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ElementValidationError" title="pyxb.exceptions_.ElementValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ElementValidationError</span></code></a></p>
+<p>Attempt to create an instance of an abstract element.</p>
+<p>Raised when an element is created and the identified binding is
+abstract.  Such elements cannot be created directly; instead the
+creation must derive from an instance of the abstract element&#8217;s
+substitution group.</p>
+<p>Since members of the substitution group self-identify using the
+<code class="xref py py-obj docutils literal"><span class="pre">substitutionGroup</span></code> attribute, there is no general way to find
+the set of elements which would be acceptable in place of the
+abstract element.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.AbstractElementError.element">
+<code class="descname">element</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.AbstractElementError.element" title="Permalink to this definition">¶</a></dt>
+<dd><p>The abstract <a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis.element" title="pyxb.binding.basis.element"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis.element</span></code></a> in question</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.AbstractElementError.value">
+<code class="descname">value</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.AbstractElementError.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>The value proposed for the <a class="reference internal" href="#pyxb.exceptions_.AbstractElementError.element" title="pyxb.exceptions_.AbstractElementError.element"><code class="xref py py-obj docutils literal"><span class="pre">element</span></code></a>.  This is usually going
+to be a <code class="xref py py-obj docutils literal"><span class="pre">xml.dom.Node</span></code> used in the attempt to create the element,
+<code class="xref py py-obj docutils literal"><span class="pre">None</span></code> if the abstract element was invoked without a node, or
+another type if
+<a class="reference internal" href="pyxb.binding.html#pyxb.binding.content.ElementDeclaration.toDOM" title="pyxb.binding.content.ElementDeclaration.toDOM"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.content.ElementDeclaration.toDOM</span></code></a> is
+mis-used.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.AbstractInstantiationError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">AbstractInstantiationError</code><span class="sig-paren">(</span><em>type</em>, <em>location</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.AbstractInstantiationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ComplexTypeValidationError" title="pyxb.exceptions_.ComplexTypeValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ComplexTypeValidationError</span></code></a></p>
+<p>Attempt to create an instance of an abstract complex type.</p>
+<p>These types are analogous to abstract base classes, and cannot be
+created directly.  A type should be used that extends the abstract
+class.</p>
+<p>When an incoming document is missing the xsi:type attribute which
+redirects an element with an abstract type to the correct type,
+the <a class="reference internal" href="#pyxb.exceptions_.AbstractInstantiationError.node" title="pyxb.exceptions_.AbstractInstantiationError.node"><code class="xref py py-obj docutils literal"><span class="pre">node</span></code></a> attribute is provided so the user can get a clue as to
+where the problem occured.  When this exception is a result of
+constructor mis-use in Python code, the traceback will tell you
+where the problem lies.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.AbstractInstantiationError.node">
+<code class="descname">node</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.AbstractInstantiationError.node" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <code class="xref py py-obj docutils literal"><span class="pre">xml.dom.Element</span></code> from which instantiation was attempted, if available.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.AbstractInstantiationError.type">
+<code class="descname">type</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.AbstractInstantiationError.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>The abstract <a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis.complexTypeDefinition" title="pyxb.binding.basis.complexTypeDefinition"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis.complexTypeDefinition</span></code></a> subclass used.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.AttributeChangeError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">AttributeChangeError</code><span class="sig-paren">(</span><em>type</em>, <em>tag</em>, <em>instance=None</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.AttributeChangeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.AttributeValidationError" title="pyxb.exceptions_.AttributeValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.AttributeValidationError</span></code></a></p>
+<p>Attempt to change an attribute that has a fixed value constraint.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.AttributeOnSimpleTypeError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">AttributeOnSimpleTypeError</code><span class="sig-paren">(</span><em>instance</em>, <em>tag</em>, <em>value</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.AttributeOnSimpleTypeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ComplexTypeValidationError" title="pyxb.exceptions_.ComplexTypeValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ComplexTypeValidationError</span></code></a></p>
+<p>Attempt made to set an attribute on an element with simple type.</p>
+<p>Note that elements with complex type and simple content may have
+attributes; elements with simple type must not.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.AttributeOnSimpleTypeError.instance">
+<code class="descname">instance</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.AttributeOnSimpleTypeError.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>The simple type binding instance on which no attributes exist.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.AttributeOnSimpleTypeError.tag">
+<code class="descname">tag</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.AttributeOnSimpleTypeError.tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the proposed attribute.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.AttributeOnSimpleTypeError.value">
+<code class="descname">value</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.AttributeOnSimpleTypeError.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>The value proposed to be assigned to the non-existent attribute.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.AttributeValidationError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">AttributeValidationError</code><span class="sig-paren">(</span><em>type</em>, <em>tag</em>, <em>instance=None</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.AttributeValidationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ValidationError" title="pyxb.exceptions_.ValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ValidationError</span></code></a></p>
+<p>Raised when an attribute requirement is not satisfied.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.AttributeValidationError.instance">
+<code class="descname">instance</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.AttributeValidationError.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>The binding instance, if available.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.AttributeValidationError.tag">
+<code class="descname">tag</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.AttributeValidationError.tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the attribute.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.AttributeValidationError.type">
+<code class="descname">type</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.AttributeValidationError.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis.complexTypeDefinition" title="pyxb.binding.basis.complexTypeDefinition"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis.complexTypeDefinition</span></code></a> subclass of the instance.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.BadDocumentError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">BadDocumentError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.BadDocumentError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.PyXBException" title="pyxb.exceptions_.PyXBException"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.PyXBException</span></code></a></p>
+<p>Raised when processing document content and an error is encountered.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.BatchElementContentError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">BatchElementContentError</code><span class="sig-paren">(</span><em>instance</em>, <em>fac_configuration</em>, <em>symbols</em>, <em>symbol_set</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.BatchElementContentError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ContentValidationError" title="pyxb.exceptions_.ContentValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ContentValidationError</span></code></a></p>
+<p>Element/wildcard content cannot be reconciled with the required content model.</p>
+<p>This exception occurs in post-construction validation using a
+fresh validating automaton.</p>
+<dl class="method">
+<dt id="pyxb.exceptions_.BatchElementContentError.details">
+<code class="descname">details</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.BatchElementContentError.details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.BatchElementContentError.fac_configuration">
+<code class="descname">fac_configuration</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.BatchElementContentError.fac_configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="pyxb.utils.html#pyxb.utils.fac.Configuration" title="pyxb.utils.fac.Configuration"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.utils.fac.Configuration</span></code></a> representing the current state of the <a class="reference internal" href="#pyxb.exceptions_.BatchElementContentError.instance" title="pyxb.exceptions_.BatchElementContentError.instance"><code class="xref py py-obj docutils literal"><span class="pre">instance</span></code></a> automaton.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.BatchElementContentError.instance">
+<code class="descname">instance</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.BatchElementContentError.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>The binding instance being constructed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.BatchElementContentError.symbol_set">
+<code class="descname">symbol_set</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.BatchElementContentError.symbol_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>The leftovers from <a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis.complexTypeDefinition._symbolSet" title="pyxb.binding.basis.complexTypeDefinition._symbolSet"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis.complexTypeDefinition._symbolSet</span></code></a> that could not be reconciled with the content model.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.BatchElementContentError.symbols">
+<code class="descname">symbols</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.BatchElementContentError.symbols" title="Permalink to this definition">¶</a></dt>
+<dd><p>The sequence of symbols that were accepted as content prior to the error.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.BindingError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">BindingError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.BindingError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.PyXBException" title="pyxb.exceptions_.PyXBException"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.PyXBException</span></code></a></p>
+<p>Raised when the bindings are mis-used.</p>
+<p>These are not validation errors, but rather structural errors.
+For example, attempts to extract complex content from a type that
+requires simple content, or vice versa.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.BindingGenerationError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">BindingGenerationError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.BindingGenerationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.PyXBException" title="pyxb.exceptions_.PyXBException"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.PyXBException</span></code></a></p>
+<p>Raised when something goes wrong generating the binding classes</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.ComplexTypeValidationError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">ComplexTypeValidationError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.ComplexTypeValidationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ValidationError" title="pyxb.exceptions_.ValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ValidationError</span></code></a></p>
+<p>Raised when a validation requirement for a complex type is not satisfied.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.ContentInNilInstanceError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">ContentInNilInstanceError</code><span class="sig-paren">(</span><em>instance</em>, <em>content</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.ContentInNilInstanceError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ElementValidationError" title="pyxb.exceptions_.ElementValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ElementValidationError</span></code></a></p>
+<p>Raised when an element that is marked to be nil is assigned content.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.ContentInNilInstanceError.content">
+<code class="descname">content</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.ContentInNilInstanceError.content" title="Permalink to this definition">¶</a></dt>
+<dd><p>The content that was to be assigned to the instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.ContentInNilInstanceError.instance">
+<code class="descname">instance</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.ContentInNilInstanceError.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>The binding instance which is xsi:nil</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.ContentNondeterminismExceededError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">ContentNondeterminismExceededError</code><span class="sig-paren">(</span><em>instance</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.ContentNondeterminismExceededError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ContentValidationError" title="pyxb.exceptions_.ContentValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ContentValidationError</span></code></a></p>
+<p>Content validation exceeded the allowed limits of nondeterminism.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.ContentNondeterminismExceededError.instance">
+<code class="descname">instance</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.ContentNondeterminismExceededError.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>The binding instance being validated.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.ContentValidationError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">ContentValidationError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.ContentValidationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ComplexTypeValidationError" title="pyxb.exceptions_.ComplexTypeValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ComplexTypeValidationError</span></code></a></p>
+<p>Violation of a complex type content model.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.DOMGenerationError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">DOMGenerationError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.DOMGenerationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.PyXBException" title="pyxb.exceptions_.PyXBException"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.PyXBException</span></code></a></p>
+<p>A non-validation error encountered converting bindings to DOM.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.ElementChangeError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">ElementChangeError</code><span class="sig-paren">(</span><em>element</em>, <em>value</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.ElementChangeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ElementValidationError" title="pyxb.exceptions_.ElementValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ElementValidationError</span></code></a></p>
+<p>Attempt to change an element that has a fixed value constraint.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.ElementChangeError.element">
+<code class="descname">element</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.ElementChangeError.element" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis.element" title="pyxb.binding.basis.element"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis.element</span></code></a> that has a fixed value.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.ElementChangeError.value">
+<code class="descname">value</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.ElementChangeError.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>The value that was to be assigned to the element.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.ElementValidationError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">ElementValidationError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.ElementValidationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ValidationError" title="pyxb.exceptions_.ValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ValidationError</span></code></a></p>
+<p>Raised when a validation requirement for an element is not satisfied.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.ExtraSimpleContentError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">ExtraSimpleContentError</code><span class="sig-paren">(</span><em>instance</em>, <em>value</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.ExtraSimpleContentError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ContentValidationError" title="pyxb.exceptions_.ContentValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ContentValidationError</span></code></a></p>
+<p>A complex type with simple content was provided too much content.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.ExtraSimpleContentError.instance">
+<code class="descname">instance</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.ExtraSimpleContentError.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>The binding instance that already has simple content assigned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.ExtraSimpleContentError.value">
+<code class="descname">value</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.ExtraSimpleContentError.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>The proposed addition to that simple content.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.IncompleteElementContentError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">IncompleteElementContentError</code><span class="sig-paren">(</span><em>instance</em>, <em>fac_configuration</em>, <em>symbols</em>, <em>symbol_set</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.IncompleteElementContentError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.BatchElementContentError" title="pyxb.exceptions_.BatchElementContentError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.BatchElementContentError</span></code></a></p>
+<p>Validation of an instance failed to produce an accepting state.</p>
+<p>This exception occurs in batch-mode validation.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.IncompleteImplementationError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">IncompleteImplementationError</code><a class="headerlink" href="#pyxb.exceptions_.IncompleteImplementationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.LogicError" title="pyxb.exceptions_.LogicError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.LogicError</span></code></a></p>
+<p>Raised when required capability has not been implemented.</p>
+<p>This is only used where it is reasonable to expect the capability
+to be present, such as a feature of XML schema that is not
+supported (e.g., the redefine directive).</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.IncrementalElementContentError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">IncrementalElementContentError</code><span class="sig-paren">(</span><em>instance</em>, <em>automaton_configuration</em>, <em>value</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.IncrementalElementContentError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ContentValidationError" title="pyxb.exceptions_.ContentValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ContentValidationError</span></code></a></p>
+<p>Element or element-like content could not be validly associated with an sub-element in the content model.</p>
+<p>This exception occurs when content is added to an element during
+incremental validation, such as when positional arguments are used
+in a constructor or material is appended either explicitly or
+through parsing a DOM instance.</p>
+<dl class="method">
+<dt id="pyxb.exceptions_.IncrementalElementContentError._valueDescription">
+<code class="descname">_valueDescription</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.IncrementalElementContentError._valueDescription" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.IncrementalElementContentError.automaton_configuration">
+<code class="descname">automaton_configuration</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.IncrementalElementContentError.automaton_configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="pyxb.binding.html#pyxb.binding.content.AutomatonConfiguration" title="pyxb.binding.content.AutomatonConfiguration"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.content.AutomatonConfiguration</span></code></a> representing the current state of the <a class="reference internal" href="#pyxb.exceptions_.IncrementalElementContentError.instance" title="pyxb.exceptions_.IncrementalElementContentError.instance"><code class="xref py py-obj docutils literal"><span class="pre">instance</span></code></a> content.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.IncrementalElementContentError.instance">
+<code class="descname">instance</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.IncrementalElementContentError.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>The binding for which the <a class="reference internal" href="#pyxb.exceptions_.IncrementalElementContentError.value" title="pyxb.exceptions_.IncrementalElementContentError.value"><code class="xref py py-obj docutils literal"><span class="pre">value</span></code></a> could not be associated with an element.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.IncrementalElementContentError.value">
+<code class="descname">value</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.IncrementalElementContentError.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>The value that could not be associated with allowable content.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.InvalidPreferredElementContentError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">InvalidPreferredElementContentError</code><span class="sig-paren">(</span><em>instance</em>, <em>fac_configuration</em>, <em>symbols</em>, <em>symbol_set</em>, <em>preferred_symbol</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.InvalidPreferredElementContentError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.BatchElementContentError" title="pyxb.exceptions_.BatchElementContentError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.BatchElementContentError</span></code></a></p>
+<p>Use of a preferred element led to inability to generate a valid document</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.InvalidPreferredElementContentError.preferred_symbol">
+<code class="descname">preferred_symbol</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.InvalidPreferredElementContentError.preferred_symbol" title="Permalink to this definition">¶</a></dt>
+<dd><p>The element symbol which was not accepted.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.LogicError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">LogicError</code><a class="headerlink" href="#pyxb.exceptions_.LogicError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.PyXBError" title="pyxb.exceptions_.PyXBError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.PyXBError</span></code></a></p>
+<p>Raised when the code detects an implementation problem.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.MissingAttributeError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">MissingAttributeError</code><span class="sig-paren">(</span><em>type</em>, <em>tag</em>, <em>instance=None</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.MissingAttributeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.AttributeValidationError" title="pyxb.exceptions_.AttributeValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.AttributeValidationError</span></code></a></p>
+<p>Raised when an attribute that is required is missing in an element.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.MixedContentError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">MixedContentError</code><span class="sig-paren">(</span><em>instance</em>, <em>value</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.MixedContentError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ContentValidationError" title="pyxb.exceptions_.ContentValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ContentValidationError</span></code></a></p>
+<p>Non-element content added to a complex type instance that does not support mixed content.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.MixedContentError.instance">
+<code class="descname">instance</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.MixedContentError.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>The binding instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.MixedContentError.value">
+<code class="descname">value</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.MixedContentError.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>The non-element content.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.NamespaceArchiveError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">NamespaceArchiveError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.NamespaceArchiveError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.PyXBException" title="pyxb.exceptions_.PyXBException"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.PyXBException</span></code></a></p>
+<p>Problem related to namespace archives</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.NamespaceError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">NamespaceError</code><span class="sig-paren">(</span><em>namespace</em>, <em>*args</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.NamespaceError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.PyXBException" title="pyxb.exceptions_.PyXBException"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.PyXBException</span></code></a></p>
+<p>Violation of some rule relevant to XML Namespaces</p>
+<dl class="method">
+<dt id="pyxb.exceptions_.NamespaceError.namespace">
+<code class="descname">namespace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.NamespaceError.namespace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.NamespaceUniquenessError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">NamespaceUniquenessError</code><span class="sig-paren">(</span><em>namespace</em>, <em>*args</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.NamespaceUniquenessError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.NamespaceError" title="pyxb.exceptions_.NamespaceError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.NamespaceError</span></code></a></p>
+<p>Raised when an attempt is made to record multiple objects of the same name in the same namespace category.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.NoNillableSupportError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">NoNillableSupportError</code><span class="sig-paren">(</span><em>instance</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.NoNillableSupportError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ElementValidationError" title="pyxb.exceptions_.ElementValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ElementValidationError</span></code></a></p>
+<p>Raised when invoking <a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._TypeBinding_mixin._setIsNil" title="pyxb.binding.basis._TypeBinding_mixin._setIsNil"><code class="xref py py-obj docutils literal"><span class="pre">_setIsNil</span></code></a> on a type that does not support nillable.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.NoNillableSupportError.instance">
+<code class="descname">instance</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.NoNillableSupportError.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>The binding instance on which an inappropriate operation was invoked.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.NonElementValidationError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">NonElementValidationError</code><span class="sig-paren">(</span><em>element</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.NonElementValidationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ValidationError" title="pyxb.exceptions_.ValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ValidationError</span></code></a></p>
+<p>Raised when an element (or a value bound to an element) appears
+in context that does not permit an element.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.NonElementValidationError.element">
+<code class="descname">element</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.NonElementValidationError.element" title="Permalink to this definition">¶</a></dt>
+<dd><p>The content that is not permitted.  This may be an element, or
+a DOM representation that would have been made into an element had
+matters progressed further.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.NonPluralAppendError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">NonPluralAppendError</code><span class="sig-paren">(</span><em>instance</em>, <em>element_declaration</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.NonPluralAppendError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ContentValidationError" title="pyxb.exceptions_.ContentValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ContentValidationError</span></code></a></p>
+<p>Attempt to append to an element which does not accept multiple instances.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.NonPluralAppendError.element_declaration">
+<code class="descname">element_declaration</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.NonPluralAppendError.element_declaration" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="pyxb.binding.html#pyxb.binding.content.ElementDeclaration" title="pyxb.binding.content.ElementDeclaration"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.content.ElementDeclaration</span></code></a> contained in <a class="reference internal" href="#pyxb.exceptions_.NonPluralAppendError.instance" title="pyxb.exceptions_.NonPluralAppendError.instance"><code class="xref py py-obj docutils literal"><span class="pre">instance</span></code></a> that does not accept multiple instances</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.NonPluralAppendError.instance">
+<code class="descname">instance</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.NonPluralAppendError.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>The binding instance containing the element</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.NonPluralAppendError.value">
+<code class="descname">value</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.NonPluralAppendError.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>The proposed addition to the element in the instance</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.NotComplexContentError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">NotComplexContentError</code><span class="sig-paren">(</span><em>instance</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.NotComplexContentError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.BindingError" title="pyxb.exceptions_.BindingError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.BindingError</span></code></a></p>
+<p>An operation that requires a content model was invoked on a
+complex type instance that has empty or simple content.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.NotComplexContentError.instance">
+<code class="descname">instance</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.NotComplexContentError.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>The binding instance which should have had a content model.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.NotInNamespaceError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">NotInNamespaceError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.NotInNamespaceError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.PyXBException" title="pyxb.exceptions_.PyXBException"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.PyXBException</span></code></a></p>
+<p>Raised when a name is referenced that is not defined in the appropriate namespace.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.NotInNamespaceError._NotInNamespaceError__namespace">
+<code class="descname">_NotInNamespaceError__namespace</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.NotInNamespaceError._NotInNamespaceError__namespace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.NotInNamespaceError._NotInNamespaceError__ncName">
+<code class="descname">_NotInNamespaceError__ncName</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.NotInNamespaceError._NotInNamespaceError__ncName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.NotSimpleContentError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">NotSimpleContentError</code><span class="sig-paren">(</span><em>instance</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.NotSimpleContentError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.BindingError" title="pyxb.exceptions_.BindingError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.BindingError</span></code></a></p>
+<p>An operation that requires simple content was invoked on a
+complex type instance that does not have simple content.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.NotSimpleContentError.instance">
+<code class="descname">instance</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.NotSimpleContentError.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>The binding instance which should have had simple content.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.OrphanElementContentError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">OrphanElementContentError</code><span class="sig-paren">(</span><em>instance</em>, <em>preferred</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.OrphanElementContentError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ContentValidationError" title="pyxb.exceptions_.ContentValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ContentValidationError</span></code></a></p>
+<p>An element expected to be used in content is not present in the instance.</p>
+<p>This exception occurs in batch-mode validation when
+<a class="reference internal" href="#pyxb.ValidationConfig.contentInfluencesGeneration" title="pyxb.ValidationConfig.contentInfluencesGeneration"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.ValidationConfig.contentInfluencesGeneration</span></code></a> applies,
+<a class="reference internal" href="#pyxb.ValidationConfig.orphanElementInContent" title="pyxb.ValidationConfig.orphanElementInContent"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.ValidationConfig.orphanElementInContent</span></code></a> is set to
+<a class="reference internal" href="#pyxb.ValidationConfig.RAISE_EXCEPTION" title="pyxb.ValidationConfig.RAISE_EXCEPTION"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.ValidationConfig.RAISE_EXCEPTION</span></code></a>, and the content list
+includes an element that is not in the binding instance
+content.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.OrphanElementContentError.instance">
+<code class="descname">instance</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.OrphanElementContentError.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>The binding instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.OrphanElementContentError.preferred">
+<code class="descname">preferred</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.OrphanElementContentError.preferred" title="Permalink to this definition">¶</a></dt>
+<dd><p>An element value from the <a class="reference internal" href="#pyxb.exceptions_.OrphanElementContentError.instance" title="pyxb.exceptions_.OrphanElementContentError.instance"><code class="xref py py-obj docutils literal"><span class="pre">instance</span></code></a> <a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis.complexTypeDefinition.content" title="pyxb.binding.basis.complexTypeDefinition.content"><code class="xref py py-obj docutils literal"><span class="pre">content</span></code></a> list which was not found in the <a class="reference internal" href="#pyxb.exceptions_.OrphanElementContentError.instance" title="pyxb.exceptions_.OrphanElementContentError.instance"><code class="xref py py-obj docutils literal"><span class="pre">instance</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.ProhibitedAttributeError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">ProhibitedAttributeError</code><span class="sig-paren">(</span><em>type</em>, <em>tag</em>, <em>instance=None</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.ProhibitedAttributeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.AttributeValidationError" title="pyxb.exceptions_.AttributeValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.AttributeValidationError</span></code></a></p>
+<p>Raised when an attribute that is prohibited is set or referenced in an element.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.PyXBError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">PyXBError</code><a class="headerlink" href="#pyxb.exceptions_.PyXBError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+<p>Base class for exceptions that indicate a problem that the user probably can&#8217;t fix.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.PyXBException">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">PyXBException</code><span class="sig-paren">(</span><em>*args</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.PyXBException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+<p>Base class for exceptions that indicate a problem that the user should fix.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.PyXBException._args">
+<code class="descname">_args</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.PyXBException._args" title="Permalink to this definition">¶</a></dt>
+<dd><p>The keywords passed to the exception constructor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">Do not pop values from the keywords array in subclass</td>
+</tr>
+</tbody>
+</table>
+<p>constructors that recognize and extract values from them.  They
+should be kept around so they&#8217;re accessible generically.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.PyXBException._kw">
+<code class="descname">_kw</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.PyXBException._kw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyxb.exceptions_.PyXBException._str_from_unicode">
+<code class="descname">_str_from_unicode</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.PyXBException._str_from_unicode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.PyXBVersionError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">PyXBVersionError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.PyXBVersionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.PyXBException" title="pyxb.exceptions_.PyXBException"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.PyXBException</span></code></a></p>
+<p>Raised on import of a binding generated with a different version of PYXB</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.QNameResolutionError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">QNameResolutionError</code><span class="sig-paren">(</span><em>message</em>, <em>qname</em>, <em>xmlns_context</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.QNameResolutionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.NamespaceError" title="pyxb.exceptions_.NamespaceError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.NamespaceError</span></code></a></p>
+<p>Raised when a QName cannot be associated with a namespace.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.QNameResolutionError.namespaceContext">
+<code class="descname">namespaceContext</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.QNameResolutionError.namespaceContext" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.QNameResolutionError.qname">
+<code class="descname">qname</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.QNameResolutionError.qname" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.ReservedNameError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">ReservedNameError</code><span class="sig-paren">(</span><em>instance</em>, <em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.ReservedNameError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.BindingError" title="pyxb.exceptions_.BindingError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.BindingError</span></code></a></p>
+<p>Reserved name set in binding instance.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.ReservedNameError.instance">
+<code class="descname">instance</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.ReservedNameError.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>The binding instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.ReservedNameError.name">
+<code class="descname">name</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.ReservedNameError.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name that was caught being assigned</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.SchemaUniquenessError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">SchemaUniquenessError</code><span class="sig-paren">(</span><em>namespace</em>, <em>schema_location</em>, <em>existing_schema</em>, <em>*args</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.SchemaUniquenessError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.PyXBException" title="pyxb.exceptions_.PyXBException"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.PyXBException</span></code></a></p>
+<p>Raised when somebody tries to create a schema component using a
+schema that has already been used in that namespace.  Import and
+include processing would have avoided this, so somebody asked for
+it specifically.</p>
+<dl class="method">
+<dt id="pyxb.exceptions_.SchemaUniquenessError.existingSchema">
+<code class="descname">existingSchema</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.SchemaUniquenessError.existingSchema" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyxb.exceptions_.SchemaUniquenessError.namespace">
+<code class="descname">namespace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.SchemaUniquenessError.namespace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyxb.exceptions_.SchemaUniquenessError.schemaLocation">
+<code class="descname">schemaLocation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.SchemaUniquenessError.schemaLocation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.SchemaValidationError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">SchemaValidationError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.SchemaValidationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.PyXBException" title="pyxb.exceptions_.PyXBException"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.PyXBException</span></code></a></p>
+<p>Raised when the XML hierarchy does not appear to be valid for an XML schema.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.SimpleContentAbsentError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">SimpleContentAbsentError</code><span class="sig-paren">(</span><em>instance</em>, <em>location</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.SimpleContentAbsentError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ContentValidationError" title="pyxb.exceptions_.ContentValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ContentValidationError</span></code></a></p>
+<p>An instance with simple content was not provided with a value.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.SimpleContentAbsentError.instance">
+<code class="descname">instance</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.SimpleContentAbsentError.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>The binding instance for which simple content is missing.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.SimpleFacetValueError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">SimpleFacetValueError</code><span class="sig-paren">(</span><em>type</em>, <em>value</em>, <em>facet</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.SimpleFacetValueError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.SimpleTypeValueError" title="pyxb.exceptions_.SimpleTypeValueError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.SimpleTypeValueError</span></code></a></p>
+<p>Raised when a simple type value does not satisfy a facet constraint.</p>
+<p>This extends <a class="reference internal" href="#pyxb.exceptions_.SimpleTypeValueError" title="pyxb.exceptions_.SimpleTypeValueError"><code class="xref py py-obj docutils literal"><span class="pre">SimpleTypeValueError</span></code></a> with the <a class="reference internal" href="#pyxb.exceptions_.SimpleFacetValueError.facet" title="pyxb.exceptions_.SimpleFacetValueError.facet"><code class="xref py py-obj docutils literal"><span class="pre">facet</span></code></a> field which
+can be used to determine why the value is unacceptable.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.SimpleFacetValueError.facet">
+<code class="descname">facet</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.SimpleFacetValueError.facet" title="Permalink to this definition">¶</a></dt>
+<dd><p>The specific facet that is violated by the value.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.SimpleFacetValueError.type">
+<code class="descname">type</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.SimpleFacetValueError.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis.simpleTypeDefinition" title="pyxb.binding.basis.simpleTypeDefinition"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis.simpleTypeDefinition</span></code></a> that constrains values.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.SimpleFacetValueError.value">
+<code class="descname">value</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.SimpleFacetValueError.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>The value that violates the constraints of <a class="reference internal" href="#pyxb.exceptions_.SimpleFacetValueError.type" title="pyxb.exceptions_.SimpleFacetValueError.type"><code class="xref py py-obj docutils literal"><span class="pre">type</span></code></a>.  In some
+cases this is a tuple of arguments passed to a constructor that
+failed with a built-in exception like:py:obj:<cite>ValueError</cite> or
+<code class="xref py py-obj docutils literal"><span class="pre">OverflowError</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.SimpleListValueError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">SimpleListValueError</code><span class="sig-paren">(</span><em>type</em>, <em>value</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.SimpleListValueError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.SimpleTypeValueError" title="pyxb.exceptions_.SimpleTypeValueError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.SimpleTypeValueError</span></code></a></p>
+<p>Raised when a list simple type contains a member that does not satisfy its constraints.</p>
+<p>In this case, <code class="xref py py-obj docutils literal"><span class="pre">type</span></code> is the type of the list, and value
+<code class="xref py py-obj docutils literal"><span class="pre">type._ItemType</span></code> is the type for which the <code class="xref py py-obj docutils literal"><span class="pre">value</span></code> is
+unacceptable.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.SimplePluralValueError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">SimplePluralValueError</code><span class="sig-paren">(</span><em>type</em>, <em>value</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.SimplePluralValueError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.SimpleTypeValueError" title="pyxb.exceptions_.SimpleTypeValueError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.SimpleTypeValueError</span></code></a></p>
+<p>Raised when context requires a plural value.</p>
+<p>Unlike <a class="reference internal" href="#pyxb.exceptions_.SimpleListValueError" title="pyxb.exceptions_.SimpleListValueError"><code class="xref py py-obj docutils literal"><span class="pre">SimpleListValueError</span></code></a>, in this case the plurality is
+external to <code class="xref py py-obj docutils literal"><span class="pre">type</span></code>, for example when an element has simple
+content and allows multiple occurrences.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.SimpleTypeValueError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">SimpleTypeValueError</code><span class="sig-paren">(</span><em>type</em>, <em>value</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.SimpleTypeValueError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ValidationError" title="pyxb.exceptions_.ValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ValidationError</span></code></a></p>
+<p>Raised when a simple type value does not satisfy its constraints.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.SimpleTypeValueError.type">
+<code class="descname">type</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.SimpleTypeValueError.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis.simpleTypeDefinition" title="pyxb.binding.basis.simpleTypeDefinition"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis.simpleTypeDefinition</span></code></a> that constrains values.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.SimpleTypeValueError.value">
+<code class="descname">value</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.SimpleTypeValueError.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>The value that violates the constraints of <a class="reference internal" href="#pyxb.exceptions_.SimpleTypeValueError.type" title="pyxb.exceptions_.SimpleTypeValueError.type"><code class="xref py py-obj docutils literal"><span class="pre">type</span></code></a>.  In some
+cases this is a tuple of arguments passed to a constructor that
+failed with a built-in exception like:py:obj:<cite>ValueError</cite> or
+<code class="xref py py-obj docutils literal"><span class="pre">OverflowError</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.SimpleUnionValueError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">SimpleUnionValueError</code><span class="sig-paren">(</span><em>type</em>, <em>value</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.SimpleUnionValueError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.SimpleTypeValueError" title="pyxb.exceptions_.SimpleTypeValueError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.SimpleTypeValueError</span></code></a></p>
+<p>Raised when a union simple type contains a member that does not satisfy its constraints.</p>
+<p>In this case, <code class="xref py py-obj docutils literal"><span class="pre">type</span></code> is the type of the union, and the value
+<code class="xref py py-obj docutils literal"><span class="pre">type._MemberTypes</span></code> is the set of types for which the value is
+unacceptable.</p>
+<p>The <code class="xref py py-obj docutils literal"><span class="pre">value</span></code> itself is the tuple of arguments passed to the
+constructor for the union.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.StructuralBadDocumentError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">StructuralBadDocumentError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.StructuralBadDocumentError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.BadDocumentError" title="pyxb.exceptions_.BadDocumentError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.BadDocumentError</span></code></a></p>
+<p>Raised when processing document and the content model is not satisfied.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.StructuralBadDocumentError.container">
+<code class="descname">container</code><a class="headerlink" href="#pyxb.exceptions_.StructuralBadDocumentError.container" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis.complexTypeDefinition" title="pyxb.binding.basis.complexTypeDefinition"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis.complexTypeDefinition</span></code></a> instance to which the content would belong, if available.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.StructuralBadDocumentError.content">
+<code class="descname">content</code><a class="headerlink" href="#pyxb.exceptions_.StructuralBadDocumentError.content" title="Permalink to this definition">¶</a></dt>
+<dd><p>The value which could not be reconciled with the content model.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.StructuralBadDocumentError.element_use">
+<code class="descname">element_use</code><a class="headerlink" href="#pyxb.exceptions_.StructuralBadDocumentError.element_use" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="pyxb.binding.html#pyxb.binding.content.ElementDeclaration" title="pyxb.binding.content.ElementDeclaration"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.content.ElementDeclaration</span></code></a> instance to which the content should conform, if available.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.UnboundElementError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">UnboundElementError</code><span class="sig-paren">(</span><em>instance</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.UnboundElementError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.DOMGenerationError" title="pyxb.exceptions_.DOMGenerationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.DOMGenerationError</span></code></a></p>
+<p>An instance converting to DOM had no bound element.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.UnboundElementError.instance">
+<code class="descname">instance</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.UnboundElementError.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>The binding instance.  This is missing an element binding (via
+<a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._TypeBinding_mixin._element" title="pyxb.binding.basis._TypeBinding_mixin._element"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis._TypeBinding_mixin._element</span></code></a>) and no
+<code class="xref py py-obj docutils literal"><span class="pre">element_name</span></code> was passed.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.UnprocessedElementContentError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">UnprocessedElementContentError</code><span class="sig-paren">(</span><em>instance</em>, <em>fac_configuration</em>, <em>symbols</em>, <em>symbol_set</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.UnprocessedElementContentError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.BatchElementContentError" title="pyxb.exceptions_.BatchElementContentError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.BatchElementContentError</span></code></a></p>
+<p>Validation of an instance produced an accepting state but left element material unconsumed.</p>
+<p>This exception occurs in batch-mode validation.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.UnprocessedKeywordContentError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">UnprocessedKeywordContentError</code><span class="sig-paren">(</span><em>instance</em>, <em>keywords</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.UnprocessedKeywordContentError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.ContentValidationError" title="pyxb.exceptions_.ContentValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.ContentValidationError</span></code></a></p>
+<p>A complex type constructor was provided with keywords that could not be recognized.</p>
+<dl class="attribute">
+<dt id="pyxb.exceptions_.UnprocessedKeywordContentError.instance">
+<code class="descname">instance</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.UnprocessedKeywordContentError.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>The binding instance being constructed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.UnprocessedKeywordContentError.keywords">
+<code class="descname">keywords</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.UnprocessedKeywordContentError.keywords" title="Permalink to this definition">¶</a></dt>
+<dd><p>The keywords that could not be recognized.  These may have been
+intended to be attributes or elements, but cannot be identified as
+either.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.UnrecognizedAttributeError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">UnrecognizedAttributeError</code><span class="sig-paren">(</span><em>type</em>, <em>tag</em>, <em>instance=None</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.UnrecognizedAttributeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.AttributeValidationError" title="pyxb.exceptions_.AttributeValidationError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.AttributeValidationError</span></code></a></p>
+<p>Attempt to reference an attribute not sanctioned by content model.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.UnrecognizedContentError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">UnrecognizedContentError</code><span class="sig-paren">(</span><em>instance</em>, <em>automaton_configuration</em>, <em>value</em>, <em>location=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.UnrecognizedContentError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.IncrementalElementContentError" title="pyxb.exceptions_.IncrementalElementContentError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.IncrementalElementContentError</span></code></a></p>
+<p>Element or element-like content could not be validly associated with an sub-element in the content model.</p>
+<p>This exception occurs when content is added to an element during incremental validation.</p>
+<dl class="method">
+<dt id="pyxb.exceptions_.UnrecognizedContentError.details">
+<code class="descname">details</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.UnrecognizedContentError.details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.UnrecognizedDOMRootNodeError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">UnrecognizedDOMRootNodeError</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.UnrecognizedDOMRootNodeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.StructuralBadDocumentError" title="pyxb.exceptions_.StructuralBadDocumentError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.StructuralBadDocumentError</span></code></a></p>
+<p>A root DOM node could not be resolved to a schema element</p>
+<dl class="method">
+<dt id="pyxb.exceptions_.UnrecognizedDOMRootNodeError._UnrecognizedDOMRootNodeError__get_node_name">
+<code class="descname">_UnrecognizedDOMRootNodeError__get_node_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.UnrecognizedDOMRootNodeError._UnrecognizedDOMRootNodeError__get_node_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The QName of the <a class="reference internal" href="#pyxb.exceptions_.UnrecognizedDOMRootNodeError.node" title="pyxb.exceptions_.UnrecognizedDOMRootNodeError.node"><code class="xref py py-obj docutils literal"><span class="pre">node</span></code></a> as a <a class="reference internal" href="pyxb.namespace.html#pyxb.namespace.ExpandedName" title="pyxb.namespace.ExpandedName"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.namespace.ExpandedName</span></code></a></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.UnrecognizedDOMRootNodeError.node">
+<code class="descname">node</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.UnrecognizedDOMRootNodeError.node" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <code class="xref py py-obj docutils literal"><span class="pre">xml.dom.Element</span></code> instance that could not be recognized</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.UnrecognizedDOMRootNodeError.node_name">
+<code class="descname">node_name</code><a class="headerlink" href="#pyxb.exceptions_.UnrecognizedDOMRootNodeError.node_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The QName of the <a class="reference internal" href="#pyxb.exceptions_.UnrecognizedDOMRootNodeError.node" title="pyxb.exceptions_.UnrecognizedDOMRootNodeError.node"><code class="xref py py-obj docutils literal"><span class="pre">node</span></code></a> as a <a class="reference internal" href="pyxb.namespace.html#pyxb.namespace.ExpandedName" title="pyxb.namespace.ExpandedName"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.namespace.ExpandedName</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.UsageError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">UsageError</code><a class="headerlink" href="#pyxb.exceptions_.UsageError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.PyXBError" title="pyxb.exceptions_.PyXBError"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.PyXBError</span></code></a></p>
+<p>Raised when the code detects user violation of an API.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyxb.exceptions_.ValidationError">
+<em class="property">exception </em><code class="descclassname">pyxb.exceptions_.</code><code class="descname">ValidationError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.ValidationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyxb.exceptions_.PyXBException" title="pyxb.exceptions_.PyXBException"><code class="xref py py-class docutils literal"><span class="pre">pyxb.exceptions_.PyXBException</span></code></a></p>
+<p>Raised when something in the infoset fails to satisfy a content model or attribute requirement.</p>
+<p>All validation errors include a <a class="reference internal" href="#pyxb.exceptions_.ValidationError.location" title="pyxb.exceptions_.ValidationError.location"><code class="xref py py-obj docutils literal"><span class="pre">location</span></code></a> attribute which shows
+where in the original XML the problem occurred.  The attribute may
+be <code class="xref py py-obj docutils literal"><span class="pre">None</span></code> if the content did not come from an XML document, or
+the underlying XML infrastructure did not provide a location.</p>
+<p>More refined validation error exception classes add more attributes.</p>
+<dl class="method">
+<dt id="pyxb.exceptions_.ValidationError.details">
+<code class="descname">details</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyxb.exceptions_.ValidationError.details" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provide information describing why validation failed.</p>
+<p>In many cases, this is simply the informal string content that
+would be obtained through the <code class="xref py py-obj docutils literal"><span class="pre">str</span></code> built-in function.  For
+certain errors this method gives more details on what would be
+acceptable and where the descriptions can be found in the
+original schema.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a string description of validation failure</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxb.exceptions_.ValidationError.location">
+<code class="descname">location</code><em class="property"> = None</em><a class="headerlink" href="#pyxb.exceptions_.ValidationError.location" title="Permalink to this definition">¶</a></dt>
+<dd><p>Where the error occurred in the document being parsed, if
+available.  This will be <code class="xref py py-obj docutils literal"><span class="pre">None</span></code>, or an instance of
+<a class="reference internal" href="pyxb.utils.html#pyxb.utils.utility.Location" title="pyxb.utils.utility.Location"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.utils.utility.Location</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyxb">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pyxb" title="Permalink to this headline">¶</a></h2>
+<p>PyXB stands for Python U{W3C XML
+Schema&lt;<a class="reference external" href="http://www.w3.org/XML/Schema">http://www.w3.org/XML/Schema</a>&gt;} Bindings, and is pronounced
+&#8220;pixbee&#8221;.  It enables translation between XML instance documents and
+Python objects following rules specified by an XML Schema document.</p>
+<p>This is the top-level entrypoint to the PyXB system.  Importing this
+gets you all the <a class="reference internal" href="#pyxb.exceptions_.PyXBException" title="pyxb.exceptions_.PyXBException"><code class="xref py py-obj docutils literal"><span class="pre">exceptions</span></code></a>, and
+<a class="reference internal" href="pyxb.namespace.html#module-pyxb.namespace" title="pyxb.namespace"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.namespace</span></code></a>.  For more functionality, delve into these
+submodules:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference internal" href="pyxb.xmlschema.html#module-pyxb.xmlschema" title="pyxb.xmlschema"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.xmlschema</span></code></a> Module holding the
+<a class="reference internal" href="pyxb.xmlschema.html#module-pyxb.xmlschema.structures" title="pyxb.xmlschema.structures"><code class="xref py py-obj docutils literal"><span class="pre">structures</span></code></a> that convert XMLSchema
+from a DOM model to a Python class model based on the XMLSchema
+components.  Use this when you need to operate on the component
+model.</li>
+<li><a class="reference internal" href="pyxb.binding.html#module-pyxb.binding" title="pyxb.binding"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding</span></code></a> Module used to generate the bindings and at runtime
+to support the generated bindings.  Use this if you need to use the
+binding model or content model.</li>
+<li><a class="reference internal" href="pyxb.utils.html#module-pyxb.utils" title="pyxb.utils"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.utils</span></code></a> Common utilities used in parsing, generating, and
+executing.  The submodules must be imported separately.</li>
+</ul>
+</div></blockquote>
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">pyxb.</code><code class="descname">BIND</code><span class="sig-paren">(</span><em>*args</em>, <em>**kw</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Bundle data for automated binding generation.</p>
+<p>Instances of this class capture positional and keyword arguments that are
+used to create binding instances based on context.  For example, if <code class="xref py py-obj docutils literal"><span class="pre">w</span></code>
+is an instance of a complex type whose <code class="xref py py-obj docutils literal"><span class="pre">option</span></code> element is declared to be
+an anonymous class with simple content of type integer and an attribute of
+<code class="xref py py-obj docutils literal"><span class="pre">units</span></code>, a correct assignment to that element could be achieved with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">w</span><span class="o">.</span><span class="n">option</span> <span class="o">=</span> <span class="n">BIND</span><span class="p">(</span><span class="mi">54</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt>
+<code class="descname">_BIND__args</code><em class="property"> = None</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">_BIND__kw</code><em class="property"> = None</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">createInstance</code><span class="sig-paren">(</span><em>factory</em>, <em>**kw</em><span class="sig-paren">)</span></dt>
+<dd><p>Invoke the given factory method.</p>
+<p>Position arguments to the factory are those cached in this instance.
+Keyword arguments are the ones on the command line, updated from the
+ones in this instance.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descclassname">pyxb.</code><code class="descname">NonElementContent</code><span class="sig-paren">(</span><em>instance</em><span class="sig-paren">)</span></dt>
+<dd><p>Return an iterator producing the non-element content of the provided instance.</p>
+<p>The catenated text of the non-element content of an instance can
+be obtained with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">text</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">u</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pyxb</span><span class="o">.</span><span class="n">NonElementContent</span><span class="p">(</span><span class="n">instance</span><span class="p">))</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>instance</strong> &#8211; An instance of <a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis.complexTypeDefinition" title="pyxb.binding.basis.complexTypeDefinition"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis.complexTypeDefinition</span></code></a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an iterator producing text values</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descclassname">pyxb.</code><code class="descname">PreserveInputTimeZone</code><span class="sig-paren">(</span><em>value=None</em><span class="sig-paren">)</span></dt>
+<dd><p>Control whether time values are converted to UTC during input.</p>
+<p>The specification &lt;<a class="reference external" href="http://www.w3.org/TR/xmlschema-2/#dateTime">http://www.w3.org/TR/xmlschema-2/#dateTime</a>&gt; makes
+clear that timezoned times are in UTC and that times in other timezones
+are to be translated to UTC when converted from literal to value form.
+Provide an option to bypass this step, so the input timezone is preserved.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">Naive processing of unnormalized times&#8211;i.e., ignoring the</td>
+</tr>
+</tbody>
+</table>
+<p><code class="xref py py-obj docutils literal"><span class="pre">tzinfo</span></code> field&#8211;may result in errors.</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descclassname">pyxb.</code><code class="descname">RequireValidWhenGenerating</code><span class="sig-paren">(</span><em>value=None</em><span class="sig-paren">)</span></dt>
+<dd><p>Query or set a flag that controls validation checking in XML generation.</p>
+<p>Normally any attempts to convert a binding instance to a DOM or XML
+representation requires that the binding validate against the content
+model, since only in this way can the content be generated in the correct
+order.  In some cases it may be necessary or useful to generate a document
+from a binding that is incomplete.  If validation is not required, the
+generated documents may not validate even if the content validates,
+because ordering constraints will be ignored.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; If absent or <code class="xref py py-obj docutils literal"><span class="pre">None</span></code>, no change is made; otherwise, this</td>
+</tr>
+</tbody>
+</table>
+<p>enables (<code class="xref py py-obj docutils literal"><span class="pre">True</span></code>) or disables (<code class="xref py py-obj docutils literal"><span class="pre">False</span></code>) the requirement that instances
+validate before being converted to XML.
+:type value: <code class="xref py py-obj docutils literal"><span class="pre">bool</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-obj docutils literal"><span class="pre">True</span></code> iff attempts to generate XML for a binding that does not</td>
+</tr>
+</tbody>
+</table>
+<p>validate should raise an exception.</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descclassname">pyxb.</code><code class="descname">RequireValidWhenParsing</code><span class="sig-paren">(</span><em>value=None</em><span class="sig-paren">)</span></dt>
+<dd><p>Query or set a flag that controls validation checking in XML parsing.</p>
+<p>Normally any attempts to convert XML to a binding instance to a binding
+instance requires that the document validate against the content model.
+In some cases it may be necessary or useful to process a document that is
+incomplete.  If validation is not required, the generated documents may
+not validate even if the content validates, because ordering constraints
+will be ignored.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; If absent or <code class="xref py py-obj docutils literal"><span class="pre">None</span></code>, no change is made; otherwise, this</td>
+</tr>
+</tbody>
+</table>
+<p>enables (<code class="xref py py-obj docutils literal"><span class="pre">True</span></code>) or disables (<code class="xref py py-obj docutils literal"><span class="pre">False</span></code>) the requirement that documents
+validate when being converted to bindings.
+:type value: <code class="xref py py-obj docutils literal"><span class="pre">bool</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-obj docutils literal"><span class="pre">True</span></code> iff attempts to generate bindings for a document that</td>
+</tr>
+</tbody>
+</table>
+<p>does not validate should raise an exception.</p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">pyxb.</code><code class="descname">ValidationConfig</code></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Class holding configuration related to validation.</p>
+<p><code class="xref py py-obj docutils literal"><span class="pre">pyxb.GlobalValidationConfig</span></code> is available to influence validation in all
+contexts.  Each binding class has a reference to an instance of this
+class, which can be inspected using
+<a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._TypeBinding_mixin._GetValidationConfig" title="pyxb.binding.basis._TypeBinding_mixin._GetValidationConfig"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis._TypeBinding_mixin._GetValidationConfig</span></code></a> and changed
+using <a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._TypeBinding_mixin._SetValidationConfig" title="pyxb.binding.basis._TypeBinding_mixin._SetValidationConfig"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis._TypeBinding_mixin._SetValidationConfig</span></code></a>.  Each
+binding instance has a reference inherited from its class which can be
+inspected using <a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._TypeBinding_mixin._validationConfig" title="pyxb.binding.basis._TypeBinding_mixin._validationConfig"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis._TypeBinding_mixin._validationConfig</span></code></a>
+and changed using
+<a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._TypeBinding_mixin._setValidationConfig" title="pyxb.binding.basis._TypeBinding_mixin._setValidationConfig"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis._TypeBinding_mixin._setValidationConfig</span></code></a>.</p>
+<p>This allows fine control on a per class and per-instance basis.</p>
+<p><a class="reference internal" href="#pyxb.ValidationConfig.forBinding" title="pyxb.ValidationConfig.forBinding"><code class="xref py py-obj docutils literal"><span class="pre">forBinding</span></code></a> replaces <a class="reference internal" href="#pyxb.RequireValidWhenParsing" title="pyxb.RequireValidWhenParsing"><code class="xref py py-obj docutils literal"><span class="pre">RequireValidWhenParsing</span></code></a>.</p>
+<p><a class="reference internal" href="#pyxb.ValidationConfig.forDocument" title="pyxb.ValidationConfig.forDocument"><code class="xref py py-obj docutils literal"><span class="pre">forDocument</span></code></a> replaces <a class="reference internal" href="#pyxb.RequireValidWhenGenerating" title="pyxb.RequireValidWhenGenerating"><code class="xref py py-obj docutils literal"><span class="pre">RequireValidWhenGenerating</span></code></a>.</p>
+<p><a class="reference internal" href="#pyxb.ValidationConfig.contentInfluencesGeneration" title="pyxb.ValidationConfig.contentInfluencesGeneration"><code class="xref py py-obj docutils literal"><span class="pre">contentInfluencesGeneration</span></code></a>, <a class="reference internal" href="#pyxb.ValidationConfig.orphanElementInContent" title="pyxb.ValidationConfig.orphanElementInContent"><code class="xref py py-obj docutils literal"><span class="pre">orphanElementInContent</span></code></a>, and
+<a class="reference internal" href="#pyxb.ValidationConfig.invalidElementInContent" title="pyxb.ValidationConfig.invalidElementInContent"><code class="xref py py-obj docutils literal"><span class="pre">invalidElementInContent</span></code></a> control how
+<a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis.complexTypeDefinition.orderedContent" title="pyxb.binding.basis.complexTypeDefinition.orderedContent"><code class="xref py py-obj docutils literal"><span class="pre">pyxb.binding.basis.complexTypeDefinition.orderedContent</span></code></a> affects
+generated documents.</p>
+<dl class="attribute">
+<dt>
+<code class="descname">ALWAYS</code><em class="property"> = -1</em></dt>
+<dd><p>Always do it.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">GIVE_UP</code><em class="property"> = 2</em></dt>
+<dd><p>If an error occurs ignore it and stop using whatever provided the cause
+of the error.  (E.g., if an element in a content list fails stop
+processing the content list and execute as though it was absent).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">IGNORE_ONCE</code><em class="property"> = 1</em></dt>
+<dd><p>If an error occurs ignore it and continue with the next one.  (E.g., if
+an element in a content list fails skip it and continue with the next
+element in the list.)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">MIXED_ONLY</code><em class="property"> = 4</em></dt>
+<dd><p>Only when content type is mixed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">NEVER</code><em class="property"> = 0</em></dt>
+<dd><p>Never do it.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">RAISE_EXCEPTION</code><em class="property"> = 3</em></dt>
+<dd><p>If an error occurs, raise an exception.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">_ValidationConfig__contentInfluencesGeneration</code><em class="property"> = 4</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">_ValidationConfig__forBinding</code><em class="property"> = True</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">_ValidationConfig__forDocument</code><em class="property"> = True</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">_ValidationConfig__getContentInfluencesGeneration</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p>Determine whether complex type content influences element order in
+document generation.</p>
+<p>The value is one of <a class="reference internal" href="#pyxb.ValidationConfig.ALWAYS" title="pyxb.ValidationConfig.ALWAYS"><code class="xref py py-obj docutils literal"><span class="pre">ALWAYS</span></code></a>, <a class="reference internal" href="#pyxb.ValidationConfig.NEVER" title="pyxb.ValidationConfig.NEVER"><code class="xref py py-obj docutils literal"><span class="pre">NEVER</span></code></a>, <a class="reference internal" href="#pyxb.ValidationConfig.MIXED_ONLY" title="pyxb.ValidationConfig.MIXED_ONLY"><code class="xref py py-obj docutils literal"><span class="pre">MIXED_ONLY</span></code></a> (default).</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">_ValidationConfig__getInvalidElementInContent</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p>How to handle invalid elements in content lists.</p>
+<p>The value is one of <a class="reference internal" href="#pyxb.ValidationConfig.IGNORE_ONCE" title="pyxb.ValidationConfig.IGNORE_ONCE"><code class="xref py py-obj docutils literal"><span class="pre">IGNORE_ONCE</span></code></a> (default), <a class="reference internal" href="#pyxb.ValidationConfig.GIVE_UP" title="pyxb.ValidationConfig.GIVE_UP"><code class="xref py py-obj docutils literal"><span class="pre">GIVE_UP</span></code></a>,
+<a class="reference internal" href="#pyxb.ValidationConfig.RAISE_EXCEPTION" title="pyxb.ValidationConfig.RAISE_EXCEPTION"><code class="xref py py-obj docutils literal"><span class="pre">RAISE_EXCEPTION</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">_ValidationConfig__getOrphanElementInContent</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p>How to handle unrecognized elements in content lists.</p>
+<p>This is used when consulting a complex type instance content list to
+influence the generation of documents from a binding instance.</p>
+<p>The value is one of <a class="reference internal" href="#pyxb.ValidationConfig.IGNORE_ONCE" title="pyxb.ValidationConfig.IGNORE_ONCE"><code class="xref py py-obj docutils literal"><span class="pre">IGNORE_ONCE</span></code></a> (default), <a class="reference internal" href="#pyxb.ValidationConfig.GIVE_UP" title="pyxb.ValidationConfig.GIVE_UP"><code class="xref py py-obj docutils literal"><span class="pre">GIVE_UP</span></code></a>,
+<a class="reference internal" href="#pyxb.ValidationConfig.RAISE_EXCEPTION" title="pyxb.ValidationConfig.RAISE_EXCEPTION"><code class="xref py py-obj docutils literal"><span class="pre">RAISE_EXCEPTION</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">_ValidationConfig__invalidElementInContent</code><em class="property"> = 1</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">_ValidationConfig__orphanElementInContent</code><em class="property"> = 1</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">_getForBinding</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">True</span></code> iff validation should be performed when manipulating a
+binding instance.</p>
+<p>This includes parsing a document or DOM tree, using a binding instance
+class constructor, or assigning to an element or attribute field of a
+binding instance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">_getForDocument</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">True</span></code> iff validation should be performed when creating a document
+from a binding instance.</p>
+<p>This applies at invocation of
+<a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._TypeBinding_mixin.toDOM" title="pyxb.binding.basis._TypeBinding_mixin.toDOM"><code class="xref py py-obj docutils literal"><span class="pre">toDOM()</span></code></a>.
+<a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._TypeBinding_mixin.toDOM" title="pyxb.binding.basis._TypeBinding_mixin.toDOM"><code class="xref py py-obj docutils literal"><span class="pre">toxml()</span></code></a> invokes <code class="xref py py-obj docutils literal"><span class="pre">toDOM()</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">_setContentInfluencesGeneration</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span></dt>
+<dd><p>Set the value of <a class="reference internal" href="#pyxb.ValidationConfig.contentInfluencesGeneration" title="pyxb.ValidationConfig.contentInfluencesGeneration"><code class="xref py py-obj docutils literal"><span class="pre">contentInfluencesGeneration</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">_setForBinding</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span></dt>
+<dd><p>Configure whether validation should be performed when manipulating
+a binding instance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">_setForDocument</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span></dt>
+<dd><p>Configure whether validation should be performed when generating
+a document from a binding instance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">_setInvalidElementInContent</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span></dt>
+<dd><p>Set the value of <a class="reference internal" href="#pyxb.ValidationConfig.invalidElementInContent" title="pyxb.ValidationConfig.invalidElementInContent"><code class="xref py py-obj docutils literal"><span class="pre">invalidElementInContent</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">_setOrphanElementInContent</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span></dt>
+<dd><p>Set the value of <a class="reference internal" href="#pyxb.ValidationConfig.orphanElementInContent" title="pyxb.ValidationConfig.orphanElementInContent"><code class="xref py py-obj docutils literal"><span class="pre">orphanElementInContent</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">contentInfluencesGeneration</code></dt>
+<dd><p>Determine whether complex type content influences element order in
+document generation.</p>
+<p>The value is one of <a class="reference internal" href="#pyxb.ValidationConfig.ALWAYS" title="pyxb.ValidationConfig.ALWAYS"><code class="xref py py-obj docutils literal"><span class="pre">ALWAYS</span></code></a>, <a class="reference internal" href="#pyxb.ValidationConfig.NEVER" title="pyxb.ValidationConfig.NEVER"><code class="xref py py-obj docutils literal"><span class="pre">NEVER</span></code></a>, <a class="reference internal" href="#pyxb.ValidationConfig.MIXED_ONLY" title="pyxb.ValidationConfig.MIXED_ONLY"><code class="xref py py-obj docutils literal"><span class="pre">MIXED_ONLY</span></code></a> (default).</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p>Make a copy of this instance.</p>
+<p>Use this to get a starting point when you need to customize validation
+on a per-instance/per-class basis.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">forBinding</code></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">True</span></code> iff validation should be performed when manipulating a
+binding instance.</p>
+<p>This includes parsing a document or DOM tree, using a binding instance
+class constructor, or assigning to an element or attribute field of a
+binding instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">forDocument</code></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">True</span></code> iff validation should be performed when creating a document
+from a binding instance.</p>
+<p>This applies at invocation of
+<a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._TypeBinding_mixin.toDOM" title="pyxb.binding.basis._TypeBinding_mixin.toDOM"><code class="xref py py-obj docutils literal"><span class="pre">toDOM()</span></code></a>.
+<a class="reference internal" href="pyxb.binding.html#pyxb.binding.basis._TypeBinding_mixin.toDOM" title="pyxb.binding.basis._TypeBinding_mixin.toDOM"><code class="xref py py-obj docutils literal"><span class="pre">toxml()</span></code></a> invokes <code class="xref py py-obj docutils literal"><span class="pre">toDOM()</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">invalidElementInContent</code></dt>
+<dd><p>How to handle invalid elements in content lists.</p>
+<p>The value is one of <a class="reference internal" href="#pyxb.ValidationConfig.IGNORE_ONCE" title="pyxb.ValidationConfig.IGNORE_ONCE"><code class="xref py py-obj docutils literal"><span class="pre">IGNORE_ONCE</span></code></a> (default), <a class="reference internal" href="#pyxb.ValidationConfig.GIVE_UP" title="pyxb.ValidationConfig.GIVE_UP"><code class="xref py py-obj docutils literal"><span class="pre">GIVE_UP</span></code></a>,
+<a class="reference internal" href="#pyxb.ValidationConfig.RAISE_EXCEPTION" title="pyxb.ValidationConfig.RAISE_EXCEPTION"><code class="xref py py-obj docutils literal"><span class="pre">RAISE_EXCEPTION</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">orphanElementInContent</code></dt>
+<dd><p>How to handle unrecognized elements in content lists.</p>
+<p>This is used when consulting a complex type instance content list to
+influence the generation of documents from a binding instance.</p>
+<p>The value is one of <a class="reference internal" href="#pyxb.ValidationConfig.IGNORE_ONCE" title="pyxb.ValidationConfig.IGNORE_ONCE"><code class="xref py py-obj docutils literal"><span class="pre">IGNORE_ONCE</span></code></a> (default), <a class="reference internal" href="#pyxb.ValidationConfig.GIVE_UP" title="pyxb.ValidationConfig.GIVE_UP"><code class="xref py py-obj docutils literal"><span class="pre">GIVE_UP</span></code></a>,
+<a class="reference internal" href="#pyxb.ValidationConfig.RAISE_EXCEPTION" title="pyxb.ValidationConfig.RAISE_EXCEPTION"><code class="xref py py-obj docutils literal"><span class="pre">RAISE_EXCEPTION</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="data">
+<dt>
+<code class="descclassname">pyxb.</code><code class="descname">XMLStyle_minidom</code><em class="property"> = 0</em></dt>
+<dd><p>Use xml.dom.minidom for XML processing.  This is the fastest, but does not
+provide location information.  It produces DOM instances.</p>
+</dd></dl>
+
+<dl class="data">
+<dt>
+<code class="descclassname">pyxb.</code><code class="descname">XMLStyle_saxdom</code><em class="property"> = 1</em></dt>
+<dd><p>Use pyxb.utils.saxdom for XML processing.  This is the slowest, but both
+provides location information and generates a DOM instance.</p>
+</dd></dl>
+
+<dl class="data">
+<dt>
+<code class="descclassname">pyxb.</code><code class="descname">XMLStyle_saxer</code><em class="property"> = 2</em></dt>
+<dd><p>Use pyxb.binding.saxer when converting documents to binding instances.
+This style supports location information in the bindings.  It produces binding
+instances directly, without going through a DOM stage, so is faster than
+XMLStyle_saxdom.  However, since the pyxb.xmlschema.structures classes require
+a DOM model, XMLStyle_saxdom will be used for pyxb.utils.domutils.StringToDOM
+if this style is selected.</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descclassname">pyxb.</code><code class="descname">_SetXMLStyle</code><span class="sig-paren">(</span><em>style=None</em><span class="sig-paren">)</span></dt>
+<dd><p>Set the interface used to parse XML content.</p>
+<p>This can be invoked within code.  The system default of <a class="reference internal" href="#pyxb.XMLStyle_saxer" title="pyxb.XMLStyle_saxer"><code class="xref py py-obj docutils literal"><span class="pre">XMLStyle_saxer</span></code></a>
+can also be overridden at runtime by setting the environment variable
+<code class="xref py py-obj docutils literal"><span class="pre">PYXB_XML_STYLE</span></code> to one of <code class="xref py py-obj docutils literal"><span class="pre">minidom</span></code>, <code class="xref py py-obj docutils literal"><span class="pre">saxdom</span></code>, or <code class="xref py py-obj docutils literal"><span class="pre">saxer</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>style</strong> &#8211; One of <a class="reference internal" href="#pyxb.XMLStyle_minidom" title="pyxb.XMLStyle_minidom"><code class="xref py py-obj docutils literal"><span class="pre">XMLStyle_minidom</span></code></a>, <a class="reference internal" href="#pyxb.XMLStyle_saxdom" title="pyxb.XMLStyle_saxdom"><code class="xref py py-obj docutils literal"><span class="pre">XMLStyle_saxdom</span></code></a>,</td>
+</tr>
+</tbody>
+</table>
+<p><a class="reference internal" href="#pyxb.XMLStyle_saxer" title="pyxb.XMLStyle_saxer"><code class="xref py py-obj docutils literal"><span class="pre">XMLStyle_saxer</span></code></a>.  If not provided, the system default is used.</p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">pyxb.</code><code class="descname">cscRoot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kw</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>This little bundle of joy exists because in Python 2.6 it
+became an error to invoke <code class="xref py py-obj docutils literal"><span class="pre">object.__init__</span></code> with parameters (unless
+you also override <code class="xref py py-obj docutils literal"><span class="pre">__new__</span></code>, in which case it&#8217;s only a warning.
+Whatever.).  Since I&#8217;m bloody not going to check in every class
+whether <code class="xref py py-obj docutils literal"><span class="pre">super(Myclass,self)</span></code> refers to <code class="xref py py-obj docutils literal"><span class="pre">object</span></code> (even if I could
+figure out how to do that, &#8216;cuz the obvious solutions don&#8217;t work),
+we&#8217;ll just make this thing the root of all U{cooperative super
+calling&lt;<a class="reference external" href="http://www.geocities.com/foetsch/python/new_style_classes.htm#super">http://www.geocities.com/foetsch/python/new_style_classes.htm#super</a>&gt;}
+hierarchies.  The standard syntax in PyXB for this pattern is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">method_csc</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+  <span class="n">self_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">_args</span><span class="p">,</span> <span class="o">**</span><span class="n">_kw</span><span class="p">:</span> <span class="bp">self</span>
+  <span class="n">super_fn</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">super</span><span class="p">(</span><span class="n">ThisClass</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span> <span class="s1">&#39;method_csc&#39;</span><span class="p">,</span> <span class="n">self_fn</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">super_fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">pyxb package</a><ul>
+<li><a class="reference internal" href="#subpackages">subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-pyxb.exceptions_">pyxb.exceptions_ module</a></li>
+<li><a class="reference internal" href="#module-pyxb">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pyxbgen_cli.html"
+                        title="previous chapter"><code class="docutils literal"><span class="pre">pyxbgen</span></code> Command Line Options</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pyxb.binding.html"
+                        title="next chapter">pyxb.binding package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pyxb.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pyxb.binding.html" title="pyxb.binding package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pyxbgen_cli.html" title="pyxbgen Command Line Options"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.6 documentation</a> &#187;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
+     
+
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2009-2017, Peter A. Bigot.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.5.
+    </div>
+  </body>
+</html>

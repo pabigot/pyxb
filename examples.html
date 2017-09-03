@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Examples &mdash; PyXB 1.2.5 documentation</title>
+    <title>Examples &#8212; PyXB 1.2.6 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,16 +14,18 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '1.2.5',
+        VERSION:     '1.2.6',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyXB 1.2.5 documentation" href="index.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Release History" href="releases.html" />
     <link rel="prev" title="Related Packages" href="related.html" /> 
   </head>
@@ -35,13 +37,17 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="releases.html" title="Release History"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="related.html" title="Related Packages"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.5 documentation</a> &raquo;</li>
-    <li style="margin-left: 20px">PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.6 documentation</a> &#187;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
      
 
       </ul>
@@ -55,7 +61,7 @@
   <div class="section" id="examples">
 <span id="id1"></span><h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
 <p>A detailed, albeit contrived, example of how to use PyXB is in
-<a class="reference internal" href="userref_pyxbgen.html#pyxbgen"><span>Generating Binding Classes</span></a>.</p>
+<a class="reference internal" href="userref_pyxbgen.html#pyxbgen"><span class="std std-ref">Generating Binding Classes</span></a>.</p>
 <p>Multiple real-world XML and web service examples of varying complexity are
 provided in the <code class="file docutils literal"><span class="pre">examples</span></code> subdirectories of the PyXB distribution and of the
 various bundles.  Some are WSDL services, and others are simply XMLSchema
@@ -67,10 +73,10 @@ information.</p>
 <dl class="docutils">
 <dt>For ...</dt>
 <dd><ul class="first last simple">
-<li>REST-style interactions, see <a class="reference internal" href="#ex-dictionary"><span>Dictionary (Aonaware)</span></a>, <a class="reference internal" href="#ex-ndfd"><span>Professional Weather (National Digital Forecast Data)</span></a>, and <a class="reference internal" href="index.html#thirty-sec-example"><span>Thirty Second Example</span></a></li>
-<li>SOAP interactions, see <a class="reference internal" href="#ex-weather"><span>Simple Weather (CDyne)</span></a>, <a class="reference internal" href="#ex-ndfd"><span>Professional Weather (National Digital Forecast Data)</span></a>, and <a class="reference internal" href="#ex-geocoder"><span>Address-To-Latitude/Longitude (http://geocoder.us)</span></a></li>
-<li>Customizing a generated binding, see <a class="reference internal" href="#ex-tmsxtvd"><span>Television Schedules (Tribune Media Services)</span></a></li>
-<li>Using a SAX parser, see <a class="reference internal" href="#ex-tmsxtvd"><span>Television Schedules (Tribune Media Services)</span></a></li>
+<li>REST-style interactions, see <a class="reference internal" href="#ex-dictionary"><span class="std std-ref">Dictionary (Aonaware)</span></a>, <a class="reference internal" href="#ex-ndfd"><span class="std std-ref">Professional Weather (National Digital Forecast Data)</span></a>, and <a class="reference internal" href="index.html#thirty-sec-example"><span class="std std-ref">Thirty Second Example</span></a></li>
+<li>SOAP interactions, see <a class="reference internal" href="#ex-weather"><span class="std std-ref">Simple Weather (CDyne)</span></a>, <a class="reference internal" href="#ex-ndfd"><span class="std std-ref">Professional Weather (National Digital Forecast Data)</span></a>, and <a class="reference internal" href="#ex-geocoder"><span class="std std-ref">Address-To-Latitude/Longitude (http://geocoder.us)</span></a></li>
+<li>Customizing a generated binding, see <a class="reference internal" href="#ex-tmsxtvd"><span class="std std-ref">Television Schedules (Tribune Media Services)</span></a></li>
+<li>Using a SAX parser, see <a class="reference internal" href="#ex-tmsxtvd"><span class="std std-ref">Television Schedules (Tribune Media Services)</span></a></li>
 </ul>
 </dd>
 </dl>
@@ -79,11 +85,11 @@ information.</p>
 <span id="ex-dictionary"></span><h2>Dictionary (Aonaware)<a class="headerlink" href="#dictionary-aonaware" title="Permalink to this headline">¶</a></h2>
 <p>The <a class="reference external" href="http://www.aonaware.com/services.htm">Dictionary web service at Aonaware</a>.</p>
 <p>The example <code class="file docutils literal"><span class="pre">define.py</span></code> looks up a word in all available dictionaries:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">dict</span>
-<span class="kn">from</span> <span class="nn">pyxb.utils.six.moves.urllib.request</span> <span class="kn">import</span> <span class="n">urlopen</span>
+<span class="kn">from</span> <span class="nn">pyxb.utils.six.moves.urllib.request</span> <span class="k">import</span> <span class="n">urlopen</span>
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">pyxb.utils</span> <span class="kn">import</span> <span class="n">domutils</span>
+<span class="kn">from</span> <span class="nn">pyxb.utils</span> <span class="k">import</span> <span class="n">domutils</span>
 
 <span class="n">word</span> <span class="o">=</span> <span class="s1">&#39;xml&#39;</span>
 <span class="k">if</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">):</span>
@@ -94,19 +100,22 @@ information.</p>
 <span class="n">rxml</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 <span class="n">resp</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">CreateFromDOM</span><span class="p">(</span><span class="n">domutils</span><span class="o">.</span><span class="n">StringToDOM</span><span class="p">(</span><span class="n">rxml</span><span class="p">))</span>
 
-<span class="k">print</span><span class="p">(</span><span class="s1">&#39;Definitions of </span><span class="si">%s</span><span class="s1">:&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">Word</span><span class="p">,))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Definitions of </span><span class="si">%s</span><span class="s1">:&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">Word</span><span class="p">,))</span>
 <span class="k">for</span> <span class="n">definition</span> <span class="ow">in</span> <span class="n">resp</span><span class="o">.</span><span class="n">Definitions</span><span class="o">.</span><span class="n">Definition</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;From </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">):&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">definition</span><span class="o">.</span><span class="n">Dictionary</span><span class="o">.</span><span class="n">Name</span><span class="p">,</span> <span class="n">definition</span><span class="o">.</span><span class="n">Dictionary</span><span class="o">.</span><span class="n">Id</span><span class="p">))</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">definition</span><span class="o">.</span><span class="n">WordDefinition</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;From </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">):&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">definition</span><span class="o">.</span><span class="n">Dictionary</span><span class="o">.</span><span class="n">Name</span><span class="p">,</span> <span class="n">definition</span><span class="o">.</span><span class="n">Dictionary</span><span class="o">.</span><span class="n">Id</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">definition</span><span class="o">.</span><span class="n">WordDefinition</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>The example <code class="file docutils literal"><span class="pre">showdict.py</span></code> lists the available dictionaries:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">dict</span>
-<span class="kn">from</span> <span class="nn">pyxb.utils.six.moves.urllib.request</span> <span class="kn">import</span> <span class="n">urlopen</span>
-<span class="kn">import</span> <span class="nn">pyxb.utils.domutils</span> <span class="kn">as</span> <span class="nn">domutils</span>
-<span class="kn">from</span> <span class="nn">xml.dom</span> <span class="kn">import</span> <span class="n">minidom</span>
+<span class="kn">from</span> <span class="nn">pyxb.utils.six.moves.urllib.request</span> <span class="k">import</span> <span class="n">urlopen</span>
+<span class="kn">import</span> <span class="nn">pyxb.utils.domutils</span> <span class="k">as</span> <span class="nn">domutils</span>
+<span class="kn">from</span> <span class="nn">xml.dom</span> <span class="k">import</span> <span class="n">minidom</span>
 
 <span class="c1"># Get the list of dictionaries available from the service.</span>
 <span class="n">port_uri</span> <span class="o">=</span> <span class="s1">&#39;http://services.aonaware.com/DictService/DictService.asmx&#39;</span>
@@ -120,12 +129,15 @@ information.</p>
     <span class="c1"># Create a REST-style query to retrieve the information about this dictionary.</span>
     <span class="n">uri</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">?dictId=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">port_uri</span><span class="p">,</span> <span class="n">op_path</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">Id</span><span class="p">)</span>
     <span class="n">resp</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">) : </span><span class="si">%d</span><span class="s2"> chars&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">Name</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">Id</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">resp</span><span class="p">)));</span>
+
     <span class="c1"># The response is a simple type derived from string, so we can</span>
-    <span class="c1"># just extract and print it.</span>
+    <span class="c1"># just extract and print it.  Excluded by default since it has</span>
+    <span class="c1"># leading and trailing whitespace that causes problems with using</span>
+    <span class="c1"># git to store the expected output.</span>
     <span class="n">di_resp</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">CreateFromDOM</span><span class="p">(</span><span class="n">domutils</span><span class="o">.</span><span class="n">StringToDOM</span><span class="p">(</span><span class="n">resp</span><span class="p">))</span>
-    <span class="c1"># Do the &quot;encode&quot; garbage because one of these dictionaries has a</span>
-    <span class="c1"># non-ASCII character</span>
-    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">Name</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">),</span> <span class="n">d</span><span class="o">.</span><span class="n">Id</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">),</span> <span class="n">di_resp</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">isatty</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">di_resp</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>Sorry, no automatic generation of classes corresponding to the WSDL
@@ -134,13 +146,13 @@ operations.  Next release, maybe.</p>
 <div class="section" id="simple-weather-cdyne">
 <span id="ex-weather"></span><h2>Simple Weather (CDyne)<a class="headerlink" href="#simple-weather-cdyne" title="Permalink to this headline">¶</a></h2>
 <p>A <a class="reference external" href="http://ws.cdyne.com/WeatherWS/Weather.asmx">free weather service</a>.
-The REST interface was demonstrated as the <a class="reference internal" href="index.html#thirty-sec-example"><span>Thirty Second Example</span></a>.  A
+The REST interface was demonstrated as the <a class="reference internal" href="index.html#thirty-sec-example"><span class="std std-ref">Thirty Second Example</span></a>.  A
 SOAP interface example is in <code class="docutils literal"><span class="pre">client.py</span></code>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">pyxb.utils.six.moves.urllib</span> <span class="kn">import</span> <span class="n">request</span> <span class="k">as</span> <span class="n">urllib_request</span>
-<span class="kn">import</span> <span class="nn">pyxb.bundles.wssplat.soap11</span> <span class="kn">as</span> <span class="nn">soapenv</span>
+<span class="kn">from</span> <span class="nn">pyxb.utils.six.moves.urllib</span> <span class="k">import</span> <span class="n">request</span> <span class="k">as</span> <span class="n">urllib_request</span>
+<span class="kn">import</span> <span class="nn">pyxb.bundles.wssplat.soap11</span> <span class="k">as</span> <span class="nn">soapenv</span>
 <span class="kn">import</span> <span class="nn">weather</span>
 
 <span class="nb">zip</span> <span class="o">=</span> <span class="mi">55113</span>
@@ -168,13 +180,13 @@ SOAP interface example is in <code class="docutils literal"><span class="pre">cl
 
 <span class="n">fc_return</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">GetCityForecastByZIPResult</span>
 <span class="k">if</span> <span class="n">fc_return</span><span class="o">.</span><span class="n">Success</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Got response for </span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">:&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fc_return</span><span class="o">.</span><span class="n">City</span><span class="p">,</span> <span class="n">fc_return</span><span class="o">.</span><span class="n">State</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Got response for </span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">:&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fc_return</span><span class="o">.</span><span class="n">City</span><span class="p">,</span> <span class="n">fc_return</span><span class="o">.</span><span class="n">State</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">fc</span> <span class="ow">in</span> <span class="n">fc_return</span><span class="o">.</span><span class="n">ForecastResult</span><span class="o">.</span><span class="n">Forecast</span><span class="p">:</span>
         <span class="n">when</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%A, %B </span><span class="si">%d</span><span class="s1"> %Y&#39;</span><span class="p">,</span> <span class="n">fc</span><span class="o">.</span><span class="n">Date</span><span class="o">.</span><span class="n">timetuple</span><span class="p">())</span>
         <span class="n">outlook</span> <span class="o">=</span> <span class="n">fc</span><span class="o">.</span><span class="n">Desciption</span> <span class="c1"># typos in WSDL left unchanged</span>
         <span class="n">low</span> <span class="o">=</span> <span class="n">fc</span><span class="o">.</span><span class="n">Temperatures</span><span class="o">.</span><span class="n">MorningLow</span>
         <span class="n">high</span> <span class="o">=</span> <span class="n">fc</span><span class="o">.</span><span class="n">Temperatures</span><span class="o">.</span><span class="n">DaytimeHigh</span>
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;  </span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1">, from </span><span class="si">%s</span><span class="s1"> to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">when</span><span class="p">,</span> <span class="n">outlook</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  </span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1">, from </span><span class="si">%s</span><span class="s1"> to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">when</span><span class="p">,</span> <span class="n">outlook</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>Note the various misspellings in the schema (e.g., &#8220;Desciption&#8221;).  Also, be
@@ -202,7 +214,7 @@ Only one sample document is available for testing; it is retrieved using
 binding to add a custom method, and parsing content with both DOM and SAX.
 It also provides timing information; the document is about 200KB, and takes
 several seconds to parse.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">io</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">xml.dom.minidom</span>
@@ -216,23 +228,23 @@ several seconds to parse.</p>
 <span class="c1"># refer to the complex type binding class itself, but we don&#39;t know</span>
 <span class="c1"># what PyXB named it.</span>
 <span class="k">class</span> <span class="nc">my_xtvd</span> <span class="p">(</span><span class="n">tmstvd</span><span class="o">.</span><span class="n">xtvd</span><span class="o">.</span><span class="n">typeDefinition</span><span class="p">()):</span>
-    <span class="k">def</span> <span class="nf">equal</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">equal</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">station</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">station</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">return</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">station</span><span class="p">)):</span>
             <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">station</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
             <span class="n">o</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">station</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">callSign</span> <span class="o">!=</span> <span class="n">o</span><span class="o">.</span><span class="n">callSign</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">o</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">id</span> <span class="o">!=</span> <span class="n">o</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
-                <span class="k">return</span> <span class="bp">False</span>
+                <span class="k">return</span> <span class="kc">False</span>
             <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Match station </span><span class="si">%s</span><span class="s1"> is </span><span class="si">%s</span><span class="s1">, id </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">callSign</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
-        <span class="k">return</span> <span class="bp">True</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Match station </span><span class="si">%s</span><span class="s1"> is </span><span class="si">%s</span><span class="s1">, id </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">callSign</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">True</span>
 <span class="n">tmstvd</span><span class="o">.</span><span class="n">xtvd</span><span class="o">.</span><span class="n">typeDefinition</span><span class="p">()</span><span class="o">.</span><span class="n">_SetSupersedingClass</span><span class="p">(</span><span class="n">my_xtvd</span><span class="p">)</span>
 
 <span class="c1"># The sample document.</span>
 <span class="n">xml_file</span> <span class="o">=</span> <span class="s1">&#39;tmsdatadirect_sample.xml&#39;</span>
 
-<span class="k">print</span><span class="p">(</span><span class="s1">&#39;Generating binding from </span><span class="si">%s</span><span class="s1"> with minidom&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xml_file</span><span class="p">,))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Generating binding from </span><span class="si">%s</span><span class="s1"> with minidom&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xml_file</span><span class="p">,))</span>
 <span class="n">mt1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 <span class="n">xmld</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">xml_file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 <span class="n">mt2</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
@@ -240,19 +252,19 @@ several seconds to parse.</p>
 <span class="n">mt3</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 <span class="c1">#cProfile.run(&#39;tmstvd.CreateFromDOM(dom.documentElement)&#39;, &#39;dom.prf&#39;)</span>
 <span class="n">dom_instance</span> <span class="o">=</span> <span class="n">tmstvd</span><span class="o">.</span><span class="n">CreateFromDOM</span><span class="p">(</span><span class="n">dom</span><span class="o">.</span><span class="n">documentElement</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s1">&#39;minidom first callSign at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">dom_instance</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">station</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">callSign</span><span class="o">.</span><span class="n">_location</span><span class="p">(),))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;minidom first callSign at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">dom_instance</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">station</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">callSign</span><span class="o">.</span><span class="n">_location</span><span class="p">(),))</span>
 <span class="n">mt4</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
-<span class="k">print</span><span class="p">(</span><span class="s1">&#39;Generating binding from </span><span class="si">%s</span><span class="s1"> with SAXDOM&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xml_file</span><span class="p">,))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Generating binding from </span><span class="si">%s</span><span class="s1"> with SAXDOM&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xml_file</span><span class="p">,))</span>
 <span class="n">dt1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 <span class="n">dom</span> <span class="o">=</span> <span class="n">pyxb</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">saxdom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">xmld</span><span class="p">),</span> <span class="n">location_base</span><span class="o">=</span><span class="n">xml_file</span><span class="p">)</span>
 <span class="n">dt2</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 <span class="c1">#cProfile.run(&#39;tmstvd.CreateFromDOM(dom.documentElement)&#39;, &#39;saxdom.prf&#39;)</span>
 <span class="n">saxdom_instance</span> <span class="o">=</span> <span class="n">tmstvd</span><span class="o">.</span><span class="n">CreateFromDOM</span><span class="p">(</span><span class="n">dom</span><span class="o">.</span><span class="n">documentElement</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s1">&#39;SAXDOM first callSign at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">saxdom_instance</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">station</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">callSign</span><span class="o">.</span><span class="n">_location</span><span class="p">(),))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;SAXDOM first callSign at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">saxdom_instance</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">station</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">callSign</span><span class="o">.</span><span class="n">_location</span><span class="p">(),))</span>
 <span class="n">dt3</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
-<span class="k">print</span><span class="p">(</span><span class="s1">&#39;Generating binding from </span><span class="si">%s</span><span class="s1"> with SAX&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xml_file</span><span class="p">,))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Generating binding from </span><span class="si">%s</span><span class="s1"> with SAX&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xml_file</span><span class="p">,))</span>
 <span class="n">st1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 <span class="n">saxer</span> <span class="o">=</span> <span class="n">pyxb</span><span class="o">.</span><span class="n">binding</span><span class="o">.</span><span class="n">saxer</span><span class="o">.</span><span class="n">make_parser</span><span class="p">(</span><span class="n">location_base</span><span class="o">=</span><span class="n">xml_file</span><span class="p">)</span>
 <span class="n">handler</span> <span class="o">=</span> <span class="n">saxer</span><span class="o">.</span><span class="n">getContentHandler</span><span class="p">()</span>
@@ -261,13 +273,13 @@ several seconds to parse.</p>
 <span class="c1">#cProfile.run(&#39;saxer.parse(open(xml_file))&#39;, &#39;sax.prf&#39;)</span>
 <span class="n">st3</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 <span class="n">sax_instance</span> <span class="o">=</span> <span class="n">handler</span><span class="o">.</span><span class="n">rootObject</span><span class="p">()</span>
-<span class="k">print</span><span class="p">(</span><span class="s1">&#39;SAXER first callSign at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sax_instance</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">station</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">callSign</span><span class="o">.</span><span class="n">_location</span><span class="p">(),))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;SAXER first callSign at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sax_instance</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">station</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">callSign</span><span class="o">.</span><span class="n">_location</span><span class="p">(),))</span>
 
-<span class="k">print</span><span class="p">(</span><span class="s1">&#39;DOM-based read </span><span class="si">%f</span><span class="s1">, parse </span><span class="si">%f</span><span class="s1">, bind </span><span class="si">%f</span><span class="s1">, total </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mt2</span><span class="o">-</span><span class="n">mt1</span><span class="p">,</span> <span class="n">mt3</span><span class="o">-</span><span class="n">mt2</span><span class="p">,</span> <span class="n">mt4</span><span class="o">-</span><span class="n">mt3</span><span class="p">,</span> <span class="n">mt4</span><span class="o">-</span><span class="n">mt2</span><span class="p">))</span>
-<span class="k">print</span><span class="p">(</span><span class="s1">&#39;SAXDOM-based parse </span><span class="si">%f</span><span class="s1">, bind </span><span class="si">%f</span><span class="s1">, total </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dt2</span><span class="o">-</span><span class="n">dt1</span><span class="p">,</span> <span class="n">dt3</span><span class="o">-</span><span class="n">dt2</span><span class="p">,</span> <span class="n">dt3</span><span class="o">-</span><span class="n">dt1</span><span class="p">))</span>
-<span class="k">print</span><span class="p">(</span><span class="s1">&#39;SAX-based read </span><span class="si">%f</span><span class="s1">, parse and bind </span><span class="si">%f</span><span class="s1">, total </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">st2</span><span class="o">-</span><span class="n">st1</span><span class="p">,</span> <span class="n">st3</span><span class="o">-</span><span class="n">st2</span><span class="p">,</span> <span class="n">st3</span><span class="o">-</span><span class="n">st1</span><span class="p">))</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Equality test on DOM vs SAX: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dom_instance</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sax_instance</span><span class="p">),))</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Equality test on SAXDOM vs SAX: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">saxdom_instance</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sax_instance</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">),))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;DOM-based read </span><span class="si">%f</span><span class="s1">, parse </span><span class="si">%f</span><span class="s1">, bind </span><span class="si">%f</span><span class="s1">, total </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mt2</span><span class="o">-</span><span class="n">mt1</span><span class="p">,</span> <span class="n">mt3</span><span class="o">-</span><span class="n">mt2</span><span class="p">,</span> <span class="n">mt4</span><span class="o">-</span><span class="n">mt3</span><span class="p">,</span> <span class="n">mt4</span><span class="o">-</span><span class="n">mt2</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;SAXDOM-based parse </span><span class="si">%f</span><span class="s1">, bind </span><span class="si">%f</span><span class="s1">, total </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dt2</span><span class="o">-</span><span class="n">dt1</span><span class="p">,</span> <span class="n">dt3</span><span class="o">-</span><span class="n">dt2</span><span class="p">,</span> <span class="n">dt3</span><span class="o">-</span><span class="n">dt1</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;SAX-based read </span><span class="si">%f</span><span class="s1">, parse and bind </span><span class="si">%f</span><span class="s1">, total </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">st2</span><span class="o">-</span><span class="n">st1</span><span class="p">,</span> <span class="n">st3</span><span class="o">-</span><span class="n">st2</span><span class="p">,</span> <span class="n">st3</span><span class="o">-</span><span class="n">st1</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Equality test on DOM vs SAX: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dom_instance</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sax_instance</span><span class="p">),))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Equality test on SAXDOM vs SAX: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">saxdom_instance</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sax_instance</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">),))</span>
 </pre></div>
 </div>
 </div>
@@ -303,14 +315,14 @@ consequence of an <a class="reference external" href="http://tech.groups.yahoo.c
 discovered after too many tools had already worked around it.  Currently,
 PyXB also requires that you work around it manually, although a
 customization of the relevant SOAP encoding class could make it unnecessary.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">pyxb.utils.six.moves.urllib</span> <span class="kn">import</span> <span class="n">request</span> <span class="k">as</span> <span class="n">urllib_request</span>
+<span class="kn">from</span> <span class="nn">pyxb.utils.six.moves.urllib</span> <span class="k">import</span> <span class="n">request</span> <span class="k">as</span> <span class="n">urllib_request</span>
 <span class="kn">import</span> <span class="nn">GeoCoder</span>
-<span class="kn">from</span> <span class="nn">pyxb</span> <span class="kn">import</span> <span class="n">BIND</span>
-<span class="kn">from</span> <span class="nn">pyxb.utils</span> <span class="kn">import</span> <span class="n">domutils</span>
-<span class="kn">import</span> <span class="nn">pyxb.bundles.wssplat.soap11</span> <span class="kn">as</span> <span class="nn">soapenv</span>
-<span class="kn">import</span> <span class="nn">pyxb.bundles.wssplat.soapenc</span> <span class="kn">as</span> <span class="nn">soapenc</span>
+<span class="kn">from</span> <span class="nn">pyxb</span> <span class="k">import</span> <span class="n">BIND</span>
+<span class="kn">from</span> <span class="nn">pyxb.utils</span> <span class="k">import</span> <span class="n">domutils</span>
+<span class="kn">import</span> <span class="nn">pyxb.bundles.wssplat.soap11</span> <span class="k">as</span> <span class="nn">soapenv</span>
+<span class="kn">import</span> <span class="nn">pyxb.bundles.wssplat.soapenc</span> <span class="k">as</span> <span class="nn">soapenc</span>
 
 <span class="n">address</span> <span class="o">=</span> <span class="s1">&#39;1600 Pennsylvania Ave., Washington, DC&#39;</span>
 <span class="k">if</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">):</span>
@@ -355,9 +367,9 @@ customization of the relevant SOAP encoding class could make it unnecessary.</p>
     <span class="k">pass</span>
 
 <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">lat</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">item</span><span class="o">.</span><span class="n">lat</span><span class="o">.</span><span class="n">_isNil</span><span class="p">():</span>
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Warning: Address did not resolve&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">lat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">item</span><span class="o">.</span><span class="n">lat</span><span class="o">.</span><span class="n">_isNil</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Warning: Address did not resolve&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
 <span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"></span>
 <span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">  </span><span class="si">%s</span><span class="s1"></span>
 <span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">number</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">street</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">suffix</span><span class="p">,</span>
@@ -407,14 +419,11 @@ customization of the relevant SOAP encoding class could make it unnecessary.</p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -428,20 +437,24 @@ customization of the relevant SOAP encoding class could make it unnecessary.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="releases.html" title="Release History"
              >next</a> |</li>
         <li class="right" >
           <a href="related.html" title="Related Packages"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.5 documentation</a> &raquo;</li>
-    <li style="margin-left: 20px">PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.6 documentation</a> &#187;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
      
 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2009-2016, Peter A. Bigot.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
+        &#169; Copyright 2009-2017, Peter A. Bigot.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.5.
     </div>
   </body>
 </html>

@@ -53,7 +53,7 @@ instance:
        r = DWML.CreateFromDocument(rxml)
 
 When invoking the program, the following diagnostic output is provided
-through the :api:`details <pyxb.exceptions_.ValidationError.details>`
+through the :py:obj:`details <pyxb.exceptions_.ValidationError.details>`
 method:
 
 .. code-block:: none
@@ -98,7 +98,7 @@ This tells the user that:
 
 A much shorter but still useful synopsis of the invalidity would be
 available through the ``str`` operation on the exception.  Full details are
-available through attributes on the :api:`UnrecognizedContentError
+available through attributes on the :py:obj:`UnrecognizedContentError
 <pyxb.exceptions_.UnrecognizedContentError>` and other exceptions.
 
 In cases where the service generating the documents is under your control,
@@ -112,7 +112,7 @@ Runtime Exception Hierarchy
 ---------------------------
 
 Details on the interfaces presented by these exceptions can be found through
-the :api:`API Documentation <pyxb.exceptions_.ValidationError>`.
+the :py:obj:`API Documentation <pyxb.exceptions_.ValidationError>`.
 
 .. image:: Images/RuntimeExceptions.jpg
 

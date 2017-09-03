@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pyxbgen Command Line Options &mdash; PyXB 1.2.5 documentation</title>
+    <title>pyxbgen Command Line Options &#8212; PyXB 1.2.6 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,18 +14,19 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '1.2.5',
+        VERSION:     '1.2.6',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyXB 1.2.5 documentation" href="index.html" />
-    <link rel="up" title="User Reference" href="userref_index.html" />
-    <link rel="next" title="Maintainer Reference" href="maintref.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pyxb package" href="pyxb.html" />
     <link rel="prev" title="Debugging Validation Errors" href="userref_validating.html" /> 
   </head>
   <body role="document">
@@ -36,14 +37,18 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="maintref.html" title="Maintainer Reference"
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pyxb.html" title="pyxb package"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="userref_validating.html" title="Debugging Validation Errors"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.5 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="userref_index.html" accesskey="U">User Reference</a> &raquo;</li>
-    <li style="margin-left: 20px">PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="userref_index.html" accesskey="U">User Reference</a> &#187;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
      
 
       </ul>
@@ -75,14 +80,14 @@
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">--version</span></code></td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-version"><span>show program&#8217;s version number and exit</span></a></td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-version"><span class="std std-ref">show program&#8217;s version number and exit</span></a></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">--help</span></code></td>
-<td>&nbsp;</td>
+<td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">-h</span></code></td>
-<td><a class="reference internal" href="#pyxbgen-help"><span>show this help message and exit</span></a></td>
+<td><a class="reference internal" href="#pyxbgen-help"><span class="std std-ref">show this help message and exit</span></a></td>
 </tr>
 </tbody>
 </table>
@@ -117,27 +122,27 @@
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">--schema-location</span></code></td>
 <td><em>FILE_or_URL</em></td>
 <td><code class="docutils literal"><span class="pre">-u</span></code></td>
-<td><a class="reference internal" href="#pyxbgen-schema-location"><span>Add the location of an entrypoint schema.  The...</span></a></td>
+<td><a class="reference internal" href="#pyxbgen-schema-location"><span class="std std-ref">Add the location of an entrypoint schema.  The...</span></a></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">--schema-root</span></code></td>
 <td><em>DIRECTORY</em></td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-schema-root"><span>The directory from which entrypoint schemas...</span></a></td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-schema-root"><span class="std std-ref">The directory from which entrypoint schemas...</span></a></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">--schema-stripped-prefix</span></code></td>
 <td><em>TEXT</em></td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-schema-stripped-prefix"><span>Optional string that is stripped from the...</span></a></td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-schema-stripped-prefix"><span class="std std-ref">Optional string that is stripped from the...</span></a></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">--location-prefix-rewrite</span></code></td>
 <td><em>TEXT</em></td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-location-prefix-rewrite"><span>Add a rewrite entry for schema locations....</span></a></td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-location-prefix-rewrite"><span class="std std-ref">Add a rewrite entry for schema locations....</span></a></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">--uri-content-archive-directory</span></code></td>
 <td><em>DIRECTORY</em></td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-uri-content-archive-directory"><span>The directory path into which any content...</span></a></td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-uri-content-archive-directory"><span class="std std-ref">The directory path into which any content...</span></a></td>
 </tr>
 </tbody>
 </table>
@@ -156,17 +161,18 @@ paths will be read.</p>
 <div class="section" id="schema-stripped-prefix">
 <span id="pyxbgen-schema-stripped-prefix"></span><h3><code class="docutils literal"><span class="pre">--schema-stripped-prefix</span></code><a class="headerlink" href="#schema-stripped-prefix" title="Permalink to this headline">¶</a></h3>
 <p>Optional string that is stripped from the beginning of schemaLocation
-values before loading from them. This applies only to the values of
-schemaLocation attributes in <code class="docutils literal"><span class="pre">import</span></code> and <code class="docutils literal"><span class="pre">include</span></code> elements.  Its
-purpose is to convert absolute schema locations into relative ones to
-allow offline processing when all schema are available in a local
-directory.  See <code class="docutils literal"><span class="pre">schemaRoot</span></code>.</p>
+values before loading from them. This now applies only to URIs specified
+on the command line so is unlikely to be useful.</p>
 </div>
 <div class="section" id="location-prefix-rewrite">
 <span id="pyxbgen-location-prefix-rewrite"></span><h3><code class="docutils literal"><span class="pre">--location-prefix-rewrite</span></code><a class="headerlink" href="#location-prefix-rewrite" title="Permalink to this headline">¶</a></h3>
 <p>Add a rewrite entry for schema locations. Parameter values are strings
 of the form <code class="docutils literal"><span class="pre">pfx=sub</span></code>.  The effect is that a schema location that
-begins with <code class="docutils literal"><span class="pre">pfx</span></code> is rewritten so that it instead begins with <code class="docutils literal"><span class="pre">sub</span></code>.</p>
+begins with <code class="docutils literal"><span class="pre">pfx</span></code> is rewritten so that it instead begins with <code class="docutils literal"><span class="pre">sub</span></code>.
+This applies to schemaLocation attributes in <code class="docutils literal"><span class="pre">import</span></code> and <code class="docutils literal"><span class="pre">include</span></code>
+elements.  It may be used to convert absolute schema locations into
+relative ones to allow offline processing when all schema are available
+in a local directory.  See <code class="docutils literal"><span class="pre">schemaRoot</span></code>.</p>
 </div>
 <div class="section" id="uri-content-archive-directory">
 <span id="pyxbgen-uri-content-archive-directory"></span><h3><code class="docutils literal"><span class="pre">--uri-content-archive-directory</span></code><a class="headerlink" href="#uri-content-archive-directory" title="Permalink to this headline">¶</a></h3>
@@ -197,27 +203,27 @@ inspect material retrieved from some other system. &#64;rtype: <code class="docu
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">--module</span></code></td>
 <td><em>MODULE</em></td>
 <td><code class="docutils literal"><span class="pre">-m</span></code></td>
-<td><a class="reference internal" href="#pyxbgen-module"><span>Add a module name corresponding to an entrypoint...</span></a></td>
+<td><a class="reference internal" href="#pyxbgen-module"><span class="std std-ref">Add a module name corresponding to an entrypoint...</span></a></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">--module-prefix</span></code></td>
 <td><em>MODULE</em></td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-module-prefix"><span>The prefix for binding modules. The base name for...</span></a></td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-module-prefix"><span class="std std-ref">The prefix for binding modules. The base name for...</span></a></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">--binding-root</span></code></td>
 <td><em>DIRECTORY</em></td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-binding-root"><span>The directory path into which generated bindings...</span></a></td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-binding-root"><span class="std std-ref">The directory path into which generated bindings...</span></a></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">--write-for-customization</span></code></td>
-<td>&nbsp;</td>
+<td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">-r</span></code></td>
-<td><a class="reference internal" href="#pyxbgen-write-for-customization"><span>Indicates whether the binding Python code should...</span></a></td>
+<td><a class="reference internal" href="#pyxbgen-write-for-customization"><span class="std std-ref">Indicates whether the binding Python code should...</span></a></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">--no-write-for-customization</span></code></td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-no-write-for-customization"><span>Indicates whether the binding Python code should...</span></a></td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-no-write-for-customization"><span class="std std-ref">Indicates whether the binding Python code should...</span></a></td>
 </tr>
 </tbody>
 </table>
@@ -277,18 +283,18 @@ option turns off the feature (<em>default</em>).</p>
 <tbody valign="top">
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">--archive-path</span></code></td>
 <td><em>PATH</em></td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-archive-path"><span>A colon-separated list of paths from which...</span></a></td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-archive-path"><span class="std std-ref">A colon-separated list of paths from which...</span></a></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">--import-augmentable-namespace</span></code></td>
 <td><em>URI</em></td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-import-augmentable-namespace"><span>Mark that the specified namespace may be imported...</span></a></td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-import-augmentable-namespace"><span class="std std-ref">Mark that the specified namespace may be imported...</span></a></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">--no-load-namespace</span></code></td>
 <td><em>URI</em></td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-no-load-namespace"><span>Mark that the specified namespace should not be...</span></a></td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-no-load-namespace"><span class="std std-ref">Mark that the specified namespace should not be...</span></a></td>
 </tr>
 </tbody>
 </table>
@@ -341,28 +347,28 @@ which this namespace is present as a non-private member.</p>
 <tbody valign="top">
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">--archive-to-file</span></code></td>
 <td><em>FILE</em></td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-archive-to-file"><span>Optional file into which the archive of namespaces...</span></a></td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-archive-to-file"><span class="std std-ref">Optional file into which the archive of namespaces...</span></a></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">--public-namespace</span></code></td>
 <td><em>URI</em></td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-public-namespace"><span>Indicates, for specific namespaces, whether their...</span></a></td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-public-namespace"><span class="std std-ref">Indicates, for specific namespaces, whether their...</span></a></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">--private-namespace</span></code></td>
 <td><em>URI</em></td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-private-namespace"><span>Indicates, for specific namespaces, whether their...</span></a></td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-private-namespace"><span class="std std-ref">Indicates, for specific namespaces, whether their...</span></a></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">--default-namespace-public</span></code></td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-default-namespace-public"><span>Indicates whether unmentioned namespaces will be...</span></a></td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-default-namespace-public"><span class="std std-ref">Indicates whether unmentioned namespaces will be...</span></a></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">--default-namespace-private</span></code></td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-default-namespace-private"><span>Indicates whether unmentioned namespaces will be...</span></a></td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-default-namespace-private"><span class="std std-ref">Indicates whether unmentioned namespaces will be...</span></a></td>
 </tr>
 </tbody>
 </table>
@@ -427,14 +433,14 @@ local customization of something. This option makes the default
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">--validate-changes</span></code></td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-validate-changes"><span>Indicates whether the bindings should validate...</span></a></td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-validate-changes"><span class="std std-ref">Indicates whether the bindings should validate...</span></a></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">--no-validate-changes</span></code></td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-no-validate-changes"><span>Indicates whether the bindings should validate...</span></a></td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-no-validate-changes"><span class="std std-ref">Indicates whether the bindings should validate...</span></a></td>
 </tr>
 </tbody>
 </table>
@@ -470,8 +476,8 @@ content model. This option turns off validation.</p>
 <tbody valign="top">
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">--logging-config-file</span></code></td>
 <td><em>FILE</em></td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-logging-config-file"><span>A file provided to L{logging.config.fileConfig} to...</span></a></td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-logging-config-file"><span class="std std-ref">A file provided to L{logging.config.fileConfig} to...</span></a></td>
 </tr>
 </tbody>
 </table>
@@ -502,24 +508,24 @@ infrastructure is used in its default configuration. &#64;rtype: <code class="do
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">--allow-absent-module</span></code></td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-allow-absent-module"><span>Indicates whether the code generator is permitted...</span></a></td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-allow-absent-module"><span class="std std-ref">Indicates whether the code generator is permitted...</span></a></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">--no-allow-absent-module</span></code></td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-no-allow-absent-module"><span>Indicates whether the code generator is permitted...</span></a></td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-no-allow-absent-module"><span class="std std-ref">Indicates whether the code generator is permitted...</span></a></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">--allow-builtin-generation</span></code></td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-allow-builtin-generation"><span>Indicates whether bindings will be written for...</span></a></td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-allow-builtin-generation"><span class="std std-ref">Indicates whether bindings will be written for...</span></a></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">--no-allow-builtin-generation</span></code></td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td><a class="reference internal" href="#pyxbgen-no-allow-builtin-generation"><span>Indicates whether bindings will be written for...</span></a></td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td><a class="reference internal" href="#pyxbgen-no-allow-builtin-generation"><span class="std std-ref">Indicates whether bindings will be written for...</span></a></td>
 </tr>
 </tbody>
 </table>
@@ -576,7 +582,7 @@ inconsistencies. This option turns off the feature (default).</p>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">--wsdl-location</span></code></td>
 <td><em>FILE_or_URL</em></td>
 <td><code class="docutils literal"><span class="pre">-W</span></code></td>
-<td><a class="reference internal" href="#pyxbgen-wsdl-location"><span>Generate bindings for the types stanza of the...</span></a></td>
+<td><a class="reference internal" href="#pyxbgen-wsdl-location"><span class="std std-ref">Generate bindings for the types stanza of the...</span></a></td>
 </tr>
 </tbody>
 </table>
@@ -662,8 +668,8 @@ part of its <code class="docutils literal"><span class="pre">types</span></code>
   <p class="topless"><a href="userref_validating.html"
                         title="previous chapter">Debugging Validation Errors</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="maintref.html"
-                        title="next chapter">Maintainer Reference</a></p>
+  <p class="topless"><a href="pyxb.html"
+                        title="next chapter">pyxb package</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -674,14 +680,11 @@ part of its <code class="docutils literal"><span class="pre">types</span></code>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -695,21 +698,25 @@ part of its <code class="docutils literal"><span class="pre">types</span></code>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="maintref.html" title="Maintainer Reference"
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pyxb.html" title="pyxb package"
              >next</a> |</li>
         <li class="right" >
           <a href="userref_validating.html" title="Debugging Validation Errors"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.5 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="userref_index.html" >User Reference</a> &raquo;</li>
-    <li style="margin-left: 20px">PyXB hosted on <a href="https://github.com/pabigot/pyxb">GitHub</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyXB 1.2.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="userref_index.html" >User Reference</a> &#187;</li>
+    <li style="margin-left: 20px">PyXB hosted on <a href="http://sourceforge.net/projects/pyxb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=263147&amp;type=9"
+    width="80" height="15" alt="Get PyXB: Python XML Schema Bindings at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></li>
      
 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2009-2016, Peter A. Bigot.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
+        &#169; Copyright 2009-2017, Peter A. Bigot.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.5.
     </div>
   </body>
 </html>
