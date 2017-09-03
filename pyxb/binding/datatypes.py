@@ -94,7 +94,7 @@ _PrimitiveDatatypes.append(string)
 # It is illegal to subclass the bool type in Python, so we subclass
 # int instead.
 @six.python_2_unicode_compatible
-class boolean (basis.simpleTypeDefinition, six.int_type):
+class boolean (basis.simpleTypeDefinition, six.int_type, basis._NoNullaryNonNillableNew_mixin):
     """XMLSchema datatype U{boolean<http://www.w3.org/TR/xmlschema-2/#boolean>}."""
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('boolean')
@@ -126,7 +126,7 @@ class boolean (basis.simpleTypeDefinition, six.int_type):
 
 _PrimitiveDatatypes.append(boolean)
 
-class decimal (basis.simpleTypeDefinition, python_decimal.Decimal, basis._RepresentAsXsdLiteral_mixin):
+class decimal (basis.simpleTypeDefinition, python_decimal.Decimal, basis._RepresentAsXsdLiteral_mixin, basis._NoNullaryNonNillableNew_mixin):
     """XMLSchema datatype U{decimal<http://www.w3.org/TR/xmlschema-2/#decimal>}.
 
     This class uses Python's L{decimal.Decimal} class to support (by
@@ -184,7 +184,7 @@ class decimal (basis.simpleTypeDefinition, python_decimal.Decimal, basis._Repres
 
 _PrimitiveDatatypes.append(decimal)
 
-class _fp (basis.simpleTypeDefinition, six.float_type):
+class _fp (basis.simpleTypeDefinition, six.float_type, basis._NoNullaryNonNillableNew_mixin):
     _XsdBaseType = anySimpleType
 
     @classmethod
@@ -246,70 +246,79 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta, basis._Represent
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
         have_kw_update = False
-        if not kw.get('_nil'):
-            if 0 == len(args):
-                raise SimpleTypeValueError(cls, args)
-            text = args[0]
+        negative_duration = False
         if kw.get('_nil'):
             data = dict(zip(cls.__PythonFields, len(cls.__PythonFields) * [0,]))
-            negative_duration = False
-        elif isinstance(text, six.string_types):
-            match = cls.__Lexical_re.match(text)
-            if match is None:
-                raise SimpleTypeValueError(cls, text)
-            match_map = match.groupdict()
-            if 'T' == match_map.get('Time'):
-                # Can't have T without additional time information
-                raise SimpleTypeValueError(cls, text)
-
-            negative_duration = ('-' == match_map.get('neg'))
-
-            fractional_seconds = 0.0
-            if match_map.get('fracsec') is not None:
-                fractional_seconds = six.float_type('0%s' % (match_map['fracsec'],))
-                usec = six.int_type(1000000 * fractional_seconds)
-                if negative_duration:
-                    kw['microseconds'] = - usec
-                else:
-                    kw['microseconds'] = usec
-            else:
-                # Discard any bogosity passed in by the caller
-                kw.pop('microsecond', None)
-
-            data = { }
-            for fn in cls.__XSDFields:
-                v = match_map.get(fn, 0)
-                if v is None:
-                    v = 0
-                data[fn] = six.int_type(v)
-                if fn in cls.__PythonFields:
-                    if negative_duration:
-                        kw[fn] = - data[fn]
-                    else:
-                        kw[fn] = data[fn]
-            data['seconds'] += fractional_seconds
-            have_kw_update = True
-        elif isinstance(text, cls):
-            data = text.durationData().copy()
-            negative_duration = text.negativeDuration()
-        elif isinstance(text, datetime.timedelta):
-            data = { 'days' : text.days,
-                     'seconds' : text.seconds + (text.microseconds / 1000000.0) }
-            negative_duration = (0 > data['days'])
-            if negative_duration:
-                if 0.0 == data['seconds']:
-                    data['days'] = - data['days']
-                else:
-                    data['days'] = 1 - data['days']
-                    data['seconds'] = 24 * 60 * 60.0 - data['seconds']
-            data['minutes'] = 0
-            data['hours'] = 0
-        elif isinstance(text, six.integer_types) and (1 < len(args)):
+        elif 0 == len(args):
+            if kw.get('_from_xml'):
+                raise SimpleTypeValueError(cls, args)
+            data = dict(zip(cls.__PythonFields, len(cls.__PythonFields) * [0,]))
+        elif 1 < len(args):
+            if kw.get('_from_xml'):
+                raise SimpleTypeValueError(cls, args)
             # Apply the arguments as in the underlying Python constructor
             data = dict(zip(cls.__PythonFields[:len(args)], args))
-            negative_duration = False
         else:
-            raise SimpleTypeValueError(cls, text)
+            text = args[0];
+            if isinstance(text, six.string_types):
+                match = cls.__Lexical_re.match(text)
+                if match is None:
+                    raise SimpleTypeValueError(cls, text)
+                match_map = match.groupdict()
+                if 'T' == match_map.get('Time'):
+                    # Can't have T without additional time information
+                    raise SimpleTypeValueError(cls, text)
+
+                negative_duration = ('-' == match_map.get('neg'))
+
+                fractional_seconds = 0.0
+                if match_map.get('fracsec') is not None:
+                    fractional_seconds = six.float_type('0%s' % (match_map['fracsec'],))
+                    usec = six.int_type(1000000 * fractional_seconds)
+                    if negative_duration:
+                        kw['microseconds'] = - usec
+                    else:
+                        kw['microseconds'] = usec
+                else:
+                    # Discard any bogosity passed in by the caller
+                    kw.pop('microsecond', None)
+
+                data = { }
+                for fn in cls.__XSDFields:
+                    v = match_map.get(fn, 0)
+                    if v is None:
+                        v = 0
+                    data[fn] = six.int_type(v)
+                    if fn in cls.__PythonFields:
+                        if negative_duration:
+                            kw[fn] = - data[fn]
+                        else:
+                            kw[fn] = data[fn]
+                data['seconds'] += fractional_seconds
+                have_kw_update = True
+            elif kw.get('_from_xml'):
+                raise SimpleTypeValueError(cls, args)
+            elif isinstance(text, cls):
+                data = text.durationData().copy()
+                negative_duration = text.negativeDuration()
+            elif isinstance(text, datetime.timedelta):
+                data = { 'days' : text.days,
+                         'seconds' : text.seconds + (text.microseconds / 1000000.0) }
+                negative_duration = (0 > data['days'])
+                if negative_duration:
+                    if 0.0 == data['seconds']:
+                        data['days'] = - data['days']
+                    else:
+                        data['days'] = 1 - data['days']
+                        data['seconds'] = 24 * 60 * 60.0 - data['seconds']
+                data['minutes'] = 0
+                data['hours'] = 0
+            elif isinstance(text, six.integer_types):
+                # Apply the arguments as in the underlying Python constructor
+                data = dict(zip(cls.__PythonFields[:len(args)], args))
+                negative_duration = False
+            else:
+                raise SimpleTypeValueError(cls, text)
         if not have_kw_update:
             rem_time = data.pop('seconds', 0)
             if (0 != (rem_time % 1)):
@@ -354,7 +363,7 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta, basis._Represent
                 time_elts.append('%d%s' % (v, k[0].upper()))
         v = value.__durationData.get('seconds', 0)
         if 0 != v:
-            time_elts.append('%gS' % (v,))
+            time_elts.append(('%f' % (v,)).rstrip('0').rstrip('.') + 'S')
         if 0 < len(time_elts):
             elts.append('T')
             elts.extend(time_elts)
@@ -446,6 +455,11 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition, basis._RepresentAsXsdLiter
     def __reduce__ (self):
         return (self.__class__, (self.xsdLiteral(),))
 
+    # In Python 3.6 datetime started using __reduce_ex__ which is
+    # higher priority.  Override it too.
+    def __reduce_ex__ (self, protocol):
+        return (self.__class__, (self.xsdLiteral(),))
+
     @classmethod
     def _AdjustForTimezone (cls, kw):
         """Update datetime keywords to account for timezone effects.
@@ -515,6 +529,10 @@ class dateTime (_PyXBDateTime_base, datetime.datetime):
 
         ctor_kw = { }
         if kw.get('_nil'):
+            ctor_kw = { 'year': 1900, 'month': 1, 'day': 1 }
+        elif 0 == len(args):
+            if kw.get('_from_xml'):
+                raise SimpleTypeValueError(cls, args)
             ctor_kw = { 'year': 1900, 'month': 1, 'day': 1 }
         elif 1 == len(args):
             value = args[0]
@@ -590,7 +608,12 @@ class time (_PyXBDateTime_base, datetime.time):
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
         ctor_kw = { }
-        if 1 <= len(args):
+        if kw.get('_nil'):
+            pass
+        elif 0 == len(args):
+            if kw.get('_from_xml'):
+                raise SimpleTypeValueError(cls, args)
+        else:
             value = args[0]
             if isinstance(value, six.string_types):
                 ctor_kw.update(cls._LexicalToKeywords(value))
@@ -1162,7 +1185,7 @@ class ENTITIES (basis.STD_list):
     _ItemType = ENTITY
 _ListDatatypes.append(ENTITIES)
 
-class integer (basis.simpleTypeDefinition, six.long_type):
+class integer (basis.simpleTypeDefinition, six.long_type, basis._NoNullaryNonNillableNew_mixin):
     """XMLSchema datatype U{integer<http://www.w3.org/TR/xmlschema-2/#integer>}."""
     _XsdBaseType = decimal
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('integer')
@@ -1188,7 +1211,7 @@ class long (integer):
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('long')
 _DerivedDatatypes.append(long)
 
-class int (basis.simpleTypeDefinition, six.int_type):
+class int (basis.simpleTypeDefinition, six.int_type, basis._NoNullaryNonNillableNew_mixin):
     """XMLSchema datatype U{int<http://www.w3.org/TR/xmlschema-2/#int>}."""
     _XsdBaseType = long
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('int')

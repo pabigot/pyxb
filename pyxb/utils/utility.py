@@ -132,6 +132,10 @@ def _SetXMLIdentifierToPython (xml_identifier_to_python):
     perform that translation before the invalid characters are
     stripped.
 
+    For example, see `unidecode
+    <https://pypi.python.org/pypi/Unidecode>`_ and `this forum posting
+    <https://sourceforge.net/p/pyxb/discussion/956708/thread/5246b205/#1c7f>`_.
+
     It is not the responsibility of this callable to do anything other
     than replace whatever characters it wishes to.  All
     transformations performed by L{MakeIdentifier} will still be
@@ -143,6 +147,7 @@ def _SetXMLIdentifierToPython (xml_identifier_to_python):
     default implementation, which is L{_DefaultXMLIdentifierToPython}.
 
     @rtype: C{unicode}
+
     """
     global _XMLIdentifierToPython
     if xml_identifier_to_python is None:

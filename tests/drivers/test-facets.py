@@ -27,5 +27,10 @@ class TestFacets (unittest.TestCase):
         self.assertRaises(Exception, quantity, -52)
         self.assertRaises(Exception, quantity, 100)
 
+    def testEmptyQuantity(self):
+        xml = '<quantity xmlns="URN:test-facets"/>'
+        dom = pyxb.utils.domutils.StringToDOM(xml).documentElement;
+        self.assertRaises(SimpleTypeValueError, CreateFromDOM, dom)
+
 if __name__ == '__main__':
     unittest.main()

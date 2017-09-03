@@ -42,7 +42,7 @@ Things That Don't Work
 * `Wildcard elements <http://www.w3.org/TR/xmlschema-1/#Wildcards>`_ are
   supported in the sense that classes that enable them in the content model
   provide access to unrecognized values through the
-  :api:`pyxb.binding.basis.complexTypeDefinition.wildcardElements` method.
+  :py:obj:`pyxb.binding.basis.complexTypeDefinition.wildcardElements` method.
   Where the type of the node is recognized, it is converted to a Python
   binding instance; otherwise, the xml DOM instance is stored.  Although
   namespace constraints are applied when checking for wildcard matches, the
@@ -52,7 +52,7 @@ Things That Don't Work
   <http://www.w3.org/TR/xmlschema-1/#ag-attribute_wildcard>`_ are supported
   in much the same sense as wildcard elements: no constraints are checked,
   and all are aggregated into the
-  :api:`pyxb.binding.basis.complexTypeDefinition.wildcardAttributeMap`.
+  :py:obj:`pyxb.binding.basis.complexTypeDefinition.wildcardAttributeMap`.
   Values are uninterpreted Unicode strings.
 
 ...and probably never will

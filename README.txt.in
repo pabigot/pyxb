@@ -8,7 +8,7 @@ those, read pyxb/bundles/opengis/README.txt before installing PyXB.
 
 Installation:  python setup.py install
 
-Documentation: doc/html
+Documentation: doc/html or https://pabigot.github.io/pyxb/
 
 Help Forum: http://sourceforge.net/forum/forum.php?forum_id=956708
 

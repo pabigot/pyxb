@@ -1,0 +1,24 @@
+PS None
+ndfdXMLBinding
+ndfdXMLPortType
+<?xml version="1.0" encoding="utf-8"?><wsdl:operation name="NDFDgen" xmlns:ns1="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"><ns1:operation soapAction="https://graphical.weather.gov/xml/DWMLgen/wsdl/ndfdXML.wsdl#NDFDgen" style="rpc"/><wsdl:input><ns1:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="https://graphical.weather.gov/xml/DWMLgen/wsdl/ndfdXML.wsdl" use="encoded"/></wsdl:input><wsdl:output><ns1:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="https://graphical.weather.gov/xml/DWMLgen/wsdl/ndfdXML.wsdl" use="encoded"/></wsdl:output></wsdl:operation>
+<?xml version="1.0" encoding="utf-8"?><wsdl:operation name="NDFDgen" xmlns:ns1="https://graphical.weather.gov/xml/DWMLgen/wsdl/ndfdXML.wsdl" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"><wsdl:documentation>Returns National Weather Service digital weather forecast data</wsdl:documentation><wsdl:input message="ns1:NDFDgenRequest"/><wsdl:output message="ns1:NDFDgenResponse"/></wsdl:operation>
+<?xml version="1.0" encoding="utf-8"?><wsdl:input message="ns1:NDFDgenRequest" xmlns:ns1="https://graphical.weather.gov/xml/DWMLgen/wsdl/ndfdXML.wsdl" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"/>
+<class 'pyxb.bundles.wssplat.wsdl11.tParam'>
+{https://graphical.weather.gov/xml/DWMLgen/wsdl/ndfdXML.wsdl}NDFDgenRequest
+{https://graphical.weather.gov/xml/DWMLgen/wsdl/ndfdXML.wsdl}NDFDgenRequest
+<?xml version="1.0" encoding="utf-8"?><wsdl:part name="latitude" type="ns1:decimal" xmlns:ns1="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"/>
+<?xml version="1.0" encoding="utf-8"?><wsdl:part name="longitude" type="ns1:decimal" xmlns:ns1="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"/>
+<?xml version="1.0" encoding="utf-8"?><wsdl:part name="product" type="ns1:productType" xmlns:ns1="https://graphical.weather.gov/xml/DWMLgen/schema/DWML.xsd" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"/>
+<?xml version="1.0" encoding="utf-8"?><wsdl:part name="startTime" type="ns1:dateTime" xmlns:ns1="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"/>
+<?xml version="1.0" encoding="utf-8"?><wsdl:part name="endTime" type="ns1:dateTime" xmlns:ns1="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"/>
+<?xml version="1.0" encoding="utf-8"?><wsdl:part name="Unit" type="ns1:unitType" xmlns:ns1="https://graphical.weather.gov/xml/DWMLgen/schema/DWML.xsd" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"/>
+<?xml version="1.0" encoding="utf-8"?><wsdl:part name="weatherParameters" type="ns1:weatherParametersType" xmlns:ns1="https://graphical.weather.gov/xml/DWMLgen/schema/DWML.xsd" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"/>
+uri:DWMLgen None
+latitude latitude
+longitude longitude
+product product
+startTime startTime
+endTime endTime
+Unit Unit
+weatherParameters weatherParameters

@@ -8,4 +8,4 @@ addr.city = 'Anytown'
 addr.state = 'NY'
 addr.zip = 12341
 
-print(addr.toxml("utf-8"))
+print(addr.toxml("utf-8").decode('utf-8'))

@@ -1,12 +1,17 @@
+#!/bin/sh
+
+: ${PYXB_TEST_ROOT:=${PYXB_ROOT}/tests}
+. ${PYXB_TEST_ROOT}/support.sh
+
 pyxbgen \
   -u ucum-essence.xsd \
-  -m ucum
+  -m ucum \
+ || fail generating bindings
+
 if [ ! -f ucum-essence.xml ] ; then
     wget http://unitsofmeasure.org/ucum-essence.xml
 fi
 
-# This allows this script to run under the autotest environment, where
-# output is sent to a file.
-export PYTHONIOENCODING='utf-8'
-
-python showunits.py
+python showunits.py > test.out || fail running
+cmp test.out test.expected || fail output mismatch
+passed

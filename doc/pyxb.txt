@@ -1,0 +1,34 @@
+pyxb package
+============
+
+.. automodule:: pyxb
+
+subpackages
+-----------
+
+.. toctree::
+
+    pyxb.binding
+    pyxb.namespace
+    pyxb.utils
+    pyxb.xmlschema
+
+Submodules
+----------
+
+pyxb\.exceptions\_ module
+-------------------------
+
+.. automodule:: pyxb.exceptions_
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: pyxb
+    :members:
+    :undoc-members:
+    :show-inheritance:

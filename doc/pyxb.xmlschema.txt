@@ -1,0 +1,22 @@
+pyxb\.xmlschema package
+=======================
+
+Submodules
+----------
+
+pyxb\.xmlschema\.structures module
+----------------------------------
+
+.. automodule:: pyxb.xmlschema.structures
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: pyxb.xmlschema
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1128,7 +1128,10 @@ def _SetNameWithAccessors (component, container, is_plural, binding_module, nsm,
     use_map = component._templateMap()
     class_unique = nsm.uniqueInClass(container)
     assert isinstance(component, xs.structures._ScopedDeclaration_mixin)
-    unique_name = utility.PrepareIdentifier(component.expandedName().localName(), class_unique)
+    unique_name = component.expandedName().localName()
+    if component.overridesParentScope():
+        class_unique.discard(component.overriddenDeclaration().uniqueNameInBinding())
+    unique_name = utility.PrepareIdentifier(unique_name, class_unique)
     use_map['id'] = unique_name
     use_map['inspector'] = unique_name
     use_map['mutator'] = utility.PrepareIdentifier('set' + unique_name[0].upper() + unique_name[1:], class_unique)
@@ -1136,6 +1139,7 @@ def _SetNameWithAccessors (component, container, is_plural, binding_module, nsm,
     assert component._scope() == container
     assert component.nameInBinding() is None, 'Use %s but binding name %s for %s' % (use_map['use'], component.nameInBinding(), component.expandedName())
     component.setNameInBinding(use_map['use'])
+    component.setUniqueNameInBinding(use_map['id'])
     key_name = six.u('%s_%s_%s') % (six.text_type(nsm.namespace()), container.nameInBinding(), component.expandedName())
     use_map['key'] = utility.PrepareIdentifier(key_name, class_unique, private=True)
     use_map['qname'] = six.text_type(component.expandedName())
@@ -1932,13 +1936,9 @@ from %s import *
 
     def schemaStrippedPrefix (self):
         """Optional string that is stripped from the beginning of
-        schemaLocation values before loading from them.
-
-        This applies only to the values of schemaLocation attributes
-        in C{import} and C{include} elements.  Its purpose is to
-        convert absolute schema locations into relative ones to allow
-        offline processing when all schema are available in a local
-        directory.  See C{schemaRoot}.
+        schemaLocation values before loading from them. This now
+        applies only to URIs specified on the command line so is
+        unlikely to be useful.
         """
         return self.__schemaStrippedPrefix
     def setSchemaStrippedPrefix (self, schema_stripped_prefix):
@@ -1977,7 +1977,15 @@ from %s import *
 
         Parameter values are strings of the form C{pfx=sub}.  The
         effect is that a schema location that begins with C{pfx} is
-        rewritten so that it instead begins with C{sub}."""
+        rewritten so that it instead begins with C{sub}.
+
+        This applies to schemaLocation attributes in C{import} and
+        C{include} elements.  It may be used to convert absolute
+        schema locations into relative ones to allow offline
+        processing when all schema are available in a local
+        directory.  See C{schemaRoot}.
+        """
+
         try:
             (prefix, substituent) = prefix_rewrite.split('=', 1)
         except:

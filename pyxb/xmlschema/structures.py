@@ -97,6 +97,10 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
     # represent them, so need a binding-level name.
     __nameInBinding = None
 
+    # The public unique name by which this component is referenced within the
+    # binding class (as opposed to the binding module).
+    __uniqueNameInBinding = None
+
     # The schema component that owns this.  If C{None}, the component is owned
     # directly by the schema.
     __owner = None
@@ -241,6 +245,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         assert self.__cloneSource is not None
         owner = kw['owner']
         self.__nameInBinding = None
+        self.__uniqueNameInBinding = None
         self.__owner = owner
         assert not (isinstance(self, ComplexTypeDefinition) and isinstance(owner, Schema))
         self.__ownedComponents = set()
@@ -304,8 +309,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         return None
 
     def nameInBinding (self):
-        """Return the name by which this component is known in the generated
-        binding.
+        """Return the name by which this component is known in the binding module.
 
         @note: To support builtin datatypes, type definitions with an
         associated L{pythonSupport<SimpleTypeDefinition.pythonSupport>} class
@@ -313,6 +317,10 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         association is created.  As long as no built-in datatype conflicts
         with a language keyword, this should be fine."""
         return self.__nameInBinding
+
+    def uniqueNameInBinding (self):
+        """Return the name by which this component is known in the binding class."""
+        return self.__uniqueNameInBinding
 
     def hasBinding (self):
         """Return C{True} iff this is a component which has a user-visible
@@ -324,8 +332,13 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         return self.isTypeDefinition() or (isinstance(self, ElementDeclaration) and self._scopeIsGlobal())
 
     def setNameInBinding (self, name_in_binding):
-        """Set the name by which this component shall be known in the XSD binding."""
+        """Set the name by which this component shall be known in the binding module."""
         self.__nameInBinding = name_in_binding
+        return self
+
+    def setUniqueNameInBinding (self, unique_name):
+        """Set the name by which this component shall be known in the binding class."""
+        self.__uniqueNameInBinding = unique_name
         return self
 
     def _updateFromOther_csc (self, other):
@@ -1064,6 +1077,18 @@ class _ScopedDeclaration_mixin (pyxb.cscRoot):
         self.__baseDeclaration = referenced_declaration.baseDeclaration()
         return self.__baseDeclaration
 
+    # Indicates that declaration replaces a (compatible) declaration with the
+    # same name within its scope.  Also provide access to the declaration it
+    # replaces.
+    __overridesParentScope = False
+    def overridesParentScope (self):
+        return self.__overridesParentScope
+    def _overrideParentScope (self, value):
+        self.__overriddenDeclaration = value;
+        self.__overridesParentScope = True
+    def overriddenDeclaration (self):
+        return self.__overriddenDeclaration
+
 class _AttributeWildcard_mixin (pyxb.cscRoot):
     """Support for components that accept attribute wildcards.
 
@@ -1427,6 +1452,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvabl
     def isResolved (self):
         return self.__attributeDeclaration is not None
 
+    # res:AU res:AttributeUse
     def _resolve (self):
         if self.isResolved():
             return self
@@ -1490,10 +1516,13 @@ class ElementDeclaration (_ParticleTree_mixin, _SchemaComponent_mixin, _NamedCom
                 # complex.
                 ct = type_definition.contentType()
                 if ct is None:
-                    if False == self.__typeDefinition._isComplexContent():
-                        failed = False
-                    else:
-                        _log.error('Unable to check value constraint on %s due to incomplete resolution of type', self.expandedName())
+                    # Either it's not complex, or we can't tell yet; neither
+                    # are failures, but in the latter case delay assigning the
+                    # type until we know.
+                    failed = False
+                    if False != self.__typeDefinition._isComplexContent():
+                        self.__typeDefinition = None
+                        self._queueForResolution('unresolved base type');
                 else:
                     failed = not (isinstance(ct, tuple) and (ComplexTypeDefinition.CT_SIMPLE == ct[0]))
             if failed:
@@ -1726,13 +1755,19 @@ class ElementDeclaration (_ParticleTree_mixin, _SchemaComponent_mixin, _NamedCom
                 raise pyxb.SchemaValidationError('Element declaration refers to unrecognized substitution group %s' % (self.__substitutionGroupExpandedName,))
             self.__substitutionGroupAffiliation = sga
 
+        resolved = True
         if self.__typeDefinition is None:
             assert self.__typeExpandedName is not None
             td = self.__typeExpandedName.typeDefinition()
             if td is None:
                 raise pyxb.SchemaValidationError('Type declaration %s cannot be found' % (self.__typeExpandedName,))
+            # Type definition may be delayed for default value validation; if
+            # so, we're not really resolved.
             self._typeDefinition(td)
-        self.__isResolved = True
+            resolved = self.typeDefinition() is not None
+
+        self.__isResolved = resolved
+
         return self
 
     def _walkParticleTree (self, visit, arg):
@@ -1845,6 +1880,14 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 pending_type = decl.typeDefinition()
                 if not pending_type.isDerivationConsistent(existing_type):
                     raise pyxb.SchemaValidationError('Conflicting element declarations for %s: existing %s versus new %s' % (decl.expandedName(), existing_type, pending_type))
+                # If we're deriving by restriction and the declaration has a
+                # different type than the one in the parent scope, discard the
+                # parent scope declaration and replace it with this one rather
+                # than treating the parent as a base.
+                if (existing_type != pending_type) and (self.DM_restriction == self.derivationMethod()):
+                    decl._overrideParentScope(existing_decl);
+                    scope_map[decl_en] = decl;
+                    existing_decl = decl
             elif isinstance(decl, AttributeDeclaration):
                 raise pyxb.SchemaValidationError('Multiple attribute declarations for %s' % (decl.expandedName(),))
             else:
@@ -1940,7 +1983,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
         if not other.isResolved():
             if pyxb.namespace.BuiltInObjectUID != self._objectOrigin().generationUID():
-                self.__derivationMethod = None
+                self.__isResolved = False
 
         return self
 
@@ -2005,7 +2048,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             bi.setNameInBinding(bi.name())
 
             # The ur-type is always resolved
-            bi.__derivationMethod = cls.DM_restriction
+            bi.__isResolved = True
 
             cls.__UrTypeDefinition = bi
         return cls.__UrTypeDefinition
@@ -2200,10 +2243,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         del self.__attributeGroups
         self.__ckw = None
 
-        # Only now that we've succeeded do we store the method, which
-        # marks this component resolved.
-
-        self.__derivationMethod = method
+        # Mark the type resolved
+        self.__isResolved = True
         return self
 
     def __simpleContent (self, method, **kw):
@@ -2242,7 +2283,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
     __PrivateTransient.update(['ctscRestrictionNode' ])
     __effectiveMixed = None
     __effectiveContent = None
-    __pendingDerivationMethod = None
     __isComplexContent = None
     def _isComplexContent (self):
         return self.__isComplexContent
@@ -2361,6 +2401,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         assert (self.CT_EMPTY == content_type) or ((type(content_type) == tuple) and (content_type[1] is not None))
         return content_type
 
+    __isResolved = False
     def isResolved (self):
         """Indicate whether this complex type is fully defined.
 
@@ -2378,13 +2419,13 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         latter in the list of type definitions to be resolved.  See
         Schema._addNamedComponent.
         """
-        # Only unresolved nodes have an unset derivationMethod
-        return (self.__derivationMethod is not None)
+        return self.__isResolved
 
     # Back door to allow the ur-type to re-resolve itself.  Only needed when
     # we're generating bindings for XMLSchema itself.
     def _setDerivationMethod (self, derivation_method):
         self.__derivationMethod = derivation_method
+        self.__isResolved = True
         return self
 
     def __setContentFromDOM (self, node, **kw):
@@ -2449,8 +2490,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 self.__baseTypeDefinition = None
                 # The content is defined by the restriction/extension element
                 definition_node_list = ions.childNodes
-        # deriviationMethod is assigned after resolution completes
-        self.__pendingDerivationMethod = method
+        self.__derivationMethod = method
         self.__isComplexContent = is_complex_content
         self.__ctscRestrictionNode = ctsc_restriction_node
         self.__ctscClause2STD = clause2_std
@@ -2464,7 +2504,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         self.__anyAttribute = any_attribute
 
         if self.__isComplexContent:
-            self.__setComplexContentFromDOM(node, content_node, definition_node_list, self.__pendingDerivationMethod, **kw)
+            self.__setComplexContentFromDOM(node, content_node, definition_node_list, self.__derivationMethod, **kw)
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
@@ -2513,11 +2553,11 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # depends on the base type which we know is good.
         if self.__contentType is None:
             if self.__isComplexContent:
-                content_type = self.__complexContent(self.__pendingDerivationMethod)
+                content_type = self.__complexContent(self.__derivationMethod)
                 self.__contentStyle = 'complex'
             else:
                 # The definition node list is not relevant to simple content
-                content_type = self.__simpleContent(self.__pendingDerivationMethod)
+                content_type = self.__simpleContent(self.__derivationMethod)
                 if content_type is None:
                     self._queueForResolution('restriction of unresolved simple type')
                     return self
@@ -2537,7 +2577,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 return self
             self.__contentType = (self.__contentType[0], prt._adaptForScope(self, self))
 
-        return self.__completeProcessing(self.__pendingDerivationMethod, self.__contentStyle)
+        return self.__completeProcessing(self.__derivationMethod, self.__contentStyle)
 
     def pythonSupport (self):
         """Complex type definitions have no built-in type support."""
@@ -2892,7 +2932,15 @@ class ModelGroup (_ParticleTree_mixin, _SchemaComponent_mixin, _Annotated_mixin)
                 continue
             if Particle.IsParticleNode(cn):
                 # NB: Ancestor of particle is set in the ModelGroup constructor
-                particles.append(Particle.CreateFromDOM(node=cn, **kw))
+                particle = Particle.CreateFromDOM(node=cn, **kw);
+                if 0 == particle.maxOccurs():
+                    if getattr(cn, '_location', False):
+                        location = ' at ' + str(cn._location());
+                    else:
+                        location = '';
+                    _log.warning('Particle %s%s discarded due to maxOccurs 0' % (particle, location))
+                else:
+                    particles.append(particle)
             elif not xsd.nodeIsNamed(cn, 'annotation'):
                 raise pyxb.SchemaValidationError('Unexpected element %s in model group' % (cn.nodeName,))
         rv = cls(compositor, particles, node=node, **kw)

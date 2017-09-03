@@ -5,9 +5,9 @@ import pyxb.binding.saxer
 import ipo
 
 def ShowOrder (order):
-    print('%s is sending %s %d thing(s):' % (order.billTo().name(), order.shipTo().name(), len(order.items().item())))
-    for item in order.items().item():
-        print('  Quantity %d of %s at $%s' % (item.quantity(), item.productName(), item.USPrice()))
+    print('%s is sending %s %d thing(s):' % (order.billTo.name, order.shipTo.name, len(order.items.item)))
+    for item in order.items.item:
+        print('  Quantity %d of %s at $%s' % (item.quantity, item.productName, item.USPrice))
 
 if False:
     import pyxb.utils.domutils

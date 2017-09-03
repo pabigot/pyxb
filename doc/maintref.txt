@@ -2,32 +2,22 @@
 Maintainer Reference
 ********************
 
-The `API <api/index.html>`_
-***************************
-
-The `API <api/index.html>`_ for PyXB was generated using `Epydoc
-<http://epydoc.sourceforge.net/>`_.  Most of the public API is commented,
-though not all docstrings have been updated to use Epydoc syntax.
-
 .. _git_repository:
 
 Git Repository
 **************
 
-PyXB is developed using `git <http://gitscm.org>`_.  You can check out the
-development branch with::
-
- git clone git://pyxb.git.sourceforge.net/gitroot/pyxb/pyxb
-
+PyXB is developed using `git <http://gitscm.org>`_ with active
+development hosted on `Github <https://github.com/pabigot/pyxb>`_.
 Public development is mostly done on the ``next`` branch, which is the
-default for checkouts from SourceForge.  The ``master`` branch contains
-material integrated into the release, and follows ``next``.  Tags for each
+default for cloned checkouts.  The ``master`` branch contains material
+integrated into the release, and follows ``next``.  Tags for each
 release are in the format ``PyXB-X.Y.Z``.
 
-Bug fixes with unit tests are pushed to the ``next`` branch as soon as they
-are fixed.  Users whose reported issues have been fixed are encouraged to
-use the development branch until the fix has been made available in a tagged
-and packaged release.
+Bug fixes with unit tests are pushed to the ``next`` branch as soon as
+they are fixed.  Users whose reported issues have been fixed are
+encouraged to use the development branch until the fix has been made
+available in a tagged and packaged release.
 
 Coding Practices
 ****************
@@ -96,14 +86,14 @@ PyXB provides a `standard exception hierarchy
 
 Where an execution branch has been identified that requires behavior that
 has not yet been implemented, raise an
-:api:`pyxb.exceptions_.IncompleteImplementationError`.  At the current stage
+:py:obj:`pyxb.exceptions_.IncompleteImplementationError`.  At the current stage
 of development, these should be extremely rare.
 
 Where the system detects that a precondition is not satisfied, processing
 must stop.  If the precondition failure is due to improper use of the PyXB
-internal or public API, a :api:`pyxb.exceptions_.LogicError` should be
+internal or public API, a :py:obj:`pyxb.exceptions_.LogicError` should be
 raised.  If the precondition failure is due to invalid input from the
-schema, a :api:`pyxb.exceptions_.SchemaValidationError` should be raised.
+schema, a :py:obj:`pyxb.exceptions_.SchemaValidationError` should be raised.
 
 If the precondition is inexplicably false, Python's ``assert`` functionality
 may be used.  Use of ``assert`` should be rare, and only in places that are
@@ -121,11 +111,13 @@ us to Python 2.4 or later.  Sigh with disappointment and move on.
 Documentation
 =============
 
-Use the `Epytext Markup Language
-<http://epydoc.sourceforge.net/manual-epytext.html>`_ for all public and
-implementation-shared methods and classes.  (Formerly, this was "Use
-docstrings :PEP:`257`".  Documentation in only a few modules has been
-converted.)
+Use Sphinx-compatible documentation for all public and
+implementation-shared methods and classes.  (Formerly, this was "Use the
+`Epytext Markup Language
+<http://epydoc.sourceforge.net/manual-epytext.html>`_" but epydoc hasn't
+been updated since before PyXB was born.  Few if any modules have been
+converted. ) (Formerly, this was "Use docstrings :PEP:`257`".
+Documentation in only a few modules has been converted.)
 
 Comments
 ========
@@ -216,8 +208,8 @@ Class Variables At Multiple Levels
 
 There are several cases where we want to store information in a class, but
 allow subclasses (not instances) to override it.  An example is in the
-:api:`pyxb.binding.basis.simpleTypeDefinition` hierarchy where each class
-maintains a set of :api:`pyxb.binding.facets.ConstrainingFacet` instances
+:py:obj:`pyxb.binding.basis.simpleTypeDefinition` hierarchy where each class
+maintains a set of :py:obj:`pyxb.binding.facets.ConstrainingFacet` instances
 that are available for constraining values of the class.  In many cases, a
 subclass will not change the set of facets that affect instances, so we want
 to be able to inherit the parent class map; but in other cases we may need

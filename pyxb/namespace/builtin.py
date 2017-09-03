@@ -252,6 +252,7 @@ XHTML = Namespace('http://www.w3.org/1999/xhtml',
                   default_namespace=XMLSchema)
 """There really isn't a schema for this, but it's used as the default
 namespace in the XML schema, so define it."""
+XHTML.configureCategories(['typeBinding', 'elementBinding']);
 
 # http://www.w3.org/2001/xml.xsd
 XML = _XML('http://www.w3.org/XML/1998/namespace',

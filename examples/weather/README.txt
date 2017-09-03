@@ -1,3 +1,7 @@
+Updated 2017-05-12: This service is no longer available.  Similar
+services are still hosted by this company but require a developer key to
+access.
+
 A free weather service at http://ws.cdyne.com/WeatherWS/Weather.asmx
 
 Use genbindings.sh to retrieve the wsdl and generate the bindings for the

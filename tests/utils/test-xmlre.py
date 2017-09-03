@@ -178,10 +178,10 @@ class TestXMLRE (unittest.TestCase):
         self.assertEqual(charset, expected)
 
     def testXMLToPython (self):
-        self.assertEqual(r'^123$', xmlre.XMLToPython('123'))
+        self.assertEqual(r'^(123)$', xmlre.XMLToPython('123'))
         # Note that single-char escapes in the expression are
         # converted to character classes.
-        self.assertEqual(r'^Why[ ]not[?]$', xmlre.XMLToPython(r'Why[ ]not\?'))
+        self.assertEqual(r'^(Why[ ]not[?])$', xmlre.XMLToPython(r'Why[ ]not\?'))
 
     def testRegularExpressions (self):
         text = '[\i-[:]][\c-[:]]*'
@@ -466,6 +466,12 @@ class TestXMLRE (unittest.TestCase):
 
     def testQuotedSingleChar(self):
         self.assertMatches("foo\\\\bar", "foo\\bar")
+
+    def testAlternation(self):
+        self.assertMatches("[0-9]{3}|", "123");
+        self.assertMatches("[0-9]{3}|", "");
+        self.assertNoMatch("[0-9]{3}|", "12");
+        self.assertNoMatch("[0-9]{3}|", "1234");
 
 if __name__ == '__main__':
     unittest.main()
