@@ -271,7 +271,11 @@ class AttributeUse (pyxb.cscRoot):
         if new_value is None:
             if self.__required:
                 raise pyxb.MissingAttributeError(type(ctd_instance), self.__name, ctd_instance)
+            # Mark attribute as being not provided and having default value, the same is when loading from xml
+            #  without a provided value
             provided = False
+            if self.__unicodeDefault is not None:
+                new_value = self.__defaultValue
         if self.__prohibited:
             raise pyxb.ProhibitedAttributeError(type(ctd_instance), self.__name, ctd_instance)
         if (new_value is not None) and (from_xml or not isinstance(new_value, self.__dataType)):
