@@ -550,6 +550,15 @@ class BindingDOMSupport (object):
             return clone_node
         if node.COMMENT_NODE == node.nodeType:
             return docnode.createComment(node.data)
+        if node.CDATA_SECTION_NODE == node.nodeType:
+            # Technically Python DOM allows the nodeValue to be None, though
+            # the `data` property of a CDATASection object is supposed to only
+            # be a string.  Do the check anyway, so if a user encounters this
+            # we can provide a solution that meets the actual need rather than
+            # silently substituting something unexpected.
+            if isinstance(node.nodeValue, six.string_types):
+                return docnode.createTextNode(node.data)
+            raise ValueError('DOM node from non-text CDATA not supported in clone', node.nodeValue)
         raise ValueError('DOM node not supported in clone', node)
 
     def cloneIntoImplementation (self, node):
