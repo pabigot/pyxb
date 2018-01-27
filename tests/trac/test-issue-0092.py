@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 import logging
 import pyxb.binding.generate
 import pyxb.utils.domutils
+import xml.dom.minidom as dom
+
 
 if __name__ == '__main__':
     logging.basicConfig()
@@ -46,6 +48,14 @@ class TestIssue0092 (unittest.TestCase):
         xmlt = '<HOST><ID>1</ID><TEMPLATE><NODE><![CDATA[text]]></NODE></TEMPLATE></HOST>';
         xmld = xmlt.encode('utf-8');
         doc = CreateFromDocument(xmld);
+        templateFragment=doc.TEMPLATE.toDOM()
+        self.assertEqual(templateFragment.toxml(), '''<?xml version="1.0" ?><TEMPLATE><NODE>text</NODE></TEMPLATE>''')
+
+    def testCreateFromDOMWithCDATAToDom (self):
+        xmlt = '<HOST><ID>1</ID><TEMPLATE><NODE><![CDATA[text]]></NODE></TEMPLATE></HOST>';
+        xmld = xmlt.encode('utf-8');
+        domDoc=dom.parseString(xmld);
+        doc = CreateFromDOM(domDoc);
         templateFragment=doc.TEMPLATE.toDOM()
         self.assertEqual(templateFragment.toxml(), '''<?xml version="1.0" ?><TEMPLATE><NODE>text</NODE></TEMPLATE>''')
 
