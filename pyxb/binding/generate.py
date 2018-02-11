@@ -1675,7 +1675,7 @@ import pyxb.utils.six as _six
 ''')
         self.bindingIO().appendPrologBoilerplate(template_map)
         self.bindingIO().prolog().append(self.bindingIO().expand('''
-def CreateFromDocument (xml_text, default_namespace=None, location_base=None):
+def CreateFromDocument (xml_text, fallback_namespace=None, location_base=None, default_namespace=None):
     """Parse the given XML and use the document element to create a
     Python instance.
 
@@ -1683,23 +1683,30 @@ def CreateFromDocument (xml_text, default_namespace=None, location_base=None):
     str or Python 3 bytes), or a text (Python 2 unicode or Python 3
     str) in the L{pyxb._InputEncoding} encoding.
 
-    @keyword default_namespace The L{pyxb.Namespace} instance to use as the
-    default namespace where there is no default namespace in scope.
-    If unspecified or C{None}, the namespace of the module containing
-    this function will be used.
+    @keyword fallback_namespace An absent L{pyxb.Namespace} instance
+    to use for unqualified names when there is no default namespace in
+    scope.  If unspecified or C{None}, the namespace of the module
+    containing this function will be used, if it is an absent
+    namespace.
 
     @keyword location_base: An object to be recorded as the base of all
     L{pyxb.utils.utility.Location} instances associated with events and
     objects handled by the parser.  You might pass the URI from which
     the document was obtained.
+
+    @keyword default_namespace An alias for @c fallback_namespace used
+    in PyXB 1.1.4 through 1.2.6.  It behaved like a default namespace
+    only for absent namespaces.
     """
 
     if pyxb.XMLStyle_saxer != pyxb._XMLStyle:
         dom = pyxb.utils.domutils.StringToDOM(xml_text)
-        return CreateFromDOM(dom.documentElement, default_namespace=default_namespace)
-    if default_namespace is None:
-        default_namespace = Namespace.fallbackNamespace()
-    saxer = pyxb.binding.saxer.make_parser(fallback_namespace=default_namespace, location_base=location_base)
+        return CreateFromDOM(dom.documentElement)
+    if fallback_namespace is None:
+        fallback_namespace = default_namespace
+    if fallback_namespace is None:
+        fallback_namespace = Namespace.fallbackNamespace()
+    saxer = pyxb.binding.saxer.make_parser(fallback_namespace=fallback_namespace, location_base=location_base)
     handler = saxer.getContentHandler()
     xmld = xml_text
     if isinstance(xmld, %{_TextType}):
@@ -1708,14 +1715,16 @@ def CreateFromDocument (xml_text, default_namespace=None, location_base=None):
     instance = handler.rootObject()
     return instance
 
-def CreateFromDOM (node, default_namespace=None):
+def CreateFromDOM (node, fallback_namespace=None, default_namespace=None):
     """Create a Python instance from the given DOM node.
     The node tag must correspond to an element declaration in this module.
 
     @deprecated: Forcing use of DOM interface is unnecessary; use L{CreateFromDocument}."""
-    if default_namespace is None:
-        default_namespace = Namespace.fallbackNamespace()
-    return pyxb.binding.basis.element.AnyCreateFromDOM(node, default_namespace)
+    if fallback_namespace is None:
+        fallback_namespace = default_namespace
+    if fallback_namespace is None:
+        fallback_namespace = Namespace.fallbackNamespace()
+    return pyxb.binding.basis.element.AnyCreateFromDOM(node, fallback_namespace)
 
 ''', **template_map))
 
