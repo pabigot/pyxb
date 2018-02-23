@@ -19,7 +19,7 @@ import re
 import datetime
 import logging
 
-from distutils.core import setup, Command
+from setuptools import setup, Command
 
 # Stupid little command to automatically update the version number
 # where it needs to be updated.
