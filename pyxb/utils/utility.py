@@ -1274,6 +1274,27 @@ class Location (object):
         ctor = '%s.%s' % (t.__module__, t.__name__)
         return '%s(%s, %r, %r)' % (ctor, repr2to3(self.__locationBase), self.__lineNumber, self.__columnNumber)
 
+    def withFilePathsRemoved(self):
+        '''Return a version of this Locator with any file paths removed.
+        Just the file name remains.
+
+        If this Locator points to a HTTP or HTTPS URL, it is returned unchanged.
+
+        This is used when generating bindings.  There are two reasons for this:
+        It hides potentially-sensitive file paths (e.g. usernames if building
+        in My Documents on Windows or in a user's home directory on Unix
+        systems).  It also helps ensure that builds are reproducible - if
+        different users build the same bindings from the same source files they
+        should end up with the same binding Python files, even if they build
+        in different directories or on different OSs.
+        '''
+        proto = self.__locationBase.split(':', 1)[0]
+        if proto in ('http', 'https'):
+            return self
+        filename = self.__locationBase.rsplit('/', 1)[-1]
+        return type(self)(filename, self.__lineNumber, self.__columnNumber)
+
+
 class Locatable_mixin (pyxb.cscRoot):
     __location = None
 
