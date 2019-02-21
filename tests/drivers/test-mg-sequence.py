@@ -22,7 +22,7 @@ def ToDOM (instance, tag=None):
     return instance.toDOM().documentElement
 
 import unittest
-import collections
+import collections.abc
 
 class TestMGSeq (unittest.TestCase):
     def setUp (self):
@@ -50,7 +50,7 @@ class TestMGSeq (unittest.TestCase):
         self.assertTrue(isinstance(instance.first, sequence._ElementMap['first'].elementBinding().typeDefinition()))
         self.assertTrue(isinstance(instance.second_opt, sequence._ElementMap['second_opt'].elementBinding().typeDefinition()))
         self.assertTrue(isinstance(instance.third, sequence._ElementMap['third'].elementBinding().typeDefinition()))
-        self.assertTrue(isinstance(instance.fourth_0_2, collections.MutableSequence))
+        self.assertTrue(isinstance(instance.fourth_0_2, collections.abc.MutableSequence))
         self.assertEqual(1, len(instance.fourth_0_2))
         self.assertTrue(isinstance(instance.fourth_0_2[0], sequence._ElementMap['fourth_0_2'].elementBinding().typeDefinition()))
         self.assertEqual(ToDOM(instance).toxml("utf-8"), xmld)
@@ -63,7 +63,7 @@ class TestMGSeq (unittest.TestCase):
         self.assertTrue(isinstance(instance.first, sequence._ElementMap['first'].elementBinding().typeDefinition()))
         self.assertTrue(instance.second_opt is None)
         self.assertTrue(isinstance(instance.third, sequence._ElementMap['third'].elementBinding().typeDefinition()))
-        self.assertTrue(isinstance(instance.fourth_0_2, collections.MutableSequence))
+        self.assertTrue(isinstance(instance.fourth_0_2, collections.abc.MutableSequence))
         self.assertEqual(2, len(instance.fourth_0_2))
         self.assertTrue(isinstance(instance.fourth_0_2[0], sequence._ElementMap['fourth_0_2'].elementBinding().typeDefinition()))
         self.assertEqual(ToDOM(instance).toxml("utf-8"), xmld)
@@ -73,7 +73,7 @@ class TestMGSeq (unittest.TestCase):
         xmld = xmlt.encode('utf-8')
         dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = altwrapper.createFromDOM(dom.documentElement)
-        self.assertTrue(isinstance(instance.first, collections.MutableSequence))
+        self.assertTrue(isinstance(instance.first, collections.abc.MutableSequence))
         self.assertEqual(1, len(instance.first))
         self.assertEqual(2, len(instance.second_multi))
         self.assertTrue(isinstance(instance.third, altsequence._ElementMap['third'].elementBinding().typeDefinition()))
@@ -84,7 +84,7 @@ class TestMGSeq (unittest.TestCase):
         xmld = xmlt.encode('utf-8')
         dom = pyxb.utils.domutils.StringToDOM(xmlt)
         instance = altwrapper.createFromDOM(dom.documentElement)
-        self.assertTrue(isinstance(instance.first, collections.MutableSequence))
+        self.assertTrue(isinstance(instance.first, collections.abc.MutableSequence))
         self.assertEqual(2, len(instance.first))
         self.assertEqual(0, len(instance.second_multi))
         self.assertTrue(isinstance(instance.third, altsequence._ElementMap['third'].elementBinding().typeDefinition()))
@@ -100,7 +100,7 @@ class TestMGSeq (unittest.TestCase):
         self.assertTrue(isinstance(instance.first, sequence._ElementMap['first'].elementBinding().typeDefinition()))
         self.assertTrue(instance.second_opt is None)
         self.assertTrue(isinstance(instance.third, sequence._ElementMap['third'].elementBinding().typeDefinition()))
-        self.assertTrue(isinstance(instance.fourth_0_2, collections.MutableSequence))
+        self.assertTrue(isinstance(instance.fourth_0_2, collections.abc.MutableSequence))
         self.assertEqual(0, len(instance.fourth_0_2))
         self.assertEqual(ToDOM(instance).toxml("utf-8"), xmld)
 
