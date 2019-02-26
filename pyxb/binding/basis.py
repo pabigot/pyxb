@@ -1023,7 +1023,8 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
                 # otherwise directly descends from a Python type; return
                 # the recorded XSD supertype.
                 return cls._XsdBaseType
-            if issubclass(sc, simpleTypeDefinition):
+            if (not sc.__name__.startswith('_')) \
+                    and issubclass(sc, simpleTypeDefinition):
                 return sc
         raise pyxb.LogicError('No supertype found for %s' % (cls,))
 
