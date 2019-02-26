@@ -1,3 +1,5 @@
+#! /bin/sh
+
 
 test_name=${0}
 

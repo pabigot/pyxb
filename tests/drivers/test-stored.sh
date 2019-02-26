@@ -1,3 +1,5 @@
+#! /bin/sh
+
 rm -rf bindings
 mkdir bindings
 

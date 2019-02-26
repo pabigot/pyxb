@@ -1,3 +1,5 @@
+#! /bin/sh
+
 # POSIX shell infrastructure included by various test scripts to
 # remove redundancy and simplify the scripts.
 #

@@ -1,3 +1,5 @@
+#! /bin/sh
+
 PYXB_ARCHIVE_PATH=bindings
 rm -rf bindings
 mkdir -p bindings

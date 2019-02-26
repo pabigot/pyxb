@@ -1,3 +1,5 @@
+#! /bin/sh
+
 PYXB_ROOT=${PYXB_ROOT:-/mnt/devel/pyxb}
 PYTHONPATH=${PYXB_ROOT}:${PYTHONPATH:+:${PYTHONPATH}}
 PATH="${PYXB_ROOT}/scripts:${PYXB_ROOT}/bin:${PATH}"
