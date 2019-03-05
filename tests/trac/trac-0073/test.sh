@@ -1,3 +1,5 @@
+#! /bin/sh
+
 pyxbgen \
   --archive-to-file base.wxs \
   --schema-location base.xsd --module base

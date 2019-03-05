@@ -1,3 +1,5 @@
+#! /bin/sh
+
 fail () {
   echo 1>&2 "${test_name} FAILED: ${@}"
   exit 1

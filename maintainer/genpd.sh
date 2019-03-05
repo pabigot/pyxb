@@ -1,3 +1,5 @@
+#! /bin/sh
+
 find pyxb/bundles -name __init__.py \
  | sed -e 's@^@"@' -e 's@/[^/]*$@",@' -e 's@/@.@g' \
  | fmt

@@ -1,3 +1,5 @@
+#! /bin/sh
+
 test_name=trac/193
 
 fail () {

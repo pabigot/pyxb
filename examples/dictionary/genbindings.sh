@@ -1,3 +1,5 @@
+#! /bin/sh
+
 URI='http://services.aonaware.com/DictService/DictService.asmx?WSDL'
 PREFIX='dict'
 WSDL="${PREFIX}.wsdl"
