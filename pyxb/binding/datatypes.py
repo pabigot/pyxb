@@ -157,7 +157,7 @@ class decimal (basis.simpleTypeDefinition, python_decimal.Decimal, basis._Repres
 
     @classmethod
     def XsdLiteral (cls, value):
-        (sign, digits, exponent) = value.normalize().as_tuple()
+        (sign, digits, exponent) = value.as_tuple()
         if (0 < len(digits)) and (0 == digits[0]):
             digits = ()
         rchars = []
