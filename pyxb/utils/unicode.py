@@ -80,8 +80,11 @@ class CodePointSet (object):
     # codepoints 12, 13, 14, and everything above 199.
     __codepoints = None
 
+    # Whether this object is frozen (immutable)
+    __frozen = False
+
     def _codepoints (self):
-        """For testing purrposes only, access to the codepoints
+        """For testing purposes only, access to the codepoints
         internal representation."""
         return self.__codepoints
 
@@ -90,7 +93,7 @@ class CodePointSet (object):
 
     def __eq__ (self, other):
         """Equality is delegated to the codepoints list."""
-        return self.__codepoints == other.__codepoints
+        return isinstance(other, CodePointSet) and self.__codepoints == other.__codepoints
 
     def __lt__ (self, other):
         return self.__codepoints < other.__codepoints
@@ -113,7 +116,7 @@ class CodePointSet (object):
             (s, e) = value
             e += 1
         elif isinstance(value, six.string_types):
-            if 1 < len(value):
+            if 1 != len(value):
                 raise TypeError()
             s = ord(value)
             e = s+1
@@ -125,10 +128,12 @@ class CodePointSet (object):
 
         # Validate the range for the code points supported by this
         # Python interpreter.  Recall that e is exclusive.
-        if s > self.MaxCodePoint:
+        if s > self.MaxCodePoint or e <= 0:
             return self
+        if s < 0:
+            s = 0
         if e > self.MaxCodePoint:
-            e = self.MaxCodePoint+1
+            e = self.MaxCodePoint + 1
 
         # Index of first code point equal to or greater than s
         li = bisect.bisect_left(self.__codepoints, s)
@@ -161,6 +166,7 @@ class CodePointSet (object):
         tuple C{(s,e)} denoting the start and end (inclusive) code
         points in a range.
         @return: C{self}"""
+        assert not self.__frozen
         return self.__mutate(value, True)
 
     def extend (self, values):
@@ -170,6 +176,7 @@ class CodePointSet (object):
         whose members are valid parameters to L{add}.
 
         @return: C{self}"""
+        assert not self.__frozen
         if isinstance(values, CodePointSet):
             self.extend(values.asTuples())
         else:
@@ -185,6 +192,7 @@ class CodePointSet (object):
         range, or a L{CodePointSet}.
 
         @return: C{self}"""
+        assert not self.__frozen
         if isinstance(value, CodePointSet):
             for v in value.asTuples():
                 self.subtract(v)
@@ -217,7 +225,7 @@ class CodePointSet (object):
     def __unichr (self, code_point):
         rv = six.unichr(code_point)
         if 0 == code_point:
-            rv = six.u('x00')
+            rv = six.text_type('x00')
         if code_point in self.__XMLtoPythonREEscapedCodepoints:
             rv = six.unichr(0x5c) + rv
         return rv
@@ -240,7 +248,7 @@ class CodePointSet (object):
             if s == e:
                 rva.append(self.__unichr(s))
             else:
-                rva.extend([self.__unichr(s), '-', self.__unichr(e)])
+                rva.extend([self.__unichr(s), six.u('-'), self.__unichr(e)])
         if with_brackets:
             rva.append(six.u(']'))
         return six.u('').join(rva)
@@ -281,6 +289,22 @@ class CodePointSet (object):
             return None
         return six.unichr(self.__codepoints[0])
 
+    def freeze (self):
+        """Freezes this object, preventing further changes.
+
+        Attempting to modify a frozen object will assert if assertions are
+        enabled.  If assertions are disabled then you can still modify the
+        object.
+
+        Intended as a development/debugging aid, to prevent accidentally
+        changing objects that are used as global constants.
+
+        @return: C{self}
+        """
+        self.__frozen = True
+        return self
+
+
 from pyxb.utils.unicode_data import PropertyMap
 from pyxb.utils.unicode_data import BlockMap
 
@@ -316,6 +340,7 @@ class XML1p0e2 (object):
         )
     if SupportsWideUnicode:
         Char.add( ( 1+CodePointSet.MaxShortCodePoint, CodePointSet.MaxCodePoint ) )
+    Char.freeze()
 
     BaseChar = CodePointSet(
         ( 0x0041, 0x005A ),
@@ -520,15 +545,15 @@ class XML1p0e2 (object):
         ( 0x30A1, 0x30FA ),
         ( 0x3105, 0x312C ),
         ( 0xAC00, 0xD7A3 )
-        )
+        ).freeze()
 
     Ideographic = CodePointSet(
         ( 0x4E00, 0x9FA5 ),
         0x3007,
         ( 0x3021, 0x3029 )
-        )
+        ).freeze()
 
-    Letter = CodePointSet(BaseChar).extend(Ideographic)
+    Letter = CodePointSet(BaseChar).extend(Ideographic).freeze()
 
     CombiningChar = CodePointSet(
         ( 0x0300, 0x0345 ),
@@ -626,7 +651,7 @@ class XML1p0e2 (object):
         ( 0x302A, 0x302F ),
         0x3099,
         0x309A
-        )
+        ).freeze()
 
     Digit = CodePointSet(
         ( 0x0030, 0x0039 ),
@@ -644,7 +669,7 @@ class XML1p0e2 (object):
         ( 0x0E50, 0x0E59 ),
         ( 0x0ED0, 0x0ED9 ),
         ( 0x0F20, 0x0F29 )
-        )
+        ).freeze()
 
     Extender = CodePointSet(
         0x00B7,
@@ -658,15 +683,17 @@ class XML1p0e2 (object):
         ( 0x3031, 0x3035 ),
         ( 0x309D, 0x309E ),
         ( 0x30FC, 0x30FE )
-        )
+        ).freeze()
 
     # Not an explicit production, but used in Name production
     NameStartChar = CodePointSet(Letter)
     NameStartChar.add(ord('_'))
     NameStartChar.add(ord(':'))
+    NameStartChar.freeze()
 
     NCNameStartChar = CodePointSet(Letter)
     NCNameStartChar.add(ord('_'))
+    NCNameStartChar.freeze()
 
     NameChar = CodePointSet(Letter)
     NameChar.extend(Digit)
@@ -676,6 +703,7 @@ class XML1p0e2 (object):
     NameChar.add(ord(':'))
     NameChar.extend(CombiningChar)
     NameChar.extend(Extender)
+    NameChar.freeze()
 
     NCNameChar = CodePointSet(Letter)
     NCNameChar.extend(Digit)
@@ -684,6 +712,7 @@ class XML1p0e2 (object):
     NCNameChar.add(ord('_'))
     NCNameChar.extend(CombiningChar)
     NCNameChar.extend(Extender)
+    NCNameChar.freeze()
 
     Name_pat = '%s%s*' % (NameStartChar.asPattern(), NameChar.asPattern())
     Name_re = re.compile('^%s$' % (Name_pat,))
@@ -695,36 +724,38 @@ class XML1p0e2 (object):
     QName_re = re.compile('^%s$' % (QName_pat,))
 
 # Production 24 : Single Character Escapes
-SingleCharEsc = { 'n' : CodePointSet(0x0A),
-                  'r' : CodePointSet(0x0D),
-                  't' : CodePointSet(0x09) }
+SingleCharEsc = { 'n' : CodePointSet(0x0A).freeze(),
+                  'r' : CodePointSet(0x0D).freeze(),
+                  't' : CodePointSet(0x09).freeze() }
 for c in r'\|.-^?*+{}()[]':
-    SingleCharEsc[c] = CodePointSet(ord(c))
+    SingleCharEsc[c] = CodePointSet(ord(c)).freeze()
 
 # Production 25 : Category Escapes
 # Production 26: Complemented Category Escapes
 catEsc = { }
 complEsc = { }
 for k, v in six.iteritems(PropertyMap):
+    v.freeze()
     catEsc[six.u('p{%s}') % (k,)] = v
-    catEsc[six.u('P{%s}') % (k,)] = v.negate()
+    complEsc[six.u('P{%s}') % (k,)] = v.negate().freeze()
 
 # Production 36 : IsBlock escapes
 IsBlockEsc = { }
 for k, v in six.iteritems(BlockMap):
+    v.freeze()
     IsBlockEsc[six.u('p{Is%s}') % (k,)] = v
-    IsBlockEsc[six.u('P{Is%s}') % (k,)] = v.negate()
+    IsBlockEsc[six.u('P{Is%s}') % (k,)] = v.negate().freeze()
 
 # Production 37 : Multi-Character Escapes
-WildcardEsc = CodePointSet(ord('\n'), ord('\r')).negate()
+WildcardEsc = CodePointSet(ord('\n'), ord('\r')).negate().freeze()
 MultiCharEsc = { }
-MultiCharEsc['s'] = CodePointSet(0x20, ord('\t'), ord('\n'), ord('\r'))
-MultiCharEsc['S'] = MultiCharEsc['s'].negate()
-MultiCharEsc['i'] = CodePointSet(XML1p0e2.Letter).add(ord('_')).add(ord(':'))
-MultiCharEsc['I'] = MultiCharEsc['i'].negate()
-MultiCharEsc['c'] = CodePointSet(XML1p0e2.NameChar)
-MultiCharEsc['C'] = MultiCharEsc['c'].negate()
+MultiCharEsc['s'] = CodePointSet(0x20, ord('\t'), ord('\n'), ord('\r')).freeze()
+MultiCharEsc['S'] = MultiCharEsc['s'].negate().freeze()
+MultiCharEsc['i'] = CodePointSet(XML1p0e2.Letter).add(ord('_')).add(ord(':')).freeze()
+MultiCharEsc['I'] = MultiCharEsc['i'].negate().freeze()
+MultiCharEsc['c'] = CodePointSet(XML1p0e2.NameChar).freeze()
+MultiCharEsc['C'] = MultiCharEsc['c'].negate().freeze()
 MultiCharEsc['d'] = PropertyMap['Nd']
-MultiCharEsc['D'] = MultiCharEsc['d'].negate()
-MultiCharEsc['W'] = CodePointSet(PropertyMap['P']).extend(PropertyMap['Z']).extend(PropertyMap['C'])
-MultiCharEsc['w'] = MultiCharEsc['W'].negate()
+MultiCharEsc['D'] = MultiCharEsc['d'].negate().freeze()
+MultiCharEsc['W'] = CodePointSet(PropertyMap['P']).extend(PropertyMap['Z']).extend(PropertyMap['C']).freeze()
+MultiCharEsc['w'] = MultiCharEsc['W'].negate().freeze()

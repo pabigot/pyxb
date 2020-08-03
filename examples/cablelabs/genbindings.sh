@@ -1,3 +1,5 @@
+#! /bin/sh
+
 # Note: Module order is in increasing dependency order so schema are
 # downloaded and saved only once.
 [ -f cablelabs.wxs ] \

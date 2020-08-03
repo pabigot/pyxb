@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright 2009-2013, Peter A. Bigot
-# Copyright 2012, Jon Foster
+# Copyright 2012,2018 Jon Foster
+# Copyright 2018 Eurofins Digital Product Testing UK Ltd - https://www.eurofins-digitaltesting.com/
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain a
@@ -41,6 +42,10 @@ from pyxb.utils import six
 
 _log = logging.getLogger(__name__)
 
+# ===========================================================================
+# XML Schema character class parsing/conversion functions
+# ===========================================================================
+
 # AllEsc maps all the possible escape codes and wildcards in an XML schema
 # regular expression into the corresponding CodePointSet.
 _AllEsc = { }
@@ -49,8 +54,8 @@ def _InitializeAllEsc ():
     """Set the values in _AllEsc without introducing C{k} and C{v} into
     the module."""
 
-    _AllEsc.update({ six.u('.'): pyxb.utils.unicode.WildcardEsc })
-    bs = six.unichr(0x5c)
+    _AllEsc[six.u('.')] = pyxb.utils.unicode.WildcardEsc
+    bs = b'\\'.decode('ascii')
     for k, v in six.iteritems(pyxb.utils.unicode.SingleCharEsc):
         _AllEsc[bs + six.text_type(k)] = v
     for k, v in six.iteritems(pyxb.utils.unicode.MultiCharEsc):
@@ -154,7 +159,7 @@ def _MatchPosCharGroup(text, position):
         elif ch == six.u(']'):
             # End
             break
-        elif ch == six.unichr(0x5c): # backslash
+        elif ch == b'\\'.decode('ascii'):
             cps, position = _MatchCharClassEsc(text, position)
             single_char = cps.asSingleCharacter()
             if single_char is not None:
@@ -163,7 +168,7 @@ def _MatchPosCharGroup(text, position):
                 tokens.append(cps)
         elif ch == six.u('-'):
             # We need to distinguish between "-" and "\-".  So we use
-            # DASH for a plain "-", and u"-" for a "\-".
+            # DASH for a plain "-", and "-" for a "\-".
             tokens.append(DASH)
             position = position + 1
         else:
@@ -198,6 +203,7 @@ def _MatchPosCharGroup(text, position):
             elif isinstance(start, six.text_type):
                 result_cps.add(ord(start))
             else:
+                assert isinstance(start, pyxb.utils.unicode.CodePointSet)
                 result_cps.extend(start)
             cur_token = cur_token + 1
 
@@ -229,7 +235,7 @@ def _MatchCharClassExpr(text, position):
     position = position + 1
     if position >= len(text):
         raise RegularExpressionError(position, 'Missing character class expression')
-    negated = (text[position] == '^')
+    negated = (text[position] == six.u('^'))
     if negated:
         position = position + 1
 
@@ -249,32 +255,218 @@ def _MatchCharClassExpr(text, position):
         raise RegularExpressionError(position, "Expected ']' to end character class")
     return result_cps, position + 1
 
-def MaybeMatchCharacterClass (text, position):
-    """Attempt to match a U{character class expression
-    <http://www.w3.org/TR/xmlschema-2/#nt-charClassExpr>}.
 
-    @param text: The complete text of the regular expression being
-    translated
+# ===========================================================================
+# Utilities for Python's RE module
+# ===========================================================================
 
-    @param position: The offset of the start of the potential
-    expression.
+_python_re_escape_char_dict = {
+    six.u('\000'): b'\\000'.decode('ascii'),
+    six.u('\r'): b'\\r'.decode('ascii'),
+    six.u('\n'): b'\\n'.decode('ascii'),
+    six.u('.'): b'\\.'.decode('ascii'),
+    six.u('^'): b'\\^'.decode('ascii'),
+    six.u('$'): b'\\$'.decode('ascii'),
+    six.u('*'): b'\\*'.decode('ascii'),
+    six.u('+'): b'\\+'.decode('ascii'),
+    six.u('?'): b'\\?'.decode('ascii'),
+    six.u('{'): b'\\{'.decode('ascii'),
+    six.u('}'): b'\\}'.decode('ascii'),
+    b'\\'.decode('ascii'): b'\\\\'.decode('ascii'),
+    six.u('['): b'\\['.decode('ascii'),
+    six.u(']'): b'\\]'.decode('ascii'),
+    six.u('|'): b'\\|'.decode('ascii'),
+    six.u('('): b'\\('.decode('ascii'),
+    six.u(')'): b'\\)'.decode('ascii'),
+    six.u('-'): b'\\-'.decode('ascii'), # Needed inside [] blocks
+    }
 
-    @return: C{None} if C{position} does not begin a character class
-    expression; otherwise a pair C{(cps, p)} where C{cps} is a
-    L{pyxb.utils.unicode.CodePointSet} containing the code points associated with
-    the property, and C{p} is the text offset immediately following
-    the closing brace."""
-    if position >= len(text):
-        return None
-    c = text[position]
-    np = position + 1
-    if '.' == c:
-        return (pyxb.utils.unicode.WildcardEsc, np)
-    if '[' == c:
-        return _MatchCharClassExpr(text, position)
-    if '\\' == c:
-        return _MatchCharClassEsc(text, position)
-    return None
+def _python_re_escape_char(char):
+    '''Escape characters that need it.  Pass a single character only.
+
+    Note: Python's re.escape() function it a little overeager to
+    escape everything.  This only escapes things that need it.'''
+    return _python_re_escape_char_dict.get(char, char)
+
+def _AddQualifier(pattern, min_occurs, max_occurs):
+    assert isinstance(pattern, six.text_type)
+    assert len(pattern) >= 1
+    assert isinstance(min_occurs, int)
+    assert min_occurs >= 0
+    assert max_occurs is None or isinstance(max_occurs, int)
+    assert max_occurs is None or max_occurs >= 0
+
+    if min_occurs == 1 and max_occurs == 1:
+        pass
+    elif max_occurs is None:
+        if min_occurs == 0:
+            pattern += six.u('*')
+        elif min_occurs == 1:
+            pattern += six.u('+')
+        else:
+            pattern = six.u('%s{%d,}') % (pattern, min_occurs)
+    elif max_occurs == 1 and min_occurs == 0:
+        pattern += six.u('?')
+    elif max_occurs == 0:
+        pattern = six.u('')
+    elif min_occurs == max_occurs:
+        pattern = six.u('%s{%d}') % (pattern, min_occurs)
+    else:
+        pattern = six.u('%s{%d,%d}') % (pattern, min_occurs, max_occurs)
+    return pattern
+
+
+# ===========================================================================
+# Functions to parse a XSD regexp
+# ===========================================================================
+
+# Char ::= [^.\?*+()|#x5B#x5D]
+# This appears to be a bug in the spec - the text says {} are invalid,
+# but the grammar doesn't.  Excluding them because otherwise "a{4}" is
+# ambiguous - does it only match the literal "aaaa" or only match the
+# literal "a{4}"?  (We only actually need to exclude "{" to make the
+# grammar unambiguous, but this is cleaner and matches the standard's
+# text).
+_invalid_literal_chars = frozenset(b'.\\?*+()|[]{}'.decode('ascii'))
+
+def _MatchAtom(text, position):
+    '''Parses an "atom".
+
+    This is either:
+     - "Char", a plain single character
+     - A bracketed "regExp"
+     - "charClassEsc" an escape code for either a single character or a range
+       of characters
+     - "WildcardEsc", the "." wildcard
+     - "charClassExpr", a character class using the [] syntax
+
+    Preconditions: Not at end of string.
+    If the parsing fails, throws a RegularExpressionError.
+    Returns a tuple with the Python regex that matches the atom, and the new
+    position.
+    Postconditions: None.
+    '''
+    assert position < len(text)
+    start_position = position
+    ch = text[position]
+    if ch not in _invalid_literal_chars:
+        atom_pattern = _python_re_escape_char(ch)
+        position = position + 1
+    elif ch == six.u('('):
+        atom_pattern, position = _MatchSubRegex(text, position + 1)
+        if position >= len(text) or text[position] != six.u(')'):
+            raise RegularExpressionError(start_position, "Unmatched bracket")
+        position = position + 1
+    elif ch == b'\\'.decode('ascii'):
+        char_class, position = _MatchCharClassEsc(text, position)
+        single_char = char_class.asSingleCharacter()
+        if single_char is not None:
+            # E.g. '\\\\' isn't really a char range.
+            atom_pattern = _python_re_escape_char(single_char)
+        else:
+            atom_pattern = char_class.asPattern()
+    elif ch == six.u('.'):
+        atom_pattern = pyxb.utils.unicode.WildcardEsc.asPattern()
+        position = position + 1
+    elif ch == six.u('['):
+        char_class, position = _MatchCharClassExpr(text, position)
+        atom_pattern = char_class.asPattern()
+    else:
+        raise RegularExpressionError(position, "Invalid character")
+    return atom_pattern, position
+
+_quantifier_curlybrace_re = re.compile(
+        b'\\{(?:'
+        b'(?P<exact_occurs>[0-9]+)' # {3} style
+        b'|'
+        b'(?:(?P<min_occurs>[0-9]+),(?P<max_occurs>[0-9]+)?)' # {3,4} or {3,}
+        b')\\}'.decode('ascii'))
+
+def _MatchQuantifier(text, position):
+    '''Tries to parse a "quantifier", if present.
+    If not, just returns the default quantifier of {1,1}.
+
+    Preconditions: None.
+    If there's a "{" character indicating the start of a quantifier, but
+    parsing it fails, throws a RegularExpressionError.  Will not throw if
+    there's no quantifier at all.
+    Returns a tuple with the min and max occurs, and the new position.  Max
+    occurs can be None for unlimited.
+    Postconditions: None.
+    '''
+
+    min_occurs = 1
+    max_occurs = 1
+    if position < len(text):
+        ch = text[position]
+        if ch == six.u('?'):
+            min_occurs = 0
+            position = position + 1
+        elif ch == six.u('*'):
+            min_occurs = 0
+            max_occurs = None
+            position = position + 1
+        elif ch == six.u('+'):
+            max_occurs = None
+            position = position + 1
+        elif ch == six.u('{'):
+            mo = _quantifier_curlybrace_re.match(text, position)
+            if not mo:
+                raise RegularExpressionError(position, "Cannot parse quantifier starting '{')")
+            exact_occurs = mo.group('exact_occurs')
+            if exact_occurs is not None:
+                min_occurs = max_occurs = int(exact_occurs, 10)
+            else:
+                min_occurs = int(mo.group('min_occurs'), 10)
+                max_occurs = mo.group('max_occurs')
+                if max_occurs is not None:
+                    max_occurs = int(max_occurs, 10)
+            position = mo.end()
+    return min_occurs, max_occurs, position
+
+def _MatchBranch(text, position):
+    '''Parses a "branch".  This is a series of "piece"s.  It doesn't contain
+    the "|" character (unless it's bracketed or escaped).
+
+    Each "piece" is an "atom" with an optional "qualifier".
+
+    Preconditions: None
+    If the parsing fails, throws a RegularExpressionError.
+    Returns a tuple with the (possibly empty) Python regex that matches the
+    branch and the new position.
+    Postconditions: At end of string, or next character is '|' or ')'.
+    '''
+    pieces = []
+    while position < len(text) and text[position] != six.u('|') and text[position] != six.u(')'):
+        atom_pattern, position = _MatchAtom(text, position)
+        min_occurs, max_occurs, position = _MatchQuantifier(text, position)
+        pieces.append(_AddQualifier(atom_pattern, min_occurs, max_occurs))
+
+    pattern = six.u('').join(pieces)
+    return pattern, position
+
+def _MatchSubRegex(text, position):
+    '''Parses a "regExp".  This is one or more "branch"es, separated by "|"
+    characters.
+
+    Preconditions: None
+    If the parsing fails, throws a RegularExpressionError.
+    Returns a tuple with the Python regex that matches the XSD regex and the
+    new position.
+    Postconditions: At end of string, or next character is ')'.
+    '''
+    branches = []
+    new_branch, position = _MatchBranch(text, position)
+    branches.append(new_branch)
+    while position < len(text) and text[position] == six.u('|'):
+        new_branch, position = _MatchBranch(text, position + 1)
+        branches.append(new_branch)
+    pattern = six.u('(?:%s)') % (six.u('|').join(branches),)
+    return pattern, position
+
+# ===========================================================================
+# Main XSD-to-Python regex conversion function
+# ===========================================================================
 
 def XMLToPython (pattern):
     """Convert the given pattern to the format required for Python
@@ -287,23 +479,7 @@ def XMLToPython (pattern):
     @return: A Unicode string specifying a Python regular expression
     that matches the same language as C{pattern}."""
     assert isinstance(pattern, six.text_type)
-    new_pattern_elts = []
-    new_pattern_elts.append('^(')
-    position = 0
-    while position < len(pattern):
-        cg = MaybeMatchCharacterClass(pattern, position)
-        if cg is None:
-            ch = pattern[position]
-            if ch == six.u('^') or ch == six.u('$'):
-                # These characters have no special meaning in XSD.  But they
-                # match start and end of string in Python, so they have to
-                # be escaped.
-                new_pattern_elts.append(six.unichr(0x5c) + ch)
-            else:
-                new_pattern_elts.append(ch)
-            position += 1
-        else:
-            (cps, position) = cg
-            new_pattern_elts.append(cps.asPattern())
-    new_pattern_elts.append(')$')
-    return ''.join(new_pattern_elts)
+    py_pattern, position = _MatchSubRegex(pattern, 0)
+    if position != len(pattern):
+        raise RegularExpressionError()
+    return six.u("^%s$") % (py_pattern,)

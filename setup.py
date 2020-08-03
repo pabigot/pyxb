@@ -3,8 +3,8 @@
 from __future__ import print_function
 import sys
 
-# The current version of the system.  Format is #.#.#[-DEV].
-version = '1.2.7-DEV'
+# The current version of the system.  Format is '#.#.#[.dev#]'.
+version = '1.2.7.dev1'
 
 # Require Python 2.6 or higher or Python 3.1 or higher
 if (sys.version_info[:2] < (2, 6)) or ((sys.version_info[0] == 3) and sys.version_info[:2] < (3, 1)):
@@ -19,7 +19,7 @@ import re
 import datetime
 import logging
 
-from distutils.core import setup, Command
+from setuptools import setup, Command
 
 # Stupid little command to automatically update the version number
 # where it needs to be updated.

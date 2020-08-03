@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright 2009-2013, Peter A. Bigot
+# Copyright 2018 Eurofins Digital Product Testing UK Ltd - https://www.eurofins-digitaltesting.com/
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain a
@@ -33,6 +34,9 @@ from pyxb.binding import basis, datatypes, facets
 
 _log = logging.getLogger(__name__)
 
+_StripFilePaths = False
+_NoTimestamp = False
+
 def PrefixModule (value, text=None):
     if text is None:
         text = value.__name__
@@ -41,6 +45,22 @@ def PrefixModule (value, text=None):
     if value.__module__ == facets.__name__:
         return 'pyxb.binding.facets.%s' % (text,)
     raise ValueError('No standard name for module of value', value)
+
+def _LocationRepr(loc):
+    '''Return the representation of a Location object, as a string.
+
+    This will remove the directory part of file paths, if requested.
+
+    There are two reasons for this: It hides potentially-sensitive file paths
+    (e.g. usernames if building in My Documents on Windows or in a user's home
+    directory on Unix systems).  It also helps ensure that builds are
+    reproducible - if different users build the same bindings from the same
+    source files they should end up with the same binding Python files, even if
+    they build in different directories or on different OSs.
+    '''
+    if _StripFilePaths and loc is not None:
+        loc = loc.withFilePathsRemoved()
+    return repr2to3(loc)
 
 class ReferenceLiteral (object):
     """Base class for something that requires fairly complex activity
@@ -193,7 +213,12 @@ class ReferenceEnumerationMember (ReferenceLiteral):
 def pythonLiteral (value, **kw):
     # For dictionaries, apply translation to all values (not keys)
     if isinstance(value, six.dictionary_type):
-        return ', '.join([ '%s=%s' % (k, pythonLiteral(v, **kw)) for (k, v) in six.iteritems(value) ])
+        entries = [ (k, pythonLiteral(v, **kw)) for (k, v) in six.iteritems(value) ]
+        # It's important to sort the entries here, so we reproducibly generate
+        # the same code for the same input.  It really doesn't matter *how*
+        # they're sorted.
+        entries.sort()
+        return ', '.join(('%s=%s' % (k, v)) for (k, v) in entries)
 
     # For lists, apply translation to all members
     if isinstance(value, six.list_type):
@@ -306,7 +331,7 @@ def %{name} ():
     for cc in sorted_counter_conditions:
         cc_id = 'cc_%u' % (len(counter_map),)
         counter_map[cc] = cc_id
-        au_src.append('    %s = fac.CounterCondition(min=%s, max=%s, metadata=%r)' % (cc_id, repr2to3(cc.min), repr2to3(cc.max), cc.metadata._location()))
+        au_src.append('    %s = fac.CounterCondition(min=%s, max=%s, metadata=%s)' % (cc_id, repr2to3(cc.min), repr2to3(cc.max), _LocationRepr(cc.metadata._location())))
         au_src.append('    counters.add(%s)' % (cc_id,))
     state_map = {}
     au_src.append('    states = []')
@@ -325,14 +350,14 @@ def %{name} ():
             for ui in sorted(st.finalUpdate, key=updateInstructionSortKey):
                 au_src.append('    final_update.add(fac.UpdateInstruction(%s, %r))' % (counter_map[ui.counterCondition], ui.doIncrement))
         if isinstance(st.symbol, xs.structures.ModelGroup):
-            au_src.append('    symbol = %r' % (st.symbol._location(),))
+            au_src.append('    symbol = %s' % (_LocationRepr(st.symbol._location()),))
         else:
             (particle, symbol) = st.symbol
             if isinstance(symbol, xs.structures.Wildcard):
-                au_src.append(templates.replaceInText('    symbol = pyxb.binding.content.WildcardUse(%{wildcard}, %{location})', wildcard=binding_module.literal(symbol, **kw), location=repr2to3(particle._location())))
+                au_src.append(templates.replaceInText('    symbol = pyxb.binding.content.WildcardUse(%{wildcard}, %{location})', wildcard=binding_module.literal(symbol, **kw), location=_LocationRepr(particle._location())))
             elif isinstance(symbol, xs.structures.ElementDeclaration):
                 binding_module.importForDeclaration(symbol)
-                au_src.append(templates.replaceInText('    symbol = pyxb.binding.content.ElementUse(%{ctd}._UseForTag(%{field_tag}), %{location})', field_tag=binding_module.literal(symbol.expandedName(), **kw), location=repr2to3(particle._location()), **template_map))
+                au_src.append(templates.replaceInText('    symbol = pyxb.binding.content.ElementUse(%{ctd}._UseForTag(%{field_tag}), %{location})', field_tag=binding_module.literal(symbol.expandedName(), **kw), location=_LocationRepr(particle._location()), **template_map))
         au_src.append('    %s = fac.State(symbol, is_initial=%r, final_update=final_update, is_unordered_catenation=%r)' % (st_id, st.isInitial, st.isUnorderedCatenation))
         if st.subAutomata is not None:
             au_src.append('    %s._set_subAutomata(*sub_automata)' % (st_id,))
@@ -406,8 +431,9 @@ def GenerateFacets (td, generator, **kw):
             if isinstance(fi, facets.CF_enumeration):
                 argset['enum_prefix'] = fi.enumPrefix()
         facet_var = ReferenceFacetMember(type_definition=td, facet_class=fc, **kw)
-        outf.write("%s = %s(%s)\n" % binding_module.literal( (facet_var, fc, argset ), **kw))
-        facet_instances.append(binding_module.literal(facet_var, **kw))
+        facet_code = []
+        facet_instances.append((binding_module.literal(facet_var, **kw), facet_code))
+        facet_code.append("%s = %s(%s)\n" % binding_module.literal( (facet_var, fc, argset ), **kw))
         if (fi is not None) and is_collection:
             for i in six.iteritems(fi):
                 if isinstance(i, facets._EnumerationElement):
@@ -417,13 +443,20 @@ def GenerateFacets (td, generator, **kw):
                         enum_config = '%s.addEnumeration(unicode_value=%s, tag=%s)' % binding_module.literal( ( facet_var, i.unicodeValue(), i.tag() ), **kw)
                     if gen_enum_tag and (i.tag() is not None):
                         enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i, **kw)
-                        outf.write("%s = %s\n" % (binding_module.literal(enum_member, **kw), enum_config))
+                        facet_code.append("%s = %s\n" % (binding_module.literal(enum_member, **kw), enum_config))
                         if fi.enumPrefix() is not None:
-                            outf.write("%s_%s = %s\n" % (fi.enumPrefix(), i.tag(), binding_module.literal(enum_member, **kw)))
+                            facet_code.append("%s_%s = %s\n" % (fi.enumPrefix(), i.tag(), binding_module.literal(enum_member, **kw)))
                     else:
-                        outf.write("%s\n" % (enum_config,))
+                        facet_code.append("%s\n" % (enum_config,))
                 if isinstance(i, facets._PatternElement):
-                    outf.write("%s.addPattern(pattern=%s)\n" % binding_module.literal( (facet_var, i.pattern ), **kw))
+                    facet_code.append("%s.addPattern(pattern=%s)\n" % binding_module.literal( (facet_var, i.pattern ), **kw))
+    # It's important to sort the facets here, so we reproducibly generate
+    # the same code for the same input.  It really doesn't matter *how*
+    # they're sorted.
+    facet_instances.sort()
+    for _, facet_code in facet_instances:
+        for s in facet_code:
+            outf.write(s)
     if gen_enum_tag and (xs.structures.SimpleTypeDefinition.VARIETY_union == td.variety()):
         # If the union has enumerations of its own, there's no need to
         # inherit anything, because they supersede anything implicitly
@@ -444,9 +477,9 @@ def GenerateFacets (td, generator, **kw):
                     outf.write("%-50s%s\n" % ('%s = %s' % binding_module.literal( (enum_member, i.unicodeValue()) ),
                                               '# originally %s.%s' % (binding_module.literal(etd), i.tag())))
     if 2 <= len(facet_instances):
-        map_args = ",\n   ".join(facet_instances)
+        map_args = ",\n   ".join(facet_var for facet_var, _ in facet_instances)
     else:
-        map_args = ','.join(facet_instances)
+        map_args = ','.join(facet_var for facet_var, _ in facet_instances)
     outf.write("%s._InitializeFacetMap(%s)\n" % (binding_module.literal(td, **kw), map_args))
 
 def _VCAppendAuxInit (vc_source, aux_init, binding_module, kw):
@@ -497,7 +530,7 @@ def GenerateSTD (std, generator):
     else:
         template_map['qname'] = '[anonymous]'
     template_map['namespaceReference'] = binding_module.literal(std.bindingNamespace(), **kw)
-    template_map['xsd_location'] = repr2to3(std._location())
+    template_map['xsd_location'] = _LocationRepr(std._location())
     if std.annotation() is not None:
         template_map['documentation'] = std.annotation().asDocString()
         template_map['documentation_expr'] = binding_module.literal(std.annotation().text())
@@ -565,7 +598,7 @@ class %{std} (pyxb.binding.basis.STD_union):
 def elementDeclarationMap (ed, binding_module, **kw):
     template_map = { }
     template_map['qname'] = six.text_type(ed.expandedName())
-    template_map['decl_location'] = repr2to3(ed._location())
+    template_map['decl_location'] = _LocationRepr(ed._location())
     template_map['namespaceReference'] = binding_module.literal(ed.bindingNamespace(), **kw)
     if (ed.SCOPE_global == ed.scope()):
         binding_name = template_map['class'] = binding_module.literal(ed, **kw)
@@ -871,7 +904,7 @@ def GenerateCTD (ctd, generator, **kw):
         template_map['qname'] = six.text_type(ctd.expandedName())
     else:
         template_map['qname'] = '[anonymous]'
-    template_map['xsd_location'] = repr2to3(ctd._location())
+    template_map['xsd_location'] = _LocationRepr(ctd._location())
     template_map['simple_base_type'] = binding_module.literal(None, **kw)
     template_map['contentTypeTag'] = content_type_tag
     template_map['is_abstract'] = repr2to3(not not ctd.abstract())
@@ -1024,8 +1057,8 @@ class %{ctd} (%{superclass}):
 
         assert ad.typeDefinition() is not None
         au_map['attr_type'] = binding_module.literal(ad.typeDefinition(), in_class=True, **kw)
-        au_map['decl_location'] = repr2to3(ad._location())
-        au_map['use_location'] = repr2to3(au._location())
+        au_map['decl_location'] = _LocationRepr(ad._location())
+        au_map['use_location'] = _LocationRepr(au._location())
 
         vc_source = ad
         if au.valueConstraint() is not None:
@@ -1164,8 +1197,13 @@ class BindingIO (object):
         self.__postscript = []
         self.__templateMap = kw.copy()
         encoding = kw.get('encoding', pyxb._OutputEncoding)
+        # It's important to replace the OS-dependent path separator with
+        # a fixed value here, so we reproducibly generate the same code
+        # for the same input regardless of what OS this is run on.
+        # It really doesn't matter what separator we use, so long as it's
+        # consistent, so we use '/'.
         self.__templateMap.update({ 'date' : str(datetime.datetime.now()),
-                                    'filePath' : self.__bindingFilePath,
+                                    'filePath' : self.__bindingFilePath.replace(os.path.sep, '/'),
                                     'coding' : encoding,
                                     'binding_module' : binding_module,
                                     'binding_tag' : binding_module.bindingTag(),
@@ -1174,11 +1212,19 @@ class BindingIO (object):
                                     'pythonVersion' : '.'.join(map(str, sys.version_info))})
         self.__stringIO = io.StringIO()
         if self.__bindingFile:
-            prefacet = self.expand('''# %{filePath}
+            if _NoTimestamp:
+                prefacet_template = '''# %{filePath}
+# -*- coding: %{coding} -*-
+# PyXB bindings for %{binding_tag}
+# Generated by PyXB version %{pyxbVersion}
+%{binding_preface}'''
+            else:
+                prefacet_template = '''# %{filePath}
 # -*- coding: %{coding} -*-
 # PyXB bindings for %{binding_tag}
 # Generated %{date} by PyXB version %{pyxbVersion} using Python %{pythonVersion}
-%{binding_preface}''', binding_preface=binding_module.bindingPreface())
+%{binding_preface}'''
+            prefacet = self.expand(prefacet_template, binding_preface=binding_module.bindingPreface())
             self.__bindingFile.write(prefacet.encode(encoding))
             self.__bindingFile.flush()
 
@@ -1362,6 +1408,10 @@ class _ModuleNaming_mixin (object):
                 aux_imports.append('import %s as %s' % (mr.modulePath(), as_path))
             else:
                 aux_imports.append('import %s' % (mr.modulePath(),))
+        # It's important to sort the imports here, so we reproducibly generate
+        # the same code for the same input.  It really doesn't matter *how*
+        # they're sorted.
+        aux_imports.sort()
         template_map['aux_imports'] = "\n".join(aux_imports)
         template_map['namespace_decls'] = "\n".join(self.__namespaceDeclarations)
         template_map['module_uid'] = self.moduleUID()
@@ -2314,6 +2364,44 @@ from %s import *
         self.__loggingConfigFile = logging_config_file
     __loggingConfigFile = None
 
+    def stripFilePaths (self):
+        """Don't store schema file paths in the generated bindings, only store
+        filenames.  This hides potentially-sensitive file paths (e.g.
+        usernames), and helps ensure that builds are reproducible.
+
+        @rtype: C{bool}"""
+        return self.__stripFilePaths
+    def setStripFilePaths (self, value):
+        self.__stripFilePaths = value
+        global _StripFilePaths
+        _StripFilePaths = value
+    __stripFilePaths = None
+
+    def noTimestamp (self):
+        """Don't store timestamps and Python version in comments in the
+        generated bindings.  This helps ensure that builds are reproducible.
+
+        @rtype: C{bool}"""
+        return self.__stripFilePaths
+    def setNoTimestamp (self, value):
+        self.__noTimestamp = value
+        global _NoTimestamp
+        _NoTimestamp = value
+    __noTimestamp = None
+
+    def generationUID (self):
+        """A unique identifier associated with this Generator instance.
+
+        This is an instance of L{pyxb.utils.utility.UniqueIdentifier}.
+        Its associated objects are
+        L{pyxb.namespace.archive._SchemaOrigin} instances, which
+        identify schema that contribute to the definition of a
+        namespace."""
+        return self.__generationUID
+    def setGenerationUID (self, value):
+        self.__generationUID = pyxb.utils.utility.UniqueIdentifier(value)
+    __generationUID = None
+
     def __init__ (self, *args, **kw):
         """Create a configuration to be used for generating bindings.
 
@@ -2344,6 +2432,8 @@ from %s import *
         @keyword generate_to_files: Sets L{generateToFiles}
         @keyword uri_content_archive_directory: Invokes L{setUriContentArchiveDirectory}
         @keyword logging_config_file: Invokes L{setLoggingConfigFile}
+        @keyword strip_file_paths: Invokes L{setStripFilePaths}
+        @keyword no_timestamp: Invokes L{setNoTimestamp}
         """
         argv = kw.get('argv')
         if argv is not None:
@@ -2373,13 +2463,19 @@ from %s import *
         self.__generateToFiles = kw.get('generate_to_files', True)
         self.__uriContentArchiveDirectory = kw.get('uri_content_archive_directory')
         self.__loggingConfigFile = kw.get('logging_config_file')
+        self.__stripFilePaths = kw.get('strip_file_paths', False)
+        self.__noTimestamp = kw.get('no_timestamp', False)
         self.__unnamedModulePaths = set()
+
+        generationUID = kw.get('generation_uid', None)
+        if generationUID is None:
+            self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
+        else:
+            self.__generationUID = pyxb.utils.utility.UniqueIdentifier(generationUID)
 
         if argv is not None:
             self.applyOptionValues(*self.optionParser().parse_args(argv))
         [ self.addSchemaLocation(_a) for _a in args ]
-
-        self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
 
         pyxb.namespace.XML.validateComponentModel()
 
@@ -2405,7 +2501,10 @@ from %s import *
         ('allow_builtin_generation', setAllowBuiltinGeneration),
         ('allow_absent_module', setAllowAbsentModule),
         ('uri_content_archive_directory', setUriContentArchiveDirectory),
-        ('logging_config_file', setLoggingConfigFile)
+        ('logging_config_file', setLoggingConfigFile),
+        ('strip_file_paths', setStripFilePaths),
+        ('no_timestamp', setNoTimestamp),
+        ('generation_uid', setGenerationUID)
         )
     def applyOptionValues (self, options, args=None):
         for (tag, method) in self.__OptionSetters:
@@ -2427,17 +2526,6 @@ from %s import *
         (options, args) = self.optionParser().parse_args(argv)
         self.applyOptionValues(options, args)
         return self
-
-    def generationUID (self):
-        """A unique identifier associated with this Generator instance.
-
-        This is an instance of L{pyxb.utils.utility.UniqueIdentifier}.
-        Its associated objects are
-        L{pyxb.namespace.archive._SchemaOrigin} instances, which
-        identify schema that contribute to the definition of a
-        namespace."""
-        return self.__generationUID
-    __generationUID = None
 
     def optionParser (self, reset=False):
         """Return an C{optparse.OptionParser} instance tied to this configuration.
@@ -2517,6 +2605,18 @@ from %s import *
             group.add_option('--no-validate-changes',
                               action='store_false', dest='validate_changes',
                               help=self.__stripSpaces(self.validateChanges.__doc__ + ' This option turns off validation.'))
+            parser.add_option_group(group)
+
+            group = optparse.OptionGroup(parser, 'Reproducible builds', "Options to help ensure that bindings are always generated the same.")
+            group.add_option('--strip-file-paths',
+                             action="store_true", dest='strip_file_paths',
+                             help=self.__stripSpaces(self.stripFilePaths.__doc__))
+            group.add_option('--no-timestamp',
+                             action="store_true", dest='no_timestamp',
+                             help=self.__stripSpaces(self.noTimestamp.__doc__))
+            group.add_option('--generation-uid',
+                             dest='generation_uid',
+                             help='Unique ID for this generation run.  A urn:uuid: value.  Defaults to a random value.')
             parser.add_option_group(group)
 
             group = optparse.OptionGroup(parser, 'Miscellaneous Options', "Anything else.")

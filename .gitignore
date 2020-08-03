@@ -3,3 +3,5 @@
 *.wxs
 test.log
 /build/
+/dist/
+/PyXB.egg-info/

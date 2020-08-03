@@ -1,3 +1,5 @@
+#! /bin/sh
+
 PYXB_ARCHIVE_PATH=.
 export PYXB_ARCHIVE_PATH
 
