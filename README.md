@@ -1,12 +1,11 @@
-PyXB -- Python W3C XML Schema Bindings
-Version 1.2.7-DEV
+# PyXB -- Python W3C XML Schema Bindings
 
 The source releases includes pre-built bundles for common XML namespaces,
-assorted web service namespaces, and SAML.  A bundle with over 75 namespaces
+assorted web service namespaces, and SAML. A bundle with over 75 namespaces
 related to Geographic Information Systems is also available; if you want
 those, read pyxb/bundles/opengis/README.txt before installing PyXB.
 
-Installation:  python setup.py install
+Installation: python setup.py install
 
 Documentation: doc/html or https://pabigot.github.io/pyxb/
 

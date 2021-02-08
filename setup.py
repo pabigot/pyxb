@@ -4,11 +4,11 @@ from __future__ import print_function
 import sys
 
 # The current version of the system.  Format is #.#.#[-DEV].
-version = '1.2.7-DEV'
+version = '1.2.7'
 
 # Require Python 2.6 or higher or Python 3.1 or higher
 if (sys.version_info[:2] < (2, 6)) or ((sys.version_info[0] == 3) and sys.version_info[:2] < (3, 1)):
-    raise ValueError('''PyXB requires:
+    raise ValueError('''PyXB-X requires:
   Python2 version 2.6 or later; or
   Python3 version 3.1 or later
 (You have %s.)''' % (sys.version,))
@@ -34,7 +34,7 @@ class update_version (Command):
 
     # Files in the distribution that need to be rewritten when the
     # version number changes
-    files = ( 'README.txt', 'pyxb/__init__.py', 'doc/conf.py' )
+    files = ( 'pyxb/__init__.py', 'doc/conf.py' )
 
     # The substitutions (key braced by @ signs)
     substitutions = { 'VERSION' : version,
@@ -215,8 +215,8 @@ for possible_bundle in possible_bundles:
         packages.extend(b_packages)
         package_data.update(b_data)
 
-setup(name='PyXB',
-      description = 'PyXB ("pixbee") is a pure Python package that generates Python source code for classes that correspond to data structures defined by XMLSchema.',
+setup(name='PyXB-X',
+      description = 'PyXB-X ("pixbix") is a pure Python package that generates Python source code for classes that correspond to data structures defined by XMLSchema.',
       author='Peter A. Bigot',
       author_email='pabigot@users.sourceforge.net',
       url='http://pyxb.sourceforge.net',
