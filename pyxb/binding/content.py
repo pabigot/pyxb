@@ -796,7 +796,7 @@ class WildcardUse (_FACSymbol):
     def __str__ (self):
         return 'xs:any per %s' % (self.xsdLocation(),)
 
-import collections
+import collections.abc
 
 # Do not inherit from list; that's obscene, and could cause problems with the
 # internal assumptions made by Python.  Instead delegate everything to an
@@ -804,7 +804,7 @@ import collections
 # represents list-style data structures so we can identify both lists and
 # these things which are not lists.
 @pyxb.utils.utility.BackfillComparisons
-class _PluralBinding (collections.MutableSequence):
+class _PluralBinding (collections.abc.MutableSequence):
     """Helper for element content that supports multiple occurences.
 
     This is an adapter for Python list.  Any operation that can mutate an item
