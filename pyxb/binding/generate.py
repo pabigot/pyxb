@@ -1361,7 +1361,7 @@ class _ModuleNaming_mixin (object):
             if as_path is not None:
                 aux_imports.append('import %s as %s' % (mr.modulePath(), as_path))
             else:
-                aux_imports.append('import %s' % (mr.modulePath(),))
+                aux_imports.append('from . import %s' % (mr.modulePath(),))
         template_map['aux_imports'] = "\n".join(aux_imports)
         template_map['namespace_decls'] = "\n".join(self.__namespaceDeclarations)
         template_map['module_uid'] = self.moduleUID()
