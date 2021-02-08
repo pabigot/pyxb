@@ -1,3 +1,5 @@
+#! /bin/sh
+
 pyxbgen -u example.xsd -m example
 
 fail () {

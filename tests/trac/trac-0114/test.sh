@@ -1,3 +1,5 @@
+#! /bin/sh
+
 rm -f noi.py nois.py *.pyc
 
 pyxbgen -u namespace_other_issue.xsd -m noi

@@ -1,3 +1,5 @@
+#! /bin/sh
+
 URI='http://graphical.weather.gov/xml/DWMLgen/schema/DWML.xsd'
 PREFIX='DWML'
 

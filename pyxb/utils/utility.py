@@ -18,6 +18,8 @@
 import re
 import os
 import errno
+import uuid
+import hashlib
 import pyxb
 from pyxb.utils.six.moves.urllib import parse as urlparse
 import time
@@ -829,15 +831,6 @@ def OpenOrCreate (file_name, tag=None, preserve_contents=False):
         fp.seek(2) # os.SEEK_END
     return fp
 
-# hashlib didn't show up until 2.5, and sha is deprecated in 2.6.
-__Hasher = None
-try:
-    import hashlib
-    __Hasher = hashlib.sha1
-except ImportError:
-    import sha
-    __Hasher = sha.new
-
 def HashForText (text):
     """Calculate a cryptographic hash of the given string.
 
@@ -850,26 +843,7 @@ def HashForText (text):
     """
     if isinstance(text, six.text_type):
         text = text.encode('utf-8')
-    return __Hasher(text).hexdigest()
-
-# uuid didn't show up until 2.5
-__HaveUUID = False
-try:
-    import uuid
-    __HaveUUID = True
-except ImportError:
-    import random
-def _NewUUIDString ():
-    """Obtain a UUID using the best available method.  On a version of
-    python that does not incorporate the C{uuid} class, this creates a
-    string combining the current date and time (to the second) with a
-    random number.
-
-    @rtype: C{str}
-    """
-    if __HaveUUID:
-        return uuid.uuid1().urn
-    return '%s:%08.8x' % (time.strftime('%Y%m%d%H%M%S'), random.randint(0, 0xFFFFFFFF))
+    return hashlib.sha1(text).hexdigest()
 
 class UniqueIdentifier (object):
     """Records a unique identifier, generally associated with a
@@ -908,7 +882,7 @@ class UniqueIdentifier (object):
     # Singleton-like
     def __new__ (cls, *args):
         if 0 == len(args):
-            uid = _NewUUIDString()
+            uid = uuid.uuid4().urn
         else:
             uid = args[0]
         if isinstance(uid, UniqueIdentifier):
@@ -1299,6 +1273,27 @@ class Location (object):
         t = type(self)
         ctor = '%s.%s' % (t.__module__, t.__name__)
         return '%s(%s, %r, %r)' % (ctor, repr2to3(self.__locationBase), self.__lineNumber, self.__columnNumber)
+
+    def withFilePathsRemoved(self):
+        '''Return a version of this Locator with any file paths removed.
+        Just the file name remains.
+
+        If this Locator points to a HTTP or HTTPS URL, it is returned unchanged.
+
+        This is used when generating bindings.  There are two reasons for this:
+        It hides potentially-sensitive file paths (e.g. usernames if building
+        in My Documents on Windows or in a user's home directory on Unix
+        systems).  It also helps ensure that builds are reproducible - if
+        different users build the same bindings from the same source files they
+        should end up with the same binding Python files, even if they build
+        in different directories or on different OSs.
+        '''
+        proto = self.__locationBase.split(':', 1)[0]
+        if proto in ('http', 'https'):
+            return self
+        filename = self.__locationBase.rsplit('/', 1)[-1]
+        return type(self)(filename, self.__lineNumber, self.__columnNumber)
+
 
 class Locatable_mixin (pyxb.cscRoot):
     __location = None

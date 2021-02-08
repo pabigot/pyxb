@@ -1,3 +1,5 @@
+#! /bin/sh
+
 # This module is sourced by genbind scripts in bundle directories to
 # initialize a bundle area and provide a function to translate schema.
 

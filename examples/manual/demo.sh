@@ -1,3 +1,5 @@
+#! /bin/sh
+
 rm -f *.wxs po?.py *.pyc
 sh demo1.sh \
  && python demo1.py > demo1.out \

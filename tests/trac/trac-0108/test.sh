@@ -1,3 +1,5 @@
+#! /bin/sh
+
 rm -f TestPatternRestriction.py
 pyxbgen -u TestPatternRestriction.xsd -m TestPatternRestriction \
  && python check.py \
