@@ -1,3 +1,5 @@
+#! /bin/sh
+
 # Download a mirror of the W3C technical archive
 #  --backup-converted
 

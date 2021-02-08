@@ -1,3 +1,5 @@
+#! /bin/sh
+
 URI='http://docs.tms.tribune.com/tech/xml/schemas/tmsxtvd.xsd'
 PREFIX='tmstvd'
 

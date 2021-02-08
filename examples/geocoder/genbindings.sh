@@ -1,3 +1,5 @@
+#! /bin/sh
+
 GEO_WSDL_URI='http://geocoder.us/dist/eg/clients/GeoCoder.wsdl'
 GEO_PREFIX=GeoCoder
 GEO_WSDL="${GEO_PREFIX}.wsdl"
