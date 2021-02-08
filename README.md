@@ -1,7 +1,6 @@
 # PyXB-X -- Python W3C XML Schema Bindings
 
-PyXB -- Python W3C XML Schema Bindings
-Version 1.2.7.dev1
+PyXB-Extended -- Python W3C XML Schema Bindings
 
 What is this fork for?:
 
