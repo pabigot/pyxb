@@ -53,6 +53,7 @@ from pyxb.exceptions_ import *
 import pyxb.namespace
 import pyxb.utils.unicode
 from pyxb.utils import six
+from pyxb.utils.typeutils import make_base_dt
 from . import basis
 
 _log = logging.getLogger(__name__)
@@ -578,7 +579,7 @@ class dateTime (_PyXBDateTime_base, datetime.datetime):
 
         @rtype: C{datetime.datetime} (B{NOT} C{xsd.dateTime})
         """
-        dt = self
+        dt = make_base_dt(self)
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=self._UTCTimeZone)
         return dt.astimezone(self._LocalTimeZone)
@@ -669,6 +670,7 @@ class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.datetime):
                 except AttributeError:
                     pass
             else:
+                print(args)
                 fi = 0
                 while fi < len(cls._ValidFields):
                     fn = cls._ValidFields[fi]
@@ -749,22 +751,25 @@ class date (_PyXBDateOnly_base):
 
     @classmethod
     def XsdLiteral (cls, value):
+        # Create a copy of `value` using datetime baseclass
+        # This allows us to do datetime arithmetic on Python 3.8+
+        base_value = make_base_dt(value)
         # Work around strftime year restriction
         fmt = cls._Lexical_fmt
         rtz = value.xsdRecoverableTzinfo()
         if rtz is not None:
             # If the date is timezoned, convert it to UTC
-            value -= value.tzinfo.utcoffset(value)
-            value = value.replace(tzinfo=cls._UTCTimeZone)
+            base_value -= base_value.tzinfo.utcoffset(value)
+            base_value = base_value.replace(tzinfo=cls._UTCTimeZone)
         # Use the midpoint of the one-day interval to get the correct
         # month/day.
-        value += datetime.timedelta(minutes=cls.__MinutesPerHalfDay)
-        if value.year < 1900:
-            fmt = fmt.replace('%Y', '%04d' % (value.year,))
-            value = value.replace(year=1900)
+        base_value += datetime.timedelta(minutes=cls.__MinutesPerHalfDay)
+        if base_value.year < 1900:
+            fmt = fmt.replace('%Y', '%04d' % (base_value.year,))
+            base_value = base_value.replace(year=1900)
         if rtz is not None:
-            fmt += rtz.tzname(value)
-        return value.strftime(fmt)
+            fmt += rtz.tzname(base_value)
+        return base_value.strftime(fmt)
 
 _PrimitiveDatatypes.append(date)
 

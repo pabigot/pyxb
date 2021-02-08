@@ -1,4 +1,4 @@
-# PyXB -- Python W3C XML Schema Bindings
+# PyXB-X -- Python W3C XML Schema Bindings
 
 PyXB -- Python W3C XML Schema Bindings
 Version 1.2.7.dev1
@@ -7,9 +7,27 @@ What is this fork for?:
 
 Essentially the exact same reasoning as Jon discusses below, but with the intention of having a PyPI-published copy available.
 
-Jon Foster (upstream) PyXB README follows:
+## Developer notes
+
+### Python 3.8 testing failures
+
+Currently, `python setup.py test` fails on Python 3.8+. This is a false failure caused by changes to the `toxml` method (https://docs.python.org/3/library/xml.dom.minidom.html#xml.dom.minidom.Node.toxml).
+
+In Python 3.8+ `toxml` preserves the original element order, which the current tests do not assume. Since < 3.8 produces a slightly different, but equally valid output, we can't easily just change the unit tests to match.
+
+This is something I'll work on sorting out soon.
+
+### Calendar versioning
+
+We want Py-XB-X to stay more or less in sync with upstream Py-XB. However, this fork adds significant new features that would constitute new version numbers under semantic versioning. If we were to adopt semantic versioning, we would rapidly fall completely out of sync with the upstream version numbers.
+
+By using calendar versioning, and clearly tracking new additions to the library, we can ensure the upstream base version is obvious (by looking at its release date in relation to our current calendar version), without worrying about what new features count as justifying new semantic versions.
+
+This can change however if everyone else deems it a bad idea.
 
 ---
+
+Jon Foster (upstream) PyXB README follows:
 
 What is this fork for?:
 
@@ -19,7 +37,7 @@ I don't have the time, inclination or the knowledge of PyXB's internals to be a 
 
 My experience is that PyXB is very complex and seriously lacking documentation, and does not have a stable API, but it can be made to work with some trial-and-error. The concept is great, and it works, and I'm not aware of anything better (though I haven't looked for a couple of years).
 
-## -- Jon Foster
+**-- Jon Foster**
 
 Original (upstream) PyXB README follows:
 
