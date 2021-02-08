@@ -640,7 +640,6 @@ class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.datetime):
     _XsdBaseType = anySimpleType
 
     _ValidFields = ( 'year', 'month', 'day' )
-    _PermittedExtraFields = ( 'hour', 'minute', 'second', 'microsecond' )
 
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
@@ -670,28 +669,24 @@ class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.datetime):
                 except AttributeError:
                     pass
             else:
+                # A terrible hack for handling Python 3.8's update to how timedeltas are handled.
+                if len(args) == 8 and all(type(a) in (int, None) for a in args):
+                    args = args[:3] + args[-1:]
+
                 fi = 0
-                while fi < len(cls._ValidFields + cls._PermittedExtraFields):
-                    if fi < len(cls._ValidFields):
-                        fn = cls._ValidFields[fi]
-                        if fi < len(args):
-                            ctor_kw[fn] = args[fi]
-                        elif fn in kw:
-                            ctor_kw[fn] = kw[fn]
-                        kw.pop(fn, None)
+                while fi < len(cls._ValidFields):
+                    fn = cls._ValidFields[fi]
+                    if fi < len(args):
+                        ctor_kw[fn] = args[fi]
+                    elif fn in kw:
+                        ctor_kw[fn] = kw[fn]
+                    kw.pop(fn, None)
                     fi += 1
                 if fi < len(args):
                     ctor_kw['tzinfo'] = args[fi]
                     fi += 1
                 if fi != len(args):
-                    raise TypeError(
-                        'function requires at least %d arguments, permits (and ignores) an additional %d arguments, '
-                        'plus an optional tzinfo (%d argments given)' % (
-                            len(cls._ValidFields + cls._PermittedExtraFields),
-                            len(cls._PermittedExtraFields),
-                            len(args)
-                        )
-                    )
+                    raise TypeError('function takes %d arguments plus optional tzinfo (%d given)' % (len(cls._ValidFields), len(args)))
         else:
             raise TypeError('function takes %d arguments plus optional tzinfo' % (len(cls._ValidFields),))
 
