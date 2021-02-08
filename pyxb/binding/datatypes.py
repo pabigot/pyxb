@@ -669,10 +669,6 @@ class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.datetime):
                 except AttributeError:
                     pass
             else:
-                # A terrible hack for handling Python 3.8's update to how timedeltas are handled.
-                if len(args) == 8 and all(type(a) in (int, None) for a in args):
-                    args = args[:3] + args[-1:]
-
                 fi = 0
                 while fi < len(cls._ValidFields):
                     fn = cls._ValidFields[fi]
