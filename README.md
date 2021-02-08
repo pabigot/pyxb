@@ -7,6 +7,10 @@ What is this fork for?:
 
 Essentially the exact same reasoning as Jon discusses below, but with the intention of having a PyPI-published copy available.
 
+## Installation
+
+`pip install PyXB-X`
+
 ## Developer notes
 
 ### Python 3.8 testing failures
