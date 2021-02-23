@@ -1242,9 +1242,6 @@ _GenerationUID = %{generation_uid_expr}
 
 # Version of PyXB used to generate the bindings
 _PyXBVersion = %{pyxb_version}
-# Generated bindings are not compatible across PyXB versions
-if pyxb.__version__ != _PyXBVersion:
-    raise pyxb.PyXBVersionError(_PyXBVersion)
 
 # A holder for module-level binding classes so we can access them from
 # inside class definitions where property names may conflict.
