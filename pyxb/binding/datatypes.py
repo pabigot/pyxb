@@ -639,7 +639,7 @@ _PrimitiveDatatypes.append(time)
 class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.datetime):
     _XsdBaseType = anySimpleType
 
-    _ValidFields = ( 'year', 'month', 'day' )
+    _ValidFields = ( 'year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond', 'tzinfo' )
 
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
