@@ -18,13 +18,6 @@ In Python 3.8+ `toxml` preserves the original element order, which the current t
 
 This is something I'll work on sorting out soon.
 
-### Calendar versioning
-
-We want PyXB-X to stay more or less in sync with upstream PyXB. However, this fork adds significant new features that would constitute new version numbers under semantic versioning. If we were to adopt semantic versioning, we would rapidly fall completely out of sync with the upstream version numbers.
-
-By using calendar versioning, and clearly tracking new additions to the library, we can ensure the upstream base version is obvious (by looking at its release date in relation to our current calendar version), without worrying about what new features count as justifying new semantic versions.
-
-This can change however if everyone else deems it a bad idea.
 
 ---
 
