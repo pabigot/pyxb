@@ -678,10 +678,10 @@ class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.datetime):
                         ctor_kw[fn] = kw[fn]
                     kw.pop(fn, None)
                     fi += 1
-                if fi < len(args):
-                    ctor_kw['tzinfo'] = args[fi]
+                if len(args) == len(cls._ValidFields) + 1 or len(args) == len(cls._ValidFields) + 5:
+                    ctor_kw['tzinfo'] = args[-1]
                     fi += 1
-                if fi != len(args):
+                if fi > 8:
                     raise TypeError('function takes %d arguments plus optional tzinfo (%d given)' % (len(cls._ValidFields), len(args)))
         else:
             raise TypeError('function takes %d arguments plus optional tzinfo' % (len(cls._ValidFields),))
