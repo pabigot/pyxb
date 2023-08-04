@@ -17,7 +17,7 @@
 inherit, and that describe the content models of those schema."""
 
 import logging
-import collections
+import collections.abc
 import xml.dom
 import pyxb
 from pyxb.utils import domutils, utility, six
@@ -1163,7 +1163,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
             raise pyxb.SimpleTypeValueError(cls, value)
         value_class = cls
         if issubclass(cls, STD_list):
-            if not isinstance(value, collections.Iterable):
+            if not isinstance(value, collections.abc.Iterable):
                 raise pyxb.SimpleTypeValueError(cls, value)
             for v in value:
                 if not cls._ItemType._IsValidValue(v):
@@ -1363,7 +1363,7 @@ class STD_list (simpleTypeDefinition, six.list_type):
             if isinstance(arg1, six.string_types):
                 args = (arg1.split(),) + args[1:]
                 arg1 = args[0]
-            if isinstance(arg1, collections.Iterable):
+            if isinstance(arg1, collections.abc.Iterable):
                 new_arg1 = [ cls._ValidatedItem(_v, kw) for _v in arg1 ]
                 args = (new_arg1,) + args[1:]
         super_fn = getattr(super(STD_list, cls), '_ConvertArguments_vx', lambda *a,**kw: args)
@@ -1646,7 +1646,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             return self.__defaultValue
         is_plural = kw.pop('is_plural', False)
         if is_plural:
-            if not isinstance(value, collections.Iterable):
+            if not isinstance(value, collections.abc.Iterable):
                 raise pyxb.SimplePluralValueError(self.typeDefinition(), value)
             return [ self.compatibleValue(_v) for _v in value ]
         compValue = self.typeDefinition()._CompatibleValue(value, **kw);

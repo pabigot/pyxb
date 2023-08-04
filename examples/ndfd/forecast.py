@@ -5,7 +5,7 @@ import datetime
 import pyxb.binding.datatypes as xsd
 from pyxb.utils.six.moves.urllib.request import urlopen
 import time
-import collections
+import collections.abc
 import sys
 
 # Get the next seven days forecast for two locations
@@ -32,7 +32,7 @@ print('%s %s' % (product.title, product.category))
 source = r.head.source
 print(", ".join(source.production_center.content()))
 data = r.data
-if isinstance(data, collections.MutableSequence):
+if isinstance(data, collections.abc.MutableSequence):
     data = data.pop(0)
 print(data)
 
