@@ -1966,8 +1966,8 @@ from %s import *
         """
         return self.__locationPrefixRewriteMap
     def setLocationPrefixRewriteMap (self, location_prefix_rewrite_map):
-        self.__locationPrefixMap.clear()
-        self.__locationPrefixMap.update(location_prefix_rewrite_map)
+        self.__locationPrefixRewriteMap.clear()
+        self.__locationPrefixRewriteMap.update(location_prefix_rewrite_map)
         return self
     def addLocationPrefixRewrite (self, prefix, substituent):
         """Add a rewrite entry for schema locations.
@@ -1981,7 +1981,7 @@ from %s import *
 
         self.__locationPrefixRewriteMap[prefix] = substituent
         return self
-    def argAddLocationPrefixRewrite (self, prefix_rewrite):
+    def argSetLocationPrefixRewriteMap (self, prefix_rewrites):
         """Add a rewrite entry for schema locations.
 
         Parameter values are strings of the form C{pfx=sub}.  The
@@ -1996,11 +1996,10 @@ from %s import *
         """
 
         try:
-            (prefix, substituent) = prefix_rewrite.split('=', 1)
+            rewrite_map = dict(map(lambda rewrite: rewrite.split('=', 1), prefix_rewrites))
         except:
             raise
-        self.addLocationPrefixRewrite(prefix, substituent)
-    __locationPrefixMap = {}
+        self.setLocationPrefixRewriteMap(rewrite_map)
 
     def schemaLocationList (self):
         """A list of locations from which entrypoint schemas are to be
@@ -2391,7 +2390,7 @@ from %s import *
         ('binding_root', setBindingRoot),
         ('schema_root', setSchemaRoot),
         ('schema_stripped_prefix', setSchemaStrippedPrefix),
-        ('location_prefix_rewrite', argAddLocationPrefixRewrite),
+        ('location_prefix_rewrite', argSetLocationPrefixRewriteMap),
         ('schema_location', setSchemaLocationList),
         ('module', _setModuleList),
         ('module_prefix', setModulePrefix),
@@ -2461,7 +2460,8 @@ from %s import *
             group.add_option('--schema-stripped-prefix', metavar="TEXT", type='string',
                              help=self.__stripSpaces(self.schemaStrippedPrefix.__doc__))
             group.add_option('--location-prefix-rewrite', metavar="TEXT", type='string',
-                             help=self.__stripSpaces(self.argAddLocationPrefixRewrite.__doc__))
+                             action='append',
+                             help=self.__stripSpaces(self.argSetLocationPrefixRewriteMap.__doc__))
             group.add_option('--uri-content-archive-directory', metavar="DIRECTORY",
                              help=self.__stripSpaces(self.uriContentArchiveDirectory.__doc__))
             parser.add_option_group(group)
